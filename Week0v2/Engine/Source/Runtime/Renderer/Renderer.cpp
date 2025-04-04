@@ -218,7 +218,6 @@ void FRenderer::PrepareRender()
     }
     else if (GEngine->GetWorld()->WorldType == EWorldType::PIE)
     {
-        // UE_LOG(LogLevel::Display, "%d", GEngine->GetWorld()->GetActors().Num() );
         for (const auto iter : GEngine->GetWorld()->GetActors())
         {
             
@@ -252,28 +251,13 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
 
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
         RenderStaticMeshes(World, ActiveViewport);
-    RenderGizmos(World, ActiveViewport);
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
         RenderBillboards(World, ActiveViewport);
+
+    RenderGizmos(World, ActiveViewport);
     RenderLight(World, ActiveViewport);
 
     ClearRenderArr();
-}
-
-void FRenderer::RenderPrimitive(ID3D11Buffer* pBuffer, UINT numVertices) const
-{
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pBuffer, &Stride, &offset);
-    Graphics->DeviceContext->Draw(numVertices, 0);
-}
-
-void FRenderer::RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices) const
-{
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &Stride, &offset);
-    Graphics->DeviceContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-    Graphics->DeviceContext->DrawIndexed(numIndices, 0, 0);
 }
 
 void FRenderer::RenderPrimitive(OBJ::FStaticMeshRenderData* renderData, TArray<FStaticMaterial*> materials, TArray<UMaterial*> overrideMaterial, int selectedSubMeshIndex = -1) const
@@ -345,30 +329,6 @@ void FRenderer::RenderTextPrimitive(
     Graphics->DeviceContext->PSSetShaderResources(0, 1, &_TextureSRV);
     Graphics->DeviceContext->PSSetSamplers(0, 1, &_SamplerState);
     Graphics->DeviceContext->Draw(numVertices, 0);
-}
-
-void FRenderer::RenderTexturedModelPrimitive(
-    ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices, ID3D11ShaderResourceView* InTextureSRV,
-    ID3D11SamplerState* InSamplerState
-) const
-{
-    if (!InTextureSRV || !InSamplerState)
-    {
-        Console::GetInstance().AddLog(LogLevel::Warning, "SRV, Sampler Error");
-    }
-    if (numIndices <= 0)
-    {
-        Console::GetInstance().AddLog(LogLevel::Warning, "numIndices Error");
-    }
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &Stride, &offset);
-    Graphics->DeviceContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-    //Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    Graphics->DeviceContext->PSSetShaderResources(0, 1, &InTextureSRV);
-    Graphics->DeviceContext->PSSetSamplers(0, 1, &InSamplerState);
-
-    Graphics->DeviceContext->DrawIndexed(numIndices, 0, 0);
 }
 
 void FRenderer::RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
