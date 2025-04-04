@@ -32,6 +32,9 @@ public:
     ID3D11Texture2D* DepthStencilBuffer = nullptr;  // 깊이/스텐실 텍스처
     ID3D11DepthStencilView* DepthStencilView = nullptr;  // 깊이/스텐실 뷰
     ID3D11DepthStencilState* DepthStencilState = nullptr;
+    ID3D11Texture2D* DepthCopyTexture;
+    ID3D11ShaderResourceView* DepthCopySRV;
+
     FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear) 할 때 사용할 색상(RGBA)
 
     ID3D11DepthStencilState* DepthStateDisable = nullptr;
@@ -40,6 +43,7 @@ public:
     void CreateDeviceAndSwapChain(HWND hWindow);
     void CreateDepthStencilBuffer(HWND hWindow);
     void CreateDepthStencilState();
+    void CreateDepthCopyTexture();
     void CreateRasterizerState();
     void ReleaseDeviceAndSwapChain();
     void CreateFrameBuffer();
@@ -54,6 +58,7 @@ public:
     ID3D11RasterizerState* GetCurrentRasterizer() { return CurrentRasterizer; }
     void ChangeRasterizer(EViewModeIndex evi);
     void ChangeDepthStencilState(ID3D11DepthStencilState* newDetptStencil);
+    ID3D11ShaderResourceView* GetCopiedShaderResourceView();
 
     uint32 GetPixelUUID(POINT pt);
     uint32 DecodeUUIDColor(FVector4 UUIDColor);

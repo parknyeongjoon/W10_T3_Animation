@@ -508,6 +508,9 @@
     <FxCompile Include="Shaders\StaticMeshPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\DebugDepthShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week0v2.natvis" />

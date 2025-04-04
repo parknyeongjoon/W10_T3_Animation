@@ -20,6 +20,7 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UObject/UObjectIterator.h"
 #include "Components/SkySphereComponent.h"
+#include "Engine/UnrealClient.h"
 
 
 void FRenderer::Initialize(FGraphicsDevice* graphics)
@@ -32,6 +33,15 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     CreateShader();
     CreateConstantBuffer();
     ConstantBufferUpdater.UpdateLitUnlitConstant(FlagBuffer, 1);
+
+    // temp
+    D3D11_SAMPLER_DESC sampDesc = {};
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    Graphics->Device->CreateSamplerState(&sampDesc, &DebugDepthSRVSampler);
+
 }
 
 void FRenderer::Release()
@@ -82,6 +92,14 @@ void FRenderer::CreateShader()
     ShaderManager.CreatePixelShader(
         L"Shaders/ShaderLine.hlsl", "mainPS",
         PixelLineShader);
+
+    ShaderManager.CreateVertexShader(
+        L"Shaders/DebugDepthShader.hlsl", "mainVS",
+        DebugDepthVertexShader, nullptr, 0); 
+
+    ShaderManager.CreatePixelShader(
+        L"Shaders/DebugDepthShader.hlsl", "mainPS",
+        DebugDepthPixelShader);
 }
 
 void FRenderer::ReleaseShader()
@@ -101,7 +119,6 @@ void FRenderer::PrepareShader() const
 
     if (ConstantBuffer)
     {
-        Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &ConstantBuffer);
         Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &ConstantBuffer);
         Graphics->DeviceContext->PSSetConstantBuffers(1, 1, &MaterialConstantBuffer);
         Graphics->DeviceContext->PSSetConstantBuffers(2, 1, &LightingBuffer);
@@ -164,6 +181,7 @@ void FRenderer::CreateConstantBuffer()
     TextureConstantBufer = RenderResourceManager.CreateConstantBuffer(sizeof(FTextureConstants));
     LightingBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLighting));
     FlagBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLitUnlitConstants));
+    CameraConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FCameraConstants));
 }
 
 void FRenderer::ReleaseConstantBuffer()
@@ -177,6 +195,7 @@ void FRenderer::ReleaseConstantBuffer()
     RenderResourceManager.ReleaseBuffer(TextureConstantBufer);
     RenderResourceManager.ReleaseBuffer(LightingBuffer);
     RenderResourceManager.ReleaseBuffer(FlagBuffer);
+    RenderResourceManager.ReleaseBuffer(CameraConstantBuffer);
 }
 #pragma endregion ConstantBuffer
 
@@ -247,15 +266,29 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
     ChangeViewMode(ActiveViewport->GetViewMode());
     ConstantBufferUpdater.UpdateLightConstant(LightingBuffer);
+
+    //RenderPostProcess(World, ActiveViewport);
+
+    // 1. 배치 렌더
     UPrimitiveBatch::GetInstance().RenderBatch(ConstantBuffer, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
+
+    // 2. 스태틱 메시 렌더
 
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
         RenderStaticMeshes(World, ActiveViewport);
+
+    // 3. 빌보드 렌더(빌보드, 텍스트)
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
         RenderBillboards(World, ActiveViewport);
 
+    // 4. 기즈모 렌더
     RenderGizmos(World, ActiveViewport);
+
+    // 5. 광원 렌더
     RenderLight(World, ActiveViewport);
+
+    // 6. 포스트 프로세스
+    RenderPostProcess(World, ActiveViewport);
 
     ClearRenderArr();
 }
@@ -486,6 +519,37 @@ void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportC
         }
     }
     PrepareShader();
+}
+
+void FRenderer::RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
+{
+    RenderDebugDepth(ActiveViewport);
+}
+
+void FRenderer::RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveViewport)
+{
+    // 현재 뷰포트의 뷰모드가 Depth 인지 확인
+    if (ActiveViewport->GetViewMode() != EViewModeIndex::VMI_Depth)
+    {
+        return;
+    }
+
+    Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+    Graphics->DeviceContext->CopyResource(Graphics->DepthCopyTexture, Graphics->DepthStencilBuffer);
+
+    
+    Graphics->DeviceContext->PSSetSamplers(0, 1, &DebugDepthSRVSampler);
+    Graphics->DeviceContext->PSSetShaderResources(0, 1, &Graphics->DepthCopySRV);
+
+    Graphics->DeviceContext->VSSetShader(DebugDepthVertexShader, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(DebugDepthPixelShader, nullptr, 0);
+    
+    // 렌더링 시 샘플러 설정
+    Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &CameraConstantBuffer);
+    Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &CameraConstantBuffer);
+
+
+    Graphics->DeviceContext->Draw(4, 0);
 }
 
 

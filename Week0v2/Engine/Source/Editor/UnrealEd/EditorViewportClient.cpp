@@ -40,7 +40,10 @@ void FEditorViewportClient::Tick(float DeltaTime)
     Input();
     UpdateViewMatrix();
     UpdateProjectionMatrix();
-
+    UEditorEngine::renderer.GetConstantBufferUpdater().UpdateCameraConstant(
+        UEditorEngine::renderer.CameraConstantBuffer,
+        this
+    );
 }
 
 void FEditorViewportClient::Release()
