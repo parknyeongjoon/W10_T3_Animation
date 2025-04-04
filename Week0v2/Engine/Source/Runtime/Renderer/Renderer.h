@@ -39,6 +39,7 @@ public:
     ID3D11Buffer* MaterialConstantBuffer = nullptr;
     ID3D11Buffer* SubMeshConstantBuffer = nullptr;
     ID3D11Buffer* TextureConstantBufer = nullptr;
+    ID3D11Buffer* CameraConstantBuffer = nullptr;
 
     FLighting lightingData;
 
@@ -51,11 +52,8 @@ public:
     void PrepareShader() const;
     
     //Render
-    void RenderPrimitive(ID3D11Buffer* pBuffer, UINT numVertices) const;
-    void RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices) const;
     void RenderPrimitive(OBJ::FStaticMeshRenderData* renderData, TArray<FStaticMaterial*> materials, TArray<UMaterial*> overrideMaterial, int selectedSubMeshIndex) const;
    
-    void RenderTexturedModelPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices, ID3D11ShaderResourceView* InTextureSRV, ID3D11SamplerState* InSamplerState) const;
     //Release
     void Release();
     void ReleaseShader();
@@ -76,6 +74,12 @@ public://텍스쳐용 기능 추가
     ID3D11VertexShader* VertexTextureShader = nullptr;
     ID3D11PixelShader* PixelTextureShader = nullptr;
     ID3D11InputLayout* TextureInputLayout = nullptr;
+
+	// 임시
+	ID3D11VertexShader* DebugDepthVertexShader = nullptr;
+	ID3D11PixelShader* DebugDepthPixelShader = nullptr;
+	// sampler
+	ID3D11SamplerState* DebugDepthSRVSampler = nullptr;
 
     uint32 TextureStride;
     struct FSubUVConstant
@@ -121,6 +125,10 @@ public: // line shader
     void RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
     void RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
+
+    // post process
+    void RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    void RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveViewport);
 private:
     TArray<UStaticMeshComponent*> StaticMeshObjs;
     TArray<UGizmoBaseComponent*> GizmoObjs;

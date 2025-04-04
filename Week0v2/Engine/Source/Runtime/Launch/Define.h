@@ -323,3 +323,15 @@ struct FSubUVConstant
     float indexU;
     float indexV;
 };
+
+struct alignas(16) FCameraConstants
+{
+    FMatrix ViewMatrix;
+    FMatrix ProjMatrix;
+    FMatrix ViewProjMatrix;
+
+    FVector CameraPos;
+    float NearPlane;
+    FVector CameraForward;
+    float FarPlane;
+};

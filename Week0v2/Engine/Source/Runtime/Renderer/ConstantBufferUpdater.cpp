@@ -1,5 +1,6 @@
 #include "ConstantBufferUpdater.h"
 #include <Engine/Texture.h>
+#include "Editor/UnrealEd/EditorViewportClient.h"
 
 void FConstantBufferUpdater::Initialize(ID3D11DeviceContext* InDeviceContext)
 {
@@ -120,5 +121,26 @@ void FConstantBufferUpdater::UpdateSubUVConstant(ID3D11Buffer* SubUVConstantBuff
             constants->indexV = _indexV;
         }
         DeviceContext->Unmap(SubUVConstantBuffer, 0);
+    }
+}
+
+
+void FConstantBufferUpdater::UpdateCameraConstant(ID3D11Buffer* CameraConstantBuffer, FEditorViewportClient* ViewportClient)
+{
+    if (CameraConstantBuffer)
+    {
+        D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
+        DeviceContext->Map(CameraConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR); // update constant buffer every frame
+        auto constants = static_cast<FCameraConstants*>(constantbufferMSR.pData);
+        {
+            constants->ViewMatrix = FMatrix::Transpose(ViewportClient->GetViewMatrix());
+            constants->ProjMatrix = FMatrix::Transpose(ViewportClient->GetProjectionMatrix());
+            constants->ViewProjMatrix = FMatrix::Transpose(constants->ViewMatrix * constants->ProjMatrix);
+            constants->CameraPos = ViewportClient->ViewTransformPerspective.GetLocation();
+            constants->NearPlane = ViewportClient->nearPlane;
+            constants->CameraForward = ViewportClient->ViewTransformPerspective.GetForwardVector();
+            constants->FarPlane = ViewportClient->farPlane;
+        }
+        DeviceContext->Unmap(CameraConstantBuffer, 0);
     }
 }
