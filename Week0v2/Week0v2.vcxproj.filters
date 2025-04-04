@@ -180,9 +180,6 @@
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\UClass.h">
       <Filter>Engine\Source\Runtime\CoreUObject\UObject</Filter>
     </ClInclude>
-    <ClCompile Include="Engine\Source\Runtime\Engine\World.cpp">
-      <Filter>Engine\Source\Runtime\Engine</Filter>
-    </ClCompile>
     <ClInclude Include="Engine\Source\Runtime\Engine\World.h">
       <Filter>Engine\Source\Runtime\Engine</Filter>
     </ClInclude>
@@ -309,9 +306,6 @@
     <ClInclude Include="Engine\Source\Runtime\Launch\Define.h">
       <Filter>Engine\Source\Runtime\Launch</Filter>
     </ClInclude>
-    <ClCompile Include="Engine\Source\Runtime\Launch\EngineLoop.cpp">
-      <Filter>Engine\Source\Runtime\Launch</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Launch\Launch.cpp">
       <Filter>Engine\Source\Runtime\Launch</Filter>
     </ClCompile>
@@ -421,8 +415,16 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\StaticMeshActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Actor.cpp" />
-    <ClInclude Include="RenderResourceManager.h" />
     <ClInclude Include="UEditorStateManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Level.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\World.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\UnrealEngine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Launch\EditorEngine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\ConstantBufferUpdater.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\ShaderManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderResourceManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -480,7 +482,6 @@
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\UObjectIterator.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\EngineBaseTypes.h" />
-    <ClInclude Include="Engine\Source\Runtime\Launch\EngineLoop.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Vector.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Matrix.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Quat.h" />
@@ -512,7 +513,15 @@
     <Natvis Include="Week0v2.natvis" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="RenderResourceManager.cpp" />
     <ClCompile Include="UEditorStateManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Level.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\ConstantBufferUpdater.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\World.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\UnrealEngine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Launch\EditorEngine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResourceManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\ShaderManager.cpp" />
   </ItemGroup>
 </Project>
