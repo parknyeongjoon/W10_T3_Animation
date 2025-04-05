@@ -1,0 +1,44 @@
+newmtl lambert9SG
+Ns 200.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd CastleExteriorTexture.jpg
+bump CastleExteriorTextureBump.jpg -bm 0.04
+
+newmtl lambert10SG
+Ns 200.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd GroundandFountainTexture.jpg
+bump GroundandFountainTextureBump.jpg -bm 0.035
+
+newmtl lambert11SG
+Ns 200.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd TowersDoorsandWindowsTexture.jpg
+bump TowersDoorsandWindowsTextureBump.jpg -bm 0.05
+
+newmtl lambert12SG
+Ns 200.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd CastleInteriorTexture.jpg
+bump CastleInteriorTextureBump.jpg -bm 0.04
+

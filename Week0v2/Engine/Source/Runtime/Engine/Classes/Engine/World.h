@@ -25,6 +25,7 @@ public:
     UWorld(const UWorld& Other);
     ;
     void InitWorld();
+    void PreLoadResources();
     void CreateBaseObject();
     void ReleaseBaseObject();
     void Tick(ELevelTick tickType, float deltaSeconds);

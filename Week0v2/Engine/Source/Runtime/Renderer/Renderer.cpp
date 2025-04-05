@@ -600,8 +600,11 @@ void FRenderer::UpdateMaterial(const FObjMaterialInfo& MaterialInfo) const
     if (MaterialInfo.bHasTexture == true)
     {
         std::shared_ptr<FTexture> texture = UEditorEngine::resourceMgr.GetTexture(MaterialInfo.DiffuseTexturePath);
-        Graphics->DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
-        Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
+        if (texture)
+        {
+            Graphics->DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
+            Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
+        }
     }
     else
     {
