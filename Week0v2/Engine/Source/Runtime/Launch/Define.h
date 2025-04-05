@@ -335,3 +335,11 @@ struct alignas(16) FCameraConstants
     FVector CameraForward;
     float FarPlane;
 };
+
+struct FDepthToWorldConstants
+{
+    FMatrix InvView;
+    FMatrix InvProj;
+    float nearPlane;
+    float farPlane;
+};

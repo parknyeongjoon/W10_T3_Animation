@@ -144,3 +144,21 @@ void FConstantBufferUpdater::UpdateCameraConstant(ID3D11Buffer* CameraConstantBu
         DeviceContext->Unmap(CameraConstantBuffer, 0);
     }
 }
+
+void FConstantBufferUpdater::UpdateDpethToWorldConstant(ID3D11Buffer* DepthToWorldConstantBuffer, FEditorViewportClient* ViewportClient)
+{
+    if (DepthToWorldConstantBuffer)
+    {
+        D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
+        DeviceContext->Map(DepthToWorldConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR);
+        auto constants = static_cast<FDepthToWorldConstants*>(constantbufferMSR.pData);
+        {
+            constants->InvView = FMatrix::Transpose(FMatrix::Inverse(ViewportClient->GetViewMatrix()));
+            constants->InvProj = FMatrix::Transpose( FMatrix::Inverse(ViewportClient->GetProjectionMatrix() ));
+            // constants->InvViewProjMatrix = FMatrix::Transpose(FMatrix::Inverse( ViewportClient->GetProjectionMatrix() * ViewportClient->GetViewMatrix()));;
+            constants->nearPlane = ViewportClient->nearPlane;
+            constants->farPlane = ViewportClient->farPlane;
+        }
+        DeviceContext->Unmap(DepthToWorldConstantBuffer, 0);
+    }
+}

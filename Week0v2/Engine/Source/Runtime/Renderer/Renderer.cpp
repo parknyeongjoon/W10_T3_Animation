@@ -100,6 +100,14 @@ void FRenderer::CreateShader()
     ShaderManager.CreatePixelShader(
         L"Shaders/DebugDepthShader.hlsl", "mainPS",
         DebugDepthPixelShader);
+    
+    ShaderManager.CreateVertexShader(
+        L"Shaders/HeightFogShader.hlsl", "mainVS",
+        HeightFogVertexShader, nullptr, 0); 
+
+    ShaderManager.CreatePixelShader(
+        L"Shaders/HeightFogShader.hlsl", "mainPS",
+        HeightFogPixelShader);
 }
 
 void FRenderer::ReleaseShader()
@@ -107,6 +115,8 @@ void FRenderer::ReleaseShader()
     ShaderManager.ReleaseShader(InputLayout, VertexShader, PixelShader);
     ShaderManager.ReleaseShader(TextureInputLayout, VertexTextureShader, PixelTextureShader);
     ShaderManager.ReleaseShader(nullptr, VertexLineShader, PixelLineShader);
+    ShaderManager.ReleaseShader(nullptr, DebugDepthVertexShader, DebugDepthPixelShader);
+    ShaderManager.ReleaseShader(nullptr, HeightFogVertexShader, HeightFogPixelShader);
 }
 
 
@@ -182,6 +192,7 @@ void FRenderer::CreateConstantBuffer()
     LightingBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLighting));
     FlagBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLitUnlitConstants));
     CameraConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FCameraConstants));
+    DepthToWorldBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FDepthToWorldConstants));
 }
 
 void FRenderer::ReleaseConstantBuffer()
@@ -196,6 +207,7 @@ void FRenderer::ReleaseConstantBuffer()
     RenderResourceManager.ReleaseBuffer(LightingBuffer);
     RenderResourceManager.ReleaseBuffer(FlagBuffer);
     RenderResourceManager.ReleaseBuffer(CameraConstantBuffer);
+    RenderResourceManager.ReleaseBuffer(DepthToWorldBuffer);
 }
 #pragma endregion ConstantBuffer
 
@@ -523,7 +535,8 @@ void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportC
 
 void FRenderer::RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
-    RenderDebugDepth(ActiveViewport);
+    // RenderDebugDepth(ActiveViewport);
+    RenderHeightFog(ActiveViewport);
 }
 
 void FRenderer::RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveViewport)
@@ -552,6 +565,31 @@ void FRenderer::RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveVi
     Graphics->DeviceContext->Draw(4, 0);
 }
 
+void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport) const
+{
+    
+    // 현재 뷰포트의 뷰모드가 Depth 인지 확인
+    if (ActiveViewport->GetViewMode() != EViewModeIndex::VMI_Depth)
+    {
+        return;
+    }
+    Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+    Graphics->DeviceContext->CopyResource(Graphics->DepthCopyTexture, Graphics->DepthStencilBuffer);
+
+    
+    Graphics->DeviceContext->PSSetSamplers(0, 1, &DebugDepthSRVSampler);
+    Graphics->DeviceContext->PSSetShaderResources(0, 1, &Graphics->DepthCopySRV);
+
+    Graphics->DeviceContext->VSSetShader(HeightFogVertexShader, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(HeightFogPixelShader, nullptr, 0);
+    
+    // 렌더링 시 샘플러 설정
+    Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &DepthToWorldBuffer);
+    Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &DepthToWorldBuffer);
+
+
+    Graphics->DeviceContext->Draw(4, 0);
+}
 
 void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {

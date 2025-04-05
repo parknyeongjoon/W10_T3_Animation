@@ -23,11 +23,20 @@ bool FShaderManager::CreateVertexShader(
     UINT vertexSize)
 {
     ID3DBlob* vsBlob = nullptr;
-    HRESULT hr = D3DCompileFromFile(vsPath.c_str(), nullptr, nullptr, *vsEntry, "vs_5_0", 0, 0, &vsBlob, nullptr);
+    ID3DBlob* errorBlob = nullptr;
+    HRESULT hr = D3DCompileFromFile(vsPath.c_str(), nullptr, nullptr, *vsEntry, "vs_5_0", 0, 0, &vsBlob, &errorBlob);
+    if (errorBlob)
+    {
+        OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        errorBlob->Release();
+    }
     if (FAILED(hr)) return false;
 
     hr = Device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &outVS);
-    if (FAILED(hr)) { vsBlob->Release(); return false; }
+    if (FAILED(hr))
+    {
+        vsBlob->Release(); return false;
+    }
 
     if (outInputLayout)
     {

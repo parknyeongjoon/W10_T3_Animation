@@ -40,6 +40,7 @@ public:
     ID3D11Buffer* SubMeshConstantBuffer = nullptr;
     ID3D11Buffer* TextureConstantBufer = nullptr;
     ID3D11Buffer* CameraConstantBuffer = nullptr;
+    ID3D11Buffer* DepthToWorldBuffer = nullptr;
 
     FLighting lightingData;
 
@@ -78,6 +79,8 @@ public://텍스쳐용 기능 추가
 	// 임시
 	ID3D11VertexShader* DebugDepthVertexShader = nullptr;
 	ID3D11PixelShader* DebugDepthPixelShader = nullptr;
+    ID3D11VertexShader* HeightFogVertexShader = nullptr;
+    ID3D11PixelShader* HeightFogPixelShader = nullptr;
 	// sampler
 	ID3D11SamplerState* DebugDepthSRVSampler = nullptr;
 
@@ -129,6 +132,8 @@ public: // line shader
     // post process
     void RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    void RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport) const;
+
 private:
     TArray<UStaticMeshComponent*> StaticMeshObjs;
     TArray<UGizmoBaseComponent*> GizmoObjs;
