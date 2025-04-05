@@ -125,6 +125,7 @@ void FRenderer::PrepareShader() const
         Graphics->DeviceContext->PSSetConstantBuffers(3, 1, &FlagBuffer);
         Graphics->DeviceContext->PSSetConstantBuffers(4, 1, &SubMeshConstantBuffer);
         Graphics->DeviceContext->PSSetConstantBuffers(5, 1, &TextureConstantBufer);
+        Graphics->DeviceContext->PSSetConstantBuffers(6, 1, &CameraConstantBuffer);
     }
 }
 
@@ -179,7 +180,7 @@ void FRenderer::CreateConstantBuffer()
     MaterialConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FMaterialConstants));
     SubMeshConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FSubMeshConstants));
     TextureConstantBufer = RenderResourceManager.CreateConstantBuffer(sizeof(FTextureConstants));
-    LightingBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLighting));
+    LightingBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLightingConstant));
     FlagBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLitUnlitConstants));
     CameraConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FCameraConstants));
 }
@@ -265,9 +266,10 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
     Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
     ChangeViewMode(ActiveViewport->GetViewMode());
-    ConstantBufferUpdater.UpdateLightConstant(LightingBuffer);
 
     //RenderPostProcess(World, ActiveViewport);
+    // 0. 광원 렌더
+    RenderLight(World, ActiveViewport);
 
     // 1. 배치 렌더
     UPrimitiveBatch::GetInstance().RenderBatch(ConstantBuffer, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
@@ -284,8 +286,6 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     // 4. 기즈모 렌더
     RenderGizmos(World, ActiveViewport);
 
-    // 5. 광원 렌더
-    RenderLight(World, ActiveViewport);
 
     // 6. 포스트 프로세스
     RenderPostProcess(World, ActiveViewport);
@@ -555,12 +555,8 @@ void FRenderer::RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveVi
 
 void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
-    for (auto Light : LightObjs)
-    {
-        /*FMatrix Model = JungleMath::CreateModelMatrix(Light->GetWorldLocation(), Light->GetWorldRotation(), { 1, 1, 1 });
-        UPrimitiveBatch::GetInstance().AddCone(Light->GetWorldLocation(), Light->GetRadius(), 15, 140, Light->GetColor(), Model);
-        UPrimitiveBatch::GetInstance().RenderOBB(Light->GetBoundingBox(), Light->GetWorldLocation(), Model);*/
-    }
+    // 라이트 오브젝트들 모아서 Constant 업데이트 해야함
+    ConstantBufferUpdater.UpdateLightConstant(LightingBuffer, LightObjs);
 }
 
 void FRenderer::RenderBatch(

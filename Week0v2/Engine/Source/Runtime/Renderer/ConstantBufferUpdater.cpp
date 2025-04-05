@@ -1,6 +1,9 @@
 #include "ConstantBufferUpdater.h"
 #include <Engine/Texture.h>
 #include "Editor/UnrealEd/EditorViewportClient.h"
+#include "Classes/Components/DirectionalLightComponent.h"
+#include "Classes/Components/PointLightComponent.h"
+#include "UObject/Casts.h"
 
 void FConstantBufferUpdater::Initialize(ID3D11DeviceContext* InDeviceContext)
 {
@@ -46,22 +49,51 @@ void FConstantBufferUpdater::UpdateMaterialConstant(ID3D11Buffer* MaterialConsta
     }
 }
 
-void FConstantBufferUpdater::UpdateLightConstant(ID3D11Buffer* LightingBuffer) const
+void FConstantBufferUpdater::UpdateLightConstant(ID3D11Buffer* LightingBuffer, const TArray<ULightComponentBase*>& LightObjs) const
 {
     if (!LightingBuffer) return;
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
-    DeviceContext->Map(LightingBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+    FLightingConstant lightingData;
+    lightingData.NumDirectionalLights = 0;
+    lightingData.NumPointLights = 0;
+    // 주변광은 우선 하드코딩한다
+    lightingData.AmbientColor = FVector(0.1f, 0.1f, 0.1f);
+    lightingData.AmbientIntensity = 1.0f;
+
+    for (const auto& Light : LightObjs)
     {
-        FLighting* constants = static_cast<FLighting*>(mappedResource.pData);
-        constants->lightDirX = 1.0f;
-        constants->lightDirY = 1.0f;
-        constants->lightDirZ = 1.0f;
-        constants->lightColorX = 1.0f;
-        constants->lightColorY = 1.0f;
-        constants->lightColorZ = 1.0f;
-        constants->AmbientFactor = 0.06f;
+        if (Light->IsA<UDirectionalLightComponent>())
+        {
+            UDirectionalLightComponent* DirLight = Cast<UDirectionalLightComponent>(Light);
+            if (DirLight && lightingData.NumDirectionalLights < MAX_DIRECTIONAL_LIGHTS)
+            {
+                lightingData.DirLights[lightingData.NumDirectionalLights].Direction = DirLight->GetDirection();
+                lightingData.DirLights[lightingData.NumDirectionalLights].Intensity = DirLight->GetIntensity();
+                lightingData.DirLights[lightingData.NumDirectionalLights].Color = DirLight->GetColor().xyz();
+                lightingData.NumDirectionalLights++;
+            }
+        }
+        else if (Light->IsA<UPointLightComponent>())
+        {
+            UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light);
+            if (PointLight && lightingData.NumPointLights < MAX_POINT_LIGHTS)
+            {
+                lightingData.PointLights[lightingData.NumPointLights].Position = PointLight->GetWorldLocation();
+                lightingData.PointLights[lightingData.NumPointLights].Intensity = PointLight->GetIntensity();
+                lightingData.PointLights[lightingData.NumPointLights].Color = PointLight->GetColor().xyz();
+                lightingData.PointLights[lightingData.NumPointLights].Radius = PointLight->GetRadius();
+                lightingData.PointLights[lightingData.NumPointLights].Attenuation = PointLight->GetAttenuation();
+                lightingData.NumPointLights++;
+            }
+        }
     }
-    DeviceContext->Unmap(LightingBuffer, 0);
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    HRESULT hr = DeviceContext->Map(LightingBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if (SUCCEEDED(hr))
+    {
+        memcpy(mappedResource.pData, &lightingData, sizeof(FLightingConstant));
+        DeviceContext->Unmap(LightingBuffer, 0);
+    }
 }
 
 

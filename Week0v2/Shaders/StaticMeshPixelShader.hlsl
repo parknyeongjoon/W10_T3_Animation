@@ -27,14 +27,37 @@ cbuffer MaterialConstants : register(b1)
     FMaterial Material;
 }
 
+struct FDirectionalLight
+{
+    float3 Direction;
+    float Intensity;
+    float3 Color;
+    float pad1;
+};
+
+struct FPointLight
+{
+    float3 Position;
+    float Radius;
+    
+    float3 Color;
+    float Intensity;
+    
+    float Attenuation;
+    float pad[3];
+};
+
 cbuffer LightingConstants : register(b2)
 {
-    float3 LightDirection; // 조명 방향 (단위 벡터; 빛이 들어오는 방향의 반대 사용)
-    float LightPad0; // 16바이트 정렬용 패딩
-    float3 LightColor; // 조명 색상 (예: (1, 1, 1))
-    float LightPad1; // 16바이트 정렬용 패딩
-    float AmbientFactor; // ambient 계수 (예: 0.1)
-    float3 LightPad2; // 16바이트 정렬 맞춤 추가 패딩
+    float3 AmbientColor;
+    float AmbientIntensity;
+
+    uint NumDirectionalLights;
+    uint NumPointLights;
+    float2 pad;
+
+    FDirectionalLight DirLights[4];
+    FPointLight PointLights[16];
 };
 
 cbuffer FlagConstants : register(b3)
@@ -54,6 +77,18 @@ cbuffer TextureConstants : register(b5)
     float2 UVOffset;
     float2 TexturePad0;
 }
+
+cbuffer CameraConstant : register(b6)
+{
+    matrix ViewMatrix;
+    matrix ProjMatrix;
+    matrix ViewProjMatrix;
+    
+    float3 CameraPos;
+    float NearPlane;
+    float3 CameraForward;
+    float FarPlane;
+};
 
 struct PS_INPUT
 {
@@ -100,6 +135,48 @@ float4 PaperTexture(float3 originalColor)
     float3 finalColor = mixedColor + grain + rough - vignetting * 0.1;
     return float4(saturate(finalColor), 1.0);
 }
+float3 ApplyLighting(float3 worldPos, float3 normal, float3 albedo, float3 specularColor, float specularScalar)
+{
+    float3 result = AmbientColor * AmbientIntensity;
+    
+    float3 V = normalize(CameraPos - worldPos);
+    // 디렉셔널 라이트 계산
+    for (uint i = 0; i < NumDirectionalLights; ++i)
+    {
+        float3 L = normalize(-DirLights[i].Direction);
+        float3 H = normalize(L + V);
+        
+        float NDotL = max(dot(normal, L), 0.0);
+        float NDotH = max(dot(normal, H), 0.0);
+        
+        float diff = NDotL;
+        float spec = pow(NDotH, specularScalar * 32) * specularScalar;
+        
+        float3 lightColor = DirLights[i].Color * DirLights[i].Intensity;
+        result += (albedo * diff + specularColor * spec) * lightColor;
+    }
+    
+    // 포인트 라이트 계산
+    for (uint i = 0; i < NumPointLights; ++i)
+    {
+        float3 L = PointLights[i].Position - worldPos;
+        float distance = length(L);
+        L = normalize(L);
+        float3 H = normalize(L + V);
+
+        float NDotL = max(dot(normal, L), 0.0);
+        float NDotH = max(dot(normal, H), 0.0);
+        float diff = NDotL;
+        float spec = pow(saturate(dot(normal, H)), specularScalar * 32) * specularScalar;
+        
+        float attenuation = PointLights[i].Attenuation;
+
+        float3 lightColor = PointLights[i].Color * PointLights[i].Intensity;
+        result += (albedo * diff + specularColor * spec) * lightColor * attenuation;
+    }
+    
+    return result;
+}
 
 PS_OUTPUT mainPS(PS_INPUT input)
 {
@@ -108,13 +185,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     output.UUID = UUID;
     
     float3 texColor = Textures.Sample(Sampler, input.texcoord + UVOffset);
-    float3 color;
-    if (texColor.g == 0) // TODO: boolean으로 변경
-        color = saturate(Material.DiffuseColor);
-    else
-    {
-        color = texColor + Material.DiffuseColor;
-    }
+    float3 color = (texColor.g == 0) ? saturate(Material.DiffuseColor) : texColor + Material.DiffuseColor;
     
     if (isSelected)
     {
@@ -123,48 +194,18 @@ PS_OUTPUT mainPS(PS_INPUT input)
             color = float3(1, 1, 1);
     }
     
+    float3 finalColor = color;
     // 발광 색상 추가
 
-    if (IsLit == 1) // 조명이 적용되는 경우
+    if(IsLit == 1 && input.normalFlag > 0.5f)
     {
-        if (input.normalFlag > 0.5)
-        {
-            float3 N = normalize(input.normal);
-            float3 L = normalize(LightDirection);
-            
-            // 기본 디퓨즈 계산
-            float diffuse = saturate(dot(N, L));
-            
-            // 스페큘러 계산 (간단한 Blinn-Phong)
-            float3 V = float3(0, 0, 1); // 카메라가 Z 방향을 향한다고 가정
-            float3 H = normalize(L + V);
-            float specular = pow(saturate(dot(N, H)), Material.SpecularScalar * 32) * Material.SpecularScalar;
-            
-            // 최종 라이팅 계산
-            float3 ambient = Material.AmbientColor * AmbientFactor;
-            float3 diffuseLight = diffuse * LightColor;
-            float3 specularLight = specular * Material.SpecularColor * LightColor;
-            
-            color = ambient + (diffuseLight * color) + specularLight;
-        }
+        float3 normal = normalize(input.normal);
+        float3 worldPos = input.position;
         
-        // 투명도 적용
-        color += Material.EmissiveColor;
-        output.color = float4(color, Material.TransparencyScalar);
-        return output;
+        finalColor = ApplyLighting(worldPos, normal, color, Material.SpecularColor, Material.SpecularScalar);
+        finalColor += Material.EmissiveColor;
     }
-    else // unlit 상태일 때 PaperTexture 효과 적용
-    {
-        if (input.normalFlag < 0.5)
-        {
-            output.color = float4(color, Material.TransparencyScalar);
-            return output;
-        }
-        
-        output.color = float4(color, 1);
-        // 투명도 적용
-        output.color.a = Material.TransparencyScalar;
-            
-        return output;
-    }
+
+    output.color = float4(finalColor, Material.TransparencyScalar);
+    return output;
 }

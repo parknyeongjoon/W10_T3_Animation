@@ -19,7 +19,7 @@ public:
     FVector4 GetColor() const;
 
 protected:
-    FVector4 color;
+    FVector4 color = { 1, 1, 1, 1 }; // RGBA
     float Intensity = 1.0f;
     FBoundingBox AABB;
     UBillboardComponent* texture2D;
@@ -27,6 +27,8 @@ public:
     FBoundingBox GetBoundingBox() const {return AABB;}
     FVector4 GetColor() {return color;}
     UBillboardComponent* GetTexture2D() const {return texture2D;}
+    float GetIntensity() const { return Intensity; }
+    void SetIntensity(float _intensity) { Intensity = _intensity; }
 
 public:
     // duplictae

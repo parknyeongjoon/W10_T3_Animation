@@ -1,4 +1,5 @@
 #pragma once
+#include "Math/Vector.h"
 
 // 4D Vector
 struct FVector4 {
@@ -14,5 +15,9 @@ struct FVector4 {
     FVector4 operator/(float scalar) const
     {
         return FVector4{ x / scalar, y / scalar, z / scalar, a / scalar };
+    }
+    FVector xyz() const
+    {
+        return FVector{ x, y, z };
     }
 };

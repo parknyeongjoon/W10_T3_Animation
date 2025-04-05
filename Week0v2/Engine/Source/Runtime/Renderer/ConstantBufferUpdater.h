@@ -11,7 +11,7 @@ public:
 
     void UpdateConstant(ID3D11Buffer* ConstantBuffer, const FMatrix& MVP, const FMatrix& NormalMatrix, FVector4 UUIDColor, bool IsSelected) const;
     void UpdateMaterialConstant(ID3D11Buffer* MaterialConstantBuffer, const FObjMaterialInfo& MaterialInfo) const;
-    void UpdateLightConstant(ID3D11Buffer* LightingBuffer) const;
+    void UpdateLightConstant(ID3D11Buffer* LightingBuffer, const TArray<class ULightComponentBase*>& LightObjs) const;
     void UpdateLitUnlitConstant(ID3D11Buffer* FlagBuffer, int isLit) const;
     void UpdateSubMeshConstant(ID3D11Buffer* SubMeshConstantBuffer, bool isSelected) const;
     void UpdateTextureConstant(ID3D11Buffer* TextureConstantBufer, float UOffset, float VOffset);
