@@ -108,7 +108,7 @@ void FSceneMgr::ParseSceneData(const FString& jsonStr)
                         value["Scale"].get<std::vector<float>>()[1],
                         value["Scale"].get<std::vector<float>>()[2]
                         ));
-                    TempActor->SetActorLabel(TEXT("OBJ_CUBE"));
+                    TempActor->SetActorLabel(TEXT(TempActor->GetName()));
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/" + FileName);
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(WFileName));

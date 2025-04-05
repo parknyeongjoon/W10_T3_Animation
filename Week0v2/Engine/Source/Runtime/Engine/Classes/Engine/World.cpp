@@ -24,8 +24,14 @@ UWorld::UWorld(const UWorld& Other): UObject(Other)
 void UWorld::InitWorld()
 {
     // TODO: Load Scene
+    PreLoadResources();
     CreateBaseObject();
     Level = FObjectFactory::ConstructObject<ULevel>();
+}
+
+void UWorld::PreLoadResources()
+{
+    FManagerOBJ::CreateStaticMesh(TEXT("Assets/CastleObj.obj"));
 }
 
 void UWorld::CreateBaseObject()
