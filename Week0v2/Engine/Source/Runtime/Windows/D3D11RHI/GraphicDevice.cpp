@@ -333,7 +333,6 @@ void FGraphicsDevice::Prepare()
     DeviceContext->RSSetState(CurrentRasterizer); //레스터 라이저 상태 설정
 
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
-
     DeviceContext->OMSetRenderTargets(2, RTVs, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌뎅 상태 설정, 기본블렌딩 상태임
 }
@@ -349,7 +348,6 @@ void FGraphicsDevice::Prepare(D3D11_VIEWPORT* viewport)
     DeviceContext->RSSetState(CurrentRasterizer); //레스터 라이저 상태 설정
 
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
-
     DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌뎅 상태 설정, 기본블렌딩 상태임
 }
@@ -529,4 +527,84 @@ uint32 FGraphicsDevice::DecodeUUIDColor(FVector4 UUIDColor) {
     uint32_t X = static_cast<uint32_t>(UUIDColor.x);
 
     return W | Z | Y | X;
+}
+
+void FGraphicsDevice::CreateSceneColorResources()
+{
+    ID3D11Texture2D* backBuffer = nullptr;
+    HRESULT hr = SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
+
+    if (FAILED(hr) || backBuffer == nullptr)
+        return;
+
+    // 백버퍼 정보 가져오기
+    D3D11_TEXTURE2D_DESC backBufferDesc;
+    backBuffer->GetDesc(&backBufferDesc);
+
+    bool needNewTexture = false;
+
+    if (RenderTargetTexture == nullptr)
+    {
+        needNewTexture = true;
+    }
+    else
+    {
+        // 기존 텍스처 크기 확인
+        D3D11_TEXTURE2D_DESC copyDesc;
+        RenderTargetTexture->GetDesc(&copyDesc);
+
+        if (copyDesc.Width != backBufferDesc.Width || copyDesc.Height != backBufferDesc.Height)
+        {
+            if (SceneColorSRV) SceneColorSRV->Release();
+            SceneColorSRV = nullptr;
+
+            RenderTargetTexture->Release();
+            RenderTargetTexture = nullptr;
+            needNewTexture = true;
+        }
+    }
+
+    // 필요시 새 텍스처 생성
+    if (needNewTexture)
+    {
+        D3D11_TEXTURE2D_DESC texDesc = {};
+        texDesc.Width = backBufferDesc.Width;
+        texDesc.Height = backBufferDesc.Height;
+        texDesc.MipLevels = 1;
+        texDesc.ArraySize = 1;
+        texDesc.Format = backBufferDesc.Format;
+        texDesc.SampleDesc.Count = 1;
+        texDesc.SampleDesc.Quality = 0;
+        texDesc.Usage = D3D11_USAGE_DEFAULT;
+        texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        texDesc.CPUAccessFlags = 0;
+        texDesc.MiscFlags = 0;
+
+        hr = Device->CreateTexture2D(&texDesc, nullptr, &RenderTargetTexture);
+        if (FAILED(hr))
+        {
+            backBuffer->Release();
+        }
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = texDesc.Format;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        srvDesc.Texture2D.MipLevels = 1;
+
+        hr = Device->CreateShaderResourceView(RenderTargetTexture, &srvDesc, &SceneColorSRV);
+        if (FAILED(hr))
+        {
+            RenderTargetTexture->Release();
+            RenderTargetTexture = nullptr;
+            backBuffer->Release();
+        }
+    }
+
+    ID3D11RenderTargetView* nullRTV = nullptr;
+    DeviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
+    DeviceContext->CopyResource(RenderTargetTexture, backBuffer);
+    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
+
+    backBuffer->Release();
 }

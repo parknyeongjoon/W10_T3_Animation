@@ -81,6 +81,11 @@ public://텍스쳐용 기능 추가
 	// sampler
 	ID3D11SamplerState* DebugDepthSRVSampler = nullptr;
 
+    // Shaders for fog
+    ID3D11VertexShader* HeightFogVertexShader;
+    ID3D11PixelShader* HeightFogPixelShader;
+    ID3D11Buffer* FogConstantBuffer;
+
     uint32 TextureStride;
     struct FSubUVConstant
     {
@@ -129,6 +134,7 @@ public: // line shader
     // post process
     void RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    void RenderHeightFog(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
 private:
     TArray<UStaticMeshComponent*> StaticMeshObjs;
     TArray<UGizmoBaseComponent*> GizmoObjs;
@@ -143,7 +149,6 @@ public:
     ID3D11ShaderResourceView* pBBSRV = nullptr;
     ID3D11ShaderResourceView* pConeSRV = nullptr;
     ID3D11ShaderResourceView* pOBBSRV = nullptr;
-
 
 public:
     FRenderResourceManager& GetResourceManager() { return RenderResourceManager; }
