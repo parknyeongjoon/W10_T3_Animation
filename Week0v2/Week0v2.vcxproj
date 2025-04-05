@@ -169,6 +169,7 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\DirectionalLightComponent.cpp" />
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SLevelEditor.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\ViewportTypePanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.cpp" />
@@ -332,9 +333,11 @@
     <ClCompile Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResourceManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\ShaderManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PointLightComponent.cpp" />
     <ClCompile Include="UEditorStateManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\DirectionalLightComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\DelegateCombination.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />
@@ -448,6 +451,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UTextUUID.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\World.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderResourceManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PointLightComponent.h" />
     <ClInclude Include="UEditorStateManager.h" />
   </ItemGroup>
   <ItemGroup>

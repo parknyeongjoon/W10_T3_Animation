@@ -9,6 +9,7 @@ class ULightComponentBase : public USceneComponent
 
 public:
     ULightComponentBase();
+    ULightComponentBase(const ULightComponentBase& Other);
     virtual ~ULightComponentBase() override;
 
     virtual void TickComponent(float DeltaTime) override;
@@ -16,17 +17,20 @@ public:
     void InitializeLight();
     void SetColor(FVector4 newColor);
     FVector4 GetColor() const;
-    float GetRadius() const;
-    void SetRadius(float r);
 
-private:
+protected:
     FVector4 color;
-    float radius;
+    float Intensity = 1.0f;
     FBoundingBox AABB;
     UBillboardComponent* texture2D;
 public:
     FBoundingBox GetBoundingBox() const {return AABB;}
-    float GetRadius() {return radius;}
     FVector4 GetColor() {return color;}
     UBillboardComponent* GetTexture2D() const {return texture2D;}
+
+public:
+    // duplictae
+    virtual UObject* Duplicate() const override;
+    virtual void DuplicateSubObjects(const UObject* Source) override;
+    virtual void PostDuplicate() override;
 };

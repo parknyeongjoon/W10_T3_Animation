@@ -235,11 +235,11 @@ void PropertyEditorPanel::Render()
             }
 
             // Light Radius
-            float radiusVal = lightObj->GetRadius();
-            if (ImGui::SliderFloat("Radius", &radiusVal, 1.0f, 100.0f))
-            {
-                lightObj->SetRadius(radiusVal);
-            }
+            //float radiusVal = lightObj->GetRadius();
+            //if (ImGui::SliderFloat("Radius", &radiusVal, 1.0f, 100.0f))
+            //{
+            //    lightObj->SetRadius(radiusVal);
+            //}
             ImGui::TreePop();
         }
         ImGui::PopStyleColor();
