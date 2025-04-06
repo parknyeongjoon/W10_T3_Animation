@@ -160,15 +160,18 @@ float3 CalculatePointLight(FPointLight Light, float3 WorldPos, float3 Normal, fl
         return float3(0, 0, 0);
     
     float NormalizedDistance = saturate(Distance / Light.Radius);
-    float Attenuation = 1.0f / (1.0f + Light.AttenuationFalloff * Distance * Distance);
-    Attenuation *= 1.0 - NormalizedDistance * NormalizedDistance; // 부드러운 경계 추가
+    
+    float RadiusAttenuation = 1.0 - NormalizedDistance * NormalizedDistance; // 부드러운 경계 추가
+    float DistanceAttenuation = 1.0f / (1.0f + Light.AttenuationFalloff * Distance * Distance);
+    
+    float Attenuation = RadiusAttenuation * DistanceAttenuation * Light.Intensity;
 
     float Diff = max(dot(Normal, LightDir), 0.0f);
-    float3 Diffuse = Light.Color * Diff * DiffuseColor * Light.Intensity * Attenuation; // float3으로 수정
+    float3 Diffuse = Light.Color * Diff * DiffuseColor * Attenuation; // float3으로 수정
     
     float3 ReflectDir = reflect(-LightDir, Normal);
     float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0f), SpecularPower);
-    float3 Specular = Light.Color * Spec * Light.Intensity * Attenuation;
+    float3 Specular = Light.Color * Spec * Attenuation;
     
     return Diffuse + Specular;
 }

@@ -288,10 +288,10 @@ struct FDirectionalLight
 struct FPointLight
 {
     FVector Position;
-    float Intensity;
+    float Radius;
 
     FVector Color;
-    float Radius;
+    float Intensity;
 
     float AttenuationFalloff;
     float pad[3];

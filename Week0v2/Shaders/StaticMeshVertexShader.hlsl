@@ -40,8 +40,7 @@ PS_INPUT mainVS(VS_INPUT input)
     // 위치 변환
     output.worldPos = worldPos.xyz;
     output.color = input.color;
-    if (isSelected)
-        output.color *= 0.5;
+
     // 입력 normal 값의 길이 확인
     float normalThreshold = 0.001;
     float normalLen = length(input.normal);
