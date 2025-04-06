@@ -183,7 +183,7 @@ void PropertyEditorPanel::Render()
     {
         ULightComponentBase* lightObj = Cast<ULightComponentBase>(PickedComponent);
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-        if (ImGui::TreeNodeEx("SpotLight Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
+        if (ImGui::TreeNodeEx("Light Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
         {
             FVector4 currColor = lightObj->GetColor();
 
@@ -255,6 +255,14 @@ void PropertyEditorPanel::Render()
         }
         ImGui::PopStyleColor();
 
+        // show intensity
+        float intensityVal = lightObj->GetIntensity();
+        if (ImGui::SliderFloat("Intensity", &intensityVal, 0.01f, 10.0f))
+        {
+            lightObj->SetIntensity(intensityVal);
+        }
+        ImGui::Spacing();
+
         if (PickedComponent->IsA<UDirectionalLightComponent>())
         {
             // direction
@@ -279,16 +287,16 @@ void PropertyEditorPanel::Render()
             if (PointLight)
             {
                 float radiusVal = PointLight->GetRadius();
-                if (ImGui::SliderFloat("Radius", &radiusVal, 0.01f, 10.0f))
+                if (ImGui::SliderFloat("Radius", &radiusVal, 1.0f, 100.0f))
                 {
                     PointLight->SetRadius(radiusVal);
                 }
                 ImGui::Spacing();
-                float attenuationVal = PointLight->GetAttenuationFalloff();
-                if (ImGui::SliderFloat("Attenuation", &attenuationVal, 0.0001f, 0.1f))
-                {
-                    PointLight->SetAttenuationFallOff(attenuationVal);
-                }
+                //float attenuationVal = PointLight->GetAttenuationFalloff();
+                //if (ImGui::SliderFloat("Attenuation", &attenuationVal, 0.0001f, 0.001f))
+                //{
+                //    PointLight->SetAttenuationFallOff(attenuationVal);
+                //}
             }
         }
     }

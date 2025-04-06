@@ -293,7 +293,7 @@ struct FPointLight
     FVector Color;
     float Radius;
 
-    float Attenuation;
+    float AttenuationFalloff;
     float pad[3];
 };
 
@@ -322,7 +322,8 @@ struct FMaterialConstants {
 };
 
 struct FConstants {
-    FMatrix MVP;      // 모델
+    FMatrix Model;      // 모델
+    FMatrix ViewProj;   // 뷰 프로젝션 행렬
     FMatrix ModelMatrixInverseTranspose; // normal 변환을 위한 행렬
     FVector4 UUIDColor;
     bool IsSelected;

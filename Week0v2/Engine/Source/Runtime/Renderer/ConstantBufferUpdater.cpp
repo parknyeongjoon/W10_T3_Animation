@@ -10,7 +10,7 @@ void FConstantBufferUpdater::Initialize(ID3D11DeviceContext* InDeviceContext)
     DeviceContext = InDeviceContext;
 }
 
-void FConstantBufferUpdater::UpdateConstant(ID3D11Buffer* ConstantBuffer, const FMatrix& MVP, const FMatrix& NormalMatrix, FVector4 UUIDColor, bool IsSelected) const
+void FConstantBufferUpdater::UpdateConstant(ID3D11Buffer* ConstantBuffer, const FMatrix& Model, const FMatrix& ViewProj, const FMatrix& NormalMatrix, FVector4 UUIDColor, bool IsSelected) const
 {
     if (ConstantBuffer)
     {
@@ -19,7 +19,8 @@ void FConstantBufferUpdater::UpdateConstant(ID3D11Buffer* ConstantBuffer, const 
         DeviceContext->Map(ConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
         {
             FConstants* constants = static_cast<FConstants*>(ConstantBufferMSR.pData);
-            constants->MVP = MVP;
+            constants->Model = Model;
+            constants->ViewProj = ViewProj;
             constants->ModelMatrixInverseTranspose = NormalMatrix;
             constants->UUIDColor = UUIDColor;
             constants->IsSelected = IsSelected;
@@ -82,7 +83,7 @@ void FConstantBufferUpdater::UpdateLightConstant(ID3D11Buffer* LightingBuffer, c
                 lightingData.PointLights[lightingData.NumPointLights].Intensity = PointLight->GetIntensity();
                 lightingData.PointLights[lightingData.NumPointLights].Color = PointLight->GetColor().xyz();
                 lightingData.PointLights[lightingData.NumPointLights].Radius = PointLight->GetRadius();
-                lightingData.PointLights[lightingData.NumPointLights].Attenuation = PointLight->GetAttenuation();
+                lightingData.PointLights[lightingData.NumPointLights].AttenuationFalloff = PointLight->GetAttenuationFalloff();
                 lightingData.NumPointLights++;
             }
         }

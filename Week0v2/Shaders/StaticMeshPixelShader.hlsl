@@ -3,8 +3,9 @@ SamplerState Sampler : register(s0);
 
 cbuffer MatrixConstants : register(b0)
 {
-    row_major float4x4 MVP;
-    row_major float4x4 MInverseTranspose;
+    row_major matrix Model;
+    row_major matrix ViewProj;
+    row_major matrix MInverseTranspose;
     float4 UUID;
     bool isSelected;
     float3 MatrixPad0;
@@ -43,7 +44,7 @@ struct FPointLight
     float3 Color;
     float Intensity;
     
-    float Attenuation;
+    float AttenuationFalloff;
     float pad[3];
 };
 
@@ -93,6 +94,7 @@ cbuffer CameraConstant : register(b6)
 struct PS_INPUT
 {
     float4 position : SV_POSITION; // 변환된 화면 좌표
+    float3 worldPos : POSITION;
     float4 color : COLOR; // 전달할 색상
     float3 normal : NORMAL; // 정규화된 노멀 벡터
     bool normalFlag : TEXCOORD0; // 노멀 유효성 플래그 (1.0: 유효, 0.0: 무효)
@@ -135,47 +137,38 @@ float4 PaperTexture(float3 originalColor)
     float3 finalColor = mixedColor + grain + rough - vignetting * 0.1;
     return float4(saturate(finalColor), 1.0);
 }
-float3 ApplyLighting(float3 worldPos, float3 normal, float3 albedo, float3 specularColor, float specularScalar)
+float3 CalculateDirectionalLight(FDirectionalLight Light, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularPower)
 {
-    float3 result = AmbientColor * AmbientIntensity;
+    float3 LightDir = normalize(-Light.Direction);
+    float Diff = max(dot(Normal, LightDir), 0.0f);
     
-    float3 V = normalize(CameraPos - worldPos);
-    // 디렉셔널 라이트 계산
-    for (uint i = 0; i < NumDirectionalLights; ++i)
-    {
-        float3 L = normalize(-DirLights[i].Direction);
-        float3 H = normalize(L + V);
-        
-        float NDotL = max(dot(normal, L), 0.0);
-        float NDotH = max(dot(normal, H), 0.0);
-        
-        float diff = NDotL;
-        float spec = pow(NDotH, specularScalar * 32) * specularScalar;
-        
-        float3 lightColor = DirLights[i].Color * DirLights[i].Intensity;
-        result += (albedo * diff + specularColor * spec) * lightColor;
-    }
+    float3 Diffuse = Light.Color * Diff * DiffuseColor * Light.Intensity;
     
-    // 포인트 라이트 계산
-    for (uint i = 0; i < NumPointLights; ++i)
-    {
-        float3 L = PointLights[i].Position - worldPos;
-        float distance = length(L);
-        L = normalize(L);
-        float3 H = normalize(L + V);
+    float3 ReflectDir = reflect(-LightDir, Normal);
+    float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0f), SpecularPower);
+    float3 Specular = Light.Color * Spec * Light.Intensity;
+    
+    return Diffuse + Specular;
+}
 
-        float NDotL = max(dot(normal, L), 0.0);
-        float NDotH = max(dot(normal, H), 0.0);
-        float diff = NDotL;
-        float spec = pow(saturate(dot(normal, H)), specularScalar * 32) * specularScalar;
-        
-        float attenuation = PointLights[i].Attenuation;
-
-        float3 lightColor = PointLights[i].Color * PointLights[i].Intensity;
-        result += (albedo * diff + specularColor * spec) * lightColor * attenuation;
-    }
+float3 CalculatePointLight(FPointLight Light, float3 WorldPos, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularPower)
+{
+    float3 LightDir = normalize(Light.Position - WorldPos);
+    float Distance = length(Light.Position - WorldPos);
     
-    return result;
+    if (Distance > Light.Radius)
+        return float3(0, 0, 0);
+    
+    float Attenuation = 1.0f / (1.0f + Light.AttenuationFalloff * Distance * Distance);
+
+    float Diff = max(dot(Normal, LightDir), 0.0f);
+    float3 Diffuse = Light.Color * Diff * DiffuseColor * Light.Intensity * Attenuation; // float3으로 수정
+    
+    float3 ReflectDir = reflect(-LightDir, Normal);
+    float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0f), SpecularPower);
+    float3 Specular = Light.Color * Spec * Light.Intensity * Attenuation;
+    
+    return Diffuse + Specular;
 }
 
 PS_OUTPUT mainPS(PS_INPUT input)
@@ -184,28 +177,42 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     output.UUID = UUID;
     
-    float3 texColor = Textures.Sample(Sampler, input.texcoord + UVOffset);
-    float3 color = (texColor.g == 0) ? saturate(Material.DiffuseColor) : texColor + Material.DiffuseColor;
+    float4 baseColor = Textures.Sample(Sampler, input.texcoord) * input.color;
     
-    if (isSelected)
+    if (!input.normalFlag)
     {
-        color += float3(0.2f, 0.2f, 0.0f); // 노란색 틴트로 하이라이트
-        if (IsSelectedSubMesh)
-            color = float3(1, 1, 1);
+        // 노멀 없을 경우: 원래 색상 그대로 출력
+        output.color = baseColor;
+        return output;
     }
     
-    float3 finalColor = color;
-    // 발광 색상 추가
-
-    if(IsLit == 1 && input.normalFlag > 0.5f)
+    float3 Normal = normalize(input.normal);
+    float3 ViewDir = normalize(CameraPos - input.worldPos);
+    
+    float3 result = AmbientColor * AmbientIntensity * baseColor.rgb;
+    
+    for (uint i = 0; i < NumDirectionalLights; i++)
     {
-        float3 normal = normalize(input.normal);
-        float3 worldPos = input.position;
-        
-        finalColor = ApplyLighting(worldPos, normal, color, Material.SpecularColor, Material.SpecularScalar);
-        finalColor += Material.EmissiveColor;
+        result += CalculateDirectionalLight(DirLights[i], Normal, ViewDir, baseColor.rgb, 32.0f);
     }
-
-    output.color = float4(finalColor, Material.TransparencyScalar);
+    
+    for (uint j = 0; j < NumPointLights; j++)
+    {
+        result += CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb, 32.0f);
+    }
+    
+    //if (isSelected)
+    //{
+    //    result += float3(0.2f, 0.2f, 0.0f); // 노란색 틴트로 하이라이트
+    //}
+    if(NumPointLights > 99)
+    {
+        float3 distVec = PointLights[0].Position - input.worldPos;
+        output.color = float4(normalize(distVec) * 0.5 + 0.5, 1.0);
+    }
+    else
+    {
+        output.color = float4(result, baseColor.a);
+    }
     return output;
 }

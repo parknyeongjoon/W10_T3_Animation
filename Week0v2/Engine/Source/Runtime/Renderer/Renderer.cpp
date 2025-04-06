@@ -62,9 +62,10 @@ void FRenderer::CreateShader()
         {"MATERIAL_INDEX", 0, DXGI_FORMAT_R32_UINT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
-    ShaderManager.CreateVertexShader(
+	ShaderManager.CreateVertexShader(
         L"Shaders/StaticMeshVertexShader.hlsl", "mainVS",
         VertexShader, layout, ARRAYSIZE(layout), &InputLayout, &Stride, sizeof(FVertexSimple));
+
 
     ShaderManager.CreatePixelShader(
         L"Shaders/StaticMeshPixelShader.hlsl", "mainPS",
@@ -375,16 +376,16 @@ void FRenderer::RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewpor
             StaticMeshComp->GetWorldScale()
         );
         // 최종 MVP 행렬
-        FMatrix MVP = Model * ActiveViewport->GetViewMatrix() * ActiveViewport->GetProjectionMatrix();
+		FMatrix ViewProj = ActiveViewport->GetViewMatrix() * ActiveViewport->GetProjectionMatrix();
         // 노말 회전시 필요 행렬
         FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
         FVector4 UUIDColor = StaticMeshComp->EncodeUUID() / 255.0f;
         if (World->GetSelectedActor() == StaticMeshComp->GetOwner())
         {
-            ConstantBufferUpdater.UpdateConstant(ConstantBuffer, MVP, NormalMatrix, UUIDColor, true);
+            ConstantBufferUpdater.UpdateConstant(ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, true);
         }
         else
-            ConstantBufferUpdater.UpdateConstant(ConstantBuffer, MVP, NormalMatrix, UUIDColor, false);
+            ConstantBufferUpdater.UpdateConstant(ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, false);
 
         if (USkySphereComponent* skysphere = Cast<USkySphereComponent>(StaticMeshComp))
         {
@@ -454,12 +455,11 @@ void FRenderer::RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorV
         FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
         FVector4 UUIDColor = GizmoComp->EncodeUUID() / 255.0f;
 
-        FMatrix MVP = Model * ActiveViewport->GetViewMatrix() * ActiveViewport->GetProjectionMatrix();
-
+		FMatrix ViewProj = ActiveViewport->GetViewMatrix() * ActiveViewport->GetProjectionMatrix();
         if (GizmoComp == World->GetPickingGizmo())
-            ConstantBufferUpdater.UpdateConstant(ConstantBuffer, MVP, NormalMatrix, UUIDColor, true);
+            ConstantBufferUpdater.UpdateConstant(ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, true);
         else
-            ConstantBufferUpdater.UpdateConstant(ConstantBuffer, MVP, NormalMatrix, UUIDColor, false);
+            ConstantBufferUpdater.UpdateConstant(ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, false);
 
         if (!GizmoComp->GetStaticMesh()) continue;
 
@@ -488,13 +488,14 @@ void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportC
         FMatrix Model = BillboardComp->CreateBillboardMatrix();
 
         // 최종 MVP 행렬
-        FMatrix MVP = Model * ActiveViewport->GetViewMatrix() * ActiveViewport->GetProjectionMatrix();
+		FMatrix ViewProj = ActiveViewport->GetViewMatrix() * ActiveViewport->GetProjectionMatrix();
+
         FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
         FVector4 UUIDColor = BillboardComp->EncodeUUID() / 255.0f;
         if (BillboardComp == World->GetPickingGizmo())
-            ConstantBufferUpdater.UpdateConstant(ConstantBuffer, MVP, NormalMatrix, UUIDColor, true);
+            ConstantBufferUpdater.UpdateConstant(ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, true);
         else
-            ConstantBufferUpdater.UpdateConstant(ConstantBuffer, MVP, NormalMatrix, UUIDColor, false);
+            ConstantBufferUpdater.UpdateConstant(ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, false);
 
         if (UParticleSubUVComp* SubUVParticle = Cast<UParticleSubUVComp>(BillboardComp))
         {
