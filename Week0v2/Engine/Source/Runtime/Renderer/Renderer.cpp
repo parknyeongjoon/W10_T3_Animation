@@ -32,6 +32,7 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
 
     CreateShader();
     CreateConstantBuffer();
+    CreateBlendState();
     ConstantBufferUpdater.UpdateLitUnlitConstant(FlagBuffer, 1);
 
     // temp
@@ -48,6 +49,7 @@ void FRenderer::Release()
 {
     ReleaseShader();
     ReleaseConstantBuffer();
+    ReleaseBlendState();
 }
 
 #pragma region Shader
@@ -211,6 +213,30 @@ void FRenderer::ReleaseConstantBuffer()
 }
 #pragma endregion ConstantBuffer
 
+#pragma region BlendState
+void FRenderer::CreateBlendState()
+{
+    D3D11_BLEND_DESC blendDesc = {};
+    blendDesc.RenderTarget[0].BlendEnable = true;
+    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    Graphics->Device->CreateBlendState(&blendDesc, &NormalBlendState);
+    
+}
+void FRenderer::ReleaseBlendState()
+{
+    if (NormalBlendState)
+    {
+        NormalBlendState->Release();
+        NormalBlendState = nullptr;
+    }
+}
+#pragma endregion BlendState
 #pragma region
 
 void FRenderer::ClearRenderArr()
@@ -587,8 +613,9 @@ void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveVie
     Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &DepthToWorldBuffer);
     Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &DepthToWorldBuffer);
 
-
+    Graphics->DeviceContext->OMSetBlendState(NormalBlendState, nullptr, 0xffffffff);
     Graphics->DeviceContext->Draw(4, 0);
+    Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 }
 
 void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)

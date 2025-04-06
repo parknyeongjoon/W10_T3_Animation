@@ -42,6 +42,8 @@ public:
     ID3D11Buffer* CameraConstantBuffer = nullptr;
     ID3D11Buffer* DepthToWorldBuffer = nullptr;
 
+    ID3D11BlendState* NormalBlendState = nullptr;
+
     FLighting lightingData;
 
     uint32 Stride;
@@ -59,6 +61,8 @@ public:
     void Release();
     void ReleaseShader();
     void ReleaseConstantBuffer();
+    void CreateBlendState();
+    void ReleaseBlendState();
 
     void CreateShader();
     

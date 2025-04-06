@@ -54,7 +54,7 @@ float4 mainPS(VS_OUT input) : SV_Target
     if (depth == 1.0)
     {
         // return float4(0, 0, 0, 1);
-        return FogColor;
+        // return FogColor;
     }
 
     float ndcx = input.uv.x * 2.0 - 1.0;
@@ -72,11 +72,4 @@ float4 mainPS(VS_OUT input) : SV_Target
     float fogFactor = saturate(1.f - exp(-heightDiff * FogDensity));
     float4 finalColor = lerp(float4(0.f, 0.f, 0.f, 0.f), FogColor, fogFactor);
     return finalColor;
-    // float heightValue = 
-    // 감마 보정 적용
-    //float gammaCorrected = pow(normalized, 1.0 / 4.0);
-    // float expo = 1 - exp(-normalized * 5.0); // 5.0은 조정 가능한 falloff 계수
-
-
-    // return float4(expo, expo, expo, 1.0);
 }
