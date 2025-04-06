@@ -182,12 +182,11 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     output.UUID = UUID;
     
-    float4 baseColor = Textures.Sample(Sampler, input.texcoord) * input.color;
+    float4 baseColor = Textures.Sample(Sampler, input.texcoord + UVOffset) + float4(Material.DiffuseColor, Material.TransparencyScalar);
     
-    if (!input.normalFlag)
+    if(!IsLit)
     {
-        // 노멀 없을 경우: 원래 색상 그대로 출력
-        output.color = baseColor;
+        output.color = float4(baseColor.rgb, 1.0);
         return output;
     }
     
@@ -206,18 +205,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
         result += CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb, 32.0f);
     }
     
-    //if (isSelected)
-    //{
-    //    result += float3(0.2f, 0.2f, 0.0f); // 노란색 틴트로 하이라이트
-    //}
-    if(NumPointLights > 99)
-    {
-        float3 distVec = PointLights[0].Position - input.worldPos;
-        output.color = float4(normalize(distVec) * 0.5 + 0.5, 1.0);
-    }
-    else
-    {
-        output.color = float4(result, baseColor.a);
-    }
+    output.color = float4(result, baseColor.a);
+    
     return output;
 }
