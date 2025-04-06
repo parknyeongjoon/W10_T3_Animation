@@ -159,7 +159,9 @@ float3 CalculatePointLight(FPointLight Light, float3 WorldPos, float3 Normal, fl
     if (Distance > Light.Radius)
         return float3(0, 0, 0);
     
+    float NormalizedDistance = saturate(Distance / Light.Radius);
     float Attenuation = 1.0f / (1.0f + Light.AttenuationFalloff * Distance * Distance);
+    Attenuation *= 1.0 - NormalizedDistance * NormalizedDistance; // 부드러운 경계 추가
 
     float Diff = max(dot(Normal, LightDir), 0.0f);
     float3 Diffuse = Light.Color * Diff * DiffuseColor * Light.Intensity * Attenuation; // float3으로 수정
