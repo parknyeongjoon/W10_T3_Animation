@@ -9,7 +9,7 @@
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
 #include "Math/Matrix.h"
-
+#include "Math/Color.h"
 
 #define UE_LOG Console::GetInstance().AddLog
 
@@ -347,4 +347,22 @@ struct FDepthToWorldConstants
     float FogStartHeight;
     float FogEndHeight;
     float FogDensity;
+}
+
+struct alignas(16) FHeightFogConstants
+{
+    float FogDensity;       
+    float FogHeightFalloff;
+    float HeightOffset; 
+    float StartDistance;
+
+    FLinearColor InscatteringColor;
+    FLinearColor DirectionalInscatteringColor;
+
+    FVector DirectionalLightDirection;
+    float FogCutoffDistance;
+    
+    float MaxOpacity;       
+    float DirectionalInscatteringExponent;
+    float DirectionalInscatteringStartDistance;
 };
