@@ -158,6 +158,11 @@ void FConstantBufferUpdater::UpdateDpethToWorldConstant(ID3D11Buffer* DepthToWor
             // constants->InvViewProjMatrix = FMatrix::Transpose(FMatrix::Inverse( ViewportClient->GetProjectionMatrix() * ViewportClient->GetViewMatrix()));;
             constants->nearPlane = ViewportClient->nearPlane;
             constants->farPlane = ViewportClient->farPlane;
+            
+            constants->FogColor = FVector4(1.f, 1.f ,1.f ,1.f);
+            constants->FogDensity = 0.5f;
+            constants->FogStartHeight = 0.f;
+            constants->FogEndHeight = 10.f;
         }
         DeviceContext->Unmap(DepthToWorldConstantBuffer, 0);
     }

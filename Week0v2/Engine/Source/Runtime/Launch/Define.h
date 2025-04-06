@@ -342,4 +342,9 @@ struct FDepthToWorldConstants
     FMatrix InvProj;
     float nearPlane;
     float farPlane;
+    float pad1, pad2;
+    FVector4 FogColor;
+    float FogStartHeight;
+    float FogEndHeight;
+    float FogDensity;
 };
