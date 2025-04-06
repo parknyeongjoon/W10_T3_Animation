@@ -89,8 +89,8 @@ public://텍스쳐용 기능 추가
 	ID3D11SamplerState* DebugDepthSRVSampler = nullptr;
 
     // Shaders for fog
-    ID3D11VertexShader* HeightFogVertexShader;
-    ID3D11PixelShader* HeightFogPixelShader;
+    // ID3D11VertexShader* HeightFogVertexShader;
+    // ID3D11PixelShader* HeightFogPixelShader;
     ID3D11Buffer* FogConstantBuffer;
 
     uint32 TextureStride;
@@ -120,6 +120,7 @@ public: // line shader
     void RenderBatch(const FGridParameters& gridParam, ID3D11Buffer* pVertexBuffer, int boundingBoxCount, int coneCount, int coneSegmentCount, int obbCount) const;
     void UpdateGridConstantBuffer(const FGridParameters& gridParams) const;
     void UpdateLinePrimitveCountBuffer(int numBoundingBoxes, int numCones) const;
+    void RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport);
 
     ID3D11ShaderResourceView* CreateBoundingBoxSRV(ID3D11Buffer* pBoundingBoxBuffer, UINT numBoundingBoxes);
     ID3D11ShaderResourceView* CreateOBBSRV(ID3D11Buffer* pBoundingBoxBuffer, UINT numBoundingBoxes);

@@ -575,7 +575,7 @@ void FRenderer::RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewport
 
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Fog)) 
     {
-        RenderHeightFog(World, ActiveViewport);
+        RenderHeightFog(ActiveViewport);
     }
 }
 
@@ -798,21 +798,25 @@ void FRenderer::UpdateLinePrimitveCountBuffer(int numBoundingBoxes, int numCones
     Graphics->DeviceContext->Unmap(LinePrimitiveBuffer, 0);
 }
 
-void FRenderer::RenderHeightFog(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
+void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
     // 활성화된 Height Fog 컴포넌트 찾기
     UHeightFogComponent* HeightFogComp = nullptr;
-    for (const auto& Actor : World->GetActors())
+    // for (const auto& Actor : World->GetActors())
+    // {
+    //     for (const auto& Component : Actor->GetComponents())
+    //     {
+    //         if (UHeightFogComponent* FogComp = Cast<UHeightFogComponent>(Component))
+    //         {
+    //             HeightFogComp = FogComp;
+    //             break;
+    //         }
+    //     }
+    //     if (HeightFogComp) break;
+    // }
+    for (const auto& comp: TObjectRange<UHeightFogComponent>() )
     {
-        for (const auto& Component : Actor->GetComponents())
-        {
-            if (UHeightFogComponent* FogComp = Cast<UHeightFogComponent>(Component))
-            {
-                HeightFogComp = FogComp;
-                break;
-            }
-        }
-        if (HeightFogComp) break;
+        HeightFogComp = comp;
     }
 
     if (!HeightFogComp) return;

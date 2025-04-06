@@ -347,7 +347,7 @@ struct FDepthToWorldConstants
     float FogStartHeight;
     float FogEndHeight;
     float FogDensity;
-}
+};
 
 struct alignas(16) FHeightFogConstants
 {
