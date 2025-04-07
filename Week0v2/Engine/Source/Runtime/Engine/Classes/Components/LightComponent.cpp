@@ -2,6 +2,8 @@
 #include "UBillboardComponent.h"
 #include "Math/JungleMath.h"
 #include "UnrealEd/PrimitiveBatch.h"
+#include "UObject/ObjectFactory.h"
+#include "CoreUObject/UObject/Casts.h"
 
 ULightComponentBase::ULightComponentBase()
 {
@@ -10,10 +12,15 @@ ULightComponentBase::ULightComponentBase()
     InitializeLight();
 }
 
+ULightComponentBase::ULightComponentBase(const ULightComponentBase& Other)
+{
+}
+
 ULightComponentBase::~ULightComponentBase()
 {
     delete texture2D;
 }
+
 void ULightComponentBase::SetColor(FVector4 newColor)
 {
     color = newColor;
@@ -24,14 +31,34 @@ FVector4 ULightComponentBase::GetColor() const
     return color;
 }
 
-float ULightComponentBase::GetRadius() const
+UObject* ULightComponentBase::Duplicate() const
 {
-    return radius;
+    ULightComponentBase* NewComp = FObjectFactory::ConstructObjectFrom<ULightComponentBase>(this);
+    NewComp->DuplicateSubObjects(this);
+    NewComp->PostDuplicate();
+    return NewComp;
 }
 
-void ULightComponentBase::SetRadius(float r)
+void ULightComponentBase::DuplicateSubObjects(const UObject* Source)
 {
-    radius = r;
+    // 복사할 것?
+    Super::DuplicateSubObjects(Source);
+
+    ULightComponentBase* SourceComp = Cast<ULightComponentBase>(Source);
+    if (SourceComp)
+    {
+        color = SourceComp->color;
+        Intensity = SourceComp->Intensity;
+        AABB = SourceComp->AABB;
+        texture2D = new UBillboardComponent();
+        texture2D->SetTexture(L"Assets/Texture/spotLight.png");
+        texture2D->InitializeComponent();
+    }
+
+}
+
+void ULightComponentBase::PostDuplicate()
+{
 }
 
 void ULightComponentBase::InitializeLight()
@@ -42,7 +69,6 @@ void ULightComponentBase::InitializeLight()
     AABB.max = { 1.f,1.f,0.1f };
     AABB.min = { -1.f,-1.f,-0.1f };
     color = { 1,1,1,1 };
-    radius = 5;
 }
 
 void ULightComponentBase::TickComponent(float DeltaTime)

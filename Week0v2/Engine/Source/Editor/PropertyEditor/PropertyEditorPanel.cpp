@@ -2,7 +2,8 @@
 
 #include "Engine/World.h"
 #include "Actors/Player.h"
-#include "Components/LightComponent.h"
+#include "Components/DirectionalLightComponent.h"
+#include "Components/PointLightComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/UText.h"
 #include "Engine/FLoaderOBJ.h"
@@ -83,10 +84,20 @@ void PropertyEditorPanel::Render()
                     BillboardComponent->SetTexture(L"Assets/Texture/Pawn_64x.png");
                     BillboardComponent->SetLocation(FVector(0.0f, 0.0f, 3.0f));
                 }
-                if (ImGui::Selectable("LightComponent"))
+                //if (ImGui::Selectable("LightComponent"))
+                //{
+                //    ULightComponentBase* LightComponent = PickedActor->AddComponent<ULightComponentBase>();
+                //    PickedComponent = LightComponent;
+                //}
+                if (ImGui::Selectable("DirectionalLightComponent"))
                 {
-                    ULightComponentBase* LightComponent = PickedActor->AddComponent<ULightComponentBase>();
-                    PickedComponent = LightComponent;
+                    UDirectionalLightComponent* DirectionalLightComponent = PickedActor->AddComponent<UDirectionalLightComponent>();
+                    PickedComponent = DirectionalLightComponent;
+                }
+                if (ImGui::Selectable("PointLightComponent"))
+                {
+                    UPointLightComponent* PointLightComponent = PickedActor->AddComponent<UPointLightComponent>();
+                    PickedComponent = PointLightComponent;
                 }
                 if (ImGui::Selectable("ParticleComponent"))
                 {
@@ -157,7 +168,7 @@ void PropertyEditorPanel::Render()
                 coordiButtonLabel = "World";
             else if (player->GetCoordiMode() == CoordiMode::CDM_LOCAL)
                 coordiButtonLabel = "Local";
-            
+
             if (ImGui::Button(coordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
             {
                 player->AddCoordiMode();
@@ -172,7 +183,7 @@ void PropertyEditorPanel::Render()
     {
         ULightComponentBase* lightObj = Cast<ULightComponentBase>(PickedComponent);
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-        if (ImGui::TreeNodeEx("SpotLight Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
+        if (ImGui::TreeNodeEx("Light Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
         {
             FVector4 currColor = lightObj->GetColor();
 
@@ -211,7 +222,7 @@ void PropertyEditorPanel::Render()
             ImGui::SameLine();
             if (ImGui::DragFloat("B##B", &b, 0.001f, 0.f, 1.f)) changedRGB = true;
             ImGui::Spacing();
-            
+
             // HSV
             if (ImGui::DragFloat("H##H", &h, 0.1f, 0.f, 360)) changedHSV = true;
             ImGui::SameLine();
@@ -220,7 +231,7 @@ void PropertyEditorPanel::Render()
             if (ImGui::DragFloat("V##V", &v, 0.001f, 0.f, 1)) changedHSV = true;
             ImGui::PopItemWidth();
             ImGui::Spacing();
-            
+
             if (changedRGB && !changedHSV)
             {
                 // RGB -> HSV
@@ -235,14 +246,59 @@ void PropertyEditorPanel::Render()
             }
 
             // Light Radius
-            float radiusVal = lightObj->GetRadius();
-            if (ImGui::SliderFloat("Radius", &radiusVal, 1.0f, 100.0f))
-            {
-                lightObj->SetRadius(radiusVal);
-            }
+            //float radiusVal = lightObj->GetRadius();
+            //if (ImGui::SliderFloat("Radius", &radiusVal, 1.0f, 100.0f))
+            //{
+            //    lightObj->SetRadius(radiusVal);
+            //}
             ImGui::TreePop();
         }
         ImGui::PopStyleColor();
+
+        // show intensity
+        float intensityVal = lightObj->GetIntensity();
+        if (ImGui::SliderFloat("Intensity", &intensityVal, 0.01f, 10.0f))
+        {
+            lightObj->SetIntensity(intensityVal);
+        }
+        ImGui::Spacing();
+
+        if (PickedComponent->IsA<UDirectionalLightComponent>())
+        {
+            // direction
+            UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(PickedComponent);
+            if (DirectionalLight)
+            {
+                FVector LightDirection = DirectionalLight->GetDirection();
+                bool bChanged = FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
+                ImGui::Spacing();
+
+                if (bChanged)
+                {
+                    DirectionalLight->SetDirection(LightDirection);
+                }
+            }
+        }
+
+        if (PickedComponent->IsA<UPointLightComponent>())
+        {
+            // radius
+            UPointLightComponent* PointLight = Cast<UPointLightComponent>(PickedComponent);
+            if (PointLight)
+            {
+                float radiusVal = PointLight->GetRadius();
+                if (ImGui::SliderFloat("Radius", &radiusVal, 1.0f, 100.0f))
+                {
+                    PointLight->SetRadius(radiusVal);
+                }
+                ImGui::Spacing();
+                //float attenuationVal = PointLight->GetAttenuationFalloff();
+                //if (ImGui::SliderFloat("Attenuation", &attenuationVal, 0.0001f, 0.001f))
+                //{
+                //    PointLight->SetAttenuationFallOff(attenuationVal);
+                //}
+            }
+        }
     }
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기

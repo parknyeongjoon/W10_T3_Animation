@@ -41,7 +41,7 @@ public:
     ID3D11Buffer* TextureConstantBufer = nullptr;
     ID3D11Buffer* CameraConstantBuffer = nullptr;
 
-    FLighting lightingData;
+    FLightingConstant lightingData;
 
     uint32 Stride;
     uint32 Stride2;

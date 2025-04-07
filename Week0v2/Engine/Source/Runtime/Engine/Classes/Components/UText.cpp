@@ -277,14 +277,15 @@ void UText::TextMVPRendering()
     //FEngineLoop::renderer.PrepareSubUVConstant();
     FMatrix Model = CreateBillboardMatrix();
 
-    FMatrix MVP = Model * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix() * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
+    FMatrix ViewProj = GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix() * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
+
     FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
     FVector4 UUIDColor = EncodeUUID() / 255.0f;
     if (this == GetWorld()->GetPickingGizmo()) {
-        UEditorEngine::renderer.GetConstantBufferUpdater().UpdateConstant(UEditorEngine::renderer.ConstantBuffer, MVP, NormalMatrix, UUIDColor, true);
+        UEditorEngine::renderer.GetConstantBufferUpdater().UpdateConstant(UEditorEngine::renderer.ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, true);
     }
     else
-        UEditorEngine::renderer.GetConstantBufferUpdater().UpdateConstant(UEditorEngine::renderer.ConstantBuffer, MVP, NormalMatrix, UUIDColor, false);
+        UEditorEngine::renderer.GetConstantBufferUpdater().UpdateConstant(UEditorEngine::renderer.ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, false);
 
     if (ShowFlags::GetInstance().currentFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText)) {
         UEditorEngine::renderer.RenderTextPrimitive(vertexTextBuffer, numTextVertices,
