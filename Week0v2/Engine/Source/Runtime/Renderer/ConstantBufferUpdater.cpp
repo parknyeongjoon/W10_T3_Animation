@@ -80,9 +80,9 @@ void FConstantBufferUpdater::UpdateLightConstant(ID3D11Buffer* LightingBuffer, c
             if (PointLight && lightingData.NumPointLights < MAX_POINT_LIGHTS)
             {
                 lightingData.PointLights[lightingData.NumPointLights].Position = PointLight->GetWorldLocation();
-                lightingData.PointLights[lightingData.NumPointLights].Intensity = PointLight->GetIntensity();
-                lightingData.PointLights[lightingData.NumPointLights].Color = PointLight->GetColor().xyz();
                 lightingData.PointLights[lightingData.NumPointLights].Radius = PointLight->GetRadius();
+                lightingData.PointLights[lightingData.NumPointLights].Color = PointLight->GetColor().xyz();
+                lightingData.PointLights[lightingData.NumPointLights].Intensity = PointLight->GetIntensity();
                 lightingData.PointLights[lightingData.NumPointLights].AttenuationFalloff = PointLight->GetAttenuationFalloff();
                 lightingData.NumPointLights++;
             }

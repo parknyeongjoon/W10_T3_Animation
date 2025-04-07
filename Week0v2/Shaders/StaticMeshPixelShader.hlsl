@@ -45,7 +45,7 @@ struct FPointLight
     float Intensity;
     
     float AttenuationFalloff;
-    float pad[3];
+    float3 pad;
 };
 
 cbuffer LightingConstants : register(b2)
@@ -84,7 +84,6 @@ cbuffer CameraConstant : register(b6)
     matrix ViewMatrix;
     matrix ProjMatrix;
     matrix ViewProjMatrix;
-    matrix InvProjMatrix;
     
     float3 CameraPos;
     float NearPlane;

@@ -294,7 +294,7 @@ struct FPointLight
     float Intensity;
 
     float AttenuationFalloff;
-    float pad[3];
+    FVector Pad;
 };
 
 struct FLightingConstant
