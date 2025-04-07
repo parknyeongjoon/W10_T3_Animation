@@ -2,7 +2,8 @@ cbuffer CameraConstant : register(b0)
 {
     matrix ViewMatrix;
     matrix ProjMatrix;
-    matrix ViewProjMatrix;
+    matrix InvViewMatrix;
+    matrix InvProjMatrix;
     
     float3 CameraPos;
     float NearPlane;
@@ -58,9 +59,7 @@ float4 mainPS(VS_OUT input) : SV_Target
     float linearDepth = (NearPlane * FarPlane) / (FarPlane - depth * (FarPlane - NearPlane));
     float normalized = saturate((linearDepth - NearPlane) / (FarPlane - NearPlane));
 
-    // 감마 보정 적용
-    //float gammaCorrected = pow(normalized, 1.0 / 4.0);
-    float expo = 1 - exp(-normalized * 5.0); // 5.0은 조정 가능한 falloff 계수
+    float expo = 1 - exp(-normalized * 1.0); 
 
 
     return float4(expo, expo, expo, 1.0);

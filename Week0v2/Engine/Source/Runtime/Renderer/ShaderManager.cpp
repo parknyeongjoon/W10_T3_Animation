@@ -40,7 +40,10 @@ bool FShaderManager::CreateVertexShader(
         return false;
     }
     hr = Device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &outVS);
-    if (FAILED(hr)) { vsBlob->Release(); return false; }
+    if (FAILED(hr))
+    {
+        vsBlob->Release(); return false;
+    }
 
     if (outInputLayout)
     {

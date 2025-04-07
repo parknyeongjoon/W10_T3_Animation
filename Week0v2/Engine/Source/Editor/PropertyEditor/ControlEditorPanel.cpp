@@ -7,7 +7,7 @@
 #include "Components/SphereComp.h"
 #include "Components/UParticleSubUVComp.h"
 #include "Components/UText.h"
-#include "Components/ExponentialHeightFogComponent.h"
+#include "Components/HeightFogComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Engine/StaticMeshActor.h"
 #include "ImGUI/imgui_internal.h"
@@ -259,14 +259,14 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         };
 
         static const Primitive primitives[] = {
-            { .label= "Cube",      .obj= OBJ_CUBE },
-            { .label= "Sphere",    .obj= OBJ_SPHERE },
-            //{ .label= "SpotLight", .obj= OBJ_SpotLight },
-            { .label= "Particle",  .obj= OBJ_PARTICLE },
-            { .label= "Text",      .obj= OBJ_Text },
+            { .label= "Cube",      .obj = OBJ_CUBE },
+            { .label= "Sphere",    .obj = OBJ_SPHERE },
+            { .label= "SpotLight", .obj = OBJ_SpotLight },
+            { .label= "Particle",  .obj = OBJ_PARTICLE },
+            { .label= "Text",      .obj = OBJ_Text },
+            {.label = "Fog",      .obj = OBJ_Fog },
             { .label= "DirectionalLight", .obj= OBJ_DIRECTIONAL_LIGHT },
             { .label= "PointLight", .obj= OBJ_POINT_LIGHT },
-            {.label = "Fog",       .obj = OBJ_HEIGHT_FOG }
         };
 
         for (const auto& primitive : primitives)
@@ -324,6 +324,13 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     TextComponent->SetText(L"안녕하세요 Jungle 1");
                     break;
                 }
+                case OBJ_Fog:
+                {
+                    SpawnedActor = World->SpawnActor<AActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_Fog"));
+                    UHeightFogComponent* HeightFogComponent = SpawnedActor->AddComponent<UHeightFogComponent>();
+                    break;
+                }
                 case OBJ_DIRECTIONAL_LIGHT:
                 {
                     SpawnedActor = World->SpawnActor<ADirectionalLightActor>();
@@ -335,12 +342,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     SpawnedActor = World->SpawnActor<APointLightActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_POINT_LIGHT"));
                     break;
-                }
-                case OBJ_HEIGHT_FOG:
-                {
-                    SpawnedActor = World->SpawnActor<AActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_HEIGHT_FOG"));
-                    SpawnedActor->AddComponent<UExponentialHeightFogComponent>();
                 }
                 case OBJ_TRIANGLE:
                 case OBJ_CAMERA:
@@ -440,7 +441,7 @@ void ControlEditorPanel::CreateFlagButton() const
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Primitives)) != 0,
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText)) != 0,
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_UUIDText)) != 0,
-            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Fog)) != 0
+            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Fog)) != 0,
         };  // 각 항목의 체크 상태 저장
         
         for (int i = 0; i < IM_ARRAYSIZE(items); i++)

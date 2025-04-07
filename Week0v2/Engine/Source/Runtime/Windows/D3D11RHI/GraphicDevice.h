@@ -34,6 +34,7 @@ public:
     ID3D11DepthStencilState* DepthStencilState = nullptr;
     ID3D11Texture2D* DepthCopyTexture;
     ID3D11ShaderResourceView* DepthCopySRV;
+    ID3D11ShaderResourceView* SceneColorSRV = nullptr;
 
     FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear) 할 때 사용할 색상(RGBA)
 
@@ -59,6 +60,12 @@ public:
     void ChangeRasterizer(EViewModeIndex evi);
     void ChangeDepthStencilState(ID3D11DepthStencilState* newDetptStencil);
     ID3D11ShaderResourceView* GetCopiedShaderResourceView();
+
+    // Members for Fog
+    ID3D11Texture2D* SceneColorTexture = nullptr;
+    ID3D11RenderTargetView* SceneColorRTV = nullptr;
+    ID3D11Texture2D* RenderTargetTexture = nullptr;
+    void CreateSceneColorResources();
 
     uint32 GetPixelUUID(POINT pt);
     uint32 DecodeUUIDColor(FVector4 UUIDColor);

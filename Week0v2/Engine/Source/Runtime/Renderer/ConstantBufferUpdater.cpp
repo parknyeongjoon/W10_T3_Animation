@@ -1,6 +1,8 @@
 #include "ConstantBufferUpdater.h"
 #include <Engine/Texture.h>
 #include "Editor/UnrealEd/EditorViewportClient.h"
+#include "Engine/Source/Runtime/Engine/Classes/Components/HeightFogComponent.h"
+#include "UObject/UObjectIterator.h"
 #include "Classes/Components/DirectionalLightComponent.h"
 #include "Classes/Components/PointLightComponent.h"
 #include "UObject/Casts.h"
@@ -80,9 +82,9 @@ void FConstantBufferUpdater::UpdateLightConstant(ID3D11Buffer* LightingBuffer, c
             if (PointLight && lightingData.NumPointLights < MAX_POINT_LIGHTS)
             {
                 lightingData.PointLights[lightingData.NumPointLights].Position = PointLight->GetWorldLocation();
-                lightingData.PointLights[lightingData.NumPointLights].Intensity = PointLight->GetIntensity();
-                lightingData.PointLights[lightingData.NumPointLights].Color = PointLight->GetColor().xyz();
                 lightingData.PointLights[lightingData.NumPointLights].Radius = PointLight->GetRadius();
+                lightingData.PointLights[lightingData.NumPointLights].Color = PointLight->GetColor().xyz();
+                lightingData.PointLights[lightingData.NumPointLights].Intensity = PointLight->GetIntensity();
                 lightingData.PointLights[lightingData.NumPointLights].AttenuationFalloff = PointLight->GetAttenuationFalloff();
                 lightingData.NumPointLights++;
             }
@@ -168,34 +170,13 @@ void FConstantBufferUpdater::UpdateCameraConstant(ID3D11Buffer* CameraConstantBu
         {
             constants->ViewMatrix = FMatrix::Transpose(ViewportClient->GetViewMatrix());
             constants->ProjMatrix = FMatrix::Transpose(ViewportClient->GetProjectionMatrix());
-            constants->ViewProjMatrix = FMatrix::Transpose(constants->ViewMatrix * constants->ProjMatrix);
-            constants->InverseViewProjMatrix = FMatrix::Inverse(ViewportClient->GetViewMatrix() * ViewportClient->GetProjectionMatrix());
+            constants->InvViewMatrix = FMatrix::Transpose(FMatrix::Inverse(ViewportClient->GetViewMatrix()));
+            constants->InvProjMatrix = FMatrix::Transpose(FMatrix::Inverse(ViewportClient->GetProjectionMatrix()));
             constants->CameraPos = ViewportClient->ViewTransformPerspective.GetLocation();
             constants->NearPlane = ViewportClient->nearPlane;
             constants->CameraForward = ViewportClient->ViewTransformPerspective.GetForwardVector();
             constants->FarPlane = ViewportClient->farPlane;
         }
         DeviceContext->Unmap(CameraConstantBuffer, 0);
-    }
-}
-
-void FConstantBufferUpdater::UpdateFogConstant(ID3D11Buffer* FogConstantBuffer, class FEditorViewportClient* ViewportClient, FFogParams Params) const
-{
-    if (FogConstantBuffer)
-    {
-        D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
-        DeviceContext->Map(FogConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR); // update constant buffer every frame
-        auto constants = static_cast<FFogConstants*>(constantbufferMSR.pData);
-        {
-            float Param0X = Params.Density * exp2(-Params.HeightFalloff * (ViewportClient->ViewTransformPerspective.GetLocation().z - Params.FogHeight));
-            float Param0Y = Params.HeightFalloff;
-            float Param0Z = 0; // 나중에 방향성 추가시 변경 필요
-            float Param0W = Params.StartDistance;
-            constants->FogParam0 = { Param0X, Param0Y, Param0Z, Param0W };
-            constants->FogParam1 = { Params.Color[0], Params.Color[1], Params.Color[2], Params.MaxOpacity };
-            constants->bUseFog = Params.bUseFog;
-        }
-        DeviceContext->Unmap(FogConstantBuffer, 0);
-        
     }
 }

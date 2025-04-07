@@ -5,6 +5,7 @@
 #include "Components/DirectionalLightComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/HeightFogComponent.h"
 #include "Components/UText.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Math/MathUtility.h"
@@ -13,8 +14,6 @@
 #include "UObject/ObjectFactory.h"
 #include <Components/CubeComp.h>
 #include <Components/UParticleSubUVComp.h>
-
-#include "Components/ExponentialHeightFogComponent.h"
 
 void PropertyEditorPanel::Render()
 {
@@ -126,6 +125,15 @@ void PropertyEditorPanel::Render()
                 ImGui::EndPopup();
             }
             ImGui::TreePop();
+        }
+    }
+
+    if (PickedActor)
+    {
+        if (PickedComponent && PickedComponent->GetOwner() && PickedComponent->GetOwner() != PickedActor)
+        {
+            // 다른 액터를 픽한 것 -> PickedComponent를 PickedActor의 RootComponent로 바꿔준다
+            PickedComponent = PickedActor->GetRootComponent();
         }
     }
 
@@ -374,45 +382,81 @@ void PropertyEditorPanel::Render()
             }
             ImGui::TreePop();
         }
+
     }
-
-    if (PickedActor && PickedComponent && PickedComponent->IsA<UExponentialHeightFogComponent>())
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UHeightFogComponent>())
     {
-        UExponentialHeightFogComponent* FogComponent = Cast<UExponentialHeightFogComponent>(PickedComponent);
+        UHeightFogComponent* HeightFogComp = Cast<UHeightFogComponent>(PickedComponent);
 
-        if (ImGui::TreeNodeEx("ExponentialHeightFog", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        // Height Fog 속성 편집
+        if (ImGui::TreeNodeEx("Height Fog Properties", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
         {
+            // 기본 속성
             ImGui::Text("Basic Properties");
             ImGui::Separator();
 
-            ImGui::SliderFloat("Density", &FogComponent->FogDensity, 0.0f, 0.05f, "%.4f");
-            ImGui::SliderFloat("HeightFallOff", &FogComponent->FogHeightFalloff, 0.0f, 2.0f, "%.6f");
-            ImGui::SliderFloat("StartDistance", &FogComponent->StartDistance, 0.0f, 5000.0f);
-            ImGui::SliderFloat("CutOffDistance", &FogComponent->FogCutOffDistance, 0.0f, 2000000.0f);
-            ImGui::SliderFloat("MaxOpacity", &FogComponent->FogMaxOpacity, 0.0f, 1.0f);
+            bool bIsActive = HeightFogComp->bIsActive;
+            bool bIsExponential = HeightFogComp->bIsExponential;
 
-            ImGui::Separator();
+            ImGui::Checkbox("Active", &bIsActive);
+            ImGui::Checkbox("Exponential", &bIsExponential);
+
+            HeightFogComp->bIsActive = bIsActive;
+            HeightFogComp->bIsExponential = bIsExponential;
+
+            ImGui::SliderFloat("Fog Density", &HeightFogComp->FogDensity, 0.0f, 1.0f, "%.4f");
+            ImGui::SliderFloat("Height Fog Start", &HeightFogComp->HeightFogStart, 0.0f, 100.0f);
+            ImGui::SliderFloat("Height Fog End", &HeightFogComp->HeightFogEnd, 0.0f, 100.0f);
+            ImGui::SliderFloat("Distance Fog Near", &HeightFogComp->DistanceFogNear, 0.0f, 100.0f);
+            ImGui::SliderFloat("Distance Fog Far", &HeightFogComp->DistanceFogFar, 0.0f, 1000.0f);
+            ImGui::SliderFloat("Max Opacity", &HeightFogComp->FogMaxOpacity, 0.0f, 1.0f, "%.2f");
+
+            ImGui::Spacing();
             ImGui::Text("Color Properties");
+            ImGui::Separator();
 
-            float Colors[4] = {
-                FogComponent->FogInscatteringColor.R,
-                FogComponent->FogInscatteringColor.G,
-                FogComponent->FogInscatteringColor.B,
-                FogComponent->FogInscatteringColor.A
+            // 안개 색상 편집
+            float inScatteringColor[4] = {
+                HeightFogComp->FogInscatteringColor.R,
+                HeightFogComp->FogInscatteringColor.G,
+                HeightFogComp->FogInscatteringColor.B,
+                HeightFogComp->FogInscatteringColor.A
             };
 
-            if (ImGui::ColorEdit4("Color", Colors))
+            if (ImGui::ColorEdit4("Inscattering Color", inScatteringColor))
             {
-                FogComponent->FogInscatteringColor.R = Colors[0];
-                FogComponent->FogInscatteringColor.G = Colors[1];
-                FogComponent->FogInscatteringColor.B = Colors[2];
-                FogComponent->FogInscatteringColor.A = Colors[3];
+                HeightFogComp->FogInscatteringColor.R = inScatteringColor[0];
+                HeightFogComp->FogInscatteringColor.G = inScatteringColor[1];
+                HeightFogComp->FogInscatteringColor.B = inScatteringColor[2];
+                HeightFogComp->FogInscatteringColor.A = inScatteringColor[3];
             }
 
+            // 방향성 산란 색상 편집
+            float directionalColor[4] = {
+                HeightFogComp->DirectionalInscatteringColor.R,
+                HeightFogComp->DirectionalInscatteringColor.G,
+                HeightFogComp->DirectionalInscatteringColor.B,
+                HeightFogComp->DirectionalInscatteringColor.A
+            };
+
+            if (ImGui::ColorEdit4("Directional Color", directionalColor))
+            {
+                HeightFogComp->DirectionalInscatteringColor.R = directionalColor[0];
+                HeightFogComp->DirectionalInscatteringColor.G = directionalColor[1];
+                HeightFogComp->DirectionalInscatteringColor.B = directionalColor[2];
+                HeightFogComp->DirectionalInscatteringColor.A = directionalColor[3];
+            }
+
+            ImGui::Spacing();
+            ImGui::Text("Directional Properties");
+            ImGui::Separator();
+
+            ImGui::SliderFloat("Directional Exponent", &HeightFogComp->DirectionalInscatteringExponent, 1.0f, 16.0f);
+            ImGui::SliderFloat("Directional Start Distance", &HeightFogComp->DirectionalInscatteringStartDistance, 0.0f, 5000.0f);
             ImGui::TreePop();
         }
+
     }
-    
     ImGui::End();
 
 

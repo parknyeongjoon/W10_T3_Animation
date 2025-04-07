@@ -9,7 +9,7 @@
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
 #include "Math/Matrix.h"
-
+#include "Math/Color.h"
 
 #define UE_LOG Console::GetInstance().AddLog
 
@@ -17,6 +17,7 @@
 #include <d3d11.h>
 
 #include "UserInterface/Console.h"
+
 
 struct FVertexSimple
 {
@@ -293,7 +294,7 @@ struct FPointLight
     float Intensity;
 
     float AttenuationFalloff;
-    float pad[3];
+    FVector Pad;
 };
 
 struct FLightingConstant
@@ -355,32 +356,47 @@ struct alignas(16) FCameraConstants
 {
     FMatrix ViewMatrix;
     FMatrix ProjMatrix;
-    FMatrix ViewProjMatrix;
-    FMatrix InverseViewProjMatrix; // 역행렬 추가
+    FMatrix InvViewMatrix;
+    FMatrix InvProjMatrix;
 
     FVector CameraPos;
     float NearPlane;
-    
     FVector CameraForward;
     float FarPlane;
 };
 
-struct FFogParams
+struct FDepthToWorldConstants
 {
-    float Color[4];
-    float Density;
-    float FogHeight;
-    float HeightFalloff;
-    float StartDistance;
-    float CutOffDistance;
-    float MaxOpacity;
-    int bUseFog;
+    FMatrix InvView;
+    FMatrix InvProj;
+    float nearPlane;
+    float farPlane;
+    float pad1, pad2;
+    FVector4 FogColor;
+    float FogStartHeight;
+    float FogEndHeight;
+    float FogDensity;
 };
 
-struct alignas(16) FFogConstants
+struct alignas(16) FHeightFogConstants
 {
-    FVector4 FogParam0;
-    FVector4 FogParam1;
-    int bUseFog;
-    FVector FogPad;
+    float FogDensity;       
+    float HeightFogStart;
+    float HeightFogEnd;
+    float MaxOpacity;       
+
+    float DistanceFogNear;
+    float DistanceFogFar;
+    float pad1, pad2;
+    
+    FLinearColor InscatteringColor;
+    FLinearColor DirectionalInscatteringColor;
+
+    FVector DirectionalLightDirection;
+    float DirectionalInscatteringExponent;
+
+    float DirectionalInscatteringStartDistance;
+    float pad3, pad4, pad5;
+
+    int IsExponential;
 };
