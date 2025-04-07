@@ -799,7 +799,7 @@ void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveVie
     );
     fogParams.DirectionalInscatteringExponent = HeightFogComp->DirectionalInscatteringExponent;
     fogParams.DirectionalInscatteringStartDistance = HeightFogComp->DirectionalInscatteringStartDistance;
-    fogParams.IsExponential = HeightFogComp->bIsExponential;
+    fogParams.IsExponential = HeightFogComp->bIsExponential ? 1 : 0;
 
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     Graphics->DeviceContext->Map(FogConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

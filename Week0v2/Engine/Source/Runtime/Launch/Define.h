@@ -398,5 +398,5 @@ struct alignas(16) FHeightFogConstants
     float DirectionalInscatteringStartDistance;
     float pad3, pad4, pad5;
 
-    bool IsExponential;
+    int IsExponential;
 };
