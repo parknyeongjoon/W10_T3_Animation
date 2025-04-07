@@ -5,6 +5,7 @@
 #include "Components/DirectionalLightComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/HeightFogComponent.h"
 #include "Components/UText.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Math/MathUtility.h"
@@ -379,6 +380,73 @@ void PropertyEditorPanel::Render()
 
                 ImGui::EndCombo();
             }
+            ImGui::TreePop();
+        }
+
+    }
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UHeightFogComponent>())
+    {
+        UHeightFogComponent* HeightFogComp = Cast<UHeightFogComponent>(PickedComponent);
+
+        // Height Fog 속성 편집
+        if (ImGui::TreeNodeEx("Height Fog Properties", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            // 기본 속성
+            ImGui::Text("Basic Properties");
+            ImGui::Separator();
+
+            bool bIsActive = HeightFogComp->bIsActive;
+            ImGui::Checkbox("Active", &bIsActive);
+            HeightFogComp->bIsActive = bIsActive;
+            ImGui::SliderFloat("Fog Density", &HeightFogComp->FogDensity, 0.0f, 1.0f, "%.4f");
+            ImGui::SliderFloat("Height Fog Start", &HeightFogComp->HeightFogStart, 0.0f, 100.0f);
+            ImGui::SliderFloat("Height Fog End", &HeightFogComp->HeightFogEnd, 0.0f, 100.0f);
+            ImGui::SliderFloat("Distance Fog Near", &HeightFogComp->DistanceFogNear, 0.0f, 100.0f);
+            ImGui::SliderFloat("Distance Fog Far", &HeightFogComp->DistanceFogFar, 0.0f, 1000.0f);
+            ImGui::SliderFloat("Max Opacity", &HeightFogComp->FogMaxOpacity, 0.0f, 1.0f, "%.2f");
+
+            ImGui::Spacing();
+            ImGui::Text("Color Properties");
+            ImGui::Separator();
+
+            // 안개 색상 편집
+            float inScatteringColor[4] = {
+                HeightFogComp->FogInscatteringColor.R,
+                HeightFogComp->FogInscatteringColor.G,
+                HeightFogComp->FogInscatteringColor.B,
+                HeightFogComp->FogInscatteringColor.A
+            };
+
+            if (ImGui::ColorEdit4("Inscattering Color", inScatteringColor))
+            {
+                HeightFogComp->FogInscatteringColor.R = inScatteringColor[0];
+                HeightFogComp->FogInscatteringColor.G = inScatteringColor[1];
+                HeightFogComp->FogInscatteringColor.B = inScatteringColor[2];
+                HeightFogComp->FogInscatteringColor.A = inScatteringColor[3];
+            }
+
+            // 방향성 산란 색상 편집
+            float directionalColor[4] = {
+                HeightFogComp->DirectionalInscatteringColor.R,
+                HeightFogComp->DirectionalInscatteringColor.G,
+                HeightFogComp->DirectionalInscatteringColor.B,
+                HeightFogComp->DirectionalInscatteringColor.A
+            };
+
+            if (ImGui::ColorEdit4("Directional Color", directionalColor))
+            {
+                HeightFogComp->DirectionalInscatteringColor.R = directionalColor[0];
+                HeightFogComp->DirectionalInscatteringColor.G = directionalColor[1];
+                HeightFogComp->DirectionalInscatteringColor.B = directionalColor[2];
+                HeightFogComp->DirectionalInscatteringColor.A = directionalColor[3];
+            }
+
+            ImGui::Spacing();
+            ImGui::Text("Directional Properties");
+            ImGui::Separator();
+
+            ImGui::SliderFloat("Directional Exponent", &HeightFogComp->DirectionalInscatteringExponent, 1.0f, 16.0f);
+            ImGui::SliderFloat("Directional Start Distance", &HeightFogComp->DirectionalInscatteringStartDistance, 0.0f, 5000.0f);
             ImGui::TreePop();
         }
 

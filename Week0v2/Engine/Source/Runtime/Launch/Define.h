@@ -9,7 +9,7 @@
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
 #include "Math/Matrix.h"
-
+#include "Math/Color.h"
 
 #define UE_LOG Console::GetInstance().AddLog
 
@@ -356,10 +356,43 @@ struct alignas(16) FCameraConstants
 {
     FMatrix ViewMatrix;
     FMatrix ProjMatrix;
-    FMatrix ViewProjMatrix;
+    FMatrix InvViewMatrix;
+    FMatrix InvProjMatrix;
 
     FVector CameraPos;
     float NearPlane;
     FVector CameraForward;
     float FarPlane;
+};
+
+struct FDepthToWorldConstants
+{
+    FMatrix InvView;
+    FMatrix InvProj;
+    float nearPlane;
+    float farPlane;
+    float pad1, pad2;
+    FVector4 FogColor;
+    float FogStartHeight;
+    float FogEndHeight;
+    float FogDensity;
+};
+
+struct alignas(16) FHeightFogConstants
+{
+    float FogDensity;       
+    float HeightFogStart;
+    float HeightFogEnd;
+    float MaxOpacity;       
+
+    float DistanceFogNear;
+    float DistanceFotFar;
+    float pad1, pad2;
+    
+    FLinearColor InscatteringColor;
+    FLinearColor DirectionalInscatteringColor;
+
+    FVector DirectionalLightDirection;
+    float DirectionalInscatteringExponent;
+    float DirectionalInscatteringStartDistance;
 };

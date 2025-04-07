@@ -30,12 +30,14 @@ void ShowFlags::Draw(std::shared_ptr<FEditorViewportClient> ActiveViewport)
 
 	if (ImGui::Begin("ShowFlags"))
 	{
-		const char* items[] = { "AABB", "Primitves","BillBoardText","UUID"};
+		const char* items[] = { "AABB", "Primitves","BillBoardText","UUID", "Fog"};
         uint64 curFlag = ActiveViewport->GetShowFlag();
 		bool selected[IM_ARRAYSIZE(items)] = { curFlag & static_cast<uint64>(EEngineShowFlags::SF_AABB),
             curFlag& static_cast<uint64>(EEngineShowFlags::SF_Primitives),
             curFlag& static_cast<uint64>(EEngineShowFlags::SF_BillboardText),
-            curFlag& static_cast<uint64>(EEngineShowFlags::SF_UUIDText) };  // 각 항목의 체크 상태 저장
+            curFlag& static_cast<uint64>(EEngineShowFlags::SF_UUIDText),
+            curFlag& static_cast<uint64>(EEngineShowFlags::SF_Fog)
+        };  // 각 항목의 체크 상태 저장
 
 		if (ImGui::BeginCombo("Show Flags", "Select Show Flags"))
 		{
@@ -62,6 +64,8 @@ uint64 ShowFlags::ConvertSelectionToFlags(const bool selected[])
 		flags |= static_cast<uint64>(EEngineShowFlags::SF_BillboardText);
 	if (selected[3])
 		flags |= static_cast<uint64>(EEngineShowFlags::SF_UUIDText);
+    if (selected[4])
+        flags |= static_cast<uint64>(EEngineShowFlags::SF_Fog);
 	return flags;
 }
 
