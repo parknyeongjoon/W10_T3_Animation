@@ -9,6 +9,7 @@ class UHeightFogComponent : public UPrimitiveComponent
 public:
     UHeightFogComponent();
     bool bIsActive;
+    bool bIsExponential;
     float FogDensity;
     float HeightFogStart;
     float HeightFogEnd;

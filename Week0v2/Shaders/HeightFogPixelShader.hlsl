@@ -27,7 +27,11 @@ cbuffer FogParams : register(b6)
     
     float3 DirectionalLightDirection;
     float DirectionalInscatteringExponent;
+    
     float DirectionalInscatteringStartDistance;
+    float pad3, pad4, pad5;
+    
+    bool IsExponential;
 }
 
 Texture2D SceneTexture : register(t5);
@@ -69,10 +73,21 @@ float4 mainPS(VS_OUT input) : SV_TARGET
     float heightFactor = saturate(1.f - exp(-heightDiff));
     
     // 정규화된 깊이 값을 사용하여 거리 기반 안개 계산 (from debug depth shader)
-    float distanceFactor = saturate(1.f - exp(-normalized * 5.0));
+    float distanceFactor;
     
-    // float fogFactor = FogDensity * heightFactor * distanceFactor;
-    float fogFactor = FogDensity * max(heightFactor, distanceFactor);
+    if (IsExponential)
+    {
+        distanceFactor = saturate(1.f - exp(-normalized * 5.0));
+        // distanceFactor = 0.0f;
+    }
+    else
+    {
+        distanceFactor = normalized;
+        // distanceFactor = 1.0f;
+    }
+    
+    float fogFactor = FogDensity * heightFactor * distanceFactor;
+    // float fogFactor = FogDensity * max(heightFactor, distanceFactor);
     float3 fogColor = InscatteringColor.rgb;
     
     fogFactor = min(fogFactor, MaxOpacity);

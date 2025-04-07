@@ -386,7 +386,7 @@ struct alignas(16) FHeightFogConstants
     float MaxOpacity;       
 
     float DistanceFogNear;
-    float DistanceFotFar;
+    float DistanceFogFar;
     float pad1, pad2;
     
     FLinearColor InscatteringColor;
@@ -394,5 +394,9 @@ struct alignas(16) FHeightFogConstants
 
     FVector DirectionalLightDirection;
     float DirectionalInscatteringExponent;
+
     float DirectionalInscatteringStartDistance;
+    float pad3, pad4, pad5;
+
+    bool IsExponential;
 };
