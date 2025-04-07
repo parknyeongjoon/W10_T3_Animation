@@ -263,6 +263,11 @@ struct FCone
     float pad[3];
 
 };
+
+// !NOTE : 최대 광원 수 제한
+#define MAX_DIRECTIONAL_LIGHTS 4
+#define MAX_POINT_LIGHTS 16
+
 struct FPrimitiveCounts 
 {
 	int BoundingBoxCount;
@@ -270,16 +275,38 @@ struct FPrimitiveCounts
 	int ConeCount; 
 	int pad1;
 };
-struct FLighting
+struct FDirectionalLight
 {
-	float lightDirX, lightDirY, lightDirZ; // 조명 방향
-	float pad1;                      // 16바이트 정렬용 패딩
-	float lightColorX, lightColorY, lightColorZ;    // 조명 색상
-	float pad2;                      // 16바이트 정렬용 패딩
-	float AmbientFactor;             // ambient 계수
-	float pad3; // 16바이트 정렬 맞춤 추가 패딩
-	float pad4; // 16바이트 정렬 맞춤 추가 패딩
-	float pad5; // 16바이트 정렬 맞춤 추가 패딩
+    FVector Direction;
+    float Intensity;
+
+    FVector Color;
+    float Padding0 = 0.f;
+};
+
+struct FPointLight
+{
+    FVector Position;
+    float Radius;
+
+    FVector Color;
+    float Intensity;
+
+    float AttenuationFalloff;
+    float pad[3];
+};
+
+struct FLightingConstant
+{
+    FVector AmbientColor;
+    float AmbientIntensity;
+
+    uint32 NumDirectionalLights;
+    uint32 NumPointLights;
+    float pad[2];
+
+    FDirectionalLight DirLights[MAX_DIRECTIONAL_LIGHTS];
+    FPointLight PointLights[MAX_POINT_LIGHTS];
 };
 
 struct FMaterialConstants {
@@ -294,7 +321,8 @@ struct FMaterialConstants {
 };
 
 struct FConstants {
-    FMatrix MVP;      // 모델
+    FMatrix Model;      // 모델
+    FMatrix ViewProj;   // 뷰 프로젝션 행렬
     FMatrix ModelMatrixInverseTranspose; // normal 변환을 위한 행렬
     FVector4 UUIDColor;
     bool IsSelected;

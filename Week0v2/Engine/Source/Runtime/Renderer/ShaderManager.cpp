@@ -23,9 +23,22 @@ bool FShaderManager::CreateVertexShader(
     UINT vertexSize)
 {
     ID3DBlob* vsBlob = nullptr;
-    HRESULT hr = D3DCompileFromFile(vsPath.c_str(), nullptr, nullptr, *vsEntry, "vs_5_0", 0, 0, &vsBlob, nullptr);
-    if (FAILED(hr)) return false;
-
+    ID3DBlob* errorBlob = nullptr;
+    HRESULT hr = D3DCompileFromFile(vsPath.c_str(), nullptr, nullptr, *vsEntry, "vs_5_0", 0, 0, &vsBlob, &errorBlob);
+    if (FAILED(hr))
+    {
+        // Output error message if compilation fails
+        if (errorBlob)
+        {
+            OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+            errorBlob->Release();
+        }
+        else
+        {
+            OutputDebugStringA("Unknown error during shader compilation.");
+        }
+        return false;
+    }
     hr = Device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &outVS);
     if (FAILED(hr)) { vsBlob->Release(); return false; }
 

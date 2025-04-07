@@ -425,6 +425,11 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\ShaderManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderResourceManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PointLightComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\DirectionalLightComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\DirectionalLightActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Color.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ExponentialHeightFogComponent.h" />
   </ItemGroup>
@@ -513,7 +518,6 @@
     <FxCompile Include="Shaders\DebugDepthShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\HeightFog.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week0v2.natvis" />
@@ -529,6 +533,11 @@
     <ClCompile Include="Engine\Source\Runtime\Launch\EditorEngine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResourceManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\ShaderManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PointLightComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\DirectionalLightComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\DirectionalLightActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Color.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ExponentialHeightFogComponent.cpp" />
   </ItemGroup>

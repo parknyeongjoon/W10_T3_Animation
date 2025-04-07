@@ -169,6 +169,8 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\DirectionalLightActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\DirectionalLightComponent.cpp" />
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SLevelEditor.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\ViewportTypePanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.cpp" />
@@ -334,14 +336,14 @@
     <ClCompile Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResourceManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\ShaderManager.cpp" />
-    <FxCompile Include="Shaders\HeightFog.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PointLightComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.cpp" />
     <ClCompile Include="UEditorStateManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\DirectionalLightActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\DirectionalLightComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\DelegateCombination.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Color.h" />
@@ -457,6 +459,9 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UTextUUID.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\World.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderResourceManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PointLightComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.h" />
     <ClInclude Include="UEditorStateManager.h" />
   </ItemGroup>
   <ItemGroup>
@@ -471,6 +476,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mainPS</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mainPS</EntryPointName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Shaders\PixelTextureShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -498,6 +504,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mainVS</EntryPointName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mainVS</EntryPointName>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Shaders\VertexTextureShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
