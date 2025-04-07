@@ -84,6 +84,7 @@ cbuffer CameraConstant : register(b6)
     matrix ViewMatrix;
     matrix ProjMatrix;
     matrix ViewProjMatrix;
+    matrix InvProjMatrix;
     
     float3 CameraPos;
     float NearPlane;
@@ -137,21 +138,21 @@ float4 PaperTexture(float3 originalColor)
     float3 finalColor = mixedColor + grain + rough - vignetting * 0.1;
     return float4(saturate(finalColor), 1.0);
 }
-float3 CalculateDirectionalLight(FDirectionalLight Light, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularPower)
+float3 CalculateDirectionalLight(FDirectionalLight Light, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularColor, float3 SpecularPower)
 {
     float3 LightDir = normalize(-Light.Direction);
     float Diff = max(dot(Normal, LightDir), 0.0f);
     
     float3 Diffuse = Light.Color * Diff * DiffuseColor * Light.Intensity;
     
-    float3 ReflectDir = reflect(-LightDir, Normal);
+    float3 ReflectDir = reflect(Light.Direction, Normal);
     float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0f), SpecularPower);
-    float3 Specular = Light.Color * Spec * Light.Intensity;
+    float3 Specular = Light.Color * SpecularColor * Spec * Light.Intensity;
     
     return Diffuse + Specular;
 }
 
-float3 CalculatePointLight(FPointLight Light, float3 WorldPos, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularPower)
+float3 CalculatePointLight(FPointLight Light, float3 WorldPos, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularColor, float3 SpecularPower)
 {
     float3 LightDir = normalize(Light.Position - WorldPos);
     float Distance = length(Light.Position - WorldPos);
@@ -171,7 +172,7 @@ float3 CalculatePointLight(FPointLight Light, float3 WorldPos, float3 Normal, fl
     
     float3 ReflectDir = reflect(-LightDir, Normal);
     float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0f), SpecularPower);
-    float3 Specular = Light.Color * Spec * Attenuation;
+    float3 Specular = Light.Color * SpecularColor * Spec * Attenuation;
     
     return Diffuse + Specular;
 }
@@ -197,12 +198,12 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     for (uint i = 0; i < NumDirectionalLights; i++)
     {
-        result += CalculateDirectionalLight(DirLights[i], Normal, ViewDir, baseColor.rgb, 32.0f);
+        result += CalculateDirectionalLight(DirLights[i], Normal, ViewDir, baseColor.rgb, Material.SpecularColor, Material.SpecularScalar);
     }
     
     for (uint j = 0; j < NumPointLights; j++)
     {
-        result += CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb, 32.0f);
+        result += CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb, Material.SpecularColor, Material.SpecularScalar);
     }
     
     output.color = float4(result, baseColor.a);
