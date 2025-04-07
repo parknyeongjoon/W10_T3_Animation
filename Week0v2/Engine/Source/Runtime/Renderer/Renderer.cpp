@@ -841,6 +841,8 @@ void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveVie
     fogParams.FogDensity = HeightFogComp->FogDensity;
     fogParams.HeightFogStart = HeightFogComp->HeightFogStart;
     fogParams.HeightFogEnd = HeightFogComp->HeightFogEnd;
+    fogParams.DistanceFogNear = HeightFogComp->DistanceFogNear;
+    fogParams.DistanceFotFar = HeightFogComp->DistanceFogFar;
     fogParams.MaxOpacity = HeightFogComp->FogMaxOpacity;
     fogParams.InscatteringColor = FLinearColor(
         HeightFogComp->FogInscatteringColor.R,

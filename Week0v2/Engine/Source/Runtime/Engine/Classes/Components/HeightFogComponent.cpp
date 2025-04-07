@@ -5,11 +5,10 @@ UHeightFogComponent::UHeightFogComponent()
 {
     bIsActive = true;
     FogDensity = 0.5f;
-    FogHeightFalloff = 0.0f;
-    HeightOffset = 0.0f;
     HeightFogStart = 0.0f;
     HeightFogEnd = 10.0f;
-    FogCutoffDistance = 1000.0f;
+    DistanceFogNear = 0.0f;
+    DistanceFogFar = 100.0f;
     FogMaxOpacity = 0.8f;
 
     FogInscatteringColor = FLinearColor(1.0f, 0.0f, 0.0f);

@@ -10,12 +10,11 @@ public:
     UHeightFogComponent();
     bool bIsActive;
     float FogDensity;
-    float FogHeightFalloff;
-    float HeightOffset;
     float HeightFogStart;
     float HeightFogEnd;
-    float FogCutoffDistance;
     float FogMaxOpacity;
+    float DistanceFogNear;
+    float DistanceFogFar;
 
     FLinearColor FogInscatteringColor;
     FLinearColor DirectionalInscatteringColor;

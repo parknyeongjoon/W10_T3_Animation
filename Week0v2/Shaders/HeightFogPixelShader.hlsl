@@ -16,13 +16,16 @@ cbuffer FogParams : register(b6)
     float FogDensity;
     float HeightFogStart;
     float HeightFogEnd;
-    float pad1;
+    float MaxOpacity;
+
+    float DistanceFogNear;
+    float DistanceFotFar;
+    float pad1, pad2;
+    
     float4 InscatteringColor;
     float4 DirectionalInscatteringColor;
     
     float3 DirectionalLightDirection;
-    
-    float MaxOpacity;
     float DirectionalInscatteringExponent;
     float DirectionalInscatteringStartDistance;
 }
@@ -58,7 +61,7 @@ float4 mainPS(VS_OUT input) : SV_TARGET
     float depth = DepthTexture.Sample(SamplerLinear, input.uv).r;
     
     float linearDepth = (NearPlane * FarPlane) / (FarPlane - depth * (FarPlane - NearPlane));
-    float normalized = saturate((linearDepth - NearPlane) / (FarPlane - NearPlane));
+    float normalized = saturate((linearDepth - DistanceFogNear) / (DistanceFotFar - DistanceFogNear));
     float3 worldPosition = ReconstructWorldPosition(input.uv, depth);
     
     // 높이 기반 안개 계산
@@ -66,7 +69,7 @@ float4 mainPS(VS_OUT input) : SV_TARGET
     float heightFactor = saturate(1.f - exp(-heightDiff));
     
     // 정규화된 깊이 값을 사용하여 거리 기반 안개 계산 (from debug depth shader)
-    float distanceFactor = saturate(1.0 - exp(-normalized * 5.0));
+    float distanceFactor = saturate(1.f - exp(-normalized * 5.0));
     
     // float fogFactor = FogDensity * heightFactor * distanceFactor;
     float fogFactor = FogDensity * max(heightFactor, distanceFactor);

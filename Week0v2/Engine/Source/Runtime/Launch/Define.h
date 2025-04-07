@@ -355,14 +355,16 @@ struct alignas(16) FHeightFogConstants
     float FogDensity;       
     float HeightFogStart;
     float HeightFogEnd;
-    float pad1;
+    float MaxOpacity;       
 
+    float DistanceFogNear;
+    float DistanceFotFar;
+    float pad1, pad2;
+    
     FLinearColor InscatteringColor;
     FLinearColor DirectionalInscatteringColor;
 
     FVector DirectionalLightDirection;
-    
-    float MaxOpacity;       
     float DirectionalInscatteringExponent;
     float DirectionalInscatteringStartDistance;
 };

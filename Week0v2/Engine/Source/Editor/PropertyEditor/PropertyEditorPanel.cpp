@@ -336,10 +336,10 @@ void PropertyEditorPanel::Render()
             ImGui::Checkbox("Active", &bIsActive);
             HeightFogComp->bIsActive = bIsActive;
             ImGui::SliderFloat("Fog Density", &HeightFogComp->FogDensity, 0.0f, 1.0f, "%.4f");
-            ImGui::SliderFloat("Height Falloff", &HeightFogComp->FogHeightFalloff, 0.0f, 0.1f, "%.3f");
-            ImGui::SliderFloat("Height Offset", &HeightFogComp->HeightOffset, -100.0f, 100.0f);
-            ImGui::SliderFloat("Start Distance", &HeightFogComp->HeightFogStart, 0.0f, 100.0f);
-            ImGui::SliderFloat("Cutoff Distance", &HeightFogComp->FogCutoffDistance, 0.0f, 10000.0f);
+            ImGui::SliderFloat("Height Fog Start", &HeightFogComp->HeightFogStart, 0.0f, 100.0f);
+            ImGui::SliderFloat("Height Fog End", &HeightFogComp->HeightFogEnd, 0.0f, 100.0f);
+            ImGui::SliderFloat("Distance Fog Near", &HeightFogComp->DistanceFogNear, 0.0f, 100.0f);
+            ImGui::SliderFloat("Distance Fog Far", &HeightFogComp->DistanceFogFar, 0.0f, 1000.0f);
             ImGui::SliderFloat("Max Opacity", &HeightFogComp->FogMaxOpacity, 0.0f, 1.0f, "%.2f");
 
             ImGui::Spacing();
