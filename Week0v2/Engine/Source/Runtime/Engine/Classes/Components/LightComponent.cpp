@@ -47,6 +47,7 @@ void ULightComponentBase::DuplicateSubObjects(const UObject* Source)
     ULightComponentBase* SourceComp = Cast<ULightComponentBase>(Source);
     if (SourceComp)
     {
+        SetLocation(SourceComp->GetLocalLocation());
         color = SourceComp->color;
         Intensity = SourceComp->Intensity;
         AABB = SourceComp->AABB;
