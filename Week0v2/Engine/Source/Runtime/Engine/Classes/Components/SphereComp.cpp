@@ -1,4 +1,6 @@
 #include "SphereComp.h"
+
+#include "Engine/FLoaderOBJ.h"
 #include "Engine/Source/Runtime/Core/Math/JungleMath.h"
 #include "Engine/World.h"
 #include "Engine/Source/Editor/PropertyEditor/ShowFlags.h"
@@ -21,6 +23,8 @@ USphereComp::~USphereComp()
 void USphereComp::InitializeComponent()
 {
     Super::InitializeComponent();
+    FManagerOBJ::CreateStaticMesh("Assets/Sphere.obj");
+    SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Sphere.obj"));
 }
 
 void USphereComp::TickComponent(float DeltaTime)
