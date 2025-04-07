@@ -17,7 +17,6 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/SceneMgr.h"
 #include "UEditorStateManager.h"
-#include "Components/HFogComponent.h"
 #include "Classes/Actors/DirectionalLightActor.h"
 #include "Classes/Actors/PointLightActor.h"
 
@@ -330,7 +329,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_Fog"));
                     UHeightFogComponent* HeightFogComponent = SpawnedActor->AddComponent<UHeightFogComponent>();
-                    UHFogComponent* FogComponent = SpawnedActor->AddComponent<UHFogComponent>();
                     break;
                 }
                 case OBJ_DIRECTIONAL_LIGHT:

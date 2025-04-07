@@ -85,8 +85,6 @@ public://텍스쳐용 기능 추가
 	ID3D11PixelShader* DebugDepthPixelShader = nullptr;
     ID3D11VertexShader* HeightFogVertexShader = nullptr;
     ID3D11PixelShader* HeightFogPixelShader = nullptr;
-    ID3D11VertexShader* HFogVertexShader = nullptr;
-    ID3D11PixelShader* HFogPixelShader = nullptr;
 	// sampler
 	ID3D11SamplerState* DebugDepthSRVSampler = nullptr;
 
@@ -122,7 +120,6 @@ public: // line shader
     void RenderBatch(const FGridParameters& gridParam, ID3D11Buffer* pVertexBuffer, int boundingBoxCount, int coneCount, int coneSegmentCount, int obbCount) const;
     void UpdateGridConstantBuffer(const FGridParameters& gridParams) const;
     void UpdateLinePrimitveCountBuffer(int numBoundingBoxes, int numCones) const;
-    void RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport);
 
     ID3D11ShaderResourceView* CreateBoundingBoxSRV(ID3D11Buffer* pBoundingBoxBuffer, UINT numBoundingBoxes);
     ID3D11ShaderResourceView* CreateOBBSRV(ID3D11Buffer* pBoundingBoxBuffer, UINT numBoundingBoxes);
@@ -144,9 +141,7 @@ public: // line shader
     // post process
     void RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveViewport);
-    void RenderHFog(std::shared_ptr<FEditorViewportClient> ActiveViewport) const;
-    void RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport) const;
-
+    void RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport);
 private:
     TArray<UStaticMeshComponent*> StaticMeshObjs;
     TArray<UGizmoBaseComponent*> GizmoObjs;
