@@ -18,6 +18,8 @@
 #include "UnrealEd/SceneMgr.h"
 #include "UEditorStateManager.h"
 #include "Components/HFogComponent.h"
+#include "Classes/Actors/DirectionalLightActor.h"
+#include "Classes/Actors/PointLightActor.h"
 
 void ControlEditorPanel::Render()
 {
@@ -264,6 +266,8 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             { .label= "Particle",  .obj = OBJ_PARTICLE },
             { .label= "Text",      .obj = OBJ_Text },
             {.label = "Fog",      .obj = OBJ_Fog }
+            { .label= "DirectionalLight", .obj= OBJ_DIRECTIONAL_LIGHT },
+            { .label= "PointLight", .obj= OBJ_POINT_LIGHT },
         };
 
         for (const auto& primitive : primitives)
@@ -291,15 +295,15 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
                     break;
                 }
-                case OBJ_SpotLight:
-                {
-                    SpawnedActor = World->SpawnActor<AActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_SpotLight"));
-                    SpawnedActor->AddComponent<ULightComponentBase>();
-                    UBillboardComponent* BillboardComponent = SpawnedActor->AddComponent<UBillboardComponent>();
-                    BillboardComponent->SetTexture(L"Assets/Texture/spotLight.png");
-                    break;
-                }
+                //case OBJ_SpotLight:
+                //{
+                //    SpawnedActor = World->SpawnActor<AActor>();
+                //    SpawnedActor->SetActorLabel(TEXT("OBJ_SpotLight"));
+                //    SpawnedActor->AddComponent<ULightComponentBase>();
+                //    UBillboardComponent* BillboardComponent = SpawnedActor->AddComponent<UBillboardComponent>();
+                //    BillboardComponent->SetTexture(L"Assets/Texture/spotLight.png");
+                //    break;
+                //}
                 case OBJ_PARTICLE:
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
@@ -327,6 +331,18 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     SpawnedActor->SetActorLabel(TEXT("OBJ_Fog"));
                     UHeightFogComponent* HeightFogComponent = SpawnedActor->AddComponent<UHeightFogComponent>();
                     UHFogComponent* FogComponent = SpawnedActor->AddComponent<UHFogComponent>();
+                    break;
+                }
+                case OBJ_DIRECTIONAL_LIGHT:
+                {
+                    SpawnedActor = World->SpawnActor<ADirectionalLightActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_DIRECTIONAL_LIGHT"));
+                    break;
+                }
+                case OBJ_POINT_LIGHT:
+                {
+                    SpawnedActor = World->SpawnActor<APointLightActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_POINT_LIGHT"));
                     break;
                 }
                 case OBJ_TRIANGLE:

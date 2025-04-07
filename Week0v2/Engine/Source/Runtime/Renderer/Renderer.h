@@ -44,7 +44,7 @@ public:
 
     ID3D11BlendState* NormalBlendState = nullptr;
 
-    FLighting lightingData;
+    FLightingConstant lightingData;
 
     uint32 Stride;
     uint32 Stride2;

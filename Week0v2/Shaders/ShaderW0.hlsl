@@ -4,8 +4,9 @@ SamplerState Sampler : register(s0);
 // MatrixBuffer: 변환 행렬 관리
 cbuffer MatrixBuffer : register(b0)
 {
-    row_major float4x4 MVP;
-    row_major float4x4 MInverseTranspose;
+    row_major matrix Model;
+    row_major matrix ViewProj;
+    row_major matrix MInverseTranspose;
     float4 UUID;
     bool isSelected;
     float3 MatrixPad0;
@@ -54,7 +55,8 @@ PS_INPUT mainVS(VS_INPUT input)
     PS_INPUT output;
     
     // 위치 변환
-    output.position = mul(input.position, MVP);
+    output.position = mul(input.position, Model);
+    output.position = mul(output.position, ViewProj);
     output.color = input.color;
     if (isSelected)
         output.color *= 0.5;
