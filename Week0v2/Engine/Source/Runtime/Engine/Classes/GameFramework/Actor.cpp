@@ -1,4 +1,4 @@
-﻿#include "Actor.h"
+#include "Actor.h"
 
 #include "Engine/World.h"
 
@@ -77,7 +77,7 @@ void AActor::RemoveOwnedComponent(UActorComponent* Component)
 
 void AActor::InitializeComponents()
 {
-    TSet<UActorComponent*> Components = GetComponents();
+    TArray<UActorComponent*> Components = GetComponents();
     for (UActorComponent* ActorComp : Components)
     {
         // 먼저 컴포넌트를 등록 처리
@@ -100,7 +100,7 @@ void AActor::InitializeComponents()
 
 void AActor::UninitializeComponents()
 {
-    TSet<UActorComponent*> Components = GetComponents();
+    TArray<UActorComponent*> Components = GetComponents();
     for (UActorComponent* ActorComp : Components)
     {
         if (ActorComp->HasBeenInitialized())

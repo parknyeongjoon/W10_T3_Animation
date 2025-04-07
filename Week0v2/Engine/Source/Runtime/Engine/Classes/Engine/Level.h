@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Container/Set.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
@@ -23,9 +23,9 @@ public:
 }
 
 private:
-    TSet<AActor*> Actors;
+    TArray<AActor*> Actors;
 
 public:
-    TSet<AActor*>& GetActors() { return Actors; }
+    TArray<AActor*>& GetActors() { return Actors; }
     TArray<AActor*> PendingBeginPlayActors;
 };

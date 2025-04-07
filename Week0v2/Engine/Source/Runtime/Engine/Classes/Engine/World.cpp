@@ -94,7 +94,7 @@ void UWorld::Release()
 	for (AActor* Actor : Level->GetActors())
 	{
 		Actor->EndPlay(EEndPlayReason::WorldTransition);
-        TSet<UActorComponent*> Components = Actor->GetComponents();
+        TArray<UActorComponent*> Components = Actor->GetComponents();
 	    for (UActorComponent* Component : Components)
 	    {
 	        GUObjectArray.MarkRemoveObject(Component);
@@ -172,7 +172,7 @@ bool UWorld::DestroyActor(AActor* ThisActor)
         ThisActor->SetOwner(nullptr);
     }
 
-    TSet<UActorComponent*> Components = ThisActor->GetComponents();
+    TArray<UActorComponent*> Components = ThisActor->GetComponents();
     for (UActorComponent* Component : Components)
     {
         Component->DestroyComponent();

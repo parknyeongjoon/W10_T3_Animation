@@ -50,7 +50,7 @@ void PropertyEditorPanel::Render()
     {
         if (ImGui::TreeNodeEx("Components", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow))
         {
-            const TSet<UActorComponent*>& AllComponents = PickedActor->GetComponents();
+            const TArray<UActorComponent*>& AllComponents = PickedActor->GetComponents();
             for (UActorComponent* Component : AllComponents)
             {
                 if (USceneComponent* SceneComp = Cast<USceneComponent>(Component))

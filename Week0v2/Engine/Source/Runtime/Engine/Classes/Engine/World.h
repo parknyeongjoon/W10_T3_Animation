@@ -57,7 +57,7 @@ private:
     AEditorPlayer* EditorPlayer = nullptr;
 public:
     EWorldType::Type WorldType = EWorldType::None;
-    const TSet<AActor*>& GetActors() const { return Level->GetActors(); }
+    const TArray<AActor*>& GetActors() const { return Level->GetActors(); }
     ULevel* GetLevel() const { return Level; }
     UTransformGizmo* LocalGizmo = nullptr;
     AEditorPlayer* GetEditorPlayer() const { return EditorPlayer; }
