@@ -2,7 +2,8 @@ cbuffer CameraConstant : register(b0)
 {
     matrix ViewMatrix;
     matrix ProjMatrix;
-    matrix ViewProjMatrix;
+    matrix InvViewMatrix;
+    matrix InvProjMatrix;
     
     float3 CameraPos;
     float NearPlane;

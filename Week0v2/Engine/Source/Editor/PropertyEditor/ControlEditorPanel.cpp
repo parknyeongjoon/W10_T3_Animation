@@ -7,6 +7,7 @@
 #include "Components/SphereComp.h"
 #include "Components/UParticleSubUVComp.h"
 #include "Components/UText.h"
+#include "Components/HeightFogComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Engine/StaticMeshActor.h"
 #include "ImGUI/imgui_internal.h"
@@ -258,14 +259,14 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         };
 
         static const Primitive primitives[] = {
-            { .label= "Cube",      .obj= OBJ_CUBE },
-            { .label= "Sphere",    .obj= OBJ_SPHERE },
-            //{ .label= "SpotLight", .obj= OBJ_SpotLight },
-            { .label= "Particle",  .obj= OBJ_PARTICLE },
-            { .label= "Text",      .obj= OBJ_Text },
+            { .label= "Cube",      .obj = OBJ_CUBE },
+            { .label= "Sphere",    .obj = OBJ_SPHERE },
+            { .label= "SpotLight", .obj = OBJ_SpotLight },
+            { .label= "Particle",  .obj = OBJ_PARTICLE },
+            { .label= "Text",      .obj = OBJ_Text },
+            {.label = "Fog",      .obj = OBJ_Fog },
             { .label= "DirectionalLight", .obj= OBJ_DIRECTIONAL_LIGHT },
             { .label= "PointLight", .obj= OBJ_POINT_LIGHT },
-
         };
 
         for (const auto& primitive : primitives)
@@ -321,6 +322,13 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     TextComponent->SetTexture(L"Assets/Texture/font.png");
                     TextComponent->SetRowColumnCount(106, 106);
                     TextComponent->SetText(L"안녕하세요 Jungle 1");
+                    break;
+                }
+                case OBJ_Fog:
+                {
+                    SpawnedActor = World->SpawnActor<AActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_Fog"));
+                    UHeightFogComponent* HeightFogComponent = SpawnedActor->AddComponent<UHeightFogComponent>();
                     break;
                 }
                 case OBJ_DIRECTIONAL_LIGHT:
@@ -422,7 +430,7 @@ void ControlEditorPanel::CreateFlagButton() const
         ImGui::OpenPopup("ShowControl");
     }
     
-    const char* items[] = { "AABB", "Primitive", "BillBoard", "UUID"};
+    const char* items[] = { "AABB", "Primitive", "BillBoard", "UUID", "Fog"};
     uint64 ActiveViewportFlags = ActiveViewport->GetShowFlag();
 
     if (ImGui::BeginPopup("ShowControl"))
@@ -432,7 +440,8 @@ void ControlEditorPanel::CreateFlagButton() const
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_AABB)) != 0,
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Primitives)) != 0,
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText)) != 0,
-            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_UUIDText)) != 0
+            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_UUIDText)) != 0,
+            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Fog)) != 0,
         };  // 각 항목의 체크 상태 저장
         
         for (int i = 0; i < IM_ARRAYSIZE(items); i++)
@@ -545,6 +554,8 @@ uint64 ControlEditorPanel::ConvertSelectionToFlags(const bool selected[]) const
         flags |= static_cast<uint64>(EEngineShowFlags::SF_BillboardText);
     if (selected[3])
         flags |= static_cast<uint64>(EEngineShowFlags::SF_UUIDText);
+    if (selected[4])
+        flags |= static_cast<uint64>(EEngineShowFlags::SF_Fog);
     return flags;
 }
 

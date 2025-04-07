@@ -1,6 +1,8 @@
 #include "ConstantBufferUpdater.h"
 #include <Engine/Texture.h>
 #include "Editor/UnrealEd/EditorViewportClient.h"
+#include "Engine/Source/Runtime/Engine/Classes/Components/HFogComponent.h"
+#include "UObject/UObjectIterator.h"
 #include "Classes/Components/DirectionalLightComponent.h"
 #include "Classes/Components/PointLightComponent.h"
 #include "UObject/Casts.h"
@@ -168,7 +170,8 @@ void FConstantBufferUpdater::UpdateCameraConstant(ID3D11Buffer* CameraConstantBu
         {
             constants->ViewMatrix = FMatrix::Transpose(ViewportClient->GetViewMatrix());
             constants->ProjMatrix = FMatrix::Transpose(ViewportClient->GetProjectionMatrix());
-            constants->ViewProjMatrix = FMatrix::Transpose(constants->ViewMatrix * constants->ProjMatrix);
+            constants->InvViewMatrix = FMatrix::Transpose(FMatrix::Inverse(ViewportClient->GetViewMatrix()));
+            constants->InvProjMatrix = FMatrix::Transpose(FMatrix::Inverse(ViewportClient->GetProjectionMatrix()));
             constants->CameraPos = ViewportClient->ViewTransformPerspective.GetLocation();
             constants->NearPlane = ViewportClient->nearPlane;
             constants->CameraForward = ViewportClient->ViewTransformPerspective.GetForwardVector();

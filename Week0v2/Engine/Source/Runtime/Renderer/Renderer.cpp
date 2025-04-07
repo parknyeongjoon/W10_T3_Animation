@@ -10,6 +10,7 @@
 #include "Components/UParticleSubUVComp.h"
 #include "Components/UText.h"
 #include "Components/Material/Material.h"
+#include "Components/HeightFogComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Launch/EditorEngine.h"
 #include "Math/JungleMath.h"
@@ -32,6 +33,7 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
 
     CreateShader();
     CreateConstantBuffer();
+    CreateBlendState();
     ConstantBufferUpdater.UpdateLitUnlitConstant(FlagBuffer, 1);
 
     // temp
@@ -48,6 +50,7 @@ void FRenderer::Release()
 {
     ReleaseShader();
     ReleaseConstantBuffer();
+    ReleaseBlendState();
 }
 
 #pragma region Shader
@@ -101,6 +104,14 @@ void FRenderer::CreateShader()
     ShaderManager.CreatePixelShader(
         L"Shaders/DebugDepthShader.hlsl", "mainPS",
         DebugDepthPixelShader);
+    
+    ShaderManager.CreateVertexShader(
+        L"Shaders/HeightFogVertexShader.hlsl", "mainVS",
+        HeightFogVertexShader, nullptr, 0);
+
+    ShaderManager.CreatePixelShader(
+        L"Shaders/HeightFogPixelShader.hlsl", "mainPS",
+        HeightFogPixelShader);
 }
 
 void FRenderer::ReleaseShader()
@@ -108,6 +119,8 @@ void FRenderer::ReleaseShader()
     ShaderManager.ReleaseShader(InputLayout, VertexShader, PixelShader);
     ShaderManager.ReleaseShader(TextureInputLayout, VertexTextureShader, PixelTextureShader);
     ShaderManager.ReleaseShader(nullptr, VertexLineShader, PixelLineShader);
+    ShaderManager.ReleaseShader(nullptr, DebugDepthVertexShader, DebugDepthPixelShader);
+    ShaderManager.ReleaseShader(nullptr, HeightFogVertexShader, HeightFogPixelShader);
 }
 
 
@@ -184,6 +197,8 @@ void FRenderer::CreateConstantBuffer()
     LightingBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLightingConstant));
     FlagBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLitUnlitConstants));
     CameraConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FCameraConstants));
+    DepthToWorldBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FDepthToWorldConstants));
+    FogConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FHeightFogConstants));
 }
 
 void FRenderer::ReleaseConstantBuffer()
@@ -198,9 +213,34 @@ void FRenderer::ReleaseConstantBuffer()
     RenderResourceManager.ReleaseBuffer(LightingBuffer);
     RenderResourceManager.ReleaseBuffer(FlagBuffer);
     RenderResourceManager.ReleaseBuffer(CameraConstantBuffer);
+    RenderResourceManager.ReleaseBuffer(DepthToWorldBuffer);
 }
 #pragma endregion ConstantBuffer
 
+#pragma region BlendState
+void FRenderer::CreateBlendState()
+{
+    D3D11_BLEND_DESC blendDesc = {};
+    blendDesc.RenderTarget[0].BlendEnable = true;
+    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    Graphics->Device->CreateBlendState(&blendDesc, &NormalBlendState);
+    
+}
+void FRenderer::ReleaseBlendState()
+{
+    if (NormalBlendState)
+    {
+        NormalBlendState->Release();
+        NormalBlendState = nullptr;
+    }
+}
+#pragma endregion BlendState
 #pragma region
 
 void FRenderer::ClearRenderArr()
@@ -524,6 +564,11 @@ void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportC
 
 void FRenderer::RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
+
+    if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Fog)) 
+    {
+        RenderHeightFog(ActiveViewport);
+    }
     RenderDebugDepth(ActiveViewport);
 }
 
@@ -552,7 +597,6 @@ void FRenderer::RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveVi
 
     Graphics->DeviceContext->Draw(4, 0);
 }
-
 
 void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
@@ -714,4 +758,62 @@ void FRenderer::UpdateLinePrimitveCountBuffer(int numBoundingBoxes, int numCones
     pData->BoundingBoxCount = numBoundingBoxes;
     pData->ConeCount = numCones;
     Graphics->DeviceContext->Unmap(LinePrimitiveBuffer, 0);
+}
+
+void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport)
+{
+    // 활성화된 Height Fog 컴포넌트 찾기
+    UHeightFogComponent* HeightFogComp = nullptr;
+    for (const auto& comp: TObjectRange<UHeightFogComponent>() )
+    {
+        HeightFogComp = comp;
+    }
+
+    if (!HeightFogComp) return;
+    if (!HeightFogComp->bIsActive) return;
+
+    Graphics->DeviceContext->VSSetShader(HeightFogVertexShader, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(HeightFogPixelShader, nullptr, 0);
+
+    Graphics->DeviceContext->PSSetSamplers(0, 1, &DebugDepthSRVSampler);
+
+    // Fog Constant buffer update
+    FHeightFogConstants fogParams;
+    fogParams.FogDensity = HeightFogComp->FogDensity;
+    fogParams.HeightFogStart = HeightFogComp->HeightFogStart;
+    fogParams.HeightFogEnd = HeightFogComp->HeightFogEnd;
+    fogParams.DistanceFogNear = HeightFogComp->DistanceFogNear;
+    fogParams.DistanceFotFar = HeightFogComp->DistanceFogFar;
+    fogParams.MaxOpacity = HeightFogComp->FogMaxOpacity;
+    fogParams.InscatteringColor = FLinearColor(
+        HeightFogComp->FogInscatteringColor.R,
+        HeightFogComp->FogInscatteringColor.G,
+        HeightFogComp->FogInscatteringColor.B,
+        HeightFogComp->FogInscatteringColor.A
+    );
+    fogParams.DirectionalInscatteringColor = FLinearColor(
+        HeightFogComp->DirectionalInscatteringColor.R,
+        HeightFogComp->DirectionalInscatteringColor.G,
+        HeightFogComp->DirectionalInscatteringColor.B,
+        HeightFogComp->DirectionalInscatteringColor.A
+    );
+    fogParams.DirectionalInscatteringExponent = HeightFogComp->DirectionalInscatteringExponent;
+    fogParams.DirectionalInscatteringStartDistance = HeightFogComp->DirectionalInscatteringStartDistance;
+
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    Graphics->DeviceContext->Map(FogConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    memcpy(mappedResource.pData, &fogParams, sizeof(FHeightFogConstants));
+    Graphics->DeviceContext->Unmap(FogConstantBuffer, 0);
+
+    // 백퍼버 복사
+    Graphics->CreateSceneColorResources();
+    Graphics->DeviceContext->CopyResource(Graphics->DepthCopyTexture, Graphics->DepthStencilBuffer);
+    // 겹치지 않도록 하기 위해 임시로 Slot를 현재 사용하지 않는 슬롯으로 지정함
+    Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &CameraConstantBuffer);
+    Graphics->DeviceContext->PSSetConstantBuffers(6, 1, &FogConstantBuffer);
+    Graphics->DeviceContext->PSSetShaderResources(5, 1, &Graphics->SceneColorSRV);
+    Graphics->DeviceContext->PSSetShaderResources(0, 1, &Graphics->DepthCopySRV);
+
+    Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+    Graphics->DeviceContext->Draw(4, 0);
 }
