@@ -47,6 +47,8 @@ struct FMath
 		return A * A;
 	}
 
+    static FORCEINLINE float Pow(float A, float B) { return powf(A,B); }
+
 	// A의 제곱근을 구합니다.
 	[[nodiscard]] static FORCEINLINE float Sqrt(float A) { return sqrtf(A); }
 	[[nodiscard]] static FORCEINLINE double Sqrt(double A) { return sqrt(A); }
@@ -218,5 +220,51 @@ struct FMath
 			A += 360.0f;
 		}
 		return A;
+	}
+
+    /**
+     * Converts a float to an integer with truncation towards zero.
+     * @param F		Floating point value to convert
+     * @return		Truncated integer.
+     */
+    static constexpr FORCEINLINE int32 Trunc( float F )
+	{
+	    return static_cast<int32>(F);
+	}
+
+    /**
+     * Converts a float to an integer value with truncation towards zero.
+     * @param F		Floating point value to convert
+     * @return		Truncated integer value.
+     */
+    static constexpr FORCEINLINE float TruncFloat( float F )
+	{
+	    return static_cast<float>(Trunc(F));
+	}
+
+    /**
+     * Converts a float to a less or equal integer.
+     * @param F		Floating point value to convert
+     * @return		An integer less or equal to 'F'.
+     */
+    static FORCEINLINE int32 Floor( float F )
+	{
+	    return Trunc(floorf(F));
+	}
+
+    // Math Operations
+
+    /** Returns highest of 3 values */
+    template< class T > 
+    static FORCEINLINE T Max3( const T A, const T B, const T C )
+	{
+	    return Max ( Max( A, B ), C );
+	}
+
+    /** Returns lowest of 3 values */
+    template< class T > 
+    static FORCEINLINE T Min3( const T A, const T B, const T C )
+	{
+	    return Min ( Min( A, B ), C );
 	}
 };

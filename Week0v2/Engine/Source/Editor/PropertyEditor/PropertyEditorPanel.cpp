@@ -13,6 +13,8 @@
 #include <Components/CubeComp.h>
 #include <Components/UParticleSubUVComp.h>
 
+#include "Components/ExponentialHeightFogComponent.h"
+
 void PropertyEditorPanel::Render()
 {
     /* Pre Setup */
@@ -316,8 +318,45 @@ void PropertyEditorPanel::Render()
             }
             ImGui::TreePop();
         }
-
     }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UExponentialHeightFogComponent>())
+    {
+        UExponentialHeightFogComponent* FogComponent = Cast<UExponentialHeightFogComponent>(PickedComponent);
+
+        if (ImGui::TreeNodeEx("ExponentialHeightFog", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::Text("Basic Properties");
+            ImGui::Separator();
+
+            ImGui::SliderFloat("Density", &FogComponent->FogDensity, 0.0f, 0.05f, "%.4f");
+            ImGui::SliderFloat("HeightFallOff", &FogComponent->FogHeightFalloff, 0.0f, 2.0f, "%.6f");
+            ImGui::SliderFloat("StartDistance", &FogComponent->StartDistance, 0.0f, 5000.0f);
+            ImGui::SliderFloat("CutOffDistance", &FogComponent->FogCutOffDistance, 0.0f, 2000000.0f);
+            ImGui::SliderFloat("MaxOpacity", &FogComponent->FogMaxOpacity, 0.0f, 1.0f);
+
+            ImGui::Separator();
+            ImGui::Text("Color Properties");
+
+            float Colors[4] = {
+                FogComponent->FogInscatteringColor.R,
+                FogComponent->FogInscatteringColor.G,
+                FogComponent->FogInscatteringColor.B,
+                FogComponent->FogInscatteringColor.A
+            };
+
+            if (ImGui::ColorEdit4("Color", Colors))
+            {
+                FogComponent->FogInscatteringColor.R = Colors[0];
+                FogComponent->FogInscatteringColor.G = Colors[1];
+                FogComponent->FogInscatteringColor.B = Colors[2];
+                FogComponent->FogInscatteringColor.A = Colors[3];
+            }
+
+            ImGui::TreePop();
+        }
+    }
+    
     ImGui::End();
 
 

@@ -18,7 +18,6 @@
 
 #include "UserInterface/Console.h"
 
-
 struct FVertexSimple
 {
     float x, y, z;    // Position
@@ -329,9 +328,31 @@ struct alignas(16) FCameraConstants
     FMatrix ViewMatrix;
     FMatrix ProjMatrix;
     FMatrix ViewProjMatrix;
+    FMatrix InverseViewProjMatrix; // 역행렬 추가
 
     FVector CameraPos;
     float NearPlane;
+    
     FVector CameraForward;
     float FarPlane;
+};
+
+struct FFogParams
+{
+    float Color[4];
+    float Density;
+    float FogHeight;
+    float HeightFalloff;
+    float StartDistance;
+    float CutOffDistance;
+    float MaxOpacity;
+    int bUseFog;
+};
+
+struct alignas(16) FFogConstants
+{
+    FVector4 FogParam0;
+    FVector4 FogParam1;
+    int bUseFog;
+    FVector FogPad;
 };
