@@ -14,6 +14,8 @@ public:
 
     virtual void TickComponent(float DeltaTime) override;
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance);
+    virtual void InitializeComponent() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     void InitializeLight();
     void SetColor(FVector4 newColor);
     FVector4 GetColor() const;

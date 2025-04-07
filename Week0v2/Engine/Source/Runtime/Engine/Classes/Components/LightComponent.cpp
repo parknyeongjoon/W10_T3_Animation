@@ -4,12 +4,12 @@
 #include "UnrealEd/PrimitiveBatch.h"
 #include "UObject/ObjectFactory.h"
 #include "CoreUObject/UObject/Casts.h"
+#include "GameFramework/Actor.h"
 
 ULightComponentBase::ULightComponentBase()
 {
     // FString name = "SpotLight";
     // SetName(name);
-    InitializeLight();
 }
 
 ULightComponentBase::ULightComponentBase(const ULightComponentBase& Other)
@@ -18,7 +18,7 @@ ULightComponentBase::ULightComponentBase(const ULightComponentBase& Other)
 
 ULightComponentBase::~ULightComponentBase()
 {
-    delete texture2D;
+    //delete texture2D;
 }
 
 void ULightComponentBase::SetColor(FVector4 newColor)
@@ -47,6 +47,7 @@ void ULightComponentBase::DuplicateSubObjects(const UObject* Source)
     ULightComponentBase* SourceComp = Cast<ULightComponentBase>(Source);
     if (SourceComp)
     {
+        SetLocation(SourceComp->GetLocalLocation());
         color = SourceComp->color;
         Intensity = SourceComp->Intensity;
         AABB = SourceComp->AABB;
@@ -63,9 +64,9 @@ void ULightComponentBase::PostDuplicate()
 
 void ULightComponentBase::InitializeLight()
 {
-    texture2D = new UBillboardComponent();
+    texture2D = GetOwner()->AddComponent<UBillboardComponent>();
     texture2D->SetTexture(L"Assets/Texture/spotLight.png");
-    texture2D->InitializeComponent();
+
     AABB.max = { 1.f,1.f,0.1f };
     AABB.min = { -1.f,-1.f,-0.1f };
     color = { 1,1,1,1 };
@@ -84,5 +85,15 @@ int ULightComponentBase::CheckRayIntersection(FVector& rayOrigin, FVector& rayDi
 {
     bool res =AABB.Intersect(rayOrigin, rayDirection, pfNearHitDistance);
     return res;
+}
+
+void ULightComponentBase::InitializeComponent()
+{
+    InitializeLight();
+}
+
+void ULightComponentBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+
 }
 
