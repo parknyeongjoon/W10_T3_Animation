@@ -127,6 +127,15 @@ void PropertyEditorPanel::Render()
         }
     }
 
+    if (PickedActor)
+    {
+        if (PickedComponent && PickedComponent->GetOwner() && PickedComponent->GetOwner() != PickedActor)
+        {
+            // 다른 액터를 픽한 것 -> PickedComponent를 PickedActor의 RootComponent로 바꿔준다
+            PickedComponent = PickedActor->GetRootComponent();
+        }
+    }
+
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor && PickedComponent && PickedComponent->IsA<USceneComponent>())
     {
