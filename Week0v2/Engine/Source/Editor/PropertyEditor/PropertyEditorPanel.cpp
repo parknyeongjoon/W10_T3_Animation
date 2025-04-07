@@ -14,6 +14,8 @@
 #include <Components/CubeComp.h>
 #include <Components/UParticleSubUVComp.h>
 
+#include "Components/HFogComponent.h"
+
 void PropertyEditorPanel::Render()
 {
     /* Pre Setup */
@@ -330,10 +332,13 @@ void PropertyEditorPanel::Render()
             ImGui::Text("Basic Properties");
             ImGui::Separator();
 
+            bool bIsActive = HeightFogComp->bIsActive;
+            ImGui::Checkbox("Active", &bIsActive);
+            HeightFogComp->bIsActive = bIsActive;
             ImGui::SliderFloat("Fog Density", &HeightFogComp->FogDensity, 0.0f, 1.0f, "%.4f");
             ImGui::SliderFloat("Height Falloff", &HeightFogComp->FogHeightFalloff, 0.0f, 0.1f, "%.3f");
             ImGui::SliderFloat("Height Offset", &HeightFogComp->HeightOffset, -100.0f, 100.0f);
-            ImGui::SliderFloat("Start Distance", &HeightFogComp->StartDistance, 0.0f, 100.0f);
+            ImGui::SliderFloat("Start Distance", &HeightFogComp->HeightFogStart, 0.0f, 100.0f);
             ImGui::SliderFloat("Cutoff Distance", &HeightFogComp->FogCutoffDistance, 0.0f, 10000.0f);
             ImGui::SliderFloat("Max Opacity", &HeightFogComp->FogMaxOpacity, 0.0f, 1.0f, "%.2f");
 
@@ -382,6 +387,46 @@ void PropertyEditorPanel::Render()
             ImGui::TreePop();
         }
 
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UHFogComponent>())
+    {
+        UHFogComponent* HeightFogComp = Cast<UHFogComponent>(PickedComponent);
+        if (ImGui::TreeNodeEx("Height Fog Properties", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            // 기본 속성
+            ImGui::Text("Basic Properties");
+            ImGui::Separator();
+
+            bool bIsActive = HeightFogComp->bIsActive;
+            ImGui::Checkbox("Active", &bIsActive);
+            HeightFogComp->bIsActive = bIsActive;
+            ImGui::SliderFloat("Fog Density", &HeightFogComp->FogDensity, 0.0f, 1.0f, "%.4f");
+            ImGui::SliderFloat("Start Height", &HeightFogComp->FogStartHeight, 0.0f, 100.0f);
+            ImGui::SliderFloat("End Height", &HeightFogComp->FogEndHeight, 0.0f, 100.0f);
+
+            ImGui::Spacing();
+            ImGui::Text("Color Properties");
+            ImGui::Separator();
+
+            // 안개 색상 편집
+            float inScatteringColor[4] = {
+                HeightFogComp->FogColor.x,
+                HeightFogComp->FogColor.y,
+                HeightFogComp->FogColor.z,
+                HeightFogComp->FogColor.a
+            };
+
+            if (ImGui::ColorEdit4("Inscattering Color", inScatteringColor))
+            {
+                HeightFogComp->FogColor.x = inScatteringColor[0];
+                HeightFogComp->FogColor.y = inScatteringColor[1];
+                HeightFogComp->FogColor.z = inScatteringColor[2];
+                HeightFogComp->FogColor.a = inScatteringColor[3];
+            }
+
+            ImGui::TreePop();
+        }
     }
     ImGui::End();
 

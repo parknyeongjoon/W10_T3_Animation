@@ -328,7 +328,8 @@ struct alignas(16) FCameraConstants
 {
     FMatrix ViewMatrix;
     FMatrix ProjMatrix;
-    FMatrix ViewProjMatrix;
+    FMatrix InvViewMatrix;
+    FMatrix InvProjMatrix;
 
     FVector CameraPos;
     float NearPlane;
@@ -352,15 +353,14 @@ struct FDepthToWorldConstants
 struct alignas(16) FHeightFogConstants
 {
     float FogDensity;       
-    float FogHeightFalloff;
-    float HeightOffset; 
-    float StartDistance;
+    float HeightFogStart;
+    float HeightFogEnd;
+    float pad1;
 
     FLinearColor InscatteringColor;
     FLinearColor DirectionalInscatteringColor;
 
     FVector DirectionalLightDirection;
-    float FogCutoffDistance;
     
     float MaxOpacity;       
     float DirectionalInscatteringExponent;

@@ -11,6 +11,7 @@
 #include "Components/UText.h"
 #include "Components/Material/Material.h"
 #include "Components/HeightFogComponent.h"
+#include "Components/HFogComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Launch/EditorEngine.h"
 #include "Math/JungleMath.h"
@@ -106,11 +107,11 @@ void FRenderer::CreateShader()
     
     ShaderManager.CreateVertexShader(
         L"Shaders/HeightFogShader.hlsl", "mainVS",
-        HeightFogVertexShader, nullptr, 0); 
+        HFogVertexShader, nullptr, 0); 
 
     ShaderManager.CreatePixelShader(
         L"Shaders/HeightFogShader.hlsl", "mainPS",
-        HeightFogPixelShader);
+        HFogPixelShader);
 
     ShaderManager.CreateVertexShader(
         L"Shaders/HeightFogVertexShader.hlsl", "mainVS",
@@ -576,6 +577,7 @@ void FRenderer::RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewport
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Fog)) 
     {
         RenderHeightFog(ActiveViewport);
+        RenderHFog(ActiveViewport);
     }
 }
 
@@ -605,14 +607,17 @@ void FRenderer::RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveVi
     Graphics->DeviceContext->Draw(4, 0);
 }
 
-void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport) const
+void FRenderer::RenderHFog(std::shared_ptr<FEditorViewportClient> ActiveViewport) const
 {
-    
-    // 현재 뷰포트의 뷰모드가 Depth 인지 확인
-    if (ActiveViewport->GetViewMode() != EViewModeIndex::VMI_Depth)
+    UHFogComponent* HeightFogComp = nullptr; 
+    for (const auto& comp: TObjectRange<UHFogComponent>() )
     {
-        return;
+        HeightFogComp = comp;
     }
+
+    if (!HeightFogComp) return;
+    if (!HeightFogComp->bIsActive) return;
+    
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
     Graphics->DeviceContext->CopyResource(Graphics->DepthCopyTexture, Graphics->DepthStencilBuffer);
 
@@ -620,13 +625,29 @@ void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveVie
     Graphics->DeviceContext->PSSetSamplers(0, 1, &DebugDepthSRVSampler);
     Graphics->DeviceContext->PSSetShaderResources(0, 1, &Graphics->DepthCopySRV);
 
-    Graphics->DeviceContext->VSSetShader(HeightFogVertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(HeightFogPixelShader, nullptr, 0);
+    Graphics->DeviceContext->VSSetShader(HFogVertexShader, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(HFogPixelShader, nullptr, 0);
     
-    // 렌더링 시 샘플러 설정
+
+    D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
+    Graphics->DeviceContext->Map(DepthToWorldBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR);
+    auto constants = static_cast<FDepthToWorldConstants*>(constantbufferMSR.pData);
+    {
+        constants->InvView = FMatrix::Transpose(FMatrix::Inverse(ActiveViewport->GetViewMatrix()));
+        constants->InvProj = FMatrix::Transpose( FMatrix::Inverse(ActiveViewport->GetProjectionMatrix() ));
+        constants->nearPlane = ActiveViewport->nearPlane;
+        constants->farPlane = ActiveViewport->farPlane;
+
+        constants->FogColor = HeightFogComp->FogColor;
+        constants->FogDensity = HeightFogComp->FogDensity;
+        constants->FogStartHeight = HeightFogComp->FogStartHeight;
+        constants->FogEndHeight = HeightFogComp->FogEndHeight;
+    }
+    Graphics->DeviceContext->Unmap(DepthToWorldBuffer, 0);
+    
     Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &DepthToWorldBuffer);
     Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &DepthToWorldBuffer);
-
+    
     Graphics->DeviceContext->OMSetBlendState(NormalBlendState, nullptr, 0xffffffff);
     Graphics->DeviceContext->Draw(4, 0);
     Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
@@ -802,24 +823,13 @@ void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveVie
 {
     // 활성화된 Height Fog 컴포넌트 찾기
     UHeightFogComponent* HeightFogComp = nullptr;
-    // for (const auto& Actor : World->GetActors())
-    // {
-    //     for (const auto& Component : Actor->GetComponents())
-    //     {
-    //         if (UHeightFogComponent* FogComp = Cast<UHeightFogComponent>(Component))
-    //         {
-    //             HeightFogComp = FogComp;
-    //             break;
-    //         }
-    //     }
-    //     if (HeightFogComp) break;
-    // }
     for (const auto& comp: TObjectRange<UHeightFogComponent>() )
     {
         HeightFogComp = comp;
     }
 
     if (!HeightFogComp) return;
+    if (!HeightFogComp->bIsActive) return;
 
     Graphics->DeviceContext->VSSetShader(HeightFogVertexShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(HeightFogPixelShader, nullptr, 0);
@@ -829,9 +839,8 @@ void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveVie
     // Fog Constant buffer update
     FHeightFogConstants fogParams;
     fogParams.FogDensity = HeightFogComp->FogDensity;
-    fogParams.FogHeightFalloff = HeightFogComp->FogHeightFalloff;
-    fogParams.HeightOffset = HeightFogComp->HeightOffset;
-    fogParams.StartDistance = HeightFogComp->StartDistance;
+    fogParams.HeightFogStart = HeightFogComp->HeightFogStart;
+    fogParams.HeightFogEnd = HeightFogComp->HeightFogEnd;
     fogParams.MaxOpacity = HeightFogComp->FogMaxOpacity;
     fogParams.InscatteringColor = FLinearColor(
         HeightFogComp->FogInscatteringColor.R,
@@ -847,7 +856,6 @@ void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveVie
     );
     fogParams.DirectionalInscatteringExponent = HeightFogComp->DirectionalInscatteringExponent;
     fogParams.DirectionalInscatteringStartDistance = HeightFogComp->DirectionalInscatteringStartDistance;
-    fogParams.FogCutoffDistance = HeightFogComp->FogCutoffDistance;
 
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     Graphics->DeviceContext->Map(FogConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

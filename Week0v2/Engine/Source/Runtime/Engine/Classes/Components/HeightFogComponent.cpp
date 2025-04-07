@@ -3,10 +3,12 @@
 UHeightFogComponent::UHeightFogComponent()
     : UPrimitiveComponent()
 {
+    bIsActive = true;
     FogDensity = 0.5f;
     FogHeightFalloff = 0.0f;
     HeightOffset = 0.0f;
-    StartDistance = 0.0f;
+    HeightFogStart = 0.0f;
+    HeightFogEnd = 10.0f;
     FogCutoffDistance = 1000.0f;
     FogMaxOpacity = 0.8f;
 

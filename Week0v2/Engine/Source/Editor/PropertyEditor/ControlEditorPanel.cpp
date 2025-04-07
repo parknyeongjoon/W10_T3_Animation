@@ -17,6 +17,7 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/SceneMgr.h"
 #include "UEditorStateManager.h"
+#include "Components/HFogComponent.h"
 
 void ControlEditorPanel::Render()
 {
@@ -325,6 +326,8 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_Fog"));
                     UHeightFogComponent* HeightFogComponent = SpawnedActor->AddComponent<UHeightFogComponent>();
+                    UHFogComponent* FogComponent = SpawnedActor->AddComponent<UHFogComponent>();
+                    break;
                 }
                 case OBJ_TRIANGLE:
                 case OBJ_CAMERA:
@@ -424,7 +427,7 @@ void ControlEditorPanel::CreateFlagButton() const
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Primitives)) != 0,
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText)) != 0,
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_UUIDText)) != 0,
-            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Fog)) != 0
+            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Fog)) != 0,
         };  // 각 항목의 체크 상태 저장
         
         for (int i = 0; i < IM_ARRAYSIZE(items); i++)

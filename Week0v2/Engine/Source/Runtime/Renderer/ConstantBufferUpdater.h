@@ -17,7 +17,6 @@ public:
     void UpdateTextureConstant(ID3D11Buffer* TextureConstantBufer, float UOffset, float VOffset);
     void UpdateSubUVConstant(ID3D11Buffer* SubUVConstantBuffer, float _indexU, float _indexV) const;
     void UpdateCameraConstant(ID3D11Buffer* CameraConstantBuffer, class FEditorViewportClient* ViewportClient);
-    void UpdateDpethToWorldConstant(ID3D11Buffer* DepthToWorldConstantBuffer, FEditorViewportClient* ViewportClient);
 
 private:
     ID3D11DeviceContext* DeviceContext = nullptr;

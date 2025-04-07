@@ -1,6 +1,8 @@
 #include "ConstantBufferUpdater.h"
 #include <Engine/Texture.h>
 #include "Editor/UnrealEd/EditorViewportClient.h"
+#include "Engine/Source/Runtime/Engine/Classes/Components/HFogComponent.h"
+#include "UObject/UObjectIterator.h"
 
 void FConstantBufferUpdater::Initialize(ID3D11DeviceContext* InDeviceContext)
 {
@@ -135,35 +137,13 @@ void FConstantBufferUpdater::UpdateCameraConstant(ID3D11Buffer* CameraConstantBu
         {
             constants->ViewMatrix = FMatrix::Transpose(ViewportClient->GetViewMatrix());
             constants->ProjMatrix = FMatrix::Transpose(ViewportClient->GetProjectionMatrix());
-            constants->ViewProjMatrix = FMatrix::Transpose(constants->ViewMatrix * constants->ProjMatrix);
+            constants->InvViewMatrix = FMatrix::Transpose(FMatrix::Inverse(ViewportClient->GetViewMatrix()));
+            constants->InvProjMatrix = FMatrix::Transpose(FMatrix::Inverse(ViewportClient->GetProjectionMatrix()));
             constants->CameraPos = ViewportClient->ViewTransformPerspective.GetLocation();
             constants->NearPlane = ViewportClient->nearPlane;
             constants->CameraForward = ViewportClient->ViewTransformPerspective.GetForwardVector();
             constants->FarPlane = ViewportClient->farPlane;
         }
         DeviceContext->Unmap(CameraConstantBuffer, 0);
-    }
-}
-
-void FConstantBufferUpdater::UpdateDpethToWorldConstant(ID3D11Buffer* DepthToWorldConstantBuffer, FEditorViewportClient* ViewportClient)
-{
-    if (DepthToWorldConstantBuffer)
-    {
-        D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
-        DeviceContext->Map(DepthToWorldConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR);
-        auto constants = static_cast<FDepthToWorldConstants*>(constantbufferMSR.pData);
-        {
-            constants->InvView = FMatrix::Transpose(FMatrix::Inverse(ViewportClient->GetViewMatrix()));
-            constants->InvProj = FMatrix::Transpose( FMatrix::Inverse(ViewportClient->GetProjectionMatrix() ));
-            // constants->InvViewProjMatrix = FMatrix::Transpose(FMatrix::Inverse( ViewportClient->GetProjectionMatrix() * ViewportClient->GetViewMatrix()));;
-            constants->nearPlane = ViewportClient->nearPlane;
-            constants->farPlane = ViewportClient->farPlane;
-            
-            constants->FogColor = FVector4(1.f, 1.f ,1.f ,1.f);
-            constants->FogDensity = 0.5f;
-            constants->FogStartHeight = 0.f;
-            constants->FogEndHeight = 10.f;
-        }
-        DeviceContext->Unmap(DepthToWorldConstantBuffer, 0);
     }
 }

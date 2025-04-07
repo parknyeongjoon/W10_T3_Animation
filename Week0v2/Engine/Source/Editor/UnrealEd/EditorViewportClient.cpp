@@ -44,10 +44,6 @@ void FEditorViewportClient::Tick(float DeltaTime)
         UEditorEngine::renderer.CameraConstantBuffer,
         this
     );
-    UEditorEngine::renderer.GetConstantBufferUpdater().UpdateDpethToWorldConstant(
-        UEditorEngine::renderer.DepthToWorldBuffer,
-        this
-    );
 }
 
 void FEditorViewportClient::Release()
