@@ -17,6 +17,7 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/SceneMgr.h"
 #include "UEditorStateManager.h"
+#include "Actors/FireBallActor.h"
 #include "Classes/Actors/DirectionalLightActor.h"
 #include "Classes/Actors/PointLightActor.h"
 
@@ -267,6 +268,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             {.label = "Fog",      .obj = OBJ_Fog },
             { .label= "DirectionalLight", .obj= OBJ_DIRECTIONAL_LIGHT },
             { .label= "PointLight", .obj= OBJ_POINT_LIGHT },
+            { .label= "FireBall", .obj= OBJ_FIREBALL },
         };
 
         for (const auto& primitive : primitives)
@@ -341,6 +343,12 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<APointLightActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_POINT_LIGHT"));
+                    break;
+                }
+                case OBJ_FIREBALL:
+                {
+                    SpawnedActor = World->SpawnActor<AFireBallActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_FIREBALL"));
                     break;
                 }
                 case OBJ_TRIANGLE:
