@@ -4,6 +4,7 @@ UHeightFogComponent::UHeightFogComponent()
     : UPrimitiveComponent()
 {
     bIsActive = true;
+    bIsExponential = true;
     FogDensity = 0.5f;
     HeightFogStart = 0.0f;
     HeightFogEnd = 10.0f;

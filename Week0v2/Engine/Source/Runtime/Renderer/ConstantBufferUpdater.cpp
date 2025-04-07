@@ -1,7 +1,7 @@
 #include "ConstantBufferUpdater.h"
 #include <Engine/Texture.h>
 #include "Editor/UnrealEd/EditorViewportClient.h"
-#include "Engine/Source/Runtime/Engine/Classes/Components/HFogComponent.h"
+#include "Engine/Source/Runtime/Engine/Classes/Components/HeightFogComponent.h"
 #include "UObject/UObjectIterator.h"
 #include "Classes/Components/DirectionalLightComponent.h"
 #include "Classes/Components/PointLightComponent.h"

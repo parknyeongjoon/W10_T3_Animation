@@ -396,8 +396,14 @@ void PropertyEditorPanel::Render()
             ImGui::Separator();
 
             bool bIsActive = HeightFogComp->bIsActive;
+            bool bIsExponential = HeightFogComp->bIsExponential;
+
             ImGui::Checkbox("Active", &bIsActive);
+            ImGui::Checkbox("Exponential", &bIsExponential);
+
             HeightFogComp->bIsActive = bIsActive;
+            HeightFogComp->bIsExponential = bIsExponential;
+
             ImGui::SliderFloat("Fog Density", &HeightFogComp->FogDensity, 0.0f, 1.0f, "%.4f");
             ImGui::SliderFloat("Height Fog Start", &HeightFogComp->HeightFogStart, 0.0f, 100.0f);
             ImGui::SliderFloat("Height Fog End", &HeightFogComp->HeightFogEnd, 0.0f, 100.0f);
