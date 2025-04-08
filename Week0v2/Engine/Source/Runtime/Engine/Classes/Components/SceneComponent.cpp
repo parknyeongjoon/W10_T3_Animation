@@ -21,7 +21,7 @@ USceneComponent::~USceneComponent()
 }
 void USceneComponent::InitializeComponent()
 {
-    Super::InitializeComponent();
+   // Super::InitializeComponent();
 
 }
 
