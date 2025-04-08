@@ -62,9 +62,6 @@ void ULightComponentBase::PostDuplicate()
 
 void ULightComponentBase::InitializeLight()
 {
-    texture2D = GetOwner()->AddComponent<UBillboardComponent>();
-    texture2D->SetTexture(L"Assets/Texture/spotLight.png");
-
     AABB.max = { 1.f,1.f,0.1f };
     AABB.min = { -1.f,-1.f,-0.1f };
     color = { 1,1,1,1 };
@@ -96,10 +93,4 @@ void ULightComponentBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 }
 
-void ULightComponentBase::InitializeLight()
-{
-    AABB.max = { 1.f,1.f,0.1f };
-    AABB.min = { -1.f,-1.f,-0.1f };
-    color = { 1,1,1,1 };
-}
 
