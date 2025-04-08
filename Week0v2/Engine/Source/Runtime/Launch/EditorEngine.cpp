@@ -176,7 +176,7 @@ void UEditorEngine::PausedPIE()
         levelType = LEVELTICK_PauseTick;
     else if (levelType == LEVELTICK_PauseTick)
         levelType = LEVELTICK_All;
-    UE_LOG(LogLevel::Error, "Puase PIE");
+    UE_LOG(LogLevel::Error, "Pause PIE");
 }
 
 void UEditorEngine::ResumingPIE()

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <DirectXMath.h>
 
@@ -70,6 +70,11 @@ struct FVector
     // 스칼라 곱셈
     FVector operator*(float scalar) const {
         return FVector(x * scalar, y * scalar, z * scalar);
+    }
+
+    // 벡터 성분 곱셈
+    FVector operator*(const FVector& other) const {
+        return FVector(x * other.x, y * other.y, z * other.z);
     }
 
     bool operator==(const FVector& other) const {
