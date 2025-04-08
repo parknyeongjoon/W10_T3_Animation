@@ -27,6 +27,7 @@ void UPointLightComponent::DuplicateSubObjects(const UObject* Source)
     if (SourceComp)
     {
         Radius = SourceComp->Radius;
+        AttenuationFalloff = SourceComp->AttenuationFalloff;
     }
 }
 

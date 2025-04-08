@@ -16,6 +16,10 @@ USphereComp::USphereComp()
     AABB.min = {-1, -1, -1};
 }
 
+USphereComp::USphereComp(const USphereComp& Other): Super(Other)
+{
+}
+
 USphereComp::~USphereComp()
 {
 }

@@ -2,10 +2,10 @@
 
 #include "PointLightComponent.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 
-UFireBallComponent::UFireBallComponent()
+UFireBallComponent::UFireBallComponent(const UFireBallComponent& Other): Super(Other)
 {
-    Super();
 }
 
 UFireBallComponent::~UFireBallComponent()
@@ -15,12 +15,33 @@ UFireBallComponent::~UFireBallComponent()
 void UFireBallComponent::InitializeComponent()
 {
     Super::InitializeComponent();
-    UPointLightComponent* MyLightComp = GetOwner()->AddComponent<UPointLightComponent>();
-    MyLightComp->SetIntensity(3.f);
-    MyLightComp->SetRadius(20.f);
+
 }
 
 void UFireBallComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+}
+
+UObject* UFireBallComponent::Duplicate() const
+{
+    UFireBallComponent* NewComponent = FObjectFactory::ConstructObjectFrom<UFireBallComponent>(this);
+    NewComponent->DuplicateSubObjects(this);
+    NewComponent->PostDuplicate();
+    return NewComponent;
+}
+
+void UFireBallComponent::DuplicateSubObjects(const UObject* Source)
+{
+    Super::DuplicateSubObjects(Source);
+    UFireBallComponent* SourceComp = Cast<UFireBallComponent>(Source);
+    if (SourceComp)
+    {
+        
+    }
+}
+
+void UFireBallComponent::PostDuplicate()
+{
+    Super::PostDuplicate();
 }

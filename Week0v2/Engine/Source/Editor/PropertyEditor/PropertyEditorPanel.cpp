@@ -486,6 +486,7 @@ void PropertyEditorPanel::Render()
             
             ImGui::DragFloat("Initial Speed", &ProjectileComp->InitialSpeed,1.0f, 0.0f, 1000000.0f);
             ImGui::DragFloat("Max Speed", &ProjectileComp->MaxSpeed,1.0f, 0.0f, 1000000.0f);
+            ImGui::DragFloat("Gravity Scale", &ProjectileComp->ProjectileGravityScale, 0.01f, 0.0f, 2.0f);
 
             FVector Velocity = ProjectileComp->Velocity;
 
