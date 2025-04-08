@@ -33,10 +33,15 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
 
+    bool MoveComponent(const FVector& Delta) override;
+private:
+
     virtual FActorComponentInfo GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
 
     FBoundingBox GetBoundingBox() { return AABB; }
+
+    FVector ComponentVelocity;
     FBoundingBox AABB;
 };
 

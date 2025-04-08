@@ -37,7 +37,7 @@ numVertices(other.numVertices), finalIndexU(other.finalIndexU), finalIndexV(othe
 
 void UBillboardComponent::InitializeComponent()
 {
-    Super::InitializeComponent();
+    // Super::InitializeComponent();
 	CreateQuadTextureVertexBuffer();
 }
 

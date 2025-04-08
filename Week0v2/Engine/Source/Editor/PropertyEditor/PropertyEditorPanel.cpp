@@ -15,6 +15,9 @@
 #include <Components/CubeComp.h>
 #include <Components/UParticleSubUVComp.h>
 
+#include "Components/GameFramework/ProjectileMovementComponent.h"
+#include "Components/GameFramework/RotatingMovementComponent.h"
+
 void PropertyEditorPanel::Render()
 {
     /* Pre Setup */
@@ -59,6 +62,10 @@ void PropertyEditorPanel::Render()
                     {
                         DrawSceneComponentTree(SceneComp, PickedComponent);
                     }
+                }
+                else
+                {
+                    DrawActorComponent(Component, PickedComponent);
                 }
             }
 
@@ -120,6 +127,18 @@ void PropertyEditorPanel::Render()
                 {
                     UCubeComp* CubeComponent = PickedActor->AddComponent<UCubeComp>(EComponentOrigin::Editor);
                     PickedComponent = CubeComponent;
+                }
+
+                if (ImGui::Selectable("ProjectileMovementComponent"))
+                {
+                    UProjectileMovementComponent* ProjectileComp = PickedActor->AddComponent<UProjectileMovementComponent>();
+                    PickedComponent = ProjectileComp;
+                }
+
+                if (ImGui::Selectable("RotatingMovementComponent"))
+                {
+                    URotatingMovementComponent* RotatingComponent = PickedActor->AddComponent<URotatingMovementComponent>();
+                    PickedComponent = RotatingComponent;
                 }
 
                 ImGui::EndPopup();
@@ -407,8 +426,8 @@ void PropertyEditorPanel::Render()
             ImGui::SliderFloat("Fog Density", &HeightFogComp->FogDensity, 0.0f, 1.0f, "%.4f");
             ImGui::SliderFloat("Height Fog Start", &HeightFogComp->HeightFogStart, 0.0f, 100.0f);
             ImGui::SliderFloat("Height Fog End", &HeightFogComp->HeightFogEnd, 0.0f, 100.0f);
-            ImGui::SliderFloat("Distance Fog Near", &HeightFogComp->DistanceFogNear, 0.0f, 100.0f);
-            ImGui::SliderFloat("Distance Fog Far", &HeightFogComp->DistanceFogFar, 0.0f, 1000.0f);
+            ImGui::SliderFloat("Distance Fog Near", &HeightFogComp->DistanceFogNear, 0.0f, 1000.0f);
+            ImGui::SliderFloat("Distance Fog Far", &HeightFogComp->DistanceFogFar, 0.0f, 10000.0f);
             ImGui::SliderFloat("Max Opacity", &HeightFogComp->FogMaxOpacity, 0.0f, 1.0f, "%.2f");
 
             ImGui::Spacing();
@@ -457,6 +476,45 @@ void PropertyEditorPanel::Render()
         }
 
     }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UProjectileMovementComponent>())
+    {
+        UProjectileMovementComponent* ProjectileComp = Cast<UProjectileMovementComponent>(PickedComponent);
+
+        if (ImGui::TreeNodeEx("Projectile", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            
+            ImGui::DragFloat("Initial Speed", &ProjectileComp->InitialSpeed,1.0f, 0.0f, 1000000.0f);
+            ImGui::DragFloat("Max Speed", &ProjectileComp->MaxSpeed,1.0f, 0.0f, 1000000.0f);
+
+            FVector Velocity = ProjectileComp->Velocity;
+
+            if (FImGuiWidget::DrawVec3Control("Velocity", Velocity, 0, 85))
+            {
+                ProjectileComp->Velocity = Velocity;
+            }
+            
+            ImGui::TreePop();
+        }
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<URotatingMovementComponent>())
+    {
+        URotatingMovementComponent* RotatingComp = Cast<URotatingMovementComponent>(PickedComponent);
+
+        if (ImGui::TreeNodeEx("RotatingMovement", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            FVector RotationRate = RotatingComp->RotationRate;
+
+            if (FImGuiWidget::DrawVec3Control("RotationRate", RotationRate, 0, 85))
+            {
+                RotatingComp->RotationRate = RotationRate;
+            }
+            
+            ImGui::TreePop();
+        }
+    }
+    
     ImGui::End();
 
 
@@ -491,6 +549,23 @@ void PropertyEditorPanel::DrawSceneComponentTree(USceneComponent* Component, UAc
        }
        ImGui::TreePop();
    }
+}
+
+void PropertyEditorPanel::DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent)
+{
+    if (!Component) return;
+
+    FString Label = *Component->GetName();
+    bool bSelected = (PickedComponent == Component);
+
+    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow;
+    if (bSelected)
+        nodeFlags |= ImGuiTreeNodeFlags_Selected;
+
+    if (ImGui::Selectable(*Label, nodeFlags))
+    {
+        PickedComponent = Component;
+    }
 }
 
 void PropertyEditorPanel::RGBToHSV(float r, float g, float b, float& h, float& s, float& v) const

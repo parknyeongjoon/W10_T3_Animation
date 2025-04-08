@@ -231,7 +231,14 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
         UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate());
         dupComponent->Owner = this;
         OwnedComponents.Add(dupComponent);
-        RootComponent = Cast<USceneComponent>(dupComponent);
+
+        /** Todo. UActorComponent를 상속 받는 컴포넌트는 오류가 발생 코드 로직 수정 필요
+         *   임시로 IsA 검사 후 Root 설정
+         */
+        if (dupComponent->IsA(USceneComponent::StaticClass())) 
+        {
+            RootComponent = Cast<USceneComponent>(dupComponent);
+        }
         if (const USceneComponent* OldScene = Cast<USceneComponent>(Component))
         {
             if (USceneComponent* NewScene = Cast<USceneComponent>(dupComponent))
@@ -261,6 +268,12 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
         {
             SetRootComponent(*Found);
         }
+    }
+
+    // 컴포넌트 initialize
+    for (auto Comp : OwnedComponents)
+    {
+        Comp->InitializeComponent();
     }
 }
 

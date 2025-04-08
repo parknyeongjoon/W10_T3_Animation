@@ -87,6 +87,7 @@ public:
     virtual void PostDuplicate();
 
 public:
+    virtual bool MoveComponent(const FVector& Delta) { return false; }
     virtual FActorComponentInfo GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 

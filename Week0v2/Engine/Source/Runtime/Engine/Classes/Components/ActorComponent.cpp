@@ -7,8 +7,6 @@ UActorComponent::UActorComponent(const UActorComponent& Other)
       bCanEverTick(Other.bCanEverTick),
       bRegistered(Other.bRegistered),
       bWantsInitializeComponent(Other.bWantsInitializeComponent),
-      bHasBeenInitialized(Other.bHasBeenInitialized),
-      bHasBegunPlay(Other.bHasBegunPlay),
       bIsBeingDestroyed(Other.bIsBeingDestroyed),
       bIsActive(Other.bIsActive),
       bTickEnabled(Other.bTickEnabled),

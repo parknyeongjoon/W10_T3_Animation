@@ -31,7 +31,7 @@ cbuffer FogParams : register(b6)
     float DirectionalInscatteringStartDistance;
     float pad3, pad4, pad5;
     
-    bool IsExponential;
+    int IsExponential;
 }
 
 Texture2D SceneTexture : register(t5);
@@ -70,26 +70,35 @@ float4 mainPS(VS_OUT input) : SV_TARGET
     
     // 높이 기반 안개 계산
     float heightDiff = saturate((HeightFogEnd - worldPosition.z) / (HeightFogEnd - HeightFogStart));
-    float heightFactor = saturate(1.f - exp(-heightDiff));
+    float heightFactor = saturate(1.f - exp(-heightDiff * 3.0f));
     
     // 정규화된 깊이 값을 사용하여 거리 기반 안개 계산 (from debug depth shader)
     float distanceFactor;
     
-    if (IsExponential)
+    if (IsExponential != 0)
     {
         distanceFactor = saturate(1.f - exp(-normalized * 5.0));
-        // distanceFactor = 0.0f;
     }
     else
     {
         distanceFactor = normalized;
-        // distanceFactor = 1.0f;
     }
     
     float fogFactor = FogDensity * heightFactor * distanceFactor;
-    // float fogFactor = FogDensity * max(heightFactor, distanceFactor);
-    float3 fogColor = InscatteringColor.rgb;
+    // 방향성 산란 요소를 위한 값 (현재 Direction 0, 0, -1 고정)
+    float3 viewDirection = normalize(CameraPos - worldPosition);
+    float VdotL = max(0.0, dot(-viewDirection, normalize(DirectionalLightDirection)));
+    float directionalInscatteringFactor = pow(VdotL, DirectionalInscatteringExponent);
     
+    float directionalDistance = max(0.0, linearDepth - DirectionalInscatteringStartDistance);
+    directionalInscatteringFactor *= saturate(directionalDistance / (FarPlane * 0.25));
+    
+    // 최종 안개 색상 계산 (기본 안개 색상 + 방향성 산란 색상)
+    float3 baseInscattering = InscatteringColor.rgb;
+    float3 directionalInscattering = DirectionalInscatteringColor.rgb * directionalInscatteringFactor;
+    float3 fogColor = baseInscattering + directionalInscattering;
+    
+    // 최대 불투명도 제한
     fogFactor = min(fogFactor, MaxOpacity);
     
     return float4(lerp(sceneColor.rgb, fogColor, fogFactor), sceneColor.a);

@@ -1,6 +1,13 @@
 #pragma once
 
 #include <DirectXMath.h>
+
+#include <cmath>
+
+#include "MathUtility.h"
+
+struct FMath;
+
 #include "Serialization/Archive.h"
 struct FVector2D
 {
@@ -60,7 +67,12 @@ struct FVector
 
     // 벡터 크기
     float Magnitude() const {
-        return sqrt(x * x + y * y + z * z);
+        return std::sqrt(x * x + y * y + z * z);
+    }
+
+    float MagnitudeSquared() const
+    {
+        return x * x + y * y + z * z;
     }
 
     // 벡터 정규화
@@ -81,6 +93,11 @@ struct FVector
         return FVector(x * scalar, y * scalar, z * scalar);
     }
 
+    // 벡터 성분 곱셈
+    FVector operator*(const FVector& other) const {
+        return FVector(x * other.x, y * other.y, z * other.z);
+    }
+
     bool operator==(const FVector& other) const {
         return (x == other.x && y == other.y && z == other.z);
     }
@@ -94,6 +111,24 @@ struct FVector
         return DirectX::XMFLOAT3(x, y, z);
     }
 
+    FVector ClampMaxSize(float MaxSize) const
+    {
+        if (MaxSize < 1.e-4f)
+        {
+            return ZeroVector;
+        }
+
+        const float VSq = MagnitudeSquared();
+        if (VSq > MaxSize * MaxSize)
+        {
+            const float Scale = MaxSize * FMath::InvSqrt(VSq);
+            return {x * Scale, y * Scale, z * Scale};
+        }
+        else
+        {
+            return *this;
+        }
+    }
     void Serialize(FArchive& Ar) const
     {
         Ar << x << y << z;

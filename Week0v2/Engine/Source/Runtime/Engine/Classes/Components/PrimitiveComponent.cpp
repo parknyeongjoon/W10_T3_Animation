@@ -1,5 +1,6 @@
 #include "PrimitiveComponent.h"
 
+#include "GameFramework/Actor.h"
 #include "UObject/ObjectFactory.h"
 
 UPrimitiveComponent::UPrimitiveComponent()
@@ -20,12 +21,13 @@ UPrimitiveComponent::~UPrimitiveComponent()
 
 void UPrimitiveComponent::InitializeComponent()
 {
-    Super::InitializeComponent();
+    // Super::InitializeComponent();
 }
 
 void UPrimitiveComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+    
 }
 
 int UPrimitiveComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
@@ -124,6 +126,16 @@ void UPrimitiveComponent::DuplicateSubObjects(const UObject* Source)
 void UPrimitiveComponent::PostDuplicate()
 {
     USceneComponent::PostDuplicate();
+}
+
+bool UPrimitiveComponent::MoveComponent(const FVector& Delta)
+{
+    if (!GetOwner()) return false;
+    
+    FVector NewLocation = GetOwner()->GetActorLocation() + Delta;
+    GetOwner()->SetActorLocation(NewLocation);
+
+    return true;
 }
 
 FActorComponentInfo UPrimitiveComponent::GetActorComponentInfo()

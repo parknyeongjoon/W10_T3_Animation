@@ -797,9 +797,13 @@ void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveVie
         HeightFogComp->DirectionalInscatteringColor.B,
         HeightFogComp->DirectionalInscatteringColor.A
     );
+    // 현재 0, 0, -1 방향의 가상의 Directional light로 고정함
+    // Unreal의 경우 Default Directional light(Sun)의 값을 따라가는 것으로 보임
+    // 실제 Directional light를 가져오도록 할 지 고려, 또한 Directional light이 2개 이상일 때는 어떻게 처리할지?
+    fogParams.DirectionalLightDirection = HeightFogComp->DirectionalLightDirection;
     fogParams.DirectionalInscatteringExponent = HeightFogComp->DirectionalInscatteringExponent;
     fogParams.DirectionalInscatteringStartDistance = HeightFogComp->DirectionalInscatteringStartDistance;
-    fogParams.IsExponential = HeightFogComp->bIsExponential;
+    fogParams.IsExponential = HeightFogComp->bIsExponential ? 1 : 0;
 
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     Graphics->DeviceContext->Map(FogConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
