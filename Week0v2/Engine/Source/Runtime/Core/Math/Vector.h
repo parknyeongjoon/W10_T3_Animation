@@ -2,6 +2,12 @@
 
 #include <DirectXMath.h>
 
+#include <cmath>
+
+#include "MathUtility.h"
+
+struct FMath;
+
 struct FVector2D
 {
 	float x,y;
@@ -51,7 +57,12 @@ struct FVector
 
     // 벡터 크기
     float Magnitude() const {
-        return sqrt(x * x + y * y + z * z);
+        return std::sqrt(x * x + y * y + z * z);
+    }
+
+    float MagnitudeSquared() const
+    {
+        return x * x + y * y + z * z;
     }
 
     // 벡터 정규화
@@ -83,6 +94,25 @@ struct FVector
     DirectX::XMFLOAT3 ToXMFLOAT3() const
     {
         return DirectX::XMFLOAT3(x, y, z);
+    }
+
+    FVector ClampMaxSize(float MaxSize) const
+    {
+        if (MaxSize < 1.e-4f)
+        {
+            return ZeroVector;
+        }
+
+        const float VSq = MagnitudeSquared();
+        if (VSq > MaxSize * MaxSize)
+        {
+            const float Scale = MaxSize * FMath::InvSqrt(VSq);
+            return {x * Scale, y * Scale, z * Scale};
+        }
+        else
+        {
+            return *this;
+        }
     }
 
     static const FVector ZeroVector;
