@@ -2,6 +2,7 @@
 #include "Components/FireBallComponent.h"
 #include "GameFramework/Actor.h"
 
+class UBillboardComponent;
 class UProjectileMovementComponent;
 class UPointLightComponent;
 class AFireBallActor: public AActor
@@ -15,4 +16,5 @@ private:
     UFireBallComponent* FireBallComponent;
     UPointLightComponent* LightComp;
     UProjectileMovementComponent* ProjMovementComp;
+    UBillboardComponent* Texture2D;
 };
