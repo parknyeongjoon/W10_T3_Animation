@@ -55,6 +55,8 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate();
 
+public:
+    virtual bool MoveComponent(const FVector& Delta) { return false; }
 
 private:
     class UTextUUID* uuidText = nullptr;
