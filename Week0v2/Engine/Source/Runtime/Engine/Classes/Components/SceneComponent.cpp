@@ -91,7 +91,7 @@ FVector USceneComponent::GetWorldScale()
 {
 	if (AttachParent)
 	{
-		return FVector(AttachParent->GetWorldScale() + GetLocalScale());
+		return FVector(AttachParent->GetWorldScale() * GetLocalScale());
 	}
 	else
 		return GetLocalScale();
