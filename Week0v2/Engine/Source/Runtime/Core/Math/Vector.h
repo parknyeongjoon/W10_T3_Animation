@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include <DirectXMath.h>
-
+#include "Serialization/Archive.h"
 struct FVector2D
 {
 	float x,y;
@@ -29,6 +29,15 @@ struct FVector2D
 		y += rhs.y;
 		return *this;
 	}
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << x << y;
+    }
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> x >> y;
+    }
 };
 
 // 3D 벡터
@@ -83,6 +92,16 @@ struct FVector
     DirectX::XMFLOAT3 ToXMFLOAT3() const
     {
         return DirectX::XMFLOAT3(x, y, z);
+    }
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << x << y << z;
+    }
+
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> x >> y >> z;
     }
 
     static const FVector ZeroVector;

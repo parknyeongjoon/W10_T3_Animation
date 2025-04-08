@@ -12,7 +12,6 @@
 
 UCubeComp::UCubeComp()
 {
-    SetType(StaticClass()->GetName());
     AABB.max = { 1,1,1 };
     AABB.min = { -1,-1,-1 };
 

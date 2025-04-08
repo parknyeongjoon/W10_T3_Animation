@@ -1,6 +1,18 @@
 #pragma once
 #include "Engine/Source/Runtime/Engine/Classes/Components/SceneComponent.h"
 
+struct FPrimitiveComponentInfo : FSceneComponentInfo
+{
+    FBoundingBox AABB;
+
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FSceneComponentInfo::Copy(Other);
+        FPrimitiveComponentInfo& OtherPrimitive = static_cast<FPrimitiveComponentInfo&>(Other);
+        AABB = OtherPrimitive.AABB;
+    }
+};
+
 class UPrimitiveComponent : public USceneComponent
 {
     DECLARE_CLASS(UPrimitiveComponent, USceneComponent)
@@ -17,21 +29,14 @@ public:
         const FVector& rayOrigin, const FVector& rayDirection,
         const FVector& v0, const FVector& v1, const FVector& v2, float& hitDistance
     );
-    FBoundingBox AABB;
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
-private:
-    FString m_Type;
 
-public:
-    FString GetType() { return m_Type; }
+    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
 
-    void SetType(const FString& _Type)
-    {
-        m_Type = _Type;
-        //staticMesh = FEngineLoop::resourceMgr.GetMesh(m_Type);
-    }
     FBoundingBox GetBoundingBox() { return AABB; }
+    FBoundingBox AABB;
 };
 

@@ -2,6 +2,7 @@
 #include "Container/Set.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
+#include "Serialization/Archive.h"
 
 class AActor;
 class ULevel : public UObject

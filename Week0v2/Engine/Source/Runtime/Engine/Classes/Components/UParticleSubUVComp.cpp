@@ -7,7 +7,6 @@
 
 UParticleSubUVComp::UParticleSubUVComp()
 {
-    SetType(StaticClass()->GetName());
     bIsLoop = true;
 }
 
@@ -76,6 +75,25 @@ void UParticleSubUVComp::SetRowColumnCount(int _cellsPerRow, int _cellsPerColumn
 	CellsPerColumn = _cellsPerColumn;
 
 	CreateSubUVVertexBuffer();
+}
+
+FActorComponentInfo UParticleSubUVComp::GetActorComponentInfo()
+{
+    FParticleSubUVCompInfo Info;
+    Super::GetActorComponentInfo().Copy(Info);
+
+    Info.CellsPerRow = CellsPerRow;
+    Info.CellsPerColumn = CellsPerColumn;
+
+    return Info;
+}
+
+void UParticleSubUVComp::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FParticleSubUVCompInfo& SubUVInfo = static_cast<const FParticleSubUVCompInfo&>(Info);
+    CellsPerRow = SubUVInfo.CellsPerRow;
+    CellsPerColumn = SubUVInfo.CellsPerColumn;
 }
 
 void UParticleSubUVComp::UpdateVertexBuffer(const TArray<FVertexTexture>& vertices)

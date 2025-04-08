@@ -29,6 +29,13 @@ void UWorld::InitWorld()
     Level = FObjectFactory::ConstructObject<ULevel>();
 }
 
+void UWorld::LoadLevel(const FString& LevelName)
+{
+    // !TODO : 레벨 로드
+    // 이름으로 레벨 로드한다
+    // 실패 하면 현재 레벨 유지
+}
+
 void UWorld::PreLoadResources()
 {
     FManagerOBJ::CreateStaticMesh(TEXT("Assets/CastleObj.obj"));
@@ -189,6 +196,38 @@ bool UWorld::DestroyActor(AActor* ThisActor)
 void UWorld::SetPickingGizmo(UObject* Object)
 {
 	pickingGizmo = Cast<USceneComponent>(Object);
+}
+
+void UWorld::Serialize(FArchive& ar)
+{
+    int ActorCount = Level->GetActors().Num();
+    ar << ActorCount;
+    for (AActor* Actor : Level->GetActors())
+    {
+        FActorInfo ActorInfo = Actor->GetActorInfo();
+        ar << ActorInfo;
+    }
+}
+
+void UWorld::Deserialize(FArchive& ar)
+{
+    int ActorCount;
+    ar >> ActorCount;
+    for (int i = 0; i < ActorCount; i++)
+    {
+        FActorInfo ActorInfo;
+        ar >> ActorInfo;
+        UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorInfo.Type);
+        if (ActorClass)
+        {
+            AActor* Actor = SpawnActorByClass(ActorClass, true);
+            if (Actor)
+            {
+                Actor->LoadAndConstruct(ActorInfo.ComponentInfos);
+                Level->GetActors().Add(Actor);
+            }
+        }
+    }
 }
 
 /*************************임시******************************/

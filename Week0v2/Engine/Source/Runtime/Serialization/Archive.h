@@ -107,6 +107,28 @@ public:
 		Stream.read(&Value[0], Size);  // C++11 이상: &Value[0] 대신 Value.data()도 가능
 		return *this;
 	}
+
+    // std::wstring
+    FArchive& operator<<(const std::wstring& Value)
+    {
+        size_t Size = Value.size();
+        // 1. 크기를 바이너리로 저장
+        Stream.write(reinterpret_cast<const char*>(&Size), sizeof(size_t));
+        // 2. 문자열 데이터를 바이너리로 저장
+        Stream.write(reinterpret_cast<const char*>(Value.data()), Size * sizeof(wchar_t));
+        return *this;
+    }
+
+    FArchive& operator>>(std::wstring& Value)
+    {
+        size_t Size;
+        // 1. 크기를 바이너리로 읽기
+        Stream.read(reinterpret_cast<char*>(&Size), sizeof(size_t));
+        // 3. 문자열 데이터 읽기
+        Value.resize(Size);
+        Stream.read(reinterpret_cast<char*>(&Value[0]), Size * sizeof(wchar_t));  // C++11 이상: &Value[0] 대신 Value.data()도 가능
+        return *this;
+    }
 	// std::vector<T>
 	template<typename T, typename Allocator>
 	FArchive& operator<<(const std::vector<T, Allocator>& Value)

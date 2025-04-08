@@ -4,6 +4,7 @@
 #include "CString.h"
 #include "ContainerAllocator.h"
 #include "Core/HAL/PlatformType.h"
+#include "Serialization/Archive.h"
 
 /*
 # TCHAR가 ANSICHAR인 경우
@@ -186,6 +187,28 @@ public:
 
     FORCEINLINE bool operator==(const FString& Rhs) const;
     FORCEINLINE bool operator==(const ElementType* Rhs) const;
+
+    // 직렬화 및 역직렬화
+    void Serialize(FArchive& Ar) const;
+    void Deserialize(FArchive& Ar);
+
+    static FString ToFString(const FWString& widestring)
+    {
+#if USE_WIDECHAR
+        return FString(widestring);
+#endif
+        std::string str = std::string(widestring.begin(), widestring.end());
+        return FString(str);
+    }
+
+    static FWString ToWstring(const FString& string)
+    {
+#if USE_WIDECHAR
+        return FWString(string.PrivateString.begin(), string.PrivateString.end());
+#endif
+        std::wstring wstr = std::wstring(string.PrivateString.begin(), string.PrivateString.end());
+        return FWString(wstr);
+    }
 };
 
 template <typename Number>
@@ -233,6 +256,20 @@ FORCEINLINE bool FString::operator==(const FString& Rhs) const
 FORCEINLINE bool FString::operator==(const ElementType* Rhs) const
 {
     return Equals(Rhs);
+}
+
+inline void FString::Serialize(FArchive& Ar) const
+{
+    // !NOTE : ansichar only
+    std::string Str(**this);
+    Ar << Str;
+}
+
+inline void FString::Deserialize(FArchive& Ar)
+{
+    std::string Str;
+    Ar >> Str;
+    PrivateString = Str;
 }
 
 FORCEINLINE FString& FString::operator+=(const FString& SubStr)

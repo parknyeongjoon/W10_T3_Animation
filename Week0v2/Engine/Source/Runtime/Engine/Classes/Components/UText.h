@@ -2,6 +2,28 @@
 #include "UBillboardComponent.h"
 #include <d3d11.h>
 
+struct FTextComponentInfo : public FBillboardComponentInfo
+{
+    FWString Text;
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FBillboardComponentInfo::Copy(Other);
+        FTextComponentInfo& TextInfo = static_cast<FTextComponentInfo&>(Other);
+        TextInfo.Text = Text;
+    }
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FBillboardComponentInfo::Serialize(ar);
+        ar << Text;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FBillboardComponentInfo::Deserialize(ar);
+        ar >> Text;
+    }
+};
 class UText : public UBillboardComponent
 {
     DECLARE_CLASS(UText, UBillboardComponent)
@@ -24,7 +46,13 @@ public:
     ID3D11Buffer* vertexTextBuffer;
     TArray<FVertexTexture> vertexTextureArr;
     UINT numTextVertices;
+
+public:    
+    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
+
 protected:
+
     FWString text;
 
     TArray<FVector> quad;

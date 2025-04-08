@@ -2,6 +2,37 @@
 #include "ActorComponent.h"
 #include "Math/Quat.h"
 #include "UObject/ObjectMacros.h"
+#include "ActorComponentInfo.h"
+
+struct FSceneComponentInfo : public FActorComponentInfo
+{
+    FVector RelativeLocation;
+    FVector RelativeRotation;
+    FQuat QuatRotation;
+    FVector RelativeScale3D;
+
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FActorComponentInfo::Copy(Other);
+        FSceneComponentInfo& OtherScene = static_cast<FSceneComponentInfo&>(Other);
+        OtherScene.RelativeLocation = RelativeLocation;
+        OtherScene.RelativeRotation = RelativeRotation;
+        OtherScene.QuatRotation = QuatRotation;
+        OtherScene.RelativeScale3D = RelativeScale3D;
+    }
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FActorComponentInfo::Serialize(ar);
+        ar << RelativeLocation << RelativeRotation << QuatRotation << RelativeScale3D;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FActorComponentInfo::Deserialize(ar);
+        ar >> RelativeLocation >> RelativeRotation >> QuatRotation >> RelativeScale3D;
+    }
+};
 
 class USceneComponent : public UActorComponent
 {
@@ -55,6 +86,9 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate();
 
+public:
+    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 private:
     class UTextUUID* uuidText = nullptr;

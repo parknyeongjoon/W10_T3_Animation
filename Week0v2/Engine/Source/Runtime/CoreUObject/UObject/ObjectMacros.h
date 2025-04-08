@@ -1,6 +1,8 @@
 // ReSharper disable CppClangTidyBugproneMacroParentheses
 #pragma once
 #include "UClass.h"
+#include "ObjectFactory.h"
+//#include "GameFramework/Actor.h"
 
 // name을 문자열화 해주는 매크로
 #define INLINE_STRINGIFY(name) #name
@@ -9,7 +11,6 @@
 // RTTI를 위한 클래스 매크로
 #define DECLARE_CLASS(TClass, TSuperClass) \
 private: \
-    /**TClass(const TClass&) = delete;*/\
     TClass& operator=(const TClass&) = delete; \
     TClass(TClass&&) = delete; \
     TClass& operator=(TClass&&) = delete; \
@@ -18,8 +19,17 @@ public: \
     using ThisClass = TClass; \
     static UClass* StaticClass() { \
         static UClass ClassInfo{ TEXT(#TClass), static_cast<uint32>(sizeof(TClass)), static_cast<uint32>(alignof(TClass)), TSuperClass::StaticClass() }; \
+        ClassInfo.Creator = []() -> void* { return FObjectFactory::ConstructObject<TClass>(); }; \
         return &ClassInfo; \
-    }
+    } \
+private: \
+    struct FAutoRegister_##TClass { \
+        FAutoRegister_##TClass() { \
+            UClassRegistry::Get().RegisterClass(TClass::StaticClass()); \
+        } \
+    }; \
+public: \
+    static inline FAutoRegister_##TClass AutoRegister_##TClass_Instance;
 
 
 // #define PROPERTY(Type, VarName, DefaultValue) \

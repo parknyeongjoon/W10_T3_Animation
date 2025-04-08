@@ -25,6 +25,7 @@ public:
     UWorld(const UWorld& Other);
     ;
     void InitWorld();
+    void LoadLevel(const FString& LevelName);
     void PreLoadResources();
     void CreateBaseObject();
     void ReleaseBaseObject();
@@ -44,6 +45,24 @@ public:
         requires std::derived_from<T, AActor>
     T* SpawnActor();
 
+    AActor* SpawnActorByClass(UClass* ActorClass, bool bCallBeginPlay)
+    {
+        if (ActorClass == nullptr)
+            return nullptr;
+
+        AActor* Actor = ActorClass->CreateObject<AActor>();
+        if (Actor == nullptr)
+            return nullptr;
+
+        Level->GetActors().Add(Actor);
+
+        if (bCallBeginPlay)
+        {
+            Level->PendingBeginPlayActors.Add(Actor);
+        }
+
+        return Actor;
+    }
     /** World에 존재하는 Actor를 제거합니다. */
     bool DestroyActor(AActor* ThisActor);
 
@@ -70,6 +89,11 @@ public:
 
     USceneComponent* GetPickingGizmo() const { return pickingGizmo; }
     void SetPickingGizmo(UObject* Object);
+
+public:
+    // serialize
+    void Serialize(FArchive& ar);
+    void Deserialize(FArchive& ar);
 
     // 임시
     bool IsPIEWorld() const;

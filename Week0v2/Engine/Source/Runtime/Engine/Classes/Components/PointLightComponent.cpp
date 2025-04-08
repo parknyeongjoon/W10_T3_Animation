@@ -33,3 +33,17 @@ void UPointLightComponent::DuplicateSubObjects(const UObject* Source)
 void UPointLightComponent::PostDuplicate()
 {
 }
+
+FActorComponentInfo UPointLightComponent::GetActorComponentInfo()
+{
+    FPointLightComponentInfo Info;
+    Super::GetActorComponentInfo().Copy(Info);
+
+    Info.Radius = Radius;
+
+    return Info;
+}
+
+void UPointLightComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+}

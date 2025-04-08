@@ -1,7 +1,9 @@
 #pragma once
 #include <concepts>
 #include "Object.h"
-
+#include "Container/Map.h"
+#include "NameTypes.h"
+#include <functional>
 /**
  * UObject의 RTTI를 가지고 있는 클래스
  */
@@ -19,6 +21,19 @@ public:
 
     uint32 GetClassSize() const { return ClassSize; }
     uint32 GetClassAlignment() const { return ClassAlignment; }
+
+    using ObjectCreator = void* (*)();
+    ObjectCreator Creator = nullptr;
+
+    template <typename T>
+    T* CreateObject()
+    {
+        if (!Creator)
+        {
+            return nullptr;
+        }
+        return static_cast<T*>(Creator());
+    }
 
     /** SomeBase의 자식 클래스인지 확인합니다. */
     bool IsChildOf(const UClass* SomeBase) const;
@@ -62,4 +77,30 @@ private:
     UClass* SuperClass = nullptr;
 
     UObject* ClassDefaultObject = nullptr;
+};
+
+class UClassRegistry
+{
+public:
+    static UClassRegistry& Get()
+    {
+        static UClassRegistry Instance;
+        return Instance;
+    };
+
+    void RegisterClass(UClass* InClass)
+    {
+        Registry.Add(InClass->GetFName(), InClass);
+    }
+
+    UClass* FindClassByName(FName ClassName)
+    {
+        if (Registry.Contains(ClassName))
+        {
+            return Registry[ClassName];
+        }
+        return nullptr;
+    }
+
+    TMap<FName, UClass*> Registry;
 };

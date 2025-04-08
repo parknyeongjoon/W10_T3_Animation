@@ -4,6 +4,8 @@
 #include "Launch/EditorEngine.h"
 #include "UObject/ObjectFactory.h"
 #include "UnrealEd/PrimitiveBatch.h"
+#include "ActorComponentInfo.h"
+#include "Classes/Engine/FLoaderOBJ.h"
 
 
 UStaticMeshComponent::UStaticMeshComponent(const UStaticMeshComponent& Other)
@@ -116,6 +118,18 @@ int UStaticMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayD
 
     }
     return nIntersections;
+}
+FActorComponentInfo UStaticMeshComponent::GetActorComponentInfo()
+{
+    FActorComponentInfo Info = Super::GetActorComponentInfo();
+    Info.Type = GetClass()->GetName();
+
+    return Info;
+}
+void UStaticMeshComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+
 }
 UObject* UStaticMeshComponent::Duplicate() const
 {

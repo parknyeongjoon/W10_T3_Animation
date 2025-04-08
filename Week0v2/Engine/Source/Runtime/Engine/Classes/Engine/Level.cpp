@@ -1,4 +1,4 @@
-﻿#include "Level.h"
+#include "Level.h"
 #include "GameFramework/Actor.h"
 
 ULevel::ULevel()
@@ -31,3 +31,4 @@ void ULevel::PostDuplicate()
 {
     UObject::PostDuplicate();
 }
+

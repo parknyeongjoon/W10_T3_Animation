@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectFactory.h"
 #include "UObject/ObjectMacros.h"
+#include "ActorInfo.h"
 
 
 class UActorComponent;
@@ -51,8 +52,10 @@ public:
      */
     template <typename T>
         requires std::derived_from<T, UActorComponent>
-    T* AddComponent();
+    T* AddComponent(EComponentOrigin Origin = EComponentOrigin::Constructor);
 
+    // 클래스 정보를 바탕으로 컴포넌트를 새로 추가.
+    UActorComponent* AddComponentByClass(UClass* ComponentClass, EComponentOrigin Origin);
     void AddComponent(UActorComponent* Component);
     /** Actor가 가지고 있는 Component를 제거합니다. */
     void RemoveOwnedComponent(UActorComponent* Component);
@@ -90,6 +93,10 @@ public:
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
+
+public:
+    virtual void LoadAndConstruct(const TArray<FActorComponentInfo>& InfoArray);
+    virtual FActorInfo GetActorInfo();
 
 public:
     bool ShouldTickInEditor() const { return bTickInEditor; }
@@ -130,7 +137,7 @@ private:
 
 
 template <typename T> requires std::derived_from<T, UActorComponent>
-T* AActor::AddComponent()
+T* AActor::AddComponent(EComponentOrigin Origin)
 {
     T* Component = FObjectFactory::ConstructObject<T>();
     OwnedComponents.Add(Component);
@@ -151,6 +158,7 @@ T* AActor::AddComponent()
 
     // TODO: RegisterComponent() 생기면 제거
     Component->InitializeComponent();
+    Component->ComponentOrigin = Origin;
 
     return Component;
 }

@@ -1,5 +1,31 @@
 #pragma once
 #include "LightComponent.h"
+
+struct FPointLightComponentInfo : public FLightComponentInfo
+{
+    float Radius;
+    float AttenuationFalloff;
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FLightComponentInfo::Copy(Other);
+        FPointLightComponentInfo& PointLightInfo = static_cast<FPointLightComponentInfo&>(Other);
+        PointLightInfo.Radius = Radius;
+        PointLightInfo.AttenuationFalloff = AttenuationFalloff;
+    }
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FLightComponentInfo::Serialize(ar);
+        ar << Radius << AttenuationFalloff;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FLightComponentInfo::Deserialize(ar);
+        ar >> Radius >> AttenuationFalloff;
+    }
+};
+
 class UPointLightComponent : public ULightComponentBase
 {
     DECLARE_CLASS(UPointLightComponent, ULightComponentBase)
@@ -20,5 +46,9 @@ public:
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
+
+public:
+    virtual
+
 };
 

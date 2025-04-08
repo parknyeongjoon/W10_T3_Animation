@@ -1,6 +1,31 @@
 #pragma once
 #include "UBillboardComponent.h"
 
+struct FParticleSubUVCompInfo : public FBillboardComponentInfo
+{
+    int CellsPerRow;
+    int CellsPerColumn;
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FBillboardComponentInfo::Copy(Other);
+        FParticleSubUVCompInfo& OtherSubUV = static_cast<FParticleSubUVCompInfo&>(Other);
+        OtherSubUV.CellsPerRow = CellsPerRow;
+        OtherSubUV.CellsPerColumn = CellsPerColumn;
+    }
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FBillboardComponentInfo::Serialize(ar);
+        ar << CellsPerRow << CellsPerColumn;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FBillboardComponentInfo::Deserialize(ar);
+        ar >> CellsPerRow >> CellsPerColumn;
+    }
+};
+
 class UParticleSubUVComp : public UBillboardComponent
 {
     DECLARE_CLASS(UParticleSubUVComp, UBillboardComponent)
@@ -16,6 +41,10 @@ public:
 
     ID3D11Buffer* vertexSubUVBuffer;
     UINT numTextVertices;
+
+public:
+    virtual FActorComponentInfo GetActorComponentInfo();
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 protected:
     bool bIsLoop = true;

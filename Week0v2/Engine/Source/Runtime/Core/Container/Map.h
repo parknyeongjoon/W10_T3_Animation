@@ -1,7 +1,8 @@
-﻿#pragma once
+#pragma once
 #include <unordered_map>
 #include "ContainerAllocator.h"
 #include "Pair.h"
+#include "Serialization/Archive.h"
 
 
 template <typename KeyType, typename ValueType, typename Allocator = FDefaultAllocator<std::pair<const KeyType, ValueType>>>
@@ -166,5 +167,17 @@ public:
     void Reserve(SizeType Number)
     {
         ContainerPrivate.reserve(Number);
+    }
+
+    void Serialize(FArchive& Ar) const
+    {
+        std::unordered_map<KeyType, ValueType> TempMap(ContainerPrivate.begin(), ContainerPrivate.end());
+        Ar << TempMap;
+    }
+    void Deserialize(FArchive& Ar)
+    {
+        std::unordered_map<KeyType, ValueType> TempMap;
+        Ar >> TempMap;
+        ContainerPrivate = MapType(TempMap.begin(), TempMap.end());
     }
 };

@@ -1,6 +1,6 @@
 #pragma once
 #include "Math/Vector.h"
-
+#include "Serialization/Archive.h"
 // 4D Vector
 struct FVector4 {
     float x, y, z, a;
@@ -19,5 +19,14 @@ struct FVector4 {
     FVector xyz() const
     {
         return FVector{ x, y, z };
+    }
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << x << y << z << a;
+    }
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> x >> y >> z >> a;
     }
 };

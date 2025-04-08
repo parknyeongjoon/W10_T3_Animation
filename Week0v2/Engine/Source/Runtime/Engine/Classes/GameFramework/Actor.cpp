@@ -159,6 +159,35 @@ bool AActor::SetActorScale(const FVector& NewScale)
     }
     return false;
 }
+UActorComponent* AActor::AddComponentByClass(UClass* ComponentClass, EComponentOrigin Origin)
+{
+    if (ComponentClass == nullptr)
+        return nullptr;
+
+    UActorComponent* Component = ComponentClass->CreateObject<UActorComponent>();
+    if (Component == nullptr)
+        return nullptr;
+
+    OwnedComponents.Add(Component);
+    Component->Owner = this;
+
+    if (USceneComponent* NewSceneComp = Cast<USceneComponent>(Component))
+    {
+        if (RootComponent == nullptr)
+        {
+            RootComponent = NewSceneComp;
+        }
+        else
+        {
+            NewSceneComp->SetupAttachment(RootComponent);
+        }
+    }
+
+    Component->ComponentOrigin = Origin;
+    Component->InitializeComponent();
+
+    return Component;
+}
 // AActor.cpp
 void AActor::AddComponent(UActorComponent* Component)
 {
@@ -238,4 +267,50 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
 void AActor::PostDuplicate()
 {
     // Override in subclasses if needed
+}
+
+void AActor::LoadAndConstruct(const TArray<FActorComponentInfo>& InfoArray)
+{
+    // 생성자를 통해 만들어진 컴포넌트들은 이미 생성이 되어있는 상태
+    // ActorComponentInfo의 ComponentOrigin을 보고 Constructor가 아니면 추가적으로 생성
+
+    for (const FActorComponentInfo& Info : InfoArray)
+    {
+        // 생성자에서 자동으로 생성되는 컴포넌트는 무시한다
+        if (Info.Origin == EComponentOrigin::Constructor) continue;
+
+        UClass* ComponentClass = UClassRegistry::Get().FindClassByName(Info.Type);
+        if (ComponentClass)
+        {
+            UActorComponent* NewComp = AddComponentByClass(ComponentClass, EComponentOrigin::Serialized);
+            if (Info.bIsRoot)
+                RootComponent = Cast<USceneComponent>(NewComp);
+        }
+    }
+    if (InfoArray.Num() != OwnedComponents.Num())
+    {
+        UE_LOG(LogLevel::Error, "InfoArray.Num() != Components.Num()");
+        return;
+    }
+
+    for (int i = 0; i < InfoArray.Num(); i++)
+    {
+        OwnedComponents[i]->LoadAndConstruct(InfoArray[i]);
+    }
+}
+
+FActorInfo AActor::GetActorInfo()
+{
+    FActorInfo ActorInfo;
+    ActorInfo.Type = GetClass()->GetName();
+    for (UActorComponent* Component : OwnedComponents)
+    {
+        if (Component)
+        {
+            FActorComponentInfo ComponentInfo;
+            ComponentInfo.Type = Component->GetClass()->GetName();
+            ActorInfo.ComponentInfos.Add(ComponentInfo);
+        }
+    }
+    return FActorInfo();
 }

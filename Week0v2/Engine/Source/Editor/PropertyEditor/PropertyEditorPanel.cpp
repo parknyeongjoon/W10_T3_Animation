@@ -72,7 +72,7 @@ void PropertyEditorPanel::Render()
             {
                 if (ImGui::Selectable("TextComponent"))
                 {
-                    UText* TextComponent = PickedActor->AddComponent<UText>();
+                    UText* TextComponent = PickedActor->AddComponent<UText>(EComponentOrigin::Editor);
                     PickedComponent = TextComponent;
                     TextComponent->SetTexture(L"Assets/Texture/font.png");
                     TextComponent->SetRowColumnCount(106, 106);
@@ -80,7 +80,7 @@ void PropertyEditorPanel::Render()
                 }
                 if (ImGui::Selectable("BillboardComponent"))    
                 {
-                    UBillboardComponent* BillboardComponent = PickedActor->AddComponent<UBillboardComponent>();
+                    UBillboardComponent* BillboardComponent = PickedActor->AddComponent<UBillboardComponent>(EComponentOrigin::Editor);
                     PickedComponent = BillboardComponent;
                     BillboardComponent->SetTexture(L"Assets/Texture/Pawn_64x.png");
                     BillboardComponent->SetLocation(FVector(0.0f, 0.0f, 3.0f));
@@ -92,17 +92,17 @@ void PropertyEditorPanel::Render()
                 //}
                 if (ImGui::Selectable("DirectionalLightComponent"))
                 {
-                    UDirectionalLightComponent* DirectionalLightComponent = PickedActor->AddComponent<UDirectionalLightComponent>();
+                    UDirectionalLightComponent* DirectionalLightComponent = PickedActor->AddComponent<UDirectionalLightComponent>(EComponentOrigin::Editor);
                     PickedComponent = DirectionalLightComponent;
                 }
                 if (ImGui::Selectable("PointLightComponent"))
                 {
-                    UPointLightComponent* PointLightComponent = PickedActor->AddComponent<UPointLightComponent>();
+                    UPointLightComponent* PointLightComponent = PickedActor->AddComponent<UPointLightComponent>(EComponentOrigin::Editor);
                     PickedComponent = PointLightComponent;
                 }
                 if (ImGui::Selectable("ParticleComponent"))
                 {
-                    UParticleSubUVComp* ParticleComponent = PickedActor->AddComponent<UParticleSubUVComp>();
+                    UParticleSubUVComp* ParticleComponent = PickedActor->AddComponent<UParticleSubUVComp>(EComponentOrigin::Editor);
                     PickedComponent = ParticleComponent;
                     ParticleComponent->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
                     ParticleComponent->SetRowColumnCount(6, 6);
@@ -111,14 +111,14 @@ void PropertyEditorPanel::Render()
                 }
                 if (ImGui::Selectable("StaticMeshComponent"))
                 {
-                    UStaticMeshComponent* StaticMeshComponent = PickedActor->AddComponent<UStaticMeshComponent>();
+                    UStaticMeshComponent* StaticMeshComponent = PickedActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Editor);
                     PickedComponent = StaticMeshComponent;
                     FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
                     StaticMeshComponent->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
                 }
                 if (ImGui::Selectable("CubeComponent"))
                 {
-                    UCubeComp* CubeComponent = PickedActor->AddComponent<UCubeComp>();
+                    UCubeComp* CubeComponent = PickedActor->AddComponent<UCubeComp>(EComponentOrigin::Editor);
                     PickedComponent = CubeComponent;
                 }
 

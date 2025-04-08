@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Serialization/Archive.h"
 // 쿼터니언
 struct FQuat
 {
@@ -108,4 +108,13 @@ struct FQuat
 
 		return RotationMatrix;
 	}
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << w << x << y << z;
+    }
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> w >> x >> y >> z;
+    }
 };

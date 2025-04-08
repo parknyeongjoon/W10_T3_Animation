@@ -10,7 +10,6 @@ UPrimitiveComponent::UPrimitiveComponent()
 UPrimitiveComponent::UPrimitiveComponent(const UPrimitiveComponent& Other)
     : USceneComponent(Other)
     , AABB(Other.AABB)
-    , m_Type(Other.m_Type)
 {
 }
 
@@ -125,4 +124,21 @@ void UPrimitiveComponent::DuplicateSubObjects(const UObject* Source)
 void UPrimitiveComponent::PostDuplicate()
 {
     USceneComponent::PostDuplicate();
+}
+
+FActorComponentInfo UPrimitiveComponent::GetActorComponentInfo()
+{
+    FPrimitiveComponentInfo Info;
+    Super::GetActorComponentInfo().Copy(Info);
+
+    Info.AABB = AABB;
+
+    return Info;
+}
+
+void UPrimitiveComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FPrimitiveComponentInfo* PrimitiveInfo = static_cast<const FPrimitiveComponentInfo*>(&Info);
+    AABB = PrimitiveInfo->AABB;
 }

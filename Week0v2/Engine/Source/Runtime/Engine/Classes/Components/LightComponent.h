@@ -3,6 +3,32 @@
 #include "Define.h"
 class UBillboardComponent;
 
+struct FLightComponentInfo : public FSceneComponentInfo
+{
+    FVector4 Color;
+    FBoundingBox AABB;
+    float Intensity;
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FSceneComponentInfo::Copy(Other);
+        FLightComponentInfo& LightInfo = static_cast<FLightComponentInfo&>(Other);
+        LightInfo.Color = Color;
+        LightInfo.AABB = AABB;
+        LightInfo.Intensity = Intensity;
+    }
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FSceneComponentInfo::Serialize(ar);
+        ar << Color << AABB << Intensity;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FSceneComponentInfo::Deserialize(ar);
+        ar >> Color >> AABB >> Intensity;
+    }
+};
 class ULightComponentBase : public USceneComponent
 {
     DECLARE_CLASS(ULightComponentBase, USceneComponent)
@@ -37,4 +63,7 @@ public:
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
+
+public:
+
 };

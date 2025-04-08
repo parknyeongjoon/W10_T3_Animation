@@ -62,6 +62,26 @@ void ULightComponentBase::PostDuplicate()
 {
 }
 
+FActorComponentInfo ULightComponentBase::GetActorComponentInfo()
+{
+    FLightComponentInfo Info;
+    Super::GetActorComponentInfo().Copy(Info);
+
+    Info.Color = color;
+    Info.Intensity = Intensity;
+    Info.AABB = AABB;
+
+    return Info;
+}
+
+void ULightComponentBase::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FLightComponentInfo& LightInfo = static_cast<const FLightComponentInfo&>(Info);
+    color = LightInfo.Color;
+    Intensity = LightInfo.Intensity;
+}
+
 void ULightComponentBase::InitializeLight()
 {
     texture2D = GetOwner()->AddComponent<UBillboardComponent>();
