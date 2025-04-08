@@ -11,6 +11,7 @@ public:
 
 protected:
     ULightComponentBase* LightComponent;
+    UBillboardComponent* Texture2D;
 
 public:
     // duplicate

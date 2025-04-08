@@ -35,6 +35,7 @@ FVector4 ULightComponentBase::GetColor() const
 UObject* ULightComponentBase::Duplicate() const
 {
     ULightComponentBase* NewComp = FObjectFactory::ConstructObjectFrom<ULightComponentBase>(this);
+    //NewComp->InitializeLight();
     NewComp->DuplicateSubObjects(this);
     NewComp->PostDuplicate();
     return NewComp;
@@ -52,9 +53,6 @@ void ULightComponentBase::DuplicateSubObjects(const UObject* Source)
         color = SourceComp->color;
         Intensity = SourceComp->Intensity;
         AABB = SourceComp->AABB;
-        texture2D = new UBillboardComponent();
-        texture2D->SetTexture(L"Assets/Texture/spotLight.png");
-        texture2D->InitializeComponent();
     }
 
 }
@@ -65,9 +63,6 @@ void ULightComponentBase::PostDuplicate()
 
 void ULightComponentBase::InitializeLight()
 {
-    texture2D = GetOwner()->AddComponent<UBillboardComponent>();
-    texture2D->SetTexture(L"Assets/Texture/spotLight.png");
-
     AABB.max = { 1.f,1.f,0.1f };
     AABB.min = { -1.f,-1.f,-0.1f };
 }
@@ -76,8 +71,6 @@ void ULightComponentBase::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
-    texture2D->TickComponent(DeltaTime);
-    texture2D->SetLocation(GetWorldLocation());
 
 }
 
@@ -89,11 +82,15 @@ int ULightComponentBase::CheckRayIntersection(FVector& rayOrigin, FVector& rayDi
 
 void ULightComponentBase::InitializeComponent()
 {
-    InitializeLight();
+
+}
+
+void ULightComponentBase::BeginPlay()
+{
 }
 
 void ULightComponentBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-
 }
+
 
