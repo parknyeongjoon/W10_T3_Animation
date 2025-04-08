@@ -59,6 +59,14 @@ void UMovementComponent::InitializeComponent()
     bInInitializeComponent = false;
 }
 
+void UMovementComponent::TickComponent(float DeltaTime)
+{
+    Super::TickComponent(DeltaTime);
+    // TODO: Tick에서 매번 Owner 확인 안해도 되게 바꾸기...
+    if (UpdatedComponent == nullptr)
+        UpdatedComponent = dynamic_cast<UPrimitiveComponent*>(GetOwner()->GetRootComponent());
+}
+
 bool UMovementComponent::MoveComponent(const FVector& Delta)
 {
     if (UpdatedComponent)
@@ -87,6 +95,7 @@ void UMovementComponent::DuplicateSubObjects(const UObject* Source)
         bUpdateOnlyIfRendered = SourceComp->bUpdateOnlyIfRendered;
         bAutoUpdateTickRegistration = SourceComp->bAutoUpdateTickRegistration;
         bAutoRegisterUpdatedComponent = SourceComp->bAutoRegisterUpdatedComponent;
+        InitializeComponent();  // Set UpdatedComponent
     }
 }
 

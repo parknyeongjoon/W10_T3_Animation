@@ -41,6 +41,8 @@ public:
 
     virtual void InitializeComponent() override;
 
+    virtual void TickComponent(float DeltaTime) override;
+
     // 기존 언리얼 코드에서는 USceneComponent의 인터페이스입니다.
     // 언리얼 엔진의 UPrimitiveComponent::MoveComponent 함수를 참고하십시오.
     bool MoveComponent(const FVector& Delta);

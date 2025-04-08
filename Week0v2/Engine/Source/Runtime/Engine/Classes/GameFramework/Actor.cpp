@@ -242,10 +242,10 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
     }
 
     // 컴포넌트 initialize
-    for (auto Comp : OwnedComponents)
-    {
-        Comp->InitializeComponent();
-    }
+    // for (auto Comp : OwnedComponents)
+    // {
+    //     Comp->InitializeComponent();
+    // }
 }
 
 void AActor::PostDuplicate()
