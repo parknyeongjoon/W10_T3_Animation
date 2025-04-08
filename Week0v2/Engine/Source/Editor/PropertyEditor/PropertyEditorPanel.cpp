@@ -16,6 +16,7 @@
 #include <Components/UParticleSubUVComp.h>
 
 #include "Components/GameFramework/ProjectileMovementComponent.h"
+#include "Components/GameFramework/RotatingMovementComponent.h"
 
 void PropertyEditorPanel::Render()
 {
@@ -132,6 +133,12 @@ void PropertyEditorPanel::Render()
                 {
                     UProjectileMovementComponent* ProjectileComp = PickedActor->AddComponent<UProjectileMovementComponent>();
                     PickedComponent = ProjectileComp;
+                }
+
+                if (ImGui::Selectable("RotatingMovementComponent"))
+                {
+                    URotatingMovementComponent* RotatingComponent = PickedActor->AddComponent<URotatingMovementComponent>();
+                    PickedComponent = RotatingComponent;
                 }
 
                 ImGui::EndPopup();
@@ -485,6 +492,23 @@ void PropertyEditorPanel::Render()
             if (FImGuiWidget::DrawVec3Control("Velocity", Velocity, 0, 85))
             {
                 ProjectileComp->Velocity = Velocity;
+            }
+            
+            ImGui::TreePop();
+        }
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<URotatingMovementComponent>())
+    {
+        URotatingMovementComponent* RotatingComp = Cast<URotatingMovementComponent>(PickedComponent);
+
+        if (ImGui::TreeNodeEx("RotatingMovement", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            FVector RotationRate = RotatingComp->RotationRate;
+
+            if (FImGuiWidget::DrawVec3Control("RotationRate", RotationRate, 0, 85))
+            {
+                RotatingComp->RotationRate = RotationRate;
             }
             
             ImGui::TreePop();
