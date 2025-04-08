@@ -1,5 +1,6 @@
 #pragma once
 #include "MathUtility.h"
+#include "Serialization/Archive.h"
 
 struct FLinearColor
 {
@@ -72,6 +73,15 @@ struct FLinearColor
         );
     }
 
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << R << G << B << A;
+    }
+
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> R >> G >> B >> A;
+    }
     static const FLinearColor White;
     static const FLinearColor Black;
     static const FLinearColor Red;

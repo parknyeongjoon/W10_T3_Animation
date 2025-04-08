@@ -19,6 +19,8 @@
 #include "UEditorStateManager.h"
 #include "Classes/Actors/DirectionalLightActor.h"
 #include "Classes/Actors/PointLightActor.h"
+#include "Serialization/Archive.h"
+#include "Serialization/FWindowsBinHelper.h"
 
 void ControlEditorPanel::Render()
 {
@@ -134,7 +136,13 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
             }
 
             // TODO: Save Scene
+            int i = 1;
+            FArchive ar;
+            UWorld World = *GEngine->GetWorld();
+            ar << World;
 
+            FWindowsBinHelper::SaveToBin(FileName, ar);
+            
             tinyfd_messageBox("알림", "저장되었습니다.", "ok", "info", 1);
         }
 

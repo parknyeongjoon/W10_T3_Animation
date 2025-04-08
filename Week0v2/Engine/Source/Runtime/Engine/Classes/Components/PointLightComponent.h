@@ -48,7 +48,8 @@ public:
     virtual void PostDuplicate() override;
 
 public:
-    virtual
+    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 };
 

@@ -18,3 +18,43 @@ UHeightFogComponent::UHeightFogComponent()
     DirectionalInscatteringExponent = 1.0f;
     DirectionalInscatteringStartDistance = 100.0f;
 }
+
+void UHeightFogComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FHeightFogComponentInfo& HeightFogInfo = static_cast<const FHeightFogComponentInfo&>(Info);
+    bIsActive = HeightFogInfo.bIsActive;
+    bIsExponential = HeightFogInfo.bIsExponential;
+    FogDensity = HeightFogInfo.FogDensity;
+    HeightFogStart = HeightFogInfo.HeightFogStart;
+    HeightFogEnd = HeightFogInfo.HeightFogEnd;
+    FogMaxOpacity = HeightFogInfo.FogMaxOpacity;
+    DistanceFogNear = HeightFogInfo.DistanceFogNear;
+    DistanceFogFar = HeightFogInfo.DistanceFogFar;
+    FogInscatteringColor = HeightFogInfo.FogInscatteringColor;
+    DirectionalInscatteringColor = HeightFogInfo.DirectionalInscatteringColor;
+    DirectionalLightDirection = HeightFogInfo.DirectionalLightDirection;
+    DirectionalInscatteringExponent = HeightFogInfo.DirectionalInscatteringExponent;
+    DirectionalInscatteringStartDistance = HeightFogInfo.DirectionalInscatteringStartDistance;
+}
+
+FActorComponentInfo UHeightFogComponent::GetActorComponentInfo()
+{
+    FHeightFogComponentInfo Info;
+    Super::GetActorComponentInfo().Copy(Info);
+    Info.bIsActive = bIsActive;
+    Info.bIsExponential = bIsExponential;
+    Info.FogDensity = FogDensity;
+    Info.HeightFogStart = HeightFogStart;
+    Info.HeightFogEnd = HeightFogEnd;
+    Info.FogMaxOpacity = FogMaxOpacity;
+    Info.DistanceFogNear = DistanceFogNear;
+    Info.DistanceFogFar = DistanceFogFar;
+    Info.FogInscatteringColor = FogInscatteringColor;
+    Info.DirectionalInscatteringColor = DirectionalInscatteringColor;
+    Info.DirectionalLightDirection = DirectionalLightDirection;
+    Info.DirectionalInscatteringExponent = DirectionalInscatteringExponent;
+    Info.DirectionalInscatteringStartDistance = DirectionalInscatteringStartDistance;
+    return Info;
+
+}

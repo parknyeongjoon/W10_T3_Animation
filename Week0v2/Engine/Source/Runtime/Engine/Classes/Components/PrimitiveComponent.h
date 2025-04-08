@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Source/Runtime/Engine/Classes/Components/SceneComponent.h"
+#include "Serialization/Archive.h"
 
 struct FPrimitiveComponentInfo : FSceneComponentInfo
 {
@@ -10,6 +11,18 @@ struct FPrimitiveComponentInfo : FSceneComponentInfo
         FSceneComponentInfo::Copy(Other);
         FPrimitiveComponentInfo& OtherPrimitive = static_cast<FPrimitiveComponentInfo&>(Other);
         AABB = OtherPrimitive.AABB;
+    }
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FSceneComponentInfo::Serialize(ar);
+        ar << AABB;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FSceneComponentInfo::Deserialize(ar);
+        ar >> AABB;
     }
 };
 
@@ -34,14 +47,14 @@ public:
     virtual void PostDuplicate() override;
 
     bool MoveComponent(const FVector& Delta) override;
-private:
+    FBoundingBox AABB;
+    FVector ComponentVelocity;
 
+public:
     virtual FActorComponentInfo GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
 
     FBoundingBox GetBoundingBox() { return AABB; }
 
-    FVector ComponentVelocity;
-    FBoundingBox AABB;
 };
 

@@ -30,3 +30,18 @@ void UDirectionalLightComponent::DuplicateSubObjects(const UObject* Source)
 void UDirectionalLightComponent::PostDuplicate()
 {
 }
+
+FActorComponentInfo UDirectionalLightComponent::GetActorComponentInfo()
+{
+    FDirectionalLightComponentInfo Info;
+    Super::GetActorComponentInfo().Copy(Info);
+    Info.Direction = Direction;
+    return Info;
+}
+
+void UDirectionalLightComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FDirectionalLightComponentInfo& DirectionalLightInfo = static_cast<const FDirectionalLightComponentInfo&>(Info);
+    Direction = DirectionalLightInfo.Direction;
+}

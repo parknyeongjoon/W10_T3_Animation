@@ -29,6 +29,7 @@ struct FLightComponentInfo : public FSceneComponentInfo
         ar >> Color >> AABB >> Intensity;
     }
 };
+
 class ULightComponentBase : public USceneComponent
 {
     DECLARE_CLASS(ULightComponentBase, USceneComponent)
@@ -65,5 +66,7 @@ public:
     virtual void PostDuplicate() override;
 
 public:
+    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 };

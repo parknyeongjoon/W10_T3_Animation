@@ -320,10 +320,8 @@ FActorInfo AActor::GetActorInfo()
     {
         if (Component)
         {
-            FActorComponentInfo ComponentInfo;
-            ComponentInfo.Type = Component->GetClass()->GetName();
-            ActorInfo.ComponentInfos.Add(ComponentInfo);
+            ActorInfo.ComponentInfos.Add(Component->GetActorComponentInfo());
         }
     }
-    return FActorInfo();
+    return ActorInfo;
 }

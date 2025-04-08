@@ -11,6 +11,7 @@
 #include "UnrealEd/SceneMgr.h"
 #include "UObject/UObjectIterator.h"
 #include "Level.h"
+#include "Serialization/FWindowsBinHelper.h"
 
 
 UWorld::UWorld(const UWorld& Other): UObject(Other)
@@ -149,14 +150,13 @@ void UWorld::PostDuplicate()
 
 void UWorld::ReloadScene(const FString& FileName)
 {
-    FString NewFile = GEngine->GetSceneManager()->LoadSceneFromFile(FileName);
-
-    // if (SceneOctree && SceneOctree->GetRoot())
-    //     SceneOctree->GetRoot()->TickBuffers(GCurrentFrame, 0);
 
     ClearScene(); // 기존 오브젝트 제거
     CreateBaseObject();
-    GEngine->GetSceneManager()->ParseSceneData(NewFile);
+    FArchive ar;
+    FWindowsBinHelper::LoadFromBin(FileName, ar);
+
+    ar >> *this;
 }
 
 bool UWorld::DestroyActor(AActor* ThisActor)
@@ -198,7 +198,7 @@ void UWorld::SetPickingGizmo(UObject* Object)
 	pickingGizmo = Cast<USceneComponent>(Object);
 }
 
-void UWorld::Serialize(FArchive& ar)
+void UWorld::Serialize(FArchive& ar) const
 {
     int ActorCount = Level->GetActors().Num();
     ar << ActorCount;

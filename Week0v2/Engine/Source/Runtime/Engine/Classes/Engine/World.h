@@ -92,7 +92,7 @@ public:
 
 public:
     // serialize
-    void Serialize(FArchive& ar);
+    void Serialize(FArchive& ar) const;
     void Deserialize(FArchive& ar);
 
     // 임시

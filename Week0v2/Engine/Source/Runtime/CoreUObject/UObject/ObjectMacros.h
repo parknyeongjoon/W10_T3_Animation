@@ -32,6 +32,8 @@ public: \
     static inline FAutoRegister_##TClass AutoRegister_##TClass_Instance;
 
 
+
+
 // #define PROPERTY(Type, VarName, DefaultValue) \
 // private: \
 //     Type VarName DefaultValue; \

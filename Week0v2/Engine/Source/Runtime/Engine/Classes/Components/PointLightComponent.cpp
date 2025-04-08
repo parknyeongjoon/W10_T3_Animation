@@ -46,4 +46,7 @@ FActorComponentInfo UPointLightComponent::GetActorComponentInfo()
 
 void UPointLightComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 {
+    Super::LoadAndConstruct(Info);
+    const FPointLightComponentInfo& PointLightInfo = static_cast<const FPointLightComponentInfo&>(Info);
+    Radius = PointLightInfo.Radius;
 }

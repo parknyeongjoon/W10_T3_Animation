@@ -1,5 +1,26 @@
 #pragma once
 #include "LightComponent.h"
+
+struct FDirectionalLightComponentInfo : public FLightComponentInfo
+{
+    FVector Direction;
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FLightComponentInfo::Copy(Other);
+        FDirectionalLightComponentInfo& DirectionalLightInfo = static_cast<FDirectionalLightComponentInfo&>(Other);
+        DirectionalLightInfo.Direction = Direction;
+    }
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FLightComponentInfo::Serialize(ar);
+        ar << Direction;
+    }
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FLightComponentInfo::Deserialize(ar);
+        ar >> Direction;
+    }
+};
 class UDirectionalLightComponent :
     public ULightComponentBase
 {
@@ -18,5 +39,10 @@ public:
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
+
+public:
+    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 };
+
 
