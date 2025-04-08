@@ -34,11 +34,6 @@ UObject* UFireBallComponent::Duplicate() const
 void UFireBallComponent::DuplicateSubObjects(const UObject* Source)
 {
     Super::DuplicateSubObjects(Source);
-    UFireBallComponent* SourceComp = Cast<UFireBallComponent>(Source);
-    if (SourceComp)
-    {
-        
-    }
 }
 
 void UFireBallComponent::PostDuplicate()

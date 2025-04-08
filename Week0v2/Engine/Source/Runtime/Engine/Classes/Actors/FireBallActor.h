@@ -2,6 +2,8 @@
 #include "Components/FireBallComponent.h"
 #include "GameFramework/Actor.h"
 
+class UProjectileMovementComponent;
+class UPointLightComponent;
 class AFireBallActor: public AActor
 {
     DECLARE_CLASS(AFireBallActor, AActor)
@@ -11,4 +13,6 @@ public:
     virtual ~AFireBallActor() override = default;
 private:
     UFireBallComponent* FireBallComponent;
+    UPointLightComponent* LightComp;
+    UProjectileMovementComponent* ProjMovementComp;
 };

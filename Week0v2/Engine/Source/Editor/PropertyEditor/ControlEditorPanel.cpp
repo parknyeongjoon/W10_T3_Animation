@@ -351,10 +351,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AFireBallActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_FIREBALL"));
-                    UPointLightComponent* LightComp = SpawnedActor->AddComponent<UPointLightComponent>();
-                    LightComp->SetIntensity(3.f);
-                    LightComp->SetRadius(20.f);
-                    UProjectileMovementComponent* MovementComp = SpawnedActor->AddComponent<UProjectileMovementComponent>();
                     break;
                 }
                 case OBJ_TRIANGLE:
