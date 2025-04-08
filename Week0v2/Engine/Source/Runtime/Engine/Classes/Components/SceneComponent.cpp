@@ -21,7 +21,7 @@ USceneComponent::~USceneComponent()
 }
 void USceneComponent::InitializeComponent()
 {
-    Super::InitializeComponent();
+   // Super::InitializeComponent();
 
 }
 
@@ -91,7 +91,7 @@ FVector USceneComponent::GetWorldScale()
 {
 	if (AttachParent)
 	{
-		return FVector(AttachParent->GetWorldScale() + GetLocalScale());
+		return FVector(AttachParent->GetWorldScale() * GetLocalScale());
 	}
 	else
 		return GetLocalScale();

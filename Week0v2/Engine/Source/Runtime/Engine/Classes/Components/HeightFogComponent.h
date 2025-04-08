@@ -19,6 +19,7 @@ public:
 
     FLinearColor FogInscatteringColor;
     FLinearColor DirectionalInscatteringColor;
+    FVector DirectionalLightDirection;
     float DirectionalInscatteringExponent;
     float DirectionalInscatteringStartDistance;
 };

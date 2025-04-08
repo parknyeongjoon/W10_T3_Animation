@@ -85,8 +85,20 @@ float4 mainPS(VS_OUT input) : SV_TARGET
     }
     
     float fogFactor = FogDensity * heightFactor * distanceFactor;
-    float3 fogColor = InscatteringColor.rgb;
+    // 방향성 산란 요소를 위한 값 (현재 Direction 0, 0, -1 고정)
+    float3 viewDirection = normalize(CameraPos - worldPosition);
+    float VdotL = max(0.0, dot(-viewDirection, normalize(DirectionalLightDirection)));
+    float directionalInscatteringFactor = pow(VdotL, DirectionalInscatteringExponent);
     
+    float directionalDistance = max(0.0, linearDepth - DirectionalInscatteringStartDistance);
+    directionalInscatteringFactor *= saturate(directionalDistance / (FarPlane * 0.25));
+    
+    // 최종 안개 색상 계산 (기본 안개 색상 + 방향성 산란 색상)
+    float3 baseInscattering = InscatteringColor.rgb;
+    float3 directionalInscattering = DirectionalInscatteringColor.rgb * directionalInscatteringFactor;
+    float3 fogColor = baseInscattering + directionalInscattering;
+    
+    // 최대 불투명도 제한
     fogFactor = min(fogFactor, MaxOpacity);
     
     return float4(lerp(sceneColor.rgb, fogColor, fogFactor), sceneColor.a);
