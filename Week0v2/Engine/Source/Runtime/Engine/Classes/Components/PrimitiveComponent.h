@@ -21,6 +21,8 @@ public:
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
+
+    bool MoveComponent(const FVector& Delta) override;
 private:
     FString m_Type;
 
@@ -33,5 +35,7 @@ public:
         //staticMesh = FEngineLoop::resourceMgr.GetMesh(m_Type);
     }
     FBoundingBox GetBoundingBox() { return AABB; }
+
+    FVector ComponentVelocity;
 };
 
