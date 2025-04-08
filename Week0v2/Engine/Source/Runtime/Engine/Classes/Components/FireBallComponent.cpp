@@ -15,7 +15,9 @@ UFireBallComponent::~UFireBallComponent()
 void UFireBallComponent::InitializeComponent()
 {
     Super::InitializeComponent();
-    GetOwner()->AddComponent<UPointLightComponent>();
+    UPointLightComponent* MyLightComp = GetOwner()->AddComponent<UPointLightComponent>();
+    MyLightComp->SetIntensity(3.f);
+    MyLightComp->SetRadius(20.f);
 }
 
 void UFireBallComponent::TickComponent(float DeltaTime)
