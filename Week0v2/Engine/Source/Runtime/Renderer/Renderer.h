@@ -40,6 +40,7 @@ public:
     ID3D11Buffer* SubMeshConstantBuffer = nullptr;
     ID3D11Buffer* TextureConstantBufer = nullptr;
     ID3D11Buffer* CameraConstantBuffer = nullptr;
+    ID3D11Buffer* ViewportConstantBuffer = nullptr;
     ID3D11Buffer* DepthToWorldBuffer = nullptr;
 
     ID3D11BlendState* NormalBlendState = nullptr;
@@ -133,15 +134,16 @@ public: // line shader
     void PrepareRender();
     void ClearRenderArr();
     void Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    void Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
     void RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
     void RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
 
     // post process
-    void RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    void RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
     void RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveViewport);
-    void RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    void RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
 private:
     TArray<UStaticMeshComponent*> StaticMeshObjs;
     TArray<UGizmoBaseComponent*> GizmoObjs;

@@ -365,6 +365,12 @@ struct alignas(16) FCameraConstants
     float FarPlane;
 };
 
+struct alignas(16) FViewportConstants
+{
+    float ViewportWidth, ViewportHeight;
+    float ViewportOffsetX, ViewportOffsetY;
+};
+
 struct FDepthToWorldConstants
 {
     FMatrix InvView;

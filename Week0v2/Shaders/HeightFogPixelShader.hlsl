@@ -11,6 +11,12 @@ cbuffer CameraConstant : register(b0)
     float FarPlane;
 };
 
+cbuffer ViewportInfo : register(b1)
+{
+    float2 ViewportSize;
+    float2 ViewportOffset;
+}
+
 cbuffer FogParams : register(b6)
 {
     float FogDensity;
@@ -61,8 +67,9 @@ struct VS_OUT
 
 float4 mainPS(VS_OUT input) : SV_TARGET
 {
-    float4 sceneColor = SceneTexture.Sample(SamplerLinear, input.uv);
-    float depth = DepthTexture.Sample(SamplerLinear, input.uv).r;
+    float2 viewportUV = input.uv * ViewportSize + ViewportOffset;
+    float4 sceneColor = SceneTexture.Sample(SamplerLinear, viewportUV);
+    float depth = DepthTexture.Sample(SamplerLinear, viewportUV).r;
     
     float linearDepth = (NearPlane * FarPlane) / (FarPlane - depth * (FarPlane - NearPlane));
     float normalized = saturate((linearDepth - DistanceFogNear) / (DistanceFotFar - DistanceFogNear));

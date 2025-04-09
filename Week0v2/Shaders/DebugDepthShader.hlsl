@@ -11,6 +11,12 @@ cbuffer CameraConstant : register(b0)
     float FarPlane;
 };
 
+cbuffer ViewportInfo : register(b1)
+{
+    float2 ViewportSize;
+    float2 ViewportOffset;
+}
+
 Texture2D<float> SceneDepthTex : register(t0);
 SamplerState PointSampler : register(s0);
 
@@ -50,7 +56,9 @@ VS_OUT mainVS(uint id : SV_VertexID)
 
 float4 mainPS(VS_OUT input) : SV_Target
 {
-    float depth = SceneDepthTex.Sample(PointSampler, input.uv).r;
+    float2 viewportUV = input.uv * ViewportSize + ViewportOffset;
+    
+    float depth = SceneDepthTex.Sample(PointSampler, viewportUV).r;
     if (depth == 1.0)
     {
         return float4(0, 0, 0, 1);
