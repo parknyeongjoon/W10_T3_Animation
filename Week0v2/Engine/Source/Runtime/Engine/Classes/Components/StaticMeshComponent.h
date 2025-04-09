@@ -11,7 +11,8 @@ struct FStaticMeshComponentInfo : public FPrimitiveComponentInfo
         : FPrimitiveComponentInfo()
         , StaticMeshPath(L"")
     {
-        Type = TEXT("FStaticMeshComponentInfo");
+        InfoType = TEXT("FStaticMeshComponentInfo");
+        ComponentType = TEXT("UStaticMeshComponent");
     }
     virtual void Copy(FActorComponentInfo& Other) override
     {
@@ -64,7 +65,7 @@ public:
         AABB = FBoundingBox(staticMesh->GetRenderData()->BoundingBoxMin, staticMesh->GetRenderData()->BoundingBoxMax);
     }
 
-    virtual FActorComponentInfo GetActorComponentInfo();
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo();
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 protected:

@@ -76,12 +76,12 @@ void UText::PostDuplicate()
     UBillboardComponent::PostDuplicate();
 }
 
-FActorComponentInfo UText::GetActorComponentInfo()
+std::shared_ptr<FActorComponentInfo> UText::GetActorComponentInfo()
 {
-    FTextComponentInfo Info;
-    Super::GetActorComponentInfo().Copy(Info);
+    std::shared_ptr<FTextComponentInfo> Info = std::make_shared<FTextComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
 
-    Info.Text = text;
+    Info->Text = text;
 
     return Info;
 }

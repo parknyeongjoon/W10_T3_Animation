@@ -12,7 +12,8 @@ struct FTextComponentInfo : public FBillboardComponentInfo
         : FBillboardComponentInfo()
         , Text(L"")
     {
-        Type = TEXT("FTextComponentInfo");
+        InfoType = TEXT("FTextComponentInfo");
+        ComponentType = TEXT("UText");
     }
     virtual void Copy(FActorComponentInfo& Other) override
     {
@@ -57,7 +58,7 @@ public:
     UINT numTextVertices;
 
 public:    
-    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
 
 protected:

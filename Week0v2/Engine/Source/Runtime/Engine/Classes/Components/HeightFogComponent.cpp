@@ -38,23 +38,23 @@ void UHeightFogComponent::LoadAndConstruct(const FActorComponentInfo& Info)
     DirectionalInscatteringStartDistance = HeightFogInfo.DirectionalInscatteringStartDistance;
 }
 
-FActorComponentInfo UHeightFogComponent::GetActorComponentInfo()
+std::shared_ptr<FActorComponentInfo> UHeightFogComponent::GetActorComponentInfo()
 {
-    FHeightFogComponentInfo Info;
-    Super::GetActorComponentInfo().Copy(Info);
-    Info.bIsActive = bIsActive;
-    Info.bIsExponential = bIsExponential;
-    Info.FogDensity = FogDensity;
-    Info.HeightFogStart = HeightFogStart;
-    Info.HeightFogEnd = HeightFogEnd;
-    Info.FogMaxOpacity = FogMaxOpacity;
-    Info.DistanceFogNear = DistanceFogNear;
-    Info.DistanceFogFar = DistanceFogFar;
-    Info.FogInscatteringColor = FogInscatteringColor;
-    Info.DirectionalInscatteringColor = DirectionalInscatteringColor;
-    Info.DirectionalLightDirection = DirectionalLightDirection;
-    Info.DirectionalInscatteringExponent = DirectionalInscatteringExponent;
-    Info.DirectionalInscatteringStartDistance = DirectionalInscatteringStartDistance;
+    std::shared_ptr<FHeightFogComponentInfo> Info = std::make_shared<FHeightFogComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+    Info->bIsActive = bIsActive;
+    Info->bIsExponential = bIsExponential;
+    Info->FogDensity = FogDensity;
+    Info->HeightFogStart = HeightFogStart;
+    Info->HeightFogEnd = HeightFogEnd;
+    Info->FogMaxOpacity = FogMaxOpacity;
+    Info->DistanceFogNear = DistanceFogNear;
+    Info->DistanceFogFar = DistanceFogFar;
+    Info->FogInscatteringColor = FogInscatteringColor;
+    Info->DirectionalInscatteringColor = DirectionalInscatteringColor;
+    Info->DirectionalLightDirection = DirectionalLightDirection;
+    Info->DirectionalInscatteringExponent = DirectionalInscatteringExponent;
+    Info->DirectionalInscatteringStartDistance = DirectionalInscatteringStartDistance;
     return Info;
 
 }

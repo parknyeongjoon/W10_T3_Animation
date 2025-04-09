@@ -11,7 +11,8 @@ struct FDirectionalLightComponentInfo : public FLightComponentInfo
         : FLightComponentInfo()
         , Direction(FVector(0.0f, 0.0f, -1.0f))
     {
-        Type = TEXT("FDirectionalLightComponentInfo");
+        InfoType = TEXT("FDirectionalLightComponentInfo");
+        ComponentType = TEXT("UDirectionalLightComponent");
     }
 
     virtual void Copy(FActorComponentInfo& Other) override
@@ -51,7 +52,7 @@ public:
     virtual void PostDuplicate() override;
 
 public:
-    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 };
 

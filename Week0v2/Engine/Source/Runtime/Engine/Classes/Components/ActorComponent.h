@@ -88,7 +88,7 @@ protected:
     virtual void OnUnregister();
 
 public:
-    virtual FActorComponentInfo GetActorComponentInfo();
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo();
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
 
 protected:

@@ -13,7 +13,8 @@ struct FPointLightComponentInfo : public FLightComponentInfo
         , Radius(1.0f)
         , AttenuationFalloff(0.01f)
     {
-        Type = TEXT("FPointLightComponentInfo");
+        InfoType = TEXT("FPointLightComponentInfo");
+        ComponentType = TEXT("UPointLightComponent");
     }
 
     virtual void Copy(FActorComponentInfo& Other) override
@@ -59,7 +60,7 @@ public:
     virtual void PostDuplicate() override;
 
 public:
-    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 };

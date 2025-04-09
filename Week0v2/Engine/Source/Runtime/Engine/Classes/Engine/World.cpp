@@ -119,7 +119,9 @@ void UWorld::Release()
 
 void UWorld::ClearScene()
 {
-    // 1. 모든 Actor Destroy
+    // 1. PickedActor제거
+    SelectedActor = nullptr;
+    // 2. 모든 Actor Destroy
     
     for (AActor* actor : TObjectRange<AActor>())
     {

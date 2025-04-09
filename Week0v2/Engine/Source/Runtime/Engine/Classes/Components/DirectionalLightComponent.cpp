@@ -31,11 +31,11 @@ void UDirectionalLightComponent::PostDuplicate()
 {
 }
 
-FActorComponentInfo UDirectionalLightComponent::GetActorComponentInfo()
+std::shared_ptr<FActorComponentInfo> UDirectionalLightComponent::GetActorComponentInfo()
 {
-    FDirectionalLightComponentInfo Info;
-    Super::GetActorComponentInfo().Copy(Info);
-    Info.Direction = Direction;
+    std::shared_ptr<FDirectionalLightComponentInfo> Info = std::make_shared<FDirectionalLightComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+    Info->Direction = Direction;
     return Info;
 }
 

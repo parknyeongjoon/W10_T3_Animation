@@ -95,7 +95,7 @@ public:
     virtual void PostDuplicate() override;
 
 public:
-    virtual void LoadAndConstruct(const TArray<FActorComponentInfo>& InfoArray);
+    virtual void LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray);
     virtual FActorInfo GetActorInfo();
 
 public:

@@ -54,11 +54,14 @@ public:
         if (Actor == nullptr)
             return nullptr;
 
-        Level->GetActors().Add(Actor);
 
         if (bCallBeginPlay)
         {
             Level->PendingBeginPlayActors.Add(Actor);
+        }
+        else
+        {
+            Level->GetActors().Add(Actor);
         }
 
         return Actor;

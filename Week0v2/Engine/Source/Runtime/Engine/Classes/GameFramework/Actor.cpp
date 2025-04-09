@@ -282,21 +282,21 @@ void AActor::PostDuplicate()
     // Override in subclasses if needed
 }
 
-void AActor::LoadAndConstruct(const TArray<FActorComponentInfo>& InfoArray)
+void AActor::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
 {
     // 생성자를 통해 만들어진 컴포넌트들은 이미 생성이 되어있는 상태
     // ActorComponentInfo의 ComponentOrigin을 보고 Constructor가 아니면 추가적으로 생성
 
-    for (const FActorComponentInfo& Info : InfoArray)
+    for (const auto& Info : InfoArray)
     {
         // 생성자에서 자동으로 생성되는 컴포넌트는 무시한다
-        if (Info.Origin == EComponentOrigin::Constructor) continue;
+        if (Info->Origin == EComponentOrigin::Constructor) continue;
 
-        UClass* ComponentClass = UClassRegistry::Get().FindClassByName(Info.Type);
+        UClass* ComponentClass = UClassRegistry::Get().FindClassByName(Info->ComponentType);
         if (ComponentClass)
         {
             UActorComponent* NewComp = AddComponentByClass(ComponentClass, EComponentOrigin::Serialized);
-            if (Info.bIsRoot)
+            if (Info->bIsRoot)
                 RootComponent = Cast<USceneComponent>(NewComp);
         }
     }
@@ -305,10 +305,21 @@ void AActor::LoadAndConstruct(const TArray<FActorComponentInfo>& InfoArray)
         UE_LOG(LogLevel::Error, "InfoArray.Num() != Components.Num()");
         return;
     }
-
+    //
+    //TArray<std::shared_ptr<FActorComponentInfo>> ComponentInfos;
+    //for (const auto& Info : InfoArray)
+    //{
+    //    FActorComponentInfo::BaseFactoryFunc* FactoryFunc = FActorComponentInfo::GetFactoryMap().Find(Info->InfoType);
+    //    if (FactoryFunc)
+    //    {
+    //        // 실제 인스턴스
+    //        std::shared_ptr<FActorComponentInfo> NewInfo = (*FactoryFunc)();
+    //        ComponentInfos.Add(std::move(NewInfo));
+    //    }
+    //}
     for (int i = 0; i < InfoArray.Num(); i++)
     {
-        OwnedComponents[i]->LoadAndConstruct(InfoArray[i]);
+        OwnedComponents[i]->LoadAndConstruct(*InfoArray[i]);
     }
 }
 

@@ -119,12 +119,12 @@ int UStaticMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayD
     }
     return nIntersections;
 }
-FActorComponentInfo UStaticMeshComponent::GetActorComponentInfo()
+std::shared_ptr<FActorComponentInfo> UStaticMeshComponent::GetActorComponentInfo()
 {
-    FStaticMeshComponentInfo Info;
-    Super::GetActorComponentInfo().Copy(Info);
+    std::shared_ptr<FStaticMeshComponentInfo> Info = std::make_shared<FStaticMeshComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
 
-    Info.StaticMeshPath = staticMesh->GetRenderData()->PathName;
+    Info->StaticMeshPath = staticMesh->GetRenderData()->PathName;
     return Info;
 }
 void UStaticMeshComponent::LoadAndConstruct(const FActorComponentInfo& Info)
@@ -132,7 +132,8 @@ void UStaticMeshComponent::LoadAndConstruct(const FActorComponentInfo& Info)
     Super::LoadAndConstruct(Info);
 
     const FStaticMeshComponentInfo& StaticMeshInfo = static_cast<const FStaticMeshComponentInfo&>(Info);
-    SetStaticMesh(FManagerOBJ::GetStaticMesh(StaticMeshInfo.StaticMeshPath));
+    UStaticMesh* Mesh = FManagerOBJ::CreateStaticMesh(FString::ToFString(StaticMeshInfo.StaticMeshPath));
+    SetStaticMesh(Mesh);
 
 }
 UObject* UStaticMeshComponent::Duplicate() const

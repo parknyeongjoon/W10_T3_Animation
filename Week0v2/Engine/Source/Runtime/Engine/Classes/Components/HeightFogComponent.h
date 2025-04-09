@@ -37,7 +37,8 @@ struct FHeightFogComponentInfo : public FPrimitiveComponentInfo
         , DirectionalInscatteringExponent(1.0f)
         , DirectionalInscatteringStartDistance(0.0f)
     {
-        Type = TEXT("FHeightFogComponentInfo");
+        InfoType = TEXT("FHeightFogComponentInfo");
+        ComponentType = TEXT("UHeightFogComponent");
     }
 
     virtual void Copy(FActorComponentInfo& Other) override
@@ -101,7 +102,7 @@ public:
 
 public:
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
-    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
 };
 
 

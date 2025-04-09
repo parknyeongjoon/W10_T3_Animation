@@ -116,12 +116,12 @@ void UActorComponent::OnUnregister()
     Deactivate();
 }
 
-FActorComponentInfo UActorComponent::GetActorComponentInfo()
+std::shared_ptr<FActorComponentInfo> UActorComponent::GetActorComponentInfo()
 {
-    FActorComponentInfo Info;
-    Info.Type = GetClass()->GetName();
-    Info.Origin = ComponentOrigin;
-    Info.bIsRoot = GetOwner() && (GetOwner()->GetRootComponent() == this);
+    std::shared_ptr<FActorComponentInfo> Info = std::make_shared<FActorComponentInfo>();
+    Info->InfoType = GetClass()->GetName();
+    Info->Origin = ComponentOrigin;
+    Info->bIsRoot = GetOwner() && (GetOwner()->GetRootComponent() == this);
     return Info;
 }
 

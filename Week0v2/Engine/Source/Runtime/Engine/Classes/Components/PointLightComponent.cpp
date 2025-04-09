@@ -35,12 +35,12 @@ void UPointLightComponent::PostDuplicate()
 {
 }
 
-FActorComponentInfo UPointLightComponent::GetActorComponentInfo()
+std::shared_ptr<FActorComponentInfo> UPointLightComponent::GetActorComponentInfo()
 {
-    FPointLightComponentInfo Info;
-    Super::GetActorComponentInfo().Copy(Info);
+    std::shared_ptr<FPointLightComponentInfo> Info = std::make_shared<FPointLightComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
 
-    Info.Radius = Radius;
+    Info->Radius = Radius;
 
     return Info;
 }

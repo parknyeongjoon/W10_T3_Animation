@@ -12,7 +12,8 @@ struct FPrimitiveComponentInfo : FSceneComponentInfo
         : FSceneComponentInfo()
         , AABB(FVector::ZeroVector, FVector::ZeroVector)
     {
-        Type = TEXT("FPrimitiveComponentInfo");
+        InfoType = TEXT("FPrimitiveComponentInfo");
+        ComponentType = TEXT("UPrimitiveComponent");
     }
 
     virtual void Copy(FActorComponentInfo& Other) override
@@ -60,7 +61,7 @@ public:
     FVector ComponentVelocity;
 
 public:
-    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
 
     FBoundingBox GetBoundingBox() { return AABB; }

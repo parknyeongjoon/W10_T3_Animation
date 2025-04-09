@@ -13,7 +13,8 @@ struct FBillboardComponentInfo : public FPrimitiveComponentInfo
         : FPrimitiveComponentInfo()
         , TexturePath(L"")
     {
-        Type = TEXT("FBillboardComponentInfo");
+        InfoType = TEXT("FBillboardComponentInfo");
+        ComponentType = TEXT("UBillboardComponent");
     }
     virtual void Copy(FActorComponentInfo& Other) override
     {
@@ -67,7 +68,7 @@ public:
     std::shared_ptr<FTexture> Texture;
 
 public:
-    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
 
 protected:

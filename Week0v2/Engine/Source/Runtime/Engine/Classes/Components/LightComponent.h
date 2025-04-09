@@ -20,7 +20,8 @@ struct FLightComponentInfo : public FSceneComponentInfo
         , AABB(FVector::ZeroVector, FVector::ZeroVector)
         , Intensity(1.0f)
     {
-        Type = TEXT("FLightComponentInfo");
+        InfoType = TEXT("FLightComponentInfo");
+        ComponentType = TEXT("ULightComponentBase");
     }
 
     virtual void Copy(FActorComponentInfo& Other) override
@@ -82,7 +83,7 @@ public:
     virtual void PostDuplicate() override;
 
 public:
-    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 };

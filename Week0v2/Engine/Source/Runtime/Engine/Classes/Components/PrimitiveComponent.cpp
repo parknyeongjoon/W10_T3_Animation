@@ -138,12 +138,12 @@ bool UPrimitiveComponent::MoveComponent(const FVector& Delta)
     return true;
 }
 
-FActorComponentInfo UPrimitiveComponent::GetActorComponentInfo()
+std::shared_ptr<FActorComponentInfo> UPrimitiveComponent::GetActorComponentInfo()
 {
-    FPrimitiveComponentInfo Info;
-    Super::GetActorComponentInfo().Copy(Info);
+    std::shared_ptr<FPrimitiveComponentInfo> Info = std::make_shared<FPrimitiveComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
 
-    Info.AABB = AABB;
+    Info->AABB = AABB;
 
     return Info;
 }

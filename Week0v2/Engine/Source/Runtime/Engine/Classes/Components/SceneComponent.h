@@ -21,7 +21,8 @@ struct FSceneComponentInfo : public FActorComponentInfo
         , QuatRotation(FQuat::Identity())
         , RelativeScale3D(FVector::OneVector)
     {
-        Type = TEXT("FSceneComponentInfo");
+        InfoType = TEXT("FSceneComponentInfo");
+        ComponentType = TEXT("USceneComponent");
     }
 
     virtual void Copy(FActorComponentInfo& Other) override
@@ -101,7 +102,7 @@ public:
 
 public:
     virtual bool MoveComponent(const FVector& Delta) { return false; }
-    virtual FActorComponentInfo GetActorComponentInfo() override;
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 private:

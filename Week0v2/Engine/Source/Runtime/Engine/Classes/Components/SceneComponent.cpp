@@ -163,16 +163,16 @@ void USceneComponent::DuplicateSubObjects(const UObject* Source)
 
 void USceneComponent::PostDuplicate() {}
 
-FActorComponentInfo USceneComponent::GetActorComponentInfo()
+std::shared_ptr<FActorComponentInfo> USceneComponent::GetActorComponentInfo()
 {
-    FSceneComponentInfo Info;
-    Super::GetActorComponentInfo().Copy(Info);
+    std::shared_ptr<FSceneComponentInfo> Info = std::make_shared<FSceneComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
 
-    Info.Type = GetClass()->GetName();
-    Info.RelativeLocation = RelativeLocation;
-    Info.RelativeRotation = RelativeRotation;
-    Info.RelativeScale3D = RelativeScale3D;
-    Info.QuatRotation = QuatRotation;
+    Info->InfoType = GetClass()->GetName();
+    Info->RelativeLocation = RelativeLocation;
+    Info->RelativeRotation = RelativeRotation;
+    Info->RelativeScale3D = RelativeScale3D;
+    Info->QuatRotation = QuatRotation;
 
     // !TODO : AttachedParent
     return Info;

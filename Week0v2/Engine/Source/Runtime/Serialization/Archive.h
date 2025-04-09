@@ -236,7 +236,7 @@ public:
 
 	// user-defined type
 	template<typename T, typename = decltype(std::declval<T>().Serialize(std::declval<FArchive&>()))>
-	FArchive& operator<<(const T& InValue)
+	FArchive& operator<<(T& InValue)
 	{
 		InValue.Serialize(*this);
 		return *this;

@@ -135,11 +135,11 @@ void UBillboardComponent::CreateQuadTextureVertexBuffer()
 	}
 }
 
-FActorComponentInfo UBillboardComponent::GetActorComponentInfo()
+std::shared_ptr<FActorComponentInfo> UBillboardComponent::GetActorComponentInfo()
 {
-    FBillboardComponentInfo Info;
-    Super::GetActorComponentInfo().Copy(Info);
-    Info.TexturePath = Texture->path;
+    std::shared_ptr<FBillboardComponentInfo>Info = std::make_shared<FBillboardComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+    Info->TexturePath = Texture->path;
 
     return Info;
 }
