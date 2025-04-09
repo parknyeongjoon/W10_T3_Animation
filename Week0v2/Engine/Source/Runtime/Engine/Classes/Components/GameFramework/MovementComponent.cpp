@@ -1,4 +1,4 @@
-﻿#include "MovementComponent.h"
+#include "MovementComponent.h"
 
 #include "Components/PrimitiveComponent.h"
 #include "GameFramework/Actor.h"
@@ -93,4 +93,27 @@ void UMovementComponent::DuplicateSubObjects(const UObject* Source)
 void UMovementComponent::PostDuplicate()
 {
     UActorComponent::PostDuplicate();
+}
+
+std::shared_ptr<FActorComponentInfo> UMovementComponent::GetActorComponentInfo()
+{
+    std::shared_ptr<FMovementComponentInfo> Info = std::make_shared<FMovementComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+
+    Info->bUpdateOnlyIfRendered = bUpdateOnlyIfRendered;
+    Info->bAutoUpdateTickRegistration = bAutoUpdateTickRegistration;
+    Info->bAutoRegisterUpdatedComponent = bAutoRegisterUpdatedComponent;
+    Info->Velocity = Velocity;
+
+    return Info;
+}
+
+void UMovementComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FMovementComponentInfo& MovementInfo = static_cast<const FMovementComponentInfo&>(Info);
+    bUpdateOnlyIfRendered = MovementInfo.bUpdateOnlyIfRendered;
+    bAutoUpdateTickRegistration = MovementInfo.bAutoUpdateTickRegistration;
+    bAutoRegisterUpdatedComponent = MovementInfo.bAutoRegisterUpdatedComponent;
+    Velocity = MovementInfo.Velocity;
 }

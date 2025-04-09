@@ -1,6 +1,50 @@
-﻿#pragma once
+#pragma once
 #include "Components/ActorComponent.h"
 #include "Components/SceneComponent.h"
+
+struct FMovementComponentInfo : public FActorComponentInfo
+{
+    DECLARE_ACTORCOMPONENT_INFO(FMovementComponentInfo)
+    FMovementComponentInfo()
+        : FActorComponentInfo()
+    {
+        InfoType = TEXT("FMovementComponentInfo");
+        ComponentType = TEXT("UMovementComponent");
+    }
+
+    bool bUpdateOnlyIfRendered;
+    bool bAutoUpdateTickRegistration;
+    bool bAutoRegisterUpdatedComponent;
+    FVector Velocity;
+
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FActorComponentInfo::Copy(Other);
+        FMovementComponentInfo& MovementInfo = static_cast<FMovementComponentInfo&>(Other);
+        MovementInfo.bUpdateOnlyIfRendered = bUpdateOnlyIfRendered;
+        MovementInfo.bAutoUpdateTickRegistration = bAutoUpdateTickRegistration;
+        MovementInfo.bAutoRegisterUpdatedComponent = bAutoRegisterUpdatedComponent;
+        MovementInfo.Velocity = Velocity;
+    }
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FActorComponentInfo::Serialize(ar);
+        ar << bUpdateOnlyIfRendered;
+        ar << bAutoUpdateTickRegistration;
+        ar << bAutoRegisterUpdatedComponent;
+        ar << Velocity;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FActorComponentInfo::Deserialize(ar);
+        ar >> bUpdateOnlyIfRendered;
+        ar >> bAutoUpdateTickRegistration;
+        ar >> bAutoRegisterUpdatedComponent;
+        ar >> Velocity;
+    }
+};
 
 class UMovementComponent : public UActorComponent
 {
@@ -50,6 +94,11 @@ public:
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
+
+public:
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
+
 };
 
 inline float UMovementComponent::GetMaxSpeed() const

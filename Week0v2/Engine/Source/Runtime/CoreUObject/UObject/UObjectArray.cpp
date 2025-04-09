@@ -1,4 +1,4 @@
-﻿#include "UObjectArray.h"
+#include "UObjectArray.h"
 #include "Object.h"
 #include "UObjectHash.h"
 

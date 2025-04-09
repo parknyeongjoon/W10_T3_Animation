@@ -1,5 +1,37 @@
-﻿#pragma once
+#pragma once
 #include "MovementComponent.h"
+
+struct FRotatingMovementComponentInfo : public FMovementComponentInfo
+{
+    DECLARE_ACTORCOMPONENT_INFO(FRotatingMovementComponentInfo);
+
+    FRotatingMovementComponentInfo()
+        : FMovementComponentInfo()
+    {
+        InfoType = TEXT("FRotatingMovementComponentInfo");
+        ComponentType = TEXT("URotatingMovementComponent");
+    }
+
+    FVector RotationRate;
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FMovementComponentInfo::Copy(Other);
+        FRotatingMovementComponentInfo& RotatingMovementInfo = static_cast<FRotatingMovementComponentInfo&>(Other);
+        RotatingMovementInfo.RotationRate = RotationRate;
+    }
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FMovementComponentInfo::Serialize(ar);
+        ar << RotationRate;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FMovementComponentInfo::Deserialize(ar);
+        ar >> RotationRate;
+    }
+};
 
 class URotatingMovementComponent : public UMovementComponent
 {
@@ -20,4 +52,8 @@ public:
     UObject* Duplicate() const override;
     void DuplicateSubObjects(const UObject* Source) override;
     void PostDuplicate() override;
+
+public:
+    std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    void LoadAndConstruct(const FActorComponentInfo& Info) override;
 };

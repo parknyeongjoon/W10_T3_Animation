@@ -1,4 +1,4 @@
-﻿#include "RotatingMovementComponent.h"
+#include "RotatingMovementComponent.h"
 
 #include "Components/PrimitiveComponent.h"
 #include "UObject/Casts.h"
@@ -46,4 +46,19 @@ void URotatingMovementComponent::DuplicateSubObjects(const UObject* Source)
 void URotatingMovementComponent::PostDuplicate()
 {
     UMovementComponent::PostDuplicate();
+}
+
+std::shared_ptr<FActorComponentInfo> URotatingMovementComponent::GetActorComponentInfo()
+{
+    std::shared_ptr<FRotatingMovementComponentInfo> Info = std::make_shared<FRotatingMovementComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+    Info->RotationRate = RotationRate;
+    return Info;
+}
+
+void URotatingMovementComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FRotatingMovementComponentInfo& RotatingMovementInfo = static_cast<const FRotatingMovementComponentInfo&>(Info);
+    RotationRate = RotatingMovementInfo.RotationRate;
 }

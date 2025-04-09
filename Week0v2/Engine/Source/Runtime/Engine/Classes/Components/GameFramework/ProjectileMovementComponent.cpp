@@ -1,4 +1,4 @@
-﻿#include "ProjectileMovementComponent.h"
+#include "ProjectileMovementComponent.h"
 
 #include "Components/PrimitiveComponent.h"
 #include "Engine/World.h"
@@ -153,6 +153,29 @@ void UProjectileMovementComponent::DuplicateSubObjects(const UObject* Source)
 void UProjectileMovementComponent::PostDuplicate()
 {
     UMovementComponent::PostDuplicate();
+}
+
+std::shared_ptr<FActorComponentInfo> UProjectileMovementComponent::GetActorComponentInfo()
+{
+    std::shared_ptr<FProjectileMovementComponentInfo> Info = std::make_shared<FProjectileMovementComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+    Info->InitialSpeed = InitialSpeed;
+    Info->MaxSpeed = MaxSpeed;
+    Info->bRotationFollowsVelocity = bRotationFollowsVelocity;
+    Info->bInitialVelocityInLocalSpace = bInitialVelocityInLocalSpace;
+    Info->ProjectileGravityScale = ProjectileGravityScale;
+    return Info;
+}
+
+void UProjectileMovementComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FProjectileMovementComponentInfo& ProjectileMovementInfo = static_cast<const FProjectileMovementComponentInfo&>(Info);
+    InitialSpeed = ProjectileMovementInfo.InitialSpeed;
+    MaxSpeed = ProjectileMovementInfo.MaxSpeed;
+    bRotationFollowsVelocity = ProjectileMovementInfo.bRotationFollowsVelocity;
+    bInitialVelocityInLocalSpace = ProjectileMovementInfo.bInitialVelocityInLocalSpace;
+    ProjectileGravityScale = ProjectileMovementInfo.ProjectileGravityScale;
 }
 
 FVector UProjectileMovementComponent::LimitVelocity(FVector NewVelocity) const

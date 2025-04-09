@@ -1,7 +1,7 @@
 #pragma once
 #include "PrimitiveComponent.h"
 #include "Math/Color.h"
-#include "Runtime/CoreUObject//UObject//ObjectMacros.h"
+#include "Runtime/CoreUObject/UObject/ObjectMacros.h"
 
 struct FHeightFogComponentInfo : public FPrimitiveComponentInfo
 {
