@@ -4,7 +4,16 @@
 
 struct FTextComponentInfo : public FBillboardComponentInfo
 {
+    DECLARE_ACTORCOMPONENT_INFO(FTextComponentInfo);
+
     FWString Text;
+
+    FTextComponentInfo()
+        : FBillboardComponentInfo()
+        , Text(L"")
+    {
+        Type = TEXT("FTextComponentInfo");
+    }
     virtual void Copy(FActorComponentInfo& Other) override
     {
         FBillboardComponentInfo::Copy(Other);

@@ -5,6 +5,8 @@
 
 struct FHeightFogComponentInfo : public FPrimitiveComponentInfo
 {
+    DECLARE_ACTORCOMPONENT_INFO(FHeightFogComponentInfo);
+
     bool bIsActive;
     bool bIsExponential;
     float FogDensity;
@@ -18,6 +20,26 @@ struct FHeightFogComponentInfo : public FPrimitiveComponentInfo
     FVector DirectionalLightDirection;
     float DirectionalInscatteringExponent;
     float DirectionalInscatteringStartDistance;
+
+    FHeightFogComponentInfo()
+        : FPrimitiveComponentInfo()
+        , bIsActive(false)
+        , bIsExponential(false)
+        , FogDensity(0.0f)
+        , HeightFogStart(0.0f)
+        , HeightFogEnd(0.0f)
+        , FogMaxOpacity(1.0f)
+        , DistanceFogNear(0.0f)
+        , DistanceFogFar(0.0f)
+        , FogInscatteringColor(FLinearColor::White)
+        , DirectionalInscatteringColor(FLinearColor::White)
+        , DirectionalLightDirection(FVector::ZeroVector)
+        , DirectionalInscatteringExponent(1.0f)
+        , DirectionalInscatteringStartDistance(0.0f)
+    {
+        Type = TEXT("FHeightFogComponentInfo");
+    }
+
     virtual void Copy(FActorComponentInfo& Other) override
     {
         FPrimitiveComponentInfo::Copy(Other);

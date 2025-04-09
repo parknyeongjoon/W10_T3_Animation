@@ -31,6 +31,16 @@ private: \
 public: \
     static inline FAutoRegister_##TClass AutoRegister_##TClass_Instance;
 
+#define DECLARE_ACTORCOMPONENT_INFO(T) \
+    struct T##FactoryRegister { \
+        T##FactoryRegister() {\
+            GetFactoryMap()[#T] = []() -> std::unique_ptr<FActorComponentInfo> {\
+                return std::make_unique<T>(); \
+            }; \
+        } \
+    }; \
+static inline T##FactoryRegister Global_##T##_FactoryRegister; \
+
 
 
 

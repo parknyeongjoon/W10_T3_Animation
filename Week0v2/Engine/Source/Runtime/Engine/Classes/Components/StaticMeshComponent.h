@@ -4,7 +4,15 @@
 
 struct FStaticMeshComponentInfo : public FPrimitiveComponentInfo
 {
+    DECLARE_ACTORCOMPONENT_INFO(FStaticMeshComponentInfo);
     FWString StaticMeshPath;
+
+    FStaticMeshComponentInfo()
+        : FPrimitiveComponentInfo()
+        , StaticMeshPath(L"")
+    {
+        Type = TEXT("FStaticMeshComponentInfo");
+    }
     virtual void Copy(FActorComponentInfo& Other) override
     {
         FPrimitiveComponentInfo::Copy(Other);

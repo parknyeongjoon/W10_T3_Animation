@@ -4,7 +4,16 @@
 
 struct FPrimitiveComponentInfo : FSceneComponentInfo
 {
+    DECLARE_ACTORCOMPONENT_INFO(FPrimitiveComponentInfo);
+
     FBoundingBox AABB;
+
+    FPrimitiveComponentInfo()
+        : FSceneComponentInfo()
+        , AABB(FVector::ZeroVector, FVector::ZeroVector)
+    {
+        Type = TEXT("FPrimitiveComponentInfo");
+    }
 
     virtual void Copy(FActorComponentInfo& Other) override
     {

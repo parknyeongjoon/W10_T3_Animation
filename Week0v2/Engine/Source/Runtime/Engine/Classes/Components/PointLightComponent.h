@@ -3,8 +3,19 @@
 
 struct FPointLightComponentInfo : public FLightComponentInfo
 {
+    DECLARE_ACTORCOMPONENT_INFO(FPointLightComponentInfo);
+
     float Radius;
     float AttenuationFalloff;
+
+    FPointLightComponentInfo()
+        : FLightComponentInfo()
+        , Radius(1.0f)
+        , AttenuationFalloff(0.01f)
+    {
+        Type = TEXT("FPointLightComponentInfo");
+    }
+
     virtual void Copy(FActorComponentInfo& Other) override
     {
         FLightComponentInfo::Copy(Other);

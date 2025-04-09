@@ -6,10 +6,23 @@
 
 struct FSceneComponentInfo : public FActorComponentInfo
 {
+    DECLARE_ACTORCOMPONENT_INFO(FSceneComponentInfo);
+
+
     FVector RelativeLocation;
     FVector RelativeRotation;
     FQuat QuatRotation;
     FVector RelativeScale3D;
+
+    FSceneComponentInfo()
+        : FActorComponentInfo()
+        , RelativeLocation(FVector::ZeroVector)
+        , RelativeRotation(FVector::ZeroVector)
+        , QuatRotation(FQuat::Identity())
+        , RelativeScale3D(FVector::OneVector)
+    {
+        Type = TEXT("FSceneComponentInfo");
+    }
 
     virtual void Copy(FActorComponentInfo& Other) override
     {

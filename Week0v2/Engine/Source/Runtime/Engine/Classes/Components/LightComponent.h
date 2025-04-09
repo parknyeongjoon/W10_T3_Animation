@@ -1,13 +1,28 @@
 #pragma once
 #include "PrimitiveComponent.h"
 #include "Define.h"
+#include "UObject/ObjectMacros.h"
+
 class UBillboardComponent;
 
 struct FLightComponentInfo : public FSceneComponentInfo
 {
+    DECLARE_ACTORCOMPONENT_INFO(FLightComponentInfo);
+
     FVector4 Color;
     FBoundingBox AABB;
     float Intensity;
+
+    // ctor
+    FLightComponentInfo()
+        : FSceneComponentInfo()
+        , Color(FVector4(1, 1, 1, 1))
+        , AABB(FVector::ZeroVector, FVector::ZeroVector)
+        , Intensity(1.0f)
+    {
+        Type = TEXT("FLightComponentInfo");
+    }
+
     virtual void Copy(FActorComponentInfo& Other) override
     {
         FSceneComponentInfo::Copy(Other);
@@ -28,7 +43,9 @@ struct FLightComponentInfo : public FSceneComponentInfo
         FSceneComponentInfo::Deserialize(ar);
         ar >> Color >> AABB >> Intensity;
     }
+
 };
+
 
 class ULightComponentBase : public USceneComponent
 {

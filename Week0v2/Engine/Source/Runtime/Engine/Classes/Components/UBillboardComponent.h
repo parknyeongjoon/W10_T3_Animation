@@ -6,7 +6,15 @@ struct FTexture;
 
 struct FBillboardComponentInfo : public FPrimitiveComponentInfo
 {
+    DECLARE_ACTORCOMPONENT_INFO(FBillboardComponentInfo);
     FWString TexturePath;
+
+    FBillboardComponentInfo()
+        : FPrimitiveComponentInfo()
+        , TexturePath(L"")
+    {
+        Type = TEXT("FBillboardComponentInfo");
+    }
     virtual void Copy(FActorComponentInfo& Other) override
     {
         FPrimitiveComponentInfo::Copy(Other);

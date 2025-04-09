@@ -3,8 +3,18 @@
 
 struct FParticleSubUVCompInfo : public FBillboardComponentInfo
 {
+    DECLARE_ACTORCOMPONENT_INFO(FParticleSubUVCompInfo);
     int CellsPerRow;
     int CellsPerColumn;
+
+    FParticleSubUVCompInfo()
+        : FBillboardComponentInfo()
+        , CellsPerRow(1)
+        , CellsPerColumn(1)
+    {
+        Type = TEXT("FParticleSubUVCompInfo");
+    }
+
     virtual void Copy(FActorComponentInfo& Other) override
     {
         FBillboardComponentInfo::Copy(Other);

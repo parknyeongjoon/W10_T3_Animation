@@ -3,7 +3,17 @@
 
 struct FDirectionalLightComponentInfo : public FLightComponentInfo
 {
+    DECLARE_ACTORCOMPONENT_INFO(FDirectionalLightComponentInfo);
+
     FVector Direction;
+
+    FDirectionalLightComponentInfo()
+        : FLightComponentInfo()
+        , Direction(FVector(0.0f, 0.0f, -1.0f))
+    {
+        Type = TEXT("FDirectionalLightComponentInfo");
+    }
+
     virtual void Copy(FActorComponentInfo& Other) override
     {
         FLightComponentInfo::Copy(Other);
