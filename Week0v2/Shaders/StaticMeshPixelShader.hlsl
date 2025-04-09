@@ -144,7 +144,7 @@ float3 CalculateDirectionalLight(FDirectionalLight Light, float3 Normal, float3 
     
     float3 Diffuse = Light.Color * Diff * DiffuseColor * Light.Intensity;
     
-    float3 ReflectDir = reflect(Light.Direction, Normal);
+    float3 ReflectDir = reflect(-LightDir, Normal);
     float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0f), SpecularPower);
     float3 Specular = Light.Color * SpecularColor * Spec * Light.Intensity;
     
