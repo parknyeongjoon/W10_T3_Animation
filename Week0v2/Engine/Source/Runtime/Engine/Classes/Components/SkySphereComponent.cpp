@@ -10,7 +10,6 @@
 
 USkySphereComponent::USkySphereComponent()
 {
-    SetType(StaticClass()->GetName());
 }
 
 USkySphereComponent::~USkySphereComponent()

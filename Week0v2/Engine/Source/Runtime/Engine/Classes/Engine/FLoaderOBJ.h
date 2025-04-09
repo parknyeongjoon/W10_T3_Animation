@@ -439,6 +439,8 @@ public:
             if (LoadStaticMeshFromBinary(BinaryPath, *NewStaticMesh))
             {
                 ObjStaticMeshMap.Add(PathFileName, NewStaticMesh);
+                // 패스 명 추가
+                NewStaticMesh->PathName = PathFileName.ToWideString();
                 return NewStaticMesh;
             }
         }
@@ -452,6 +454,7 @@ public:
             delete NewStaticMesh;
             return nullptr;
         }
+
 
         // Material
         if (NewObjInfo.MaterialSubsets.Num() > 0)

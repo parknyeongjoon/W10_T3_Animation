@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Serialization/Archive.h"
 // 쿼터니언
 struct FQuat
 {
@@ -60,6 +60,10 @@ struct FQuat
 		return FQuat(w / magnitude, x / magnitude, y / magnitude, z / magnitude);
 	}
 
+    static FQuat Identity()
+    {
+        return FQuat(1.0f, 1.0f, 1.0f, 1.0f);
+    }
 	// 회전 각도와 축으로부터 쿼터니언 생성 (axis-angle 방식)
 	static FQuat FromAxisAngle(const FVector& Axis, float Angle)
 	{
@@ -108,4 +112,13 @@ struct FQuat
 
 		return RotationMatrix;
 	}
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << w << x << y << z;
+    }
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> w >> x >> y >> z;
+    }
 };

@@ -2,6 +2,38 @@
 #include "Components/MeshComponent.h"
 #include "Mesh/StaticMesh.h"
 
+struct FStaticMeshComponentInfo : public FPrimitiveComponentInfo
+{
+    DECLARE_ACTORCOMPONENT_INFO(FStaticMeshComponentInfo);
+    FWString StaticMeshPath;
+
+    FStaticMeshComponentInfo()
+        : FPrimitiveComponentInfo()
+        , StaticMeshPath(L"")
+    {
+        InfoType = TEXT("FStaticMeshComponentInfo");
+        ComponentType = TEXT("UStaticMeshComponent");
+    }
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FPrimitiveComponentInfo::Copy(Other);
+        FStaticMeshComponentInfo& StaticMeshComponentInfo = static_cast<FStaticMeshComponentInfo&>(Other);
+        StaticMeshComponentInfo.StaticMeshPath = StaticMeshPath;
+    }
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FPrimitiveComponentInfo::Serialize(ar);
+        ar << StaticMeshPath;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FPrimitiveComponentInfo::Deserialize(ar);
+        ar >> StaticMeshPath;
+    }
+};
+
 class UStaticMeshComponent : public UMeshComponent
 {
     DECLARE_CLASS(UStaticMeshComponent, UMeshComponent)
@@ -32,6 +64,9 @@ public:
         OverrideMaterials.SetNum(value->GetMaterials().Num());
         AABB = FBoundingBox(staticMesh->GetRenderData()->BoundingBoxMin, staticMesh->GetRenderData()->BoundingBoxMax);
     }
+
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo();
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 protected:
     UStaticMesh* staticMesh = nullptr;

@@ -4,6 +4,38 @@
 
 struct FTexture;
 
+struct FBillboardComponentInfo : public FPrimitiveComponentInfo
+{
+    DECLARE_ACTORCOMPONENT_INFO(FBillboardComponentInfo);
+    FWString TexturePath;
+
+    FBillboardComponentInfo()
+        : FPrimitiveComponentInfo()
+        , TexturePath(L"")
+    {
+        InfoType = TEXT("FBillboardComponentInfo");
+        ComponentType = TEXT("UBillboardComponent");
+    }
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FPrimitiveComponentInfo::Copy(Other);
+        FBillboardComponentInfo& OtherBillboard = static_cast<FBillboardComponentInfo&>(Other);
+        OtherBillboard.TexturePath = TexturePath;
+    }
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FPrimitiveComponentInfo::Serialize(ar);
+        ar << TexturePath;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FPrimitiveComponentInfo::Deserialize(ar);
+        ar >> TexturePath;
+    }
+};
+
 class UBillboardComponent : public UPrimitiveComponent
 {
     DECLARE_CLASS(UBillboardComponent, UPrimitiveComponent)
@@ -34,10 +66,12 @@ public:
     float finalIndexU = 0.0f;
     float finalIndexV = 0.0f;
     std::shared_ptr<FTexture> Texture;
+
+public:
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
+
 protected:
-
-
-
     USceneComponent* m_parent = nullptr;
 
     bool CheckPickingOnNDC(const TArray<FVector>& checkQuad, float& hitDistance);

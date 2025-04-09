@@ -17,6 +17,7 @@
 #include <d3d11.h>
 
 #include "UserInterface/Console.h"
+#include "Serialization/Archive.h"
 
 
 struct FVertexSimple
@@ -249,7 +250,14 @@ struct FBoundingBox
 
         return true;
     }
-
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << min << max;
+    }
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> min >> max;
+    }
 };
 struct FCone
 {

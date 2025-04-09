@@ -11,6 +11,7 @@
 #include "UnrealEd/SceneMgr.h"
 #include "UObject/UObjectIterator.h"
 #include "Level.h"
+#include "Serialization/FWindowsBinHelper.h"
 
 
 UWorld::UWorld(const UWorld& Other): UObject(Other)
@@ -27,6 +28,13 @@ void UWorld::InitWorld()
     PreLoadResources();
     CreateBaseObject();
     Level = FObjectFactory::ConstructObject<ULevel>();
+}
+
+void UWorld::LoadLevel(const FString& LevelName)
+{
+    // !TODO : 레벨 로드
+    // 이름으로 레벨 로드한다
+    // 실패 하면 현재 레벨 유지
 }
 
 void UWorld::PreLoadResources()
@@ -94,7 +102,7 @@ void UWorld::Release()
 	for (AActor* Actor : Level->GetActors())
 	{
 		Actor->EndPlay(EEndPlayReason::WorldTransition);
-        TSet<UActorComponent*> Components = Actor->GetComponents();
+        TArray<UActorComponent*> Components = Actor->GetComponents();
 	    for (UActorComponent* Component : Components)
 	    {
 	        GUObjectArray.MarkRemoveObject(Component);
@@ -111,7 +119,9 @@ void UWorld::Release()
 
 void UWorld::ClearScene()
 {
-    // 1. 모든 Actor Destroy
+    // 1. PickedActor제거
+    SelectedActor = nullptr;
+    // 2. 모든 Actor Destroy
     
     for (AActor* actor : TObjectRange<AActor>())
     {
@@ -142,14 +152,13 @@ void UWorld::PostDuplicate()
 
 void UWorld::ReloadScene(const FString& FileName)
 {
-    FString NewFile = GEngine->GetSceneManager()->LoadSceneFromFile(FileName);
-
-    // if (SceneOctree && SceneOctree->GetRoot())
-    //     SceneOctree->GetRoot()->TickBuffers(GCurrentFrame, 0);
 
     ClearScene(); // 기존 오브젝트 제거
     CreateBaseObject();
-    GEngine->GetSceneManager()->ParseSceneData(NewFile);
+    FArchive ar;
+    FWindowsBinHelper::LoadFromBin(FileName, ar);
+
+    ar >> *this;
 }
 
 bool UWorld::DestroyActor(AActor* ThisActor)
@@ -172,7 +181,7 @@ bool UWorld::DestroyActor(AActor* ThisActor)
         ThisActor->SetOwner(nullptr);
     }
 
-    TSet<UActorComponent*> Components = ThisActor->GetComponents();
+    TArray<UActorComponent*> Components = ThisActor->GetComponents();
     for (UActorComponent* Component : Components)
     {
         Component->DestroyComponent();
@@ -189,6 +198,38 @@ bool UWorld::DestroyActor(AActor* ThisActor)
 void UWorld::SetPickingGizmo(UObject* Object)
 {
 	pickingGizmo = Cast<USceneComponent>(Object);
+}
+
+void UWorld::Serialize(FArchive& ar) const
+{
+    int ActorCount = Level->GetActors().Num();
+    ar << ActorCount;
+    for (AActor* Actor : Level->GetActors())
+    {
+        FActorInfo ActorInfo = Actor->GetActorInfo();
+        ar << ActorInfo;
+    }
+}
+
+void UWorld::Deserialize(FArchive& ar)
+{
+    int ActorCount;
+    ar >> ActorCount;
+    for (int i = 0; i < ActorCount; i++)
+    {
+        FActorInfo ActorInfo;
+        ar >> ActorInfo;
+        UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorInfo.Type);
+        if (ActorClass)
+        {
+            AActor* Actor = SpawnActorByClass(ActorClass, true);
+            if (Actor)
+            {
+                Actor->LoadAndConstruct(ActorInfo.ComponentInfos);
+                Level->GetActors().Add(Actor);
+            }
+        }
+    }
 }
 
 /*************************임시******************************/

@@ -1,5 +1,40 @@
 #pragma once
 #include "Engine/Source/Runtime/Engine/Classes/Components/SceneComponent.h"
+#include "Serialization/Archive.h"
+
+struct FPrimitiveComponentInfo : FSceneComponentInfo
+{
+    DECLARE_ACTORCOMPONENT_INFO(FPrimitiveComponentInfo);
+
+    FBoundingBox AABB;
+
+    FPrimitiveComponentInfo()
+        : FSceneComponentInfo()
+        , AABB(FVector::ZeroVector, FVector::ZeroVector)
+    {
+        InfoType = TEXT("FPrimitiveComponentInfo");
+        ComponentType = TEXT("UPrimitiveComponent");
+    }
+
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FSceneComponentInfo::Copy(Other);
+        FPrimitiveComponentInfo& OtherPrimitive = static_cast<FPrimitiveComponentInfo&>(Other);
+        AABB = OtherPrimitive.AABB;
+    }
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FSceneComponentInfo::Serialize(ar);
+        ar << AABB;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FSceneComponentInfo::Deserialize(ar);
+        ar >> AABB;
+    }
+};
 
 class UPrimitiveComponent : public USceneComponent
 {
@@ -17,25 +52,19 @@ public:
         const FVector& rayOrigin, const FVector& rayDirection,
         const FVector& v0, const FVector& v1, const FVector& v2, float& hitDistance
     );
-    FBoundingBox AABB;
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
 
     bool MoveComponent(const FVector& Delta) override;
-private:
-    FString m_Type;
+    FBoundingBox AABB;
+    FVector ComponentVelocity;
 
 public:
-    FString GetType() { return m_Type; }
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
 
-    void SetType(const FString& _Type)
-    {
-        m_Type = _Type;
-        //staticMesh = FEngineLoop::resourceMgr.GetMesh(m_Type);
-    }
     FBoundingBox GetBoundingBox() { return AABB; }
 
-    FVector ComponentVelocity;
 };
 

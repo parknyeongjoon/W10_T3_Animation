@@ -11,7 +11,6 @@ UPrimitiveComponent::UPrimitiveComponent()
 UPrimitiveComponent::UPrimitiveComponent(const UPrimitiveComponent& Other)
     : USceneComponent(Other)
     , AABB(Other.AABB)
-    , m_Type(Other.m_Type)
 {
 }
 
@@ -137,4 +136,21 @@ bool UPrimitiveComponent::MoveComponent(const FVector& Delta)
     GetOwner()->SetActorLocation(NewLocation);
 
     return true;
+}
+
+std::shared_ptr<FActorComponentInfo> UPrimitiveComponent::GetActorComponentInfo()
+{
+    std::shared_ptr<FPrimitiveComponentInfo> Info = std::make_shared<FPrimitiveComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+
+    Info->AABB = AABB;
+
+    return Info;
+}
+
+void UPrimitiveComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FPrimitiveComponentInfo* PrimitiveInfo = static_cast<const FPrimitiveComponentInfo*>(&Info);
+    AABB = PrimitiveInfo->AABB;
 }

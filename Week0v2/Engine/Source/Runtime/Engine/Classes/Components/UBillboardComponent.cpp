@@ -13,7 +13,6 @@
 
 UBillboardComponent::UBillboardComponent()
 {
-    SetType(StaticClass()->GetName());
 }
 
 UBillboardComponent::~UBillboardComponent()
@@ -134,6 +133,22 @@ void UBillboardComponent::CreateQuadTextureVertexBuffer()
 	if (!indexTextureBuffer) {
 		Console::GetInstance().AddLog(LogLevel::Warning, "Buffer Error");
 	}
+}
+
+std::shared_ptr<FActorComponentInfo> UBillboardComponent::GetActorComponentInfo()
+{
+    std::shared_ptr<FBillboardComponentInfo>Info = std::make_shared<FBillboardComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+    Info->TexturePath = Texture->path;
+
+    return Info;
+}
+
+void UBillboardComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FBillboardComponentInfo& billboardInfo = static_cast<const FBillboardComponentInfo&>(Info);
+    SetTexture(billboardInfo.TexturePath);
 }
 
 bool UBillboardComponent::CheckPickingOnNDC(const TArray<FVector>& checkQuad, float& hitDistance)

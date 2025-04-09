@@ -432,6 +432,13 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Color.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ExponentialHeightFogComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\AssetDefine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\Color.h" />
+    <ClInclude Include="Engine\Source\Runtime\Serialization\Archive.h" />
+    <ClInclude Include="Engine\Source\Runtime\Serialization\FWindowsBinHelper.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\ActorInfo.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ActorComponentInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -518,6 +525,8 @@
     <FxCompile Include="Shaders\DebugDepthShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\HeightFogPixelShader.hlsl" />
+    <FxCompile Include="Shaders\HeightFogVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week0v2.natvis" />
@@ -540,5 +549,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Color.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ExponentialHeightFogComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Serialization\Archive.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.cpp" />
   </ItemGroup>
 </Project>

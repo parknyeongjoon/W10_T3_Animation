@@ -4,6 +4,8 @@
 #include "Launch/EditorEngine.h"
 #include "UObject/ObjectFactory.h"
 #include "UnrealEd/PrimitiveBatch.h"
+#include "ActorComponentInfo.h"
+#include "Classes/Engine/FLoaderOBJ.h"
 
 
 UStaticMeshComponent::UStaticMeshComponent(const UStaticMeshComponent& Other)
@@ -116,6 +118,23 @@ int UStaticMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayD
 
     }
     return nIntersections;
+}
+std::shared_ptr<FActorComponentInfo> UStaticMeshComponent::GetActorComponentInfo()
+{
+    std::shared_ptr<FStaticMeshComponentInfo> Info = std::make_shared<FStaticMeshComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+
+    Info->StaticMeshPath = staticMesh->GetRenderData()->PathName;
+    return Info;
+}
+void UStaticMeshComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+
+    const FStaticMeshComponentInfo& StaticMeshInfo = static_cast<const FStaticMeshComponentInfo&>(Info);
+    UStaticMesh* Mesh = FManagerOBJ::CreateStaticMesh(FString::ToFString(StaticMeshInfo.StaticMeshPath));
+    SetStaticMesh(Mesh);
+
 }
 UObject* UStaticMeshComponent::Duplicate() const
 {

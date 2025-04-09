@@ -61,6 +61,26 @@ void ULightComponentBase::PostDuplicate()
 {
 }
 
+std::shared_ptr<FActorComponentInfo> ULightComponentBase::GetActorComponentInfo()
+{
+    std::shared_ptr<FLightComponentInfo> Info = std::make_shared<FLightComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+
+    Info->Color = color;
+    Info->Intensity = Intensity;
+    Info->AABB = AABB;
+
+    return Info;
+}
+
+void ULightComponentBase::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FLightComponentInfo& LightInfo = static_cast<const FLightComponentInfo&>(Info);
+    color = LightInfo.Color;
+    Intensity = LightInfo.Intensity;
+}
+
 void ULightComponentBase::InitializeLight()
 {
     AABB.max = { 1.f,1.f,0.1f };

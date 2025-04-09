@@ -116,5 +116,7 @@ public:
 
         return result;
     }
-private:
+public:
+    // Serialize
+
 };

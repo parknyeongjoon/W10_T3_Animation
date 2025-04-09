@@ -1,7 +1,8 @@
-﻿#pragma once
+#pragma once
 #include "Container/Set.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
+#include "Serialization/Archive.h"
 
 class AActor;
 class ULevel : public UObject
@@ -23,9 +24,9 @@ public:
 }
 
 private:
-    TSet<AActor*> Actors;
+    TArray<AActor*> Actors;
 
 public:
-    TSet<AActor*>& GetActors() { return Actors; }
+    TArray<AActor*>& GetActors() { return Actors; }
     TArray<AActor*> PendingBeginPlayActors;
 };

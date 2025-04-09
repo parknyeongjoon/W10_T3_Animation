@@ -7,7 +7,6 @@
 
 UText::UText()
 {
-    SetType(StaticClass()->GetName());
 }
 
 UText::~UText()
@@ -75,6 +74,25 @@ void UText::DuplicateSubObjects(const UObject* Source)
 void UText::PostDuplicate()
 {
     UBillboardComponent::PostDuplicate();
+}
+
+std::shared_ptr<FActorComponentInfo> UText::GetActorComponentInfo()
+{
+    std::shared_ptr<FTextComponentInfo> Info = std::make_shared<FTextComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+
+    Info->Text = text;
+
+    return Info;
+}
+
+void UText::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+
+    // cast
+    const FTextComponentInfo& TextInfo = static_cast<const FTextComponentInfo&>(Info);
+    SetText(TextInfo.Text);
 }
 
 

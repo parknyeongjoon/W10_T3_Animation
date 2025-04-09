@@ -1,7 +1,52 @@
 #pragma once
 #include "PrimitiveComponent.h"
 #include "Define.h"
+#include "UObject/ObjectMacros.h"
+
 class UBillboardComponent;
+
+struct FLightComponentInfo : public FSceneComponentInfo
+{
+    DECLARE_ACTORCOMPONENT_INFO(FLightComponentInfo);
+
+    FVector4 Color;
+    FBoundingBox AABB;
+    float Intensity;
+
+    // ctor
+    FLightComponentInfo()
+        : FSceneComponentInfo()
+        , Color(FVector4(1, 1, 1, 1))
+        , AABB(FVector::ZeroVector, FVector::ZeroVector)
+        , Intensity(1.0f)
+    {
+        InfoType = TEXT("FLightComponentInfo");
+        ComponentType = TEXT("ULightComponentBase");
+    }
+
+    virtual void Copy(FActorComponentInfo& Other) override
+    {
+        FSceneComponentInfo::Copy(Other);
+        FLightComponentInfo& LightInfo = static_cast<FLightComponentInfo&>(Other);
+        LightInfo.Color = Color;
+        LightInfo.AABB = AABB;
+        LightInfo.Intensity = Intensity;
+    }
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FSceneComponentInfo::Serialize(ar);
+        ar << Color << AABB << Intensity;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FSceneComponentInfo::Deserialize(ar);
+        ar >> Color >> AABB >> Intensity;
+    }
+
+};
+
 
 class ULightComponentBase : public USceneComponent
 {
@@ -36,4 +81,9 @@ public:
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
+
+public:
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
+
 };

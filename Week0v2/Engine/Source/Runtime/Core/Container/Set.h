@@ -1,7 +1,8 @@
-﻿#pragma once
+#pragma once
 #include <unordered_set>
 #include "Array.h"
 #include "ContainerAllocator.h"
+#include "Serialization/Archive.h"
 
 
 template <typename T, typename Hasher = std::hash<T>, typename Allocator = FDefaultAllocator<T>>
@@ -74,4 +75,15 @@ public:
 
     // IsEmpty
     bool IsEmpty() const { return ContainerPrivate.empty(); }
+
+
+
+    inline void Serialize(FArchive& ar) const
+    {
+        ar << ContainerPrivate;
+    }
+    inline void Deserialize(FArchive& ar)
+    {
+        ar >> ContainerPrivate;
+    }
 };

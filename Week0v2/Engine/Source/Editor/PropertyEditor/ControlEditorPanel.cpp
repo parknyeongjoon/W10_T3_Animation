@@ -22,6 +22,8 @@
 #include "Classes/Actors/PointLightActor.h"
 #include "Components/PointLightComponent.h"
 #include "Components/GameFramework/ProjectileMovementComponent.h"
+#include "Serialization/Archive.h"
+#include "Serialization/FWindowsBinHelper.h"
 
 void ControlEditorPanel::Render()
 {
@@ -137,7 +139,13 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
             }
 
             // TODO: Save Scene
+            int i = 1;
+            FArchive ar;
+            UWorld World = *GEngine->GetWorld();
+            ar << World;
 
+            FWindowsBinHelper::SaveToBin(FileName, ar);
+            
             tinyfd_messageBox("알림", "저장되었습니다.", "ok", "info", 1);
         }
 
@@ -286,7 +294,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_SPHERE"));
-                    SpawnedActor->AddComponent<USphereComp>();
+                    SpawnedActor->AddComponent<USphereComp>(EComponentOrigin::Editor);
                     break;
                 }
                 case OBJ_CUBE:
@@ -311,7 +319,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_PARTICLE"));
-                    UParticleSubUVComp* ParticleComponent = SpawnedActor->AddComponent<UParticleSubUVComp>();
+                    UParticleSubUVComp* ParticleComponent = SpawnedActor->AddComponent<UParticleSubUVComp>(EComponentOrigin::Editor);
                     ParticleComponent->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
                     ParticleComponent->SetRowColumnCount(6, 6);
                     ParticleComponent->SetScale(FVector(10.0f, 10.0f, 1.0f));
@@ -322,7 +330,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_Text"));
-                    UText* TextComponent = SpawnedActor->AddComponent<UText>();
+                    UText* TextComponent = SpawnedActor->AddComponent<UText>(EComponentOrigin::Editor);
                     TextComponent->SetTexture(L"Assets/Texture/font.png");
                     TextComponent->SetRowColumnCount(106, 106);
                     TextComponent->SetText(L"안녕하세요 Jungle 1");
@@ -332,7 +340,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_Fog"));
-                    UHeightFogComponent* HeightFogComponent = SpawnedActor->AddComponent<UHeightFogComponent>();
+                    UHeightFogComponent* HeightFogComponent = SpawnedActor->AddComponent<UHeightFogComponent>(EComponentOrigin::Editor);
                     break;
                 }
                 case OBJ_DIRECTIONAL_LIGHT:

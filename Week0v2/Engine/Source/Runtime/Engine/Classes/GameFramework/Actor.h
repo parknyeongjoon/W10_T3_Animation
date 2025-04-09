@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectFactory.h"
 #include "UObject/ObjectMacros.h"
+#include "ActorInfo.h"
 
 
 class UActorComponent;
@@ -51,14 +52,16 @@ public:
      */
     template <typename T>
         requires std::derived_from<T, UActorComponent>
-    T* AddComponent();
+    T* AddComponent(EComponentOrigin Origin = EComponentOrigin::Constructor);
 
+    // 클래스 정보를 바탕으로 컴포넌트를 새로 추가.
+    UActorComponent* AddComponentByClass(UClass* ComponentClass, EComponentOrigin Origin);
     void AddComponent(UActorComponent* Component);
     /** Actor가 가지고 있는 Component를 제거합니다. */
     void RemoveOwnedComponent(UActorComponent* Component);
 
     /** Actor가 가지고 있는 모든 컴포넌트를 가져옵니다. */
-    const TSet<UActorComponent*>& GetComponents() const { return OwnedComponents; }
+    const TArray<UActorComponent*>& GetComponents() const { return OwnedComponents; }
 
     template<typename T>
         requires std::derived_from<T, UActorComponent>
@@ -92,6 +95,10 @@ public:
     virtual void PostDuplicate() override;
 
 public:
+    virtual void LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray);
+    virtual FActorInfo GetActorInfo();
+
+public:
     bool ShouldTickInEditor() const { return bTickInEditor; }
     void SetTickInEditor(bool bEnable) { bTickInEditor = bEnable; }
 protected:
@@ -105,7 +112,7 @@ private:
     bool bTickInEditor = false;
     
     /** 본인이 소유하고 있는 컴포넌트들의 정보 */
-    TSet<UActorComponent*> OwnedComponents;
+    TArray<UActorComponent*> OwnedComponents;
 
 
     /** 현재 Actor가 삭제 처리중인지 여부 */
@@ -130,7 +137,7 @@ private:
 
 
 template <typename T> requires std::derived_from<T, UActorComponent>
-T* AActor::AddComponent()
+T* AActor::AddComponent(EComponentOrigin Origin)
 {
     T* Component = FObjectFactory::ConstructObject<T>();
     OwnedComponents.Add(Component);
@@ -151,6 +158,7 @@ T* AActor::AddComponent()
 
     // TODO: RegisterComponent() 생기면 제거
     Component->InitializeComponent();
+    Component->ComponentOrigin = Origin;
 
     return Component;
 }

@@ -162,7 +162,7 @@ HRESULT FResourceMgr::LoadTextureFromFile(ID3D11Device* device, ID3D11DeviceCont
 	device->CreateSamplerState(&samplerDesc, &SamplerState);
 	FWString name = FWString(filename);
 
-	textureMap[name] = std::make_shared<FTexture>(TextureSRV, Texture2D, SamplerState, width, height);
+	textureMap[name] = std::make_shared<FTexture>(TextureSRV, Texture2D, SamplerState, width, height, name);
 
 	Console::GetInstance().AddLog(LogLevel::Warning, "Texture File Load Successs");
 	return hr;
@@ -217,7 +217,7 @@ HRESULT FResourceMgr::LoadTextureFromDDS(ID3D11Device* device, ID3D11DeviceConte
 
 	FWString name = FWString(filename);
 
-	textureMap[name] = std::make_shared<FTexture>(textureView, texture2D, SamplerState, width, height);
+	textureMap[name] = std::make_shared<FTexture>(textureView, texture2D, SamplerState, width, height, name);
 
 	Console::GetInstance().AddLog(LogLevel::Warning, "Texture File Load Successs");
 

@@ -1,5 +1,6 @@
-﻿#pragma once
+#pragma once
 #include "Core/HAL/PlatformType.h"
+#include <functional>
 
 class FString;
 
@@ -22,4 +23,13 @@ public:
     uint32 GetComparisonIndex() const { return ComparisonIndex; }
 
     bool operator==(const FName& Other) const;
+};
+
+template<>
+struct std::hash<FName>
+{
+    size_t operator()(const FName& Name) const
+    {
+        return std::hash<uint32>{}(Name.GetDisplayIndex()) ^ (std::hash<uint32>{}(Name.GetComparisonIndex()) << 1);
+    }
 };

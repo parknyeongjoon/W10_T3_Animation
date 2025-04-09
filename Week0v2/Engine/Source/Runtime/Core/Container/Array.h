@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "ContainerAllocator.h"
+#include "Serialization/Archive.h"
 
 
 template <typename T, typename Allocator>
@@ -113,6 +114,15 @@ public:
         if (ElementIndex < 0 || ElementIndex >= Len()) return false;
 
         return true;
+    }
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << ContainerPrivate;
+    }
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> ContainerPrivate;
     }
 };
 

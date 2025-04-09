@@ -4,6 +4,16 @@
 #include "UObject/ObjectMacros.h"
 
 class AActor;
+struct FActorComponentInfo;
+
+enum class EComponentOrigin
+{
+    None,
+    Constructor,            // 생성자에서 추가한 컴포넌트
+    Editor,                 // 에디터에서 추가한 컴포넌트
+    Runtime,                // 런타임에서 추가한 컴포넌트
+    Serialized,            // 직렬화된 컴포넌트
+};
 
 class UActorComponent : public UObject
 {
@@ -77,6 +87,10 @@ protected:
     virtual void OnRegister();
     virtual void OnUnregister();
 
+public:
+    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo();
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
+
 protected:
     /** Tick을 지원하는 컴포넌트인지 여부 */
     uint8 bCanEverTick : 1;
@@ -107,4 +121,7 @@ private:
 public:
     /** Component가 초기화 되었을 때, 자동으로 활성화할지 여부 */
     uint8 bAutoActive : 1;
+
+public:
+    EComponentOrigin ComponentOrigin = EComponentOrigin::None;
 };

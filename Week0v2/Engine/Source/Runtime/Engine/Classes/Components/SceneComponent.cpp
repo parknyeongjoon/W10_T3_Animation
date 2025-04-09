@@ -3,6 +3,8 @@
 #include "Math/JungleMath.h"
 #include "UObject/ObjectFactory.h"
 #include "UTextUUID.h"
+#include "ActorComponentInfo.h"
+
 USceneComponent::USceneComponent() :RelativeLocation(FVector(0.f, 0.f, 0.f)), RelativeRotation(FVector(0.f, 0.f, 0.f)), RelativeScale3D(FVector(1.f, 1.f, 1.f))
 {
 }
@@ -160,3 +162,28 @@ void USceneComponent::DuplicateSubObjects(const UObject* Source)
 }
 
 void USceneComponent::PostDuplicate() {}
+
+std::shared_ptr<FActorComponentInfo> USceneComponent::GetActorComponentInfo()
+{
+    std::shared_ptr<FSceneComponentInfo> Info = std::make_shared<FSceneComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+
+    Info->InfoType = GetClass()->GetName();
+    Info->RelativeLocation = RelativeLocation;
+    Info->RelativeRotation = RelativeRotation;
+    Info->RelativeScale3D = RelativeScale3D;
+    Info->QuatRotation = QuatRotation;
+
+    // !TODO : AttachedParent
+    return Info;
+}
+
+void USceneComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FSceneComponentInfo& SceneInfo = static_cast<const FSceneComponentInfo&>(Info);
+    RelativeLocation = SceneInfo.RelativeLocation;
+    RelativeRotation = SceneInfo.RelativeRotation;
+    QuatRotation = SceneInfo.QuatRotation;
+    RelativeScale3D = SceneInfo.RelativeScale3D;
+}

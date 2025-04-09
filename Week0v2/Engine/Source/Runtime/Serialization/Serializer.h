@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <fstream>
 
 #include "Container/String.h"

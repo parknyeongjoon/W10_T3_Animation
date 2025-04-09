@@ -34,3 +34,20 @@ void UPointLightComponent::DuplicateSubObjects(const UObject* Source)
 void UPointLightComponent::PostDuplicate()
 {
 }
+
+std::shared_ptr<FActorComponentInfo> UPointLightComponent::GetActorComponentInfo()
+{
+    std::shared_ptr<FPointLightComponentInfo> Info = std::make_shared<FPointLightComponentInfo>();
+    Super::GetActorComponentInfo()->Copy(*Info);
+
+    Info->Radius = Radius;
+
+    return Info;
+}
+
+void UPointLightComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+    const FPointLightComponentInfo& PointLightInfo = static_cast<const FPointLightComponentInfo&>(Info);
+    Radius = PointLightInfo.Radius;
+}

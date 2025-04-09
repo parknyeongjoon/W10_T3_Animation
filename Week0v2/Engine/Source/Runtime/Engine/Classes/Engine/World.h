@@ -25,6 +25,7 @@ public:
     UWorld(const UWorld& Other);
     ;
     void InitWorld();
+    void LoadLevel(const FString& LevelName);
     void PreLoadResources();
     void CreateBaseObject();
     void ReleaseBaseObject();
@@ -44,6 +45,27 @@ public:
         requires std::derived_from<T, AActor>
     T* SpawnActor();
 
+    AActor* SpawnActorByClass(UClass* ActorClass, bool bCallBeginPlay)
+    {
+        if (ActorClass == nullptr)
+            return nullptr;
+
+        AActor* Actor = ActorClass->CreateObject<AActor>();
+        if (Actor == nullptr)
+            return nullptr;
+
+
+        if (bCallBeginPlay)
+        {
+            Level->PendingBeginPlayActors.Add(Actor);
+        }
+        else
+        {
+            Level->GetActors().Add(Actor);
+        }
+
+        return Actor;
+    }
     /** World에 존재하는 Actor를 제거합니다. */
     bool DestroyActor(AActor* ThisActor);
 
@@ -57,7 +79,7 @@ private:
     AEditorPlayer* EditorPlayer = nullptr;
 public:
     EWorldType::Type WorldType = EWorldType::None;
-    const TSet<AActor*>& GetActors() const { return Level->GetActors(); }
+    const TArray<AActor*>& GetActors() const { return Level->GetActors(); }
     ULevel* GetLevel() const { return Level; }
     UTransformGizmo* LocalGizmo = nullptr;
     AEditorPlayer* GetEditorPlayer() const { return EditorPlayer; }
@@ -70,6 +92,11 @@ public:
 
     USceneComponent* GetPickingGizmo() const { return pickingGizmo; }
     void SetPickingGizmo(UObject* Object);
+
+public:
+    // serialize
+    void Serialize(FArchive& ar) const;
+    void Deserialize(FArchive& ar);
 
     // 임시
     bool IsPIEWorld() const;
