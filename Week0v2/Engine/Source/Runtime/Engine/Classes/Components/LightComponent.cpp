@@ -10,6 +10,7 @@ ULightComponentBase::ULightComponentBase()
 {
     // FString name = "SpotLight";
     // SetName(name);
+    color = { 1,1,1,1 };
 }
 
 ULightComponentBase::ULightComponentBase(const ULightComponentBase& Other)
@@ -64,7 +65,6 @@ void ULightComponentBase::InitializeLight()
 {
     AABB.max = { 1.f,1.f,0.1f };
     AABB.min = { -1.f,-1.f,-0.1f };
-    color = { 1,1,1,1 };
 }
 
 void ULightComponentBase::TickComponent(float DeltaTime)

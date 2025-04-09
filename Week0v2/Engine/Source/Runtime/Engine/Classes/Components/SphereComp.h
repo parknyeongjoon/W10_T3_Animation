@@ -8,6 +8,7 @@ class USphereComp : public UStaticMeshComponent
 
 public:
     USphereComp();
+    USphereComp(const USphereComp&);
     virtual ~USphereComp() override;
 
     virtual void InitializeComponent() override;
