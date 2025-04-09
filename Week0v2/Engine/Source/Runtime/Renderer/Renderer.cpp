@@ -197,6 +197,7 @@ void FRenderer::CreateConstantBuffer()
     LightingBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLightingConstant));
     FlagBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLitUnlitConstants));
     CameraConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FCameraConstants));
+    ViewportConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FViewportConstants));
     DepthToWorldBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FDepthToWorldConstants));
     FogConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FHeightFogConstants));
 }
@@ -213,6 +214,7 @@ void FRenderer::ReleaseConstantBuffer()
     RenderResourceManager.ReleaseBuffer(LightingBuffer);
     RenderResourceManager.ReleaseBuffer(FlagBuffer);
     RenderResourceManager.ReleaseBuffer(CameraConstantBuffer);
+    RenderResourceManager.ReleaseBuffer(ViewportConstantBuffer);
     RenderResourceManager.ReleaseBuffer(DepthToWorldBuffer);
 }
 #pragma endregion ConstantBuffer
@@ -329,7 +331,39 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
 
 
     // 6. 포스트 프로세스
-    RenderPostProcess(World, ActiveViewport);
+    RenderPostProcess(World, ActiveViewport, ActiveViewport);
+
+    ClearRenderArr();
+}
+
+void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport)
+{
+    Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
+    Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
+    ChangeViewMode(ActiveViewport->GetViewMode());
+
+    //RenderPostProcess(World, ActiveViewport);
+    // 0. 광원 렌더
+    RenderLight(World, ActiveViewport);
+
+    // 1. 배치 렌더
+    UPrimitiveBatch::GetInstance().RenderBatch(ConstantBuffer, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
+
+    // 2. 스태틱 메시 렌더
+
+    if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
+        RenderStaticMeshes(World, ActiveViewport);
+
+    // 3. 빌보드 렌더(빌보드, 텍스트)
+    if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
+        RenderBillboards(World, ActiveViewport);
+
+    // 4. 기즈모 렌더
+    RenderGizmos(World, ActiveViewport);
+
+
+    // 6. 포스트 프로세스
+    RenderPostProcess(World, ActiveViewport, CurrentViewport);
 
     ClearRenderArr();
 }
@@ -562,12 +596,12 @@ void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportC
     PrepareShader();
 }
 
-void FRenderer::RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
+void FRenderer::RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport)
 {
 
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Fog)) 
     {
-        RenderHeightFog(ActiveViewport);
+        RenderHeightFog(ActiveViewport, CurrentViewport);
     }
     RenderDebugDepth(ActiveViewport);
 }
@@ -590,10 +624,21 @@ void FRenderer::RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveVi
     Graphics->DeviceContext->VSSetShader(DebugDepthVertexShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(DebugDepthPixelShader, nullptr, 0);
     
+    FViewportConstants ViewportConstants;
+    ViewportConstants.ViewportWidth = ActiveViewport->Viewport->GetViewport().Width / Graphics->screenWidth;
+    ViewportConstants.ViewportHeight = ActiveViewport->Viewport->GetViewport().Height/ Graphics->screenHeight;
+    ViewportConstants.ViewportOffsetX = ActiveViewport->Viewport->GetViewport().TopLeftX/ Graphics->screenWidth;
+    ViewportConstants.ViewportOffsetY = ActiveViewport->Viewport->GetViewport().TopLeftY/ Graphics->screenHeight;
+    
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    Graphics->DeviceContext->Map(ViewportConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    memcpy(mappedResource.pData, &ViewportConstants, sizeof(FViewportConstants));
+    Graphics->DeviceContext->Unmap(ViewportConstantBuffer, 0);
+
     // 렌더링 시 샘플러 설정
     Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &CameraConstantBuffer);
     Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &CameraConstantBuffer);
-
+    Graphics->DeviceContext->PSSetConstantBuffers(1, 1, &ViewportConstantBuffer);
 
     Graphics->DeviceContext->Draw(4, 0);
 }
@@ -760,7 +805,7 @@ void FRenderer::UpdateLinePrimitveCountBuffer(int numBoundingBoxes, int numCones
     Graphics->DeviceContext->Unmap(LinePrimitiveBuffer, 0);
 }
 
-void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport)
+void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport)
 {
     // 활성화된 Height Fog 컴포넌트 찾기
     UHeightFogComponent* HeightFogComp = nullptr;
@@ -810,12 +855,24 @@ void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveVie
     memcpy(mappedResource.pData, &fogParams, sizeof(FHeightFogConstants));
     Graphics->DeviceContext->Unmap(FogConstantBuffer, 0);
 
+    FViewportConstants ViewportConstants;
+    ViewportConstants.ViewportWidth = CurrentViewport->Viewport->GetViewport().Width / Graphics->screenWidth;
+    ViewportConstants.ViewportHeight = CurrentViewport->Viewport->GetViewport().Height / Graphics->screenHeight;
+    ViewportConstants.ViewportOffsetX = CurrentViewport->Viewport->GetViewport().TopLeftX / Graphics->screenWidth;
+    ViewportConstants.ViewportOffsetY = CurrentViewport->Viewport->GetViewport().TopLeftY / Graphics->screenHeight;
+
+    D3D11_MAPPED_SUBRESOURCE viewportMappedResource;
+    Graphics->DeviceContext->Map(ViewportConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &viewportMappedResource);
+    memcpy(viewportMappedResource.pData, &ViewportConstants, sizeof(FViewportConstants));
+    Graphics->DeviceContext->Unmap(ViewportConstantBuffer, 0);
+
     // 백퍼버 복사
     Graphics->CreateSceneColorResources();
     Graphics->DeviceContext->CopyResource(Graphics->DepthCopyTexture, Graphics->DepthStencilBuffer);
     // 겹치지 않도록 하기 위해 임시로 Slot를 현재 사용하지 않는 슬롯으로 지정함
     Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &CameraConstantBuffer);
     Graphics->DeviceContext->PSSetConstantBuffers(6, 1, &FogConstantBuffer);
+    Graphics->DeviceContext->PSSetConstantBuffers(1, 1, &ViewportConstantBuffer);
     Graphics->DeviceContext->PSSetShaderResources(5, 1, &Graphics->SceneColorSRV);
     Graphics->DeviceContext->PSSetShaderResources(0, 1, &Graphics->DepthCopySRV);
 

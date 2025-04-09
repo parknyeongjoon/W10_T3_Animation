@@ -74,14 +74,14 @@ void UEditorEngine::Render()
         {
             LevelEditor->SetViewportClient(i);
             renderer.PrepareRender();
-            renderer.Render(GWorld.get(),LevelEditor->GetActiveViewportClient());
+            renderer.Render(GWorld.get(), LevelEditor->GetActiveViewportClient(), LevelEditor->GetViewports()[i]);
         }
         GetLevelEditor()->SetViewportClient(viewportClient);
     }
     else
     {
         renderer.PrepareRender();
-        renderer.Render(GWorld.get(),LevelEditor->GetActiveViewportClient());
+        renderer.Render(GWorld.get(), LevelEditor->GetActiveViewportClient());
     }
 }
 
