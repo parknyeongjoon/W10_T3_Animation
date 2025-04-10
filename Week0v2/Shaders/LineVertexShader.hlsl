@@ -1,24 +1,26 @@
 
-cbuffer MatrixBuffer : register(b0)
+cbuffer FMatrixBuffer : register(b0)
 {
     row_major float4x4 Model;
     row_major float4x4 ViewProj;
 };
 
-cbuffer GridParametersData : register(b1)
+cbuffer FGridParametersData : register(b1)
 {
     float GridSpacing;
     int GridCount; // 총 grid 라인 수
     float3 GridOrigin; // Grid의 중심
     float Padding;
 };
-cbuffer PrimitiveCounts : register(b3)
+
+cbuffer FPrimitiveCounts : register(b3)
 {
     int BoundingBoxCount; // 렌더링할 AABB의 개수
     int pad;
     int ConeCount; // 렌더링할 cone의 개수
     int pad1;
 };
+
 struct FBoundingBoxData
 {
     float3 bbMin;
@@ -26,6 +28,7 @@ struct FBoundingBoxData
     float3 bbMax;
     float padding1;
 };
+
 struct FConeData
 {
     float3 ConeApex; // 원뿔의 꼭짓점
@@ -38,6 +41,7 @@ struct FConeData
     int ConeSegmentCount; // 원뿔 밑면 분할 수
     float pad[3];
 };
+
 struct FOrientedBoxCornerData
 {
     float3 corners[8]; // 회전/이동 된 월드 공간상의 8꼭짓점
@@ -46,6 +50,7 @@ struct FOrientedBoxCornerData
 StructuredBuffer<FBoundingBoxData> g_BoundingBoxes : register(t2);
 StructuredBuffer<FConeData> g_ConeData : register(t3);
 StructuredBuffer<FOrientedBoxCornerData> g_OrientedBoxes : register(t4);
+
 static const int BB_EdgeIndices[12][2] =
 {
     { 0, 1 },
@@ -311,9 +316,4 @@ PS_INPUT mainVS(VS_INPUT input)
     output.Position = mul(output.Position, ViewProj);
     output.Color = color;
     return output;
-}
-
-float4 mainPS(PS_INPUT input) : SV_Target
-{
-    return input.Color;
 }

@@ -421,8 +421,6 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\World.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\UnrealEngine.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\EditorEngine.h" />
-    <ClInclude Include="Engine\Source\Runtime\Renderer\ConstantBufferUpdater.h" />
-    <ClInclude Include="Engine\Source\Runtime\Renderer\ShaderManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderResourceManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PointLightComponent.h" />
@@ -431,7 +429,6 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\DirectionalLightActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Color.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ExponentialHeightFogComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\AssetDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Color.h" />
     <ClInclude Include="Engine\Source\Runtime\Serialization\Archive.h" />
@@ -439,6 +436,13 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\ActorInfo.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ActorComponentInfo.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBallActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\FireBallComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\MovementComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\ProjectileMovementComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\RotatingMovementComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\VIBuffers.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\FShaderProgram.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -504,16 +508,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Actor.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\PixelTextureShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\ShaderLine.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\ShaderW0.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\VertexTextureShader.hlsl">
+    <FxCompile Include="Shaders\LineVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\StaticMeshVertexShader.hlsl">
@@ -522,11 +517,15 @@
     <FxCompile Include="Shaders\StaticMeshPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\DebugDepthShader.hlsl">
+    <FxCompile Include="Shaders\DebugDepthVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HeightFogPixelShader.hlsl" />
     <FxCompile Include="Shaders\HeightFogVertexShader.hlsl" />
+    <FxCompile Include="Shaders\TexturePixelShader.hlsl" />
+    <FxCompile Include="Shaders\TextureVertexShader.hlsl" />
+    <FxCompile Include="Shaders\LinePixelShader.hlsl" />
+    <FxCompile Include="Shaders\DebugDepthPixelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week0v2.natvis" />
@@ -535,21 +534,25 @@
     <ClCompile Include="UEditorStateManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Level.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Renderer\ConstantBufferUpdater.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\World.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\UnrealEngine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\EditorEngine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResourceManager.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Renderer\ShaderManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PointLightComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\DirectionalLightComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\DirectionalLightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Color.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ExponentialHeightFogComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Serialization\Archive.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBallActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\FireBallComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\MovementComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\ProjectileMovementComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\RotatingMovementComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\VIBuffers.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\FShaderProgram.cpp" />
   </ItemGroup>
 </Project>

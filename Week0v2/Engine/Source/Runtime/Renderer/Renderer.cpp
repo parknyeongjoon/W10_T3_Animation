@@ -21,138 +21,410 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UObject/UObjectIterator.h"
 #include "Components/SkySphereComponent.h"
+#include "D3D11RHI/FShaderProgram.h"
 #include "Engine/UnrealClient.h"
 
 
 void FRenderer::Initialize(FGraphicsDevice* graphics)
 {
     Graphics = graphics;
-    RenderResourceManager.Initialize(Graphics->Device);
-    ShaderManager.Initialize(Graphics->Device, Graphics->DeviceContext);
-    ConstantBufferUpdater.Initialize(Graphics->DeviceContext);
-
+    RenderResourceManager.Initialize(Graphics);
     CreateShader();
-    CreateConstantBuffer();
-    CreateBlendState();
-    ConstantBufferUpdater.UpdateLitUnlitConstant(FlagBuffer, 1);
-
-    // temp
-    D3D11_SAMPLER_DESC sampDesc = {};
-    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-    Graphics->Device->CreateSamplerState(&sampDesc, &DebugDepthSRVSampler);
-
 }
 
 void FRenderer::Release()
 {
     ReleaseShader();
-    ReleaseConstantBuffer();
-    ReleaseBlendState();
 }
 
 #pragma region Shader
-void FRenderer::CreateShader()
+void FRenderer::CreateStaticMeshShader()
 {
-    // 기본 셰이더 설정
-    D3D11_INPUT_ELEMENT_DESC layout[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 40, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"MATERIAL_INDEX", 0, DXGI_FORMAT_R32_UINT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
-    };
+    ID3DBlob* VSBlob_StaticMesh = nullptr;
+    ID3DBlob* PSBlob_StaticMesh = nullptr;
 
-	ShaderManager.CreateVertexShader(
-        L"Shaders/StaticMeshVertexShader.hlsl", "mainVS",
-        VertexShader, layout, ARRAYSIZE(layout), &InputLayout, &Stride, sizeof(FVertexSimple));
-
-
-    ShaderManager.CreatePixelShader(
-        L"Shaders/StaticMeshPixelShader.hlsl", "mainPS",
-        PixelShader);
-
-    // 텍스쳐 셰이더 설정
-    D3D11_INPUT_ELEMENT_DESC textureLayout[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
-    };
-
-    ShaderManager.CreateVertexShader(
-        L"Shaders/VertexTextureShader.hlsl", "main",
-        VertexTextureShader, textureLayout, ARRAYSIZE(textureLayout), &TextureInputLayout, &TextureStride, sizeof(FVertexTexture));
-
-    ShaderManager.CreatePixelShader(
-        L"Shaders/PixelTextureShader.hlsl", "main",
-        PixelTextureShader);
-
-    // 라인 셰이더 설정
-    ShaderManager.CreateVertexShader(
-        L"Shaders/ShaderLine.hlsl", "mainVS",
-        VertexLineShader, nullptr, 0); // 라인 셰이더는 Layout 안 쓰면 nullptr 전달
-
-    ShaderManager.CreatePixelShader(
-        L"Shaders/ShaderLine.hlsl", "mainPS",
-        PixelLineShader);
-
-    ShaderManager.CreateVertexShader(
-        L"Shaders/DebugDepthShader.hlsl", "mainVS",
-        DebugDepthVertexShader, nullptr, 0); 
-
-    ShaderManager.CreatePixelShader(
-        L"Shaders/DebugDepthShader.hlsl", "mainPS",
-        DebugDepthPixelShader);
+    ID3D11VertexShader* VertexShader;
+    ID3D11PixelShader* PixelShader;
+    ID3D11InputLayout* InputLayout;
     
-    ShaderManager.CreateVertexShader(
-        L"Shaders/HeightFogVertexShader.hlsl", "mainVS",
-        HeightFogVertexShader, nullptr, 0);
+    VertexShader = RenderResourceManager.GetVertexShader(TEXT("StaticMeshVS"));
+    if (VertexShader == nullptr)
+    {
+        Graphics->CreateVertexShader(TEXT("StaticMeshVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompileVertexShader(TEXT("StaticMeshVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh);
+    }
+    RenderResourceManager.AddOrSetVertexShader(TEXT("StaticMeshVS"), VertexShader);
+    
+    PixelShader = RenderResourceManager.GetPixelShader(TEXT("StaticMeshPS"));
+    if (PixelShader == nullptr)
+    {
+        Graphics->CreatePixelShader(TEXT("StaticMeshPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompilePixelShader(TEXT("StaticMeshPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh);
+    }
+    RenderResourceManager.AddOrSetPixelShader(TEXT("StaticMeshPS"), PixelShader);
 
-    ShaderManager.CreatePixelShader(
-        L"Shaders/HeightFogPixelShader.hlsl", "mainPS",
-        HeightFogPixelShader);
+    D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+    
+    Graphics->Device->CreateInputLayout(
+        layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
+    );
+    
+    const TArray<FConstantBufferInfo> VertexStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(VSBlob_StaticMesh);
+    const TArray<FConstantBufferInfo> PixelStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(PSBlob_StaticMesh);
+    
+    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+
+    for (const FConstantBufferInfo item : VertexStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::VS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager.GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager.CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager.AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    for (const FConstantBufferInfo item :PixelStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::PS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager.GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager.CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager.AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    MappingVSPSInputLayout(TEXT("StaticMesh"), TEXT("StaticMeshVS"), TEXT("StaticMeshPS"), InputLayout);
+    MappingVSPSCBSlot(TEXT("StaticMesh"), ShaderStageToCB);
+
+    // TODO : Create RenderPass
+    //staticMeshRenderPass = std::make_shared<StaticMeshRenderPass>(TEXT("StaticMesh"));
+    //gizmoRenderPass = std::make_shared<GizmoRenderPass>(TEXT("StaticMesh"));
+
+    SAFE_RELEASE(VSBlob_StaticMesh)
+    SAFE_RELEASE(PSBlob_StaticMesh)
+}
+
+void FRenderer::CreateTextureShader()
+{
+    ID3DBlob* VSBlob_StaticMesh = nullptr;
+    ID3DBlob* PSBlob_StaticMesh = nullptr;
+
+    ID3D11VertexShader* VertexShader;
+    ID3D11PixelShader* PixelShader;
+    ID3D11InputLayout* InputLayout;
+    
+    VertexShader = RenderResourceManager.GetVertexShader(TEXT("TextureVS"));
+    if (VertexShader == nullptr)
+    {
+        Graphics->CreateVertexShader(TEXT("TextureVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompileVertexShader(TEXT("TextureVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh);
+    }
+    RenderResourceManager.AddOrSetVertexShader(TEXT("TextureVS"), VertexShader);
+    
+    PixelShader = RenderResourceManager.GetPixelShader(TEXT("TexturePS"));
+    if (PixelShader == nullptr)
+    {
+        Graphics->CreatePixelShader(TEXT("TexturePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompilePixelShader(TEXT("TexturePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh);
+    }
+    RenderResourceManager.AddOrSetPixelShader(TEXT("TexturePS"), PixelShader);
+
+    D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+    
+    Graphics->Device->CreateInputLayout(
+        layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
+    );
+    
+    const TArray<FConstantBufferInfo> VertexStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(VSBlob_StaticMesh);
+    const TArray<FConstantBufferInfo> PixelStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(PSBlob_StaticMesh);
+    
+    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+
+    for (const FConstantBufferInfo item : VertexStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::VS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager.GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager.CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager.AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    for (const FConstantBufferInfo item :PixelStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::PS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager.GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager.CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager.AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    MappingVSPSInputLayout(TEXT("Texture"), TEXT("TextureVS"), TEXT("TexturePS"), InputLayout);
+    MappingVSPSCBSlot(TEXT("Texture"), ShaderStageToCB);
+
+    // TODO : Create RenderPass
+
+    SAFE_RELEASE(VSBlob_StaticMesh)
+    SAFE_RELEASE(PSBlob_StaticMesh)
+}
+
+void FRenderer::CreateLineShader()
+{
+    ID3DBlob* VSBlob_StaticMesh = nullptr;
+    ID3DBlob* PSBlob_StaticMesh = nullptr;
+
+    ID3D11VertexShader* VertexShader;
+    ID3D11PixelShader* PixelShader;
+    ID3D11InputLayout* InputLayout;
+    
+    VertexShader = RenderResourceManager.GetVertexShader(TEXT("LineVS"));
+    if (VertexShader == nullptr)
+    {
+        Graphics->CreateVertexShader(TEXT("LineVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompileVertexShader(TEXT("LineVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh);
+    }
+    RenderResourceManager.AddOrSetVertexShader(TEXT("LineVS"), VertexShader);
+    
+    PixelShader = RenderResourceManager.GetPixelShader(TEXT("LinePS"));
+    if (PixelShader == nullptr)
+    {
+        Graphics->CreatePixelShader(TEXT("LinePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompilePixelShader(TEXT("LinePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh);
+    }
+    RenderResourceManager.AddOrSetPixelShader(TEXT("LinePS"), PixelShader);
+
+    D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
+    {
+        // 정점 ID: 32비트 부호 없는 정수, 입력 슬로트 0, Per-Vertex 데이터
+        { "SV_VertexID", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    
+        // 인스턴스 ID: 32비트 부호 없는 정수, 입력 슬로트 1, Per-Instance 데이터
+        { "SV_InstanceID", 0, DXGI_FORMAT_R32_UINT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+    };
+    
+    Graphics->Device->CreateInputLayout(
+        layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
+    );
+    
+    const TArray<FConstantBufferInfo> VertexStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(VSBlob_StaticMesh);
+    const TArray<FConstantBufferInfo> PixelStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(PSBlob_StaticMesh);
+    
+    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+
+    for (const FConstantBufferInfo item : VertexStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::VS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager.GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager.CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager.AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    for (const FConstantBufferInfo item :PixelStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::PS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager.GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager.CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager.AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    MappingVSPSInputLayout(TEXT("Line"), TEXT("LineVS"), TEXT("LinePS"), InputLayout);
+    MappingVSPSCBSlot(TEXT("Line"), ShaderStageToCB);
+
+    // TODO : Create RenderPass
+
+    SAFE_RELEASE(VSBlob_StaticMesh)
+    SAFE_RELEASE(PSBlob_StaticMesh)
+}
+
+void FRenderer::CreateFogShader()
+{
+    ID3DBlob* VSBlob_StaticMesh = nullptr;
+    ID3DBlob* PSBlob_StaticMesh = nullptr;
+
+    ID3D11VertexShader* VertexShader;
+    ID3D11PixelShader* PixelShader;
+    ID3D11InputLayout* InputLayout;
+    
+    VertexShader = RenderResourceManager.GetVertexShader(TEXT("FogVS"));
+    if (VertexShader == nullptr)
+    {
+        Graphics->CreateVertexShader(TEXT("HeightFogVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompileVertexShader(TEXT("HeightFogVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh);
+    }
+    RenderResourceManager.AddOrSetVertexShader(TEXT("FogVS"), VertexShader);
+    
+    PixelShader = RenderResourceManager.GetPixelShader(TEXT("FogPS"));
+    if (PixelShader == nullptr)
+    {
+        Graphics->CreatePixelShader(TEXT("HeightFogPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompilePixelShader(TEXT("HeightFogPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh);
+    }
+    RenderResourceManager.AddOrSetPixelShader(TEXT("FogPS"), PixelShader);
+
+    D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
+    {
+        // 정점 ID: 32비트 부호 없는 정수, 입력 슬로트 0, Per-Vertex 데이터
+        { "SV_VertexID", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    
+    Graphics->Device->CreateInputLayout(
+        layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
+    );
+    
+    const TArray<FConstantBufferInfo> VertexStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(VSBlob_StaticMesh);
+    const TArray<FConstantBufferInfo> PixelStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(PSBlob_StaticMesh);
+    
+    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+
+    for (const FConstantBufferInfo item : VertexStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::VS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager.GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager.CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager.AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    for (const FConstantBufferInfo item :PixelStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::PS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager.GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager.CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager.AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    MappingVSPSInputLayout(TEXT("Fog"), TEXT("FogVS"), TEXT("FogPS"), InputLayout);
+    MappingVSPSCBSlot(TEXT("Fog"), ShaderStageToCB);
+
+    // TODO : Create RenderPass
+
+    SAFE_RELEASE(VSBlob_StaticMesh)
+    SAFE_RELEASE(PSBlob_StaticMesh)
+}
+
+void FRenderer::CreateDebugDepthShader()
+{
+    ID3DBlob* VSBlob_StaticMesh = nullptr;
+    ID3DBlob* PSBlob_StaticMesh = nullptr;
+
+    ID3D11VertexShader* VertexShader;
+    ID3D11PixelShader* PixelShader;
+    ID3D11InputLayout* InputLayout;
+    
+    VertexShader = RenderResourceManager.GetVertexShader(TEXT("DebugDepthVS"));
+    if (VertexShader == nullptr)
+    {
+        Graphics->CreateVertexShader(TEXT("DebugDepthVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompileVertexShader(TEXT("DebugDepthVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh);
+    }
+    RenderResourceManager.AddOrSetVertexShader(TEXT("DebugDepthVS"), VertexShader);
+    
+    PixelShader = RenderResourceManager.GetPixelShader(TEXT("DebugDepthPS"));
+    if (PixelShader == nullptr)
+    {
+        Graphics->CreatePixelShader(TEXT("DebugDepthPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompilePixelShader(TEXT("DebugDepthPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh);
+    }
+    RenderResourceManager.AddOrSetPixelShader(TEXT("DebugDepthPS"), PixelShader);
+
+    D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
+    {
+        // 정점 ID: 32비트 부호 없는 정수, 입력 슬로트 0, Per-Vertex 데이터
+        { "SV_VertexID", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    
+    Graphics->Device->CreateInputLayout(
+        layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
+    );
+    
+    const TArray<FConstantBufferInfo> VertexStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(VSBlob_StaticMesh);
+    const TArray<FConstantBufferInfo> PixelStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(PSBlob_StaticMesh);
+    
+    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+
+    for (const FConstantBufferInfo item : VertexStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::VS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager.GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager.CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager.AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    for (const FConstantBufferInfo item :PixelStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::PS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager.GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager.CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager.AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    MappingVSPSInputLayout(TEXT("DebugDepth"), TEXT("DebugDepthVS"), TEXT("DebugDepthPS"), InputLayout);
+    MappingVSPSCBSlot(TEXT("DebugDepth"), ShaderStageToCB);
+
+    // TODO : Create RenderPass
+
+    SAFE_RELEASE(VSBlob_StaticMesh)
+    SAFE_RELEASE(PSBlob_StaticMesh) 
 }
 
 void FRenderer::ReleaseShader()
 {
-    ShaderManager.ReleaseShader(InputLayout, VertexShader, PixelShader);
-    ShaderManager.ReleaseShader(TextureInputLayout, VertexTextureShader, PixelTextureShader);
-    ShaderManager.ReleaseShader(nullptr, VertexLineShader, PixelLineShader);
-    ShaderManager.ReleaseShader(nullptr, DebugDepthVertexShader, DebugDepthPixelShader);
-    ShaderManager.ReleaseShader(nullptr, HeightFogVertexShader, HeightFogPixelShader);
-}
-
-
-// Prepare
-void FRenderer::PrepareShader() const
-{
-    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(InputLayout);
-
-    if (ConstantBuffer)
-    {
-        Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &ConstantBuffer);
-        Graphics->DeviceContext->PSSetConstantBuffers(1, 1, &MaterialConstantBuffer);
-        Graphics->DeviceContext->PSSetConstantBuffers(2, 1, &LightingBuffer);
-        Graphics->DeviceContext->PSSetConstantBuffers(3, 1, &FlagBuffer);
-        Graphics->DeviceContext->PSSetConstantBuffers(4, 1, &SubMeshConstantBuffer);
-        Graphics->DeviceContext->PSSetConstantBuffers(5, 1, &TextureConstantBufer);
-        Graphics->DeviceContext->PSSetConstantBuffers(6, 1, &CameraConstantBuffer);
-    }
-}
-
-void FRenderer::PrepareTextureShader() const
-{
-    Graphics->DeviceContext->VSSetShader(VertexTextureShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelTextureShader, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(TextureInputLayout);
-
-    if (ConstantBuffer)
-    {
-        Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &ConstantBuffer);
-    }
+    // RenderResourceManager.ReleaseShader(InputLayout, VertexShader, PixelShader);
+    // ShaderManager.ReleaseShader(TextureInputLayout, VertexTextureShader, PixelTextureShader);
+    // ShaderManager.ReleaseShader(nullptr, VertexLineShader, PixelLineShader);
+    // ShaderManager.ReleaseShader(nullptr, DebugDepthVertexShader, DebugDepthPixelShader);
+    // ShaderManager.ReleaseShader(nullptr, HeightFogVertexShader, HeightFogPixelShader);
 }
 
 void FRenderer::PrepareSubUVConstant() const
@@ -182,77 +454,7 @@ void FRenderer::PrepareLineShader() const
 }
 #pragma endregion Shader
 
-
-#pragma region ConstantBuffer
-// ConstantBuffer
-void FRenderer::CreateConstantBuffer()
-{
-    ConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FConstants));
-    SubUVConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FSubUVConstant));
-    GridConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FGridParameters));
-    LinePrimitiveBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FPrimitiveCounts));
-    MaterialConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FMaterialConstants));
-    SubMeshConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FSubMeshConstants));
-    TextureConstantBufer = RenderResourceManager.CreateConstantBuffer(sizeof(FTextureConstants));
-    LightingBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLightingConstant));
-    FlagBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FLitUnlitConstants));
-    CameraConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FCameraConstants));
-    ViewportConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FViewportConstants));
-    DepthToWorldBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FDepthToWorldConstants));
-    FogConstantBuffer = RenderResourceManager.CreateConstantBuffer(sizeof(FHeightFogConstants));
-}
-
-void FRenderer::ReleaseConstantBuffer()
-{
-    RenderResourceManager.ReleaseBuffer(ConstantBuffer);
-    RenderResourceManager.ReleaseBuffer(SubUVConstantBuffer);
-    RenderResourceManager.ReleaseBuffer(GridConstantBuffer);
-    RenderResourceManager.ReleaseBuffer(LinePrimitiveBuffer);
-    RenderResourceManager.ReleaseBuffer(MaterialConstantBuffer);
-    RenderResourceManager.ReleaseBuffer(SubMeshConstantBuffer);
-    RenderResourceManager.ReleaseBuffer(TextureConstantBufer);
-    RenderResourceManager.ReleaseBuffer(LightingBuffer);
-    RenderResourceManager.ReleaseBuffer(FlagBuffer);
-    RenderResourceManager.ReleaseBuffer(CameraConstantBuffer);
-    RenderResourceManager.ReleaseBuffer(ViewportConstantBuffer);
-    RenderResourceManager.ReleaseBuffer(DepthToWorldBuffer);
-}
-#pragma endregion ConstantBuffer
-
-#pragma region BlendState
-void FRenderer::CreateBlendState()
-{
-    D3D11_BLEND_DESC blendDesc = {};
-    blendDesc.RenderTarget[0].BlendEnable = true;
-    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    Graphics->Device->CreateBlendState(&blendDesc, &NormalBlendState);
-    
-}
-void FRenderer::ReleaseBlendState()
-{
-    if (NormalBlendState)
-    {
-        NormalBlendState->Release();
-        NormalBlendState = nullptr;
-    }
-}
 #pragma endregion BlendState
-#pragma region
-
-void FRenderer::ClearRenderArr()
-{
-    StaticMeshObjs.Empty();
-    GizmoObjs.Empty();
-    BillboardObjs.Empty();
-    LightObjs.Empty();
-}
-
 void FRenderer::PrepareRender()
 {
     if (GEngine->GetWorld()->WorldType == EWorldType::Editor)
@@ -878,4 +1080,14 @@ void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveVie
 
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
     Graphics->DeviceContext->Draw(4, 0);
+}
+
+void FRenderer::MappingVSPSInputLayout(const FName InShaderProgramName, FName VSName, FName PSName, ID3D11InputLayout* InputLayout)
+{
+    ShaderPrograms.Add(InShaderProgramName, std::make_shared<FShaderProgram>(VSName, PSName, InputLayout));
+}
+
+void FRenderer::MappingVSPSCBSlot(const FName InShaderName, const TMap<FShaderConstantKey, uint32>& MappedConstants)
+{
+    ShaderConstantNameAndSlots.Add(InShaderName, MappedConstants);
 }

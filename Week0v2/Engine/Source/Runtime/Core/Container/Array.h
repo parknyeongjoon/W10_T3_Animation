@@ -110,6 +110,8 @@ public:
         requires std::is_invocable_r_v<bool, Compare, const T&, const T&>
     void Sort(const Compare& CompFn);
 
+    void AppendArray(const T* array, SizeType count);
+
     bool IsValidIndex(uint32 ElementIndex) const {
         if (ElementIndex < 0 || ElementIndex >= Len()) return false;
 
@@ -351,6 +353,15 @@ template <typename Compare>
 void TArray<T, Allocator>::Sort(const Compare& CompFn)
 {
     std::sort(ContainerPrivate.begin(), ContainerPrivate.end(), CompFn);
+}
+
+template <typename T, typename Allocator>
+void TArray<T, Allocator>::AppendArray(const T* array, SizeType count)
+{
+    if (array && count > 0)
+    {
+        ContainerPrivate.insert(ContainerPrivate.end(), array, array + count);
+    }
 }
 
 template <typename T, typename Allocator = FDefaultAllocator<T>> class TArray;

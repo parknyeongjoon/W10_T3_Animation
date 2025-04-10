@@ -1,5 +1,5 @@
+#include "ShaderHeaders/GSamplers.hlsli"
 Texture2D Textures : register(t0);
-SamplerState Sampler : register(s0);
 
 cbuffer MatrixConstants : register(b0)
 {
@@ -11,21 +11,16 @@ cbuffer MatrixConstants : register(b0)
     float3 MatrixPad0;
 };
 
-struct FMaterial
+cbuffer FMaterialConstants : register(b1)
 {
     float3 DiffuseColor;
     float TransparencyScalar;
-    float3 AmbientColor;
+    float3 MatAmbientColor;
     float DensityScalar;
     float3 SpecularColor;
     float SpecularScalar;
     float3 EmissiveColor;
     float MaterialPad0;
-};
-
-cbuffer MaterialConstants : register(b1)
-{
-    FMaterial Material;
 }
 
 struct FDirectionalLight
@@ -48,7 +43,7 @@ struct FPointLight
     float3 pad;
 };
 
-cbuffer LightingConstants : register(b2)
+cbuffer FLightingConstants : register(b2)
 {
     float3 AmbientColor;
     float AmbientIntensity;
@@ -61,25 +56,25 @@ cbuffer LightingConstants : register(b2)
     FPointLight PointLights[16];
 };
 
-cbuffer FlagConstants : register(b3)
+cbuffer FFlagConstants : register(b3)
 {
     bool IsLit;
     float3 flagPad0;
 }
 
-cbuffer SubMeshConstants : register(b4)
+cbuffer FSubMeshConstants : register(b4)
 {
     bool IsSelectedSubMesh;
     float3 SubMeshPad0;
 }
 
-cbuffer TextureConstants : register(b5)
+cbuffer FTextureConstants : register(b5)
 {
     float2 UVOffset;
     float2 TexturePad0;
 }
 
-cbuffer CameraConstant : register(b6)
+cbuffer FCameraConstant : register(b6)
 {
     matrix ViewMatrix;
     matrix ProjMatrix;
@@ -99,7 +94,6 @@ struct PS_INPUT
     float3 normal : NORMAL; // 정규화된 노멀 벡터
     bool normalFlag : TEXCOORD0; // 노멀 유효성 플래그 (1.0: 유효, 0.0: 무효)
     float2 texcoord : TEXCOORD1;
-    int materialIndex : MATERIAL_INDEX;
 };
 
 struct PS_OUTPUT
@@ -182,7 +176,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     output.UUID = UUID;
     
-    float4 baseColor = Textures.Sample(Sampler, input.texcoord + UVOffset) + float4(Material.DiffuseColor, Material.TransparencyScalar);
+    float4 baseColor = Textures.Sample(linearSampler, input.texcoord + UVOffset) + float4(DiffuseColor, TransparencyScalar);
     
     if(!IsLit)
     {
@@ -197,12 +191,12 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     for (uint i = 0; i < NumDirectionalLights; i++)
     {
-        result += CalculateDirectionalLight(DirLights[i], Normal, ViewDir, baseColor.rgb, Material.SpecularColor, Material.SpecularScalar);
+        result += CalculateDirectionalLight(DirLights[i], Normal, ViewDir, baseColor.rgb, SpecularColor, SpecularScalar);
     }
     
     for (uint j = 0; j < NumPointLights; j++)
     {
-        result += CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb, Material.SpecularColor, Material.SpecularScalar);
+        result += CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb, SpecularColor, SpecularScalar);
     }
     
     output.color = float4(result, baseColor.a);

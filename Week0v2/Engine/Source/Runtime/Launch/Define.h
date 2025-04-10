@@ -132,32 +132,124 @@ namespace OBJ
     };
 }
 
+enum class EShaderStage
+{
+    VS,		// Vertex Shader
+    HS,		// Hull Shader
+    DS,		// Domain Shader
+    GS,		// Geometry Shader
+    PS,		// Pixel Shader
+    CS,		// Compute Shader
+    All,
+    End,
+};
+
+// ShaderType과 Constant 이름을 결합한 키 구조체
+struct FShaderConstantKey
+{
+    EShaderStage ShaderType;  // 예: Vertex, Pixel 등
+    FString ConstantName;    // 상수 버퍼 내 상수 이름
+
+    // 동등 비교 연산자: 두 키가 동일하면 true
+    bool operator==(const FShaderConstantKey& Other) const
+    {
+        return ShaderType == Other.ShaderType && ConstantName == Other.ConstantName;
+    }
+};
+
+// std::hash 특수화를 통해 FShaderConstantKey를 해시 기반 컨테이너에서 사용할 수 있게 함
+namespace std
+{
+    template<>
+    struct hash<FShaderConstantKey>
+    {
+        std::size_t operator()(const FShaderConstantKey& Key) const noexcept
+        {
+            // EShaderType은 enum class이므로 int로 캐스팅하여 해시를 계산
+            std::size_t h1 = std::hash<int>()(static_cast<int>(Key.ShaderType));
+            std::size_t h2 = std::hash<FString>()(Key.ConstantName);
+            // 간단한 해시 결합: XOR과 쉬프트 사용 (더 복잡한 해시 결합도 가능)
+            return h1 ^ (h2 << 1);
+        }
+    };
+}
+
+enum class ESamplerType
+{
+    Point,
+    Linear,
+    Anisotropic,
+    PostProcess,
+    End,
+};
+
+enum class ERenderingMode
+{
+    Opaque,
+    CutOut,
+    Transparent,
+    PostProcess,
+    End,
+};
+
+enum class ETextureType
+{
+    Albedo,
+    Normal,
+    Specular,
+    Smoothness,
+    Metallic,
+    Sprite,
+    End,
+};
+
+enum class ERasterizerState
+{
+    SolidBack,
+    SolidFront,
+    SolidNone,
+    WireFrame,
+    End,
+};
+
+enum class EBlendState
+{
+    AlphaBlend,
+    OneOne,
+    End,
+};
+
+enum class EDepthStencilState
+{
+    DepthNone,
+    LessEqual,
+    End,
+};
+
 struct FVertexTexture
 {
 	float x, y, z;    // Position
 	float u, v; // Texture
 };
-struct FGridParameters
-{
-	float gridSpacing;
-	int   numGridLines;
-	FVector gridOrigin;
-	float pad;
-};
+
 struct FSimpleVertex
 {
 	float dummy; // 내용은 사용되지 않음
     float padding[11];
 };
-struct FOBB {
+
+struct FOBB
+{
     FVector corners[8];
 };
+
 struct FRect
 {
     FRect() : leftTopX(0), leftTopY(0), width(0), height(0) {}
     FRect(float x, float y, float w, float h) : leftTopX(x), leftTopY(y), width(w), height(h) {}
     float leftTopX, leftTopY, width, height;
 };
+
 struct FPoint
 {
     FPoint() : x(0), y(0) {}
@@ -167,6 +259,7 @@ struct FPoint
 
     float x, y;
 };
+
 struct FBoundingBox
 {
     FBoundingBox(){}
@@ -259,6 +352,7 @@ struct FBoundingBox
         Ar >> min >> max;
     }
 };
+
 struct FCone
 {
     FVector ConeApex; // 원뿔의 꼭짓점
@@ -277,13 +371,6 @@ struct FCone
 #define MAX_DIRECTIONAL_LIGHTS 4
 #define MAX_POINT_LIGHTS 16
 
-struct FPrimitiveCounts 
-{
-	int BoundingBoxCount;
-	int pad;
-	int ConeCount; 
-	int pad1;
-};
 struct FDirectionalLight
 {
     FVector Direction;
@@ -318,7 +405,8 @@ struct FLightingConstant
     FPointLight PointLights[MAX_POINT_LIGHTS];
 };
 
-struct FMaterialConstants {
+struct FMaterialConstants
+{
     FVector DiffuseColor;
     float TransparencyScalar;
     FVector AmbientColor;
@@ -329,7 +417,8 @@ struct FMaterialConstants {
     float MaterialPad0;
 };
 
-struct FConstants {
+struct FConstants
+{
     FMatrix Model;      // 모델
     FMatrix ViewProj;   // 뷰 프로젝션 행렬
     FMatrix ModelMatrixInverseTranspose; // normal 변환을 위한 행렬
@@ -337,17 +426,21 @@ struct FConstants {
     bool IsSelected;
     FVector pad;
 };
-struct FLitUnlitConstants {
+
+struct FLitUnlitConstants
+{
     int isLit; // 1 = Lit, 0 = Unlit 
     FVector pad;
 };
 
-struct FSubMeshConstants {
+struct FSubMeshConstants
+{
     float isSelectedSubMesh;
     FVector pad;
 };
 
-struct FTextureConstants {
+struct FTextureConstants
+{
     float UOffset;
     float VOffset;
     float pad0;
