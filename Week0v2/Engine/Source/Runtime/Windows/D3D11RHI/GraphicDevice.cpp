@@ -433,6 +433,7 @@ ID3D11ShaderResourceView* FGraphicsDevice::GetCopiedShaderResourceView() const
 //     return W | Z | Y | X;
 // }
 
+
 void FGraphicsDevice::CreateSceneColorResources()
 {
     ID3D11Texture2D* backBuffer = nullptr;

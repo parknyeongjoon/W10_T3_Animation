@@ -5,10 +5,11 @@
 #include "PropertyEditor/OutlinerEditorPanel.h"
 #include "PropertyEditor/PropertyEditorPanel.h"
 
-void UnrealEd::Initialize()
+void UnrealEd::Initialize(SLevelEditor* leveleditor)
 {
     auto ControlPanel = std::make_shared<ControlEditorPanel>();
     Panels["ControlPanel"] = ControlPanel;
+    ControlPanel->Initialize(leveleditor);
     
     auto OutlinerPanel = std::make_shared<OutlinerEditorPanel>();
     Panels["OutlinerPanel"] = OutlinerPanel;

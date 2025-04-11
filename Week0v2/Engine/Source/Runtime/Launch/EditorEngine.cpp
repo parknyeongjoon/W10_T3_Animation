@@ -41,8 +41,8 @@ int32 UEditorEngine::Init(HWND hwnd)
     
     FWorldContext EditorContext;
     EditorContext.WorldType = EWorldType::Editor;
-    EditorContext.thisCurrentWorld = std::shared_ptr<UWorld>(FObjectFactory::ConstructObject<UWorld>());
-    std::shared_ptr<UWorld> EditWorld  =EditorContext.thisCurrentWorld;
+    EditorContext.thisCurrentWorld = FObjectFactory::ConstructObject<UWorld>();
+    UWorld* EditWorld  =EditorContext.thisCurrentWorld;
     EditWorld->InitWorld();
     EditWorld->WorldType = EWorldType::Editor;
     GWorld = EditWorld;
@@ -52,11 +52,14 @@ int32 UEditorEngine::Init(HWND hwnd)
     EditorContext.WorldType = EWorldType::PIE;
     worldContexts.Add(PIEContext);
     
-    UnrealEditor = new UnrealEd();
-    UnrealEditor->Initialize();
     
     LevelEditor = new SLevelEditor();
     LevelEditor->Initialize();
+    
+    UnrealEditor = new UnrealEd();
+    UnrealEditor->Initialize(LevelEditor);
+    UnrealEditor->OnResize(hWnd); // 현재 윈도우 사이즈에 대한 재조정
+    graphicDevice.OnResize(hWnd);
     
     SceneMgr = new FSceneMgr();
 
@@ -73,36 +76,21 @@ void UEditorEngine::Render()
         for (int i = 0; i < 4; ++i)
         {
             LevelEditor->SetViewportClient(i);
-            renderer.AddRenderObjectsToRenderPass(GWorld.get());
-            renderer.Render(GWorld.get(), LevelEditor->GetActiveViewportClient());
+            renderer.AddRenderObjectsToRenderPass(GWorld);
+            renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
         }
         GetLevelEditor()->SetViewportClient(viewportClient);
     }
     else
     {
-        renderer.AddRenderObjectsToRenderPass(GWorld.get());
-        renderer.Render(GWorld.get(), LevelEditor->GetActiveViewportClient());
+        renderer.AddRenderObjectsToRenderPass(GWorld);
+        renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
     }
 }
 
 void UEditorEngine::Tick(float deltaSeconds)
 {
-    // for (FWorldContext& WorldContext : worldContexts)
-    // {
-    //     std::shared_ptr<UWorld> EditorWorld = WorldContext.World();
-    //     // GWorld = EditorWorld;
-    //     // GWorld->Tick(levelType, deltaSeconds);
-    //     if (EditorWorld && WorldContext.WorldType == EWorldType::Editor)
-    //     {
-    //         // GWorld = EditorWorld;
-    //         GWorld->Tick(LEVELTICK_ViewportsOnly, deltaSeconds);
-    //     }
-    //     else if (EditorWorld && WorldContext.WorldType == EWorldType::PIE)
-    //     {
-    //         // GWorld = EditorWorld;
-    //         GWorld->Tick(LEVELTICK_All, deltaSeconds);
-    //     }
-    // }
+
     GWorld->Tick(levelType, deltaSeconds);
     Input();
     // GWorld->Tick(LEVELTICK_All, deltaSeconds);
@@ -155,7 +143,7 @@ void UEditorEngine::Input()
 void UEditorEngine::PreparePIE()
 {
     // 1. World 복제
-    worldContexts[1].thisCurrentWorld = std::shared_ptr<UWorld>(Cast<UWorld>(GWorld->Duplicate()));
+    worldContexts[1].thisCurrentWorld = Cast<UWorld>(GWorld->Duplicate());
     GWorld = worldContexts[1].thisCurrentWorld;
     GWorld->WorldType = EWorldType::PIE;
     levelType = LEVELTICK_All;
@@ -197,16 +185,11 @@ void UEditorEngine::StopPIE()
     GUObjectArray.MarkRemoveObject(worldContexts[1].World()->GetLevel());
     worldContexts[1].World()->GetEditorPlayer()->Destroy();
     GUObjectArray.MarkRemoveObject( worldContexts[1].World()->GetWorld());
-    worldContexts[1].thisCurrentWorld.reset();
+    worldContexts[1].thisCurrentWorld = nullptr; 
     
     // GWorld->WorldType = EWorldType::Editor;
     levelType = LEVELTICK_ViewportsOnly;
-    // if (GWorld && GWorld->IsPIEWorld())
-    // {
-    //     GWorld->ClearScene();
-    // }
-    //
-    // GWorld = GetEditorWorldContext()->World();
+
 }
 
 void UEditorEngine::Exit()

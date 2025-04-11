@@ -35,7 +35,7 @@ void OutlinerEditorPanel::Render()
 
     if (ImGui::TreeNode("Primitives")) // 트리 노드 생성
     {
-         std::shared_ptr<UWorld> World = GEngine->GetWorld();
+        UWorld* World = GEngine->GetWorld();
         for (AActor* Actor : World->GetActors())
         {
             if (ImGui::Selectable(*Actor->GetActorLabel(), World->GetSelectedActor() == Actor))

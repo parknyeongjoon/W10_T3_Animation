@@ -2,6 +2,7 @@
 #include "Container/Map.h"
 #include "Container/String.h"
 
+class SLevelEditor;
 class UEditorPanel;
 
 class UnrealEd
@@ -9,7 +10,7 @@ class UnrealEd
 public:
     UnrealEd() = default;
     ~UnrealEd() = default;
-    void Initialize();
+    void Initialize(SLevelEditor* leveleditor);
     
      void Render() const;
      void OnResize(HWND hWnd) const;

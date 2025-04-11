@@ -218,7 +218,7 @@ void PropertyEditorPanel::Render()
             float r = currColor.x;
             float g = currColor.y;
             float b = currColor.z;
-            float a = currColor.a;
+            float a = currColor.w;
             float h, s, v;
             float lightColor[4] = { r, g, b, a };
 

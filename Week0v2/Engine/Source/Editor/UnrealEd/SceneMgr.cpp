@@ -91,7 +91,7 @@ void FSceneMgr::ParseSceneData(const FString& jsonStr)
                 }
                 else if (TypeName == "StaticMeshComp")
                 {
-                    UWorld* World = GEngine->GetWorld().get();
+                    UWorld* World = GEngine->GetWorld();
                     AActor* SpawnedActor = nullptr;
                     std::string Path = value["ObjStaticMeshAsset"].get<std::string>();
                     FString FileName = Path.substr(Path.find_last_of("/\\") + 1);

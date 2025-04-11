@@ -49,14 +49,14 @@ public:
     ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;
 private:
     UImGuiManager* UIMgr;
-    std::shared_ptr<UWorld> GWorld;
+    UWorld* GWorld;
     SLevelEditor* LevelEditor;
     UnrealEd* UnrealEditor;
     FSceneMgr* SceneMgr;
     
     bool bTestInput = false;
 public:
-    std::shared_ptr<UWorld> GetWorld() const { return GWorld; }
+    UWorld* GetWorld() const { return GWorld; }
     SLevelEditor* GetLevelEditor() const { return LevelEditor; }
     UnrealEd* GetUnrealEditor() const { return UnrealEditor; }
     FSceneMgr* GetSceneManager() const { return SceneMgr; }
