@@ -85,7 +85,7 @@ private:
     TMap<FName, TPair<ID3D11Buffer*, ID3D11ShaderResourceView*>> StructuredBuffers;
 private:
     ID3D11SamplerState* SamplerStates[static_cast<uint32>(ESamplerType::End)] = {};
-    
+      
     ID3D11RasterizerState* RasterizerStates[static_cast<uint32>(ERasterizerState::End)] = {};
     
     ID3D11BlendState* BlendStates[static_cast<uint32>(EBlendState::End)] = {};

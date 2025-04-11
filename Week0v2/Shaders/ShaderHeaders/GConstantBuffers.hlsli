@@ -6,8 +6,7 @@
 cbuffer ObjectBuffer : register(b11)
 {
     row_major matrix ModelMatrix;
-    row_major matrix InverseTranspose;
-    float4 UUID;
+    row_major matrix Inverse;
     bool IsSelected;
     float3 ObjectPadding;
 };

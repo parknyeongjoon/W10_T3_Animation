@@ -83,7 +83,6 @@ struct PS_INPUT
 struct PS_OUTPUT
 {
     float4 color : SV_Target0;
-    //float4 UUID : SV_Target1;
 };
 
 float noise(float3 p)
@@ -158,7 +157,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
     
-    //output.UUID = UUID;
     float2 uvAdjusted = input.texcoord + float2(indexU, indexV);
     
     float4 baseColor = Textures.Sample(linearSampler, input.texcoord + uvAdjusted) + float4(DiffuseColor, TransparencyScalar);

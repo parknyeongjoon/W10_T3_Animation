@@ -13,8 +13,6 @@ UParticleSubUVComp::UParticleSubUVComp()
 }
 
 UParticleSubUVComp::UParticleSubUVComp(const UParticleSubUVComp& other): UBillboardComponent(other),
-vertexSubUVBuffer(other.vertexSubUVBuffer),
-numTextVertices(numTextVertices),
 bIsLoop(other.bIsLoop),
 indexU(other.indexU),
 indexV(other.indexV),

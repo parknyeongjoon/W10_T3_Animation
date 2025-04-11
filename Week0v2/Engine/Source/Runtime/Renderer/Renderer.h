@@ -8,6 +8,7 @@
 #include "Define.h"
 #include "RenderResourceManager.h"
 
+class FGizmoRenderPass;
 class FLineBatchRenderPass;
 class FStaticMeshRenderPass;
 class FEditorViewportClient;
@@ -61,7 +62,6 @@ public:
     //Render Pass Demo
     void AddRenderObjectsToRenderPass(UWorld* InWorld) const;
     void Render(UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
-    void Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
     //void RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
     //void RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     //void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
@@ -90,6 +90,7 @@ private:
 
     std::shared_ptr<FStaticMeshRenderPass> StaticMeshRenderPass;
     std::shared_ptr<FLineBatchRenderPass> LineBatchRenderPass;
+    std::shared_ptr<FGizmoRenderPass> GizmoRenderPass;
 
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
 };

@@ -1,47 +1,46 @@
-#include "StaticMeshRenderPass.h"
-
+#include "GizmoRenderPass.h"
 #include "EditorEngine.h"
+#include "Actors/Player.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "Components/SkySphereComponent.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "Math/JungleMath.h"
-#include "PropertyEditor/ShowFlags.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/VBIBTopologyMapping.h"
 #include "UnrealEd/EditorViewportClient.h"
-#include "UnrealEd/PrimitiveBatch.h"
+#include "UObject/ObjectTypes.h"
+#include "UObject/UObjectIterator.h"
+
 
 extern UEditorEngine* GEngine;
 
-void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
+void FGizmoRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
-    StaticMesheComponents.Empty();
+    GizmoComponents.Empty();
     
-    for (const AActor* actor : InWorld->GetActors())
+    if (InWorld->WorldType == EWorldType::Editor)
     {
-        for (const UActorComponent* actorComp : actor->GetComponents())
+        for (const auto iter : TObjectRange<USceneComponent>())
         {
-            if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(actorComp))
+            if (UGizmoBaseComponent* pGizmoComp = Cast<UGizmoBaseComponent>(iter))
             {
-                if (!Cast<UGizmoBaseComponent>(actorComp))
-                    StaticMesheComponents.Add(pStaticMeshComp);
+                GizmoComponents.Add(pGizmoComp);
             }
         }
     }
 }
 
-void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewportClient)
+void FGizmoRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     FBaseRenderPass::Prepare(InViewportClient);
 
     const FRenderer& Renderer = GEngine->renderer;
     const FGraphicsDevice& Graphics = GEngine->graphicDevice;
-
-    Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
-    // Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
-    Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState());
+    
+    Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
+    Graphics.DeviceContext->RSSetState(Renderer.GetResourceManager()->GetRasterizerState(ERasterizerState::SolidBack));
 
     // RTVs 배열의 유효성을 확인합니다.
     if (Graphics.RTVs[0] != nullptr)
@@ -61,7 +60,7 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
     Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &linearSampler);
 }
 
-void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
+void FGizmoRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     FMatrix View = FMatrix::Identity;
     FMatrix Proj = FMatrix::Identity;
@@ -75,35 +74,37 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         View = curEditorViewportClient->GetViewMatrix();
         Proj = curEditorViewportClient->GetProjectionMatrix();
     }
-    
-    for (UStaticMeshComponent* staticMeshComp : StaticMesheComponents)
+
+    UWorld* World = GEngine->GetWorld();
+    for (auto GizmoComp : GizmoComponents)
     {
-        const FMatrix Model = JungleMath::CreateModelMatrix(staticMeshComp->GetWorldLocation(), staticMeshComp->GetWorldRotation(),
-                                                    staticMeshComp->GetWorldScale());
+        if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowX ||
+            GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowY ||
+            GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
+            && World->GetEditorPlayer()->GetControlMode() != CM_TRANSLATION)
+            continue;
+        else if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::ScaleX ||
+            GizmoComp->GetGizmoType() == UGizmoBaseComponent::ScaleY ||
+            GizmoComp->GetGizmoType() == UGizmoBaseComponent::ScaleZ)
+            && World->GetEditorPlayer()->GetControlMode() != CM_SCALE)
+            continue;
+        else if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::CircleX ||
+            GizmoComp->GetGizmoType() == UGizmoBaseComponent::CircleY ||
+            GizmoComp->GetGizmoType() == UGizmoBaseComponent::CircleZ)
+            && World->GetEditorPlayer()->GetControlMode() != CM_ROTATION)
+            continue;
         
-        UpdateMatrixConstants(staticMeshComp, View, Proj);
-
-        UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
-
-        if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
-        {
-            if (GEngine->GetWorld()->GetSelectedActor() == staticMeshComp->GetOwner())
-            {
-                UPrimitiveBatch::GetInstance().AddAABB(
-                    staticMeshComp->GetBoundingBox(),
-                    staticMeshComp->GetWorldLocation(),
-                    Model
-                );
-            }
-        }
-
-        if (!staticMeshComp->GetStaticMesh()) continue;
+        std::shared_ptr<FEditorViewportClient> CurrentEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
         
-        const OBJ::FStaticMeshRenderData* renderData = staticMeshComp->GetStaticMesh()->GetRenderData();
+        UpdateMatrixConstants(GizmoComp, View, Proj);
+
+        if (!GizmoComp->GetStaticMesh()) continue;
+
+        OBJ::FStaticMeshRenderData* renderData = GizmoComp->GetStaticMesh()->GetRenderData();
         if (renderData == nullptr) continue;
 
         // VIBuffer Bind
-        const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(staticMeshComp->GetVBIBTopologyMappingName());
+        const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(GizmoComp->GetVBIBTopologyMappingName());
         VBIBTopMappingInfo->Bind();
 
         // If There's No Material Subset
@@ -117,29 +118,29 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         {
             const int materialIndex = renderData->MaterialSubsets[subMeshIndex].MaterialIndex;
             
-            UpdateMaterialConstants(staticMeshComp->GetMaterial(materialIndex)->GetMaterialInfo());
+            UpdateMaterialConstants(GizmoComp->GetMaterial(materialIndex)->GetMaterialInfo());
 
             // index draw
             const uint64 startIndex = renderData->MaterialSubsets[subMeshIndex].IndexStart;
             const uint64 indexCount = renderData->MaterialSubsets[subMeshIndex].IndexCount;
             Graphics.DeviceContext->DrawIndexed(indexCount, startIndex, 0);
         }
-    } 
+    }
 }
 
-void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStaticMeshComponent, const FMatrix& InView, const FMatrix& InProjection)
+void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoComponent, const FMatrix& InView, const FMatrix& InProjection)
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
     // MVP Update
-    const FMatrix Model = JungleMath::CreateModelMatrix(InStaticMeshComponent->GetWorldLocation(), InStaticMeshComponent->GetWorldRotation(),
-                                                        InStaticMeshComponent->GetWorldScale());
-    const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
+    const FMatrix Model = JungleMath::CreateModelMatrix(InGizmoComponent->GetWorldLocation(), InGizmoComponent->GetWorldRotation(),
+                                                        InGizmoComponent->GetWorldScale());
+    const FMatrix NormalMatrix = FMatrix::Inverse(Model);
         
     FMatrixConstants MatrixConstants;
     MatrixConstants.Model = Model;
     MatrixConstants.ViewProj = InView * InProjection;
     MatrixConstants.MInverse = NormalMatrix;
-    if (InStaticMeshComponent->GetWorld()->GetSelectedActor() == InStaticMeshComponent->GetOwner())
+    if (InGizmoComponent->GetWorld()->GetSelectedActor() == InGizmoComponent->GetOwner())
     {
         MatrixConstants.isSelected = true;
     }
@@ -150,27 +151,7 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixConstants")), &MatrixConstants);
 }
 
-void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent)
-{
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
-    
-    FSubUVConstant UVBuffer;
-    
-    if (InSkySphereComponent != nullptr)
-    {
-        UVBuffer.indexU = InSkySphereComponent->UOffset;
-        UVBuffer.indexV = InSkySphereComponent->VOffset;
-    }
-    else
-    {
-        UVBuffer.indexU = 0;
-        UVBuffer.indexV = 0;
-    }
-    
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FSubUVConstant")), &UVBuffer);
-}
-
-void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
+void FGizmoRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
 {
     FGraphicsDevice& Graphics = GEngine->graphicDevice;
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();

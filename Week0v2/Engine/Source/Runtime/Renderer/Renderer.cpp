@@ -10,6 +10,7 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UObject/UObjectIterator.h"
 #include "D3D11RHI/FShaderProgram.h"
+#include "RenderPass/GizmoRenderPass.h"
 #include "RenderPass/LineBatchRenderPass.h"
 #include "RenderPass/StaticMeshRenderPass.h"
 
@@ -134,8 +135,9 @@ void FRenderer::CreateStaticMeshShader()
 
 
     StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(TEXT("StaticMesh"));
+    GizmoRenderPass = std::make_shared<FGizmoRenderPass>(TEXT("StaticMesh"));
     // TODO : Create RenderPass
-    //gizmoRenderPass = std::make_shared<GizmoRenderPass>(TEXT("StaticMesh"));
+
 
     SAFE_RELEASE(VSBlob_StaticMesh)
     SAFE_RELEASE(PSBlob_StaticMesh)
@@ -515,6 +517,12 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
 
     LineBatchRenderPass->Prepare(ActiveViewport);
     LineBatchRenderPass->Execute(ActiveViewport);
+
+    if (World->GetSelectedActor() != nullptr)
+    {
+        GizmoRenderPass->Prepare(ActiveViewport);
+        GizmoRenderPass->Execute(ActiveViewport);
+    }
     
     //Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
     //ChangeViewMode(ActiveViewport->GetViewMode());
@@ -522,9 +530,6 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     //RenderPostProcess(World, ActiveViewport);
     // 0. 광원 렌더
     //RenderLight(World, ActiveViewport);
-
-    // 1. 배치 렌더
-    //UPrimitiveBatch::GetInstance().RenderBatch(ConstantBuffer, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
 
     // 2. 스태틱 메시 렌더
 
@@ -534,47 +539,11 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     // 3. 빌보드 렌더(빌보드, 텍스트)
     //if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
         //RenderBillboards(World, ActiveViewport);
-
-    // 4. 기즈모 렌더
-    //RenderGizmos(World, ActiveViewport);
-
-
+    
     // 6. 포스트 프로세스
     //RenderPostProcess(World, ActiveViewport, ActiveViewport);
 
     //ClearRenderArr();
-}
-
-void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport)
-{
-    Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
-    SetViewMode(ActiveViewport->GetViewMode());
-
-    //RenderPostProcess(World, ActiveViewport);
-    // 0. 광원 렌더
-    //RenderLight(World, ActiveViewport);
-
-    // 1. 배치 렌더
-    //UPrimitiveBatch::GetInstance().RenderBatch(ConstantBuffer, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
-
-    // 2. 스태틱 메시 렌더
-
-    if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
-    {
-        StaticMeshRenderPass->Prepare(ActiveViewport);
-        StaticMeshRenderPass->Execute(ActiveViewport);
-    }
-
-    // 3. 빌보드 렌더(빌보드, 텍스트)
-    // if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
-    //     RenderBillboards(World, ActiveViewport);
-
-    // 4. 기즈모 렌더
-    //RenderGizmos(World, ActiveViewport);
-    
-
-    // 6. 포스트 프로세스
-    //RenderPostProcess(World, ActiveViewport, CurrentViewport);
 }
 
 // void FRenderer::RenderTexturePrimitive(
@@ -615,67 +584,6 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     // Graphics->DeviceContext->Draw(numVertices, 0);
 //}
 
-//void FRenderer::RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
-//{
-//     if (!World->GetSelectedActor())
-//     {
-//         return;
-//     }
-//
-// #pragma region GizmoDepth
-//     ID3D11DepthStencilState* DepthStateDisable = Graphics->DepthStateDisable;
-//     Graphics->DeviceContext->OMSetDepthStencilState(DepthStateDisable, 0);
-// #pragma endregion GizmoDepth
-//
-//     //  fill solid,  Wirframe 에서도 제대로 렌더링되기 위함
-//     Graphics->DeviceContext->RSSetState(UEditorEngine::graphicDevice.RasterizerStateSOLID);
-//
-//     for (auto GizmoComp : GizmoObjs)
-//     {
-//
-//         if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowX ||
-//             GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowY ||
-//             GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
-//             && World->GetEditorPlayer()->GetControlMode() != CM_TRANSLATION)
-//             continue;
-//         else if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::ScaleX ||
-//             GizmoComp->GetGizmoType() == UGizmoBaseComponent::ScaleY ||
-//             GizmoComp->GetGizmoType() == UGizmoBaseComponent::ScaleZ)
-//             && World->GetEditorPlayer()->GetControlMode() != CM_SCALE)
-//             continue;
-//         else if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::CircleX ||
-//             GizmoComp->GetGizmoType() == UGizmoBaseComponent::CircleY ||
-//             GizmoComp->GetGizmoType() == UGizmoBaseComponent::CircleZ)
-//             && World->GetEditorPlayer()->GetControlMode() != CM_ROTATION)
-//             continue;
-//         FMatrix Model = JungleMath::CreateModelMatrix(GizmoComp->GetWorldLocation(),
-//             GizmoComp->GetWorldRotation(),
-//             GizmoComp->GetWorldScale()
-//         );
-//         FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
-//         FVector4 UUIDColor = GizmoComp->EncodeUUID() / 255.0f;
-//
-// 		FMatrix ViewProj = ActiveViewport->GetViewMatrix() * ActiveViewport->GetProjectionMatrix();
-//         if (GizmoComp == World->GetPickingGizmo())
-//             ConstantBufferUpdater.UpdateConstant(ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, true);
-//         else
-//             ConstantBufferUpdater.UpdateConstant(ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, false);
-//
-//         if (!GizmoComp->GetStaticMesh()) continue;
-//
-//         OBJ::FStaticMeshRenderData* renderData = GizmoComp->GetStaticMesh()->GetRenderData();
-//         if (renderData == nullptr) continue;
-//
-//         RenderPrimitive(renderData, GizmoComp->GetStaticMesh()->GetMaterials(), GizmoComp->GetOverrideMaterials());
-//     }
-//
-//     Graphics->DeviceContext->RSSetState(Graphics->GetCurrentRasterizer());
-//
-// #pragma region GizmoDepth
-//     ID3D11DepthStencilState* originalDepthState = Graphics->DepthStencilState;
-//     Graphics->DeviceContext->OMSetDepthStencilState(originalDepthState, 0);
-// #pragma endregion GizmoDepth
-//}
 
 // void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 // {
@@ -802,6 +710,7 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
 void FRenderer::AddRenderObjectsToRenderPass(UWorld* InWorld) const
 {
     StaticMeshRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    GizmoRenderPass->AddRenderObjectsToRenderPass(InWorld);
 }
 
 //void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport)

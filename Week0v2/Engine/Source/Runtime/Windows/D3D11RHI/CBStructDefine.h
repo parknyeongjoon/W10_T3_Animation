@@ -5,7 +5,6 @@
 #include "Math/Matrix.h"
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
-#include <Define.h>
 
 // NOTE: Generated code - do not modify manually.
 
@@ -72,16 +71,6 @@ struct alignas(16) FPrimitiveCounts
     int pad1; // offset: 12, size: 4
 };
 
-struct alignas(16) FMatrixConstants
-{
-    FMatrix Model; // offset: 0, size: 64
-    FMatrix ViewProj; // offset: 64, size: 64
-    FMatrix MInverseTranspose; // offset: 128, size: 64
-    FVector4 UUID; // offset: 192, size: 16
-    bool isSelected; // offset: 208, size: 4
-    FVector MatrixPad0; // offset: 212, size: 12
-};
-
 struct alignas(16) FMaterialConstants
 {
     FVector DiffuseColor; // offset: 0, size: 12
@@ -111,17 +100,20 @@ struct alignas(16) FFlagConstants
     FVector flagPad0; // offset: 4, size: 12
 };
 
-struct alignas(16) FTextureConstants
-{
-    FVector2D UVOffset; // offset: 0, size: 8
-    FVector2D TexturePad0; // offset: 8, size: 8
-};
-
 struct alignas(16) FSubUVConstant
 {
     float indexU; // offset: 0, size: 4
     float indexV; // offset: 4, size: 4
     uint8 pad0[8]; // Padding to end of buffer
+};
+
+struct alignas(16) FMatrixConstants
+{
+    FMatrix Model; // offset: 0, size: 64
+    FMatrix ViewProj; // offset: 64, size: 64
+    FMatrix MInverse; // offset: 128, size: 64
+    bool isSelected; // offset: 192, size: 4
+    uint8 pad0[12]; // Padding to end of buffer
 };
 
 struct alignas(16) FConstants
@@ -145,8 +137,7 @@ enum class EShaderConstantBuffer
     FMatrixConstants = 8,
     FPrimitiveCounts = 9,
     FSubUVConstant = 10,
-    FTextureConstants = 11,
-    FViewportInfo = 12,
+    FViewportInfo = 11,
     EShaderConstantBuffer_MAX
 };
 
@@ -165,7 +156,6 @@ inline const TCHAR* EShaderConstantBufferToString(EShaderConstantBuffer e)
     case EShaderConstantBuffer::FMatrixConstants: return TEXT("FMatrixConstants");
     case EShaderConstantBuffer::FPrimitiveCounts: return TEXT("FPrimitiveCounts");
     case EShaderConstantBuffer::FSubUVConstant: return TEXT("FSubUVConstant");
-    case EShaderConstantBuffer::FTextureConstants: return TEXT("FTextureConstants");
     case EShaderConstantBuffer::FViewportInfo: return TEXT("FViewportInfo");
     default: return TEXT("unknown");
     }
@@ -185,7 +175,6 @@ inline EShaderConstantBuffer EShaderConstantBufferFromString(const TCHAR* str)
     if(std::wcscmp(str, TEXT("FMatrixConstants")) == 0) return EShaderConstantBuffer::FMatrixConstants;
     if(std::wcscmp(str, TEXT("FPrimitiveCounts")) == 0) return EShaderConstantBuffer::FPrimitiveCounts;
     if(std::wcscmp(str, TEXT("FSubUVConstant")) == 0) return EShaderConstantBuffer::FSubUVConstant;
-    if(std::wcscmp(str, TEXT("FTextureConstants")) == 0) return EShaderConstantBuffer::FTextureConstants;
     if(std::wcscmp(str, TEXT("FViewportInfo")) == 0) return EShaderConstantBuffer::FViewportInfo;
 #else
     if(std::strcmp(str, "FCameraConstant") == 0) return EShaderConstantBuffer::FCameraConstant;
@@ -199,7 +188,6 @@ inline EShaderConstantBuffer EShaderConstantBufferFromString(const TCHAR* str)
     if(std::strcmp(str, "FMatrixConstants") == 0) return EShaderConstantBuffer::FMatrixConstants;
     if(std::strcmp(str, "FPrimitiveCounts") == 0) return EShaderConstantBuffer::FPrimitiveCounts;
     if(std::strcmp(str, "FSubUVConstant") == 0) return EShaderConstantBuffer::FSubUVConstant;
-    if(std::strcmp(str, "FTextureConstants") == 0) return EShaderConstantBuffer::FTextureConstants;
     if(std::strcmp(str, "FViewportInfo") == 0) return EShaderConstantBuffer::FViewportInfo;
 #endif
     return EShaderConstantBuffer::EShaderConstantBuffer_MAX;

@@ -3,10 +3,8 @@ cbuffer FMatrixConstants : register(b0)
 {
     row_major float4x4 Model;
     row_major float4x4 ViewProj;
-    row_major float4x4 MInverseTranspose;
-    float4 UUID;
+    row_major float4x4 MInverse;
     bool isSelected;
-    float3 MatrixPad0;
 };
 
 struct VS_INPUT
@@ -48,7 +46,7 @@ PS_INPUT mainVS(VS_INPUT input)
     else
     {
         //output.normal = normalize(input.normal);
-        output.normal = mul(input.normal, MInverseTranspose);
+        output.normal = mul(input.normal, MInverse);
         output.normalFlag = 1.0;
     }
     output.texcoord = input.texcoord;
