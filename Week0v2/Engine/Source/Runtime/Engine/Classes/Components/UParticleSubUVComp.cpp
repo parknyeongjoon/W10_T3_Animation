@@ -10,6 +10,18 @@ UParticleSubUVComp::UParticleSubUVComp()
     bIsLoop = true;
 }
 
+UParticleSubUVComp::UParticleSubUVComp(const UParticleSubUVComp& other): UBillboardComponent(other),
+vertexSubUVBuffer(other.vertexSubUVBuffer),
+numTextVertices(numTextVertices),
+bIsLoop(other.bIsLoop),
+indexU(other.indexU),
+indexV(other.indexV),
+second(other.second),
+CellsPerColumn(other.CellsPerColumn),
+CellsPerRow(other.CellsPerRow)
+{
+}
+
 UParticleSubUVComp::~UParticleSubUVComp()
 {
 	if (vertexSubUVBuffer)
@@ -67,6 +79,18 @@ void UParticleSubUVComp::TickComponent(float DeltaTime)
 
 	finalIndexU = float(indexU) * normalWidthOffset;
 	finalIndexV = float(indexV) * normalHeightOffset;
+}
+
+UObject* UParticleSubUVComp::Duplicate() const
+{
+    UParticleSubUVComp* Cloned = FObjectFactory::ConstructObjectFrom(this);
+    Cloned->DuplicateSubObjects(this);
+    return Cloned;
+}
+
+void UParticleSubUVComp::DuplicateSubObjects(const UObject* Source)
+{
+    UBillboardComponent::DuplicateSubObjects(Source);
 }
 
 void UParticleSubUVComp::SetRowColumnCount(int _cellsPerRow, int _cellsPerColumn)
