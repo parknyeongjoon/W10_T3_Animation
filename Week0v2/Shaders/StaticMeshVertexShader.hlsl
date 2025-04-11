@@ -12,6 +12,7 @@ struct VS_INPUT
     float4 position : POSITION; // 버텍스 위치
     float4 color : COLOR; // 버텍스 색상
     float3 normal : NORMAL; // 버텍스 노멀
+    float3 TangentNormal : TANGENT;
     float2 texcoord : TEXCOORD;
 };
 
