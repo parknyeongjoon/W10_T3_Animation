@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 
-#include "UObject/NameTypes.h"
+#include "CoreUObject/UObject/NameTypes.h"
 
 class UWorld;
 class FViewportClient;
