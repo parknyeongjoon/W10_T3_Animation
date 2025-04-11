@@ -122,14 +122,6 @@ void UParticleSubUVComp::LoadAndConstruct(const FActorComponentInfo& Info)
 
 void UParticleSubUVComp::UpdateVertexBuffer(const TArray<FVertexTexture>& vertices)
 {
-	/*
-	ID3D11DeviceContext* context = FEngineLoop::graphicDevice.DeviceContext;
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-
-	context->Map(vertexTextureBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	memcpy(mappedResource.pData, vertices.GetData(), vertices.Num() * sizeof(FVertexTexture));
-	context->Unmap(vertexTextureBuffer, 0);
-	*/
 
 }
 
