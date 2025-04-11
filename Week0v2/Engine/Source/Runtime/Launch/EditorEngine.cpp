@@ -52,11 +52,12 @@ int32 UEditorEngine::Init(HWND hwnd)
     EditorContext.WorldType = EWorldType::PIE;
     worldContexts.Add(PIEContext);
     
-    UnrealEditor = new UnrealEd();
-    UnrealEditor->Initialize();
     
     LevelEditor = new SLevelEditor();
     LevelEditor->Initialize();
+    
+    UnrealEditor = new UnrealEd();
+    UnrealEditor->Initialize(LevelEditor);
     
     SceneMgr = new FSceneMgr();
 

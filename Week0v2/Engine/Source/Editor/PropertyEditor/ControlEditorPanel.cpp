@@ -2,28 +2,28 @@
 
 #include "Engine/World.h"
 #include "Actors/Player.h"
-#include "Components/CubeComp.h"
-#include "Components/LightComponent.h"
 #include "Components/SphereComp.h"
 #include "Components/UParticleSubUVComp.h"
 #include "Components/UText.h"
 #include "Components/HeightFogComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Engine/StaticMeshActor.h"
-#include "ImGUI/imgui_internal.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "tinyfiledialogs/tinyfiledialogs.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "PropertyEditor/ShowFlags.h"
-#include "UnrealEd/SceneMgr.h"
-#include "UEditorStateManager.h"
 #include "Actors/FireBallActor.h"
 #include "Classes/Actors/DirectionalLightActor.h"
 #include "Classes/Actors/PointLightActor.h"
-#include "Components/PointLightComponent.h"
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Serialization/Archive.h"
 #include "Serialization/FWindowsBinHelper.h"
+#include "LevelEditor/SLevelEditor.h"
+
+void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
+{
+    activeLevelEditor = levelEditor;
+}
 
 void ControlEditorPanel::Render()
 {
@@ -480,30 +480,48 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
     float CursorPosX = (ContentWidth - TotalWidth) * 0.5f;
     ImGui::SetCursorPosX(CursorPosX);
 
-    if (ImGui::Button("\ue9a8", ButtonSize)) // Play
-    {
-        UEditorStateManager::Get().SetState(EEditorState::PreparingPlay);
-        // TODO: PIE 시작
-        // if (!UEditorStateManager::Get().IsPIERunning())
-        //     UEditorStateManager::Get().SetState(EEditorState::PreparingPlay);
-        // else
-        //     UEditorStateManager::Get().SetState(EEditorState::Resuming);
-    }
 
+    if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+        if (ImGui::Button("\ue9a8", ButtonSize)) // Play
+        {
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
+        }
+        ImGui::PopStyleColor();
+    }
+    else if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Paused)
+    {
+        if (ImGui::Button("\ue9a8", ButtonSize)) // Play
+        {
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Playing);
+        }
+    }
+    else
+    {
+        if (ImGui::Button("\ue99c", ButtonSize)) // Pause
+        {
+            // TODO: PIE 일시정지
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Paused);
+        }
+    }
     ImGui::SameLine();
 
-    if (ImGui::Button("\ue99c", ButtonSize)) // Pause
+    if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
     {
-        // TODO: PIE 일시정지
-        UEditorStateManager::Get().SetState(EEditorState::Paused);
+        if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+        {
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
+        }
     }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+    else
     {
-        // TODO: PIE 정지
-        UEditorStateManager::Get().SetState(EEditorState::Stopped);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+        if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+        {
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
+        }
+        ImGui::PopStyleColor();
     }
 }
 

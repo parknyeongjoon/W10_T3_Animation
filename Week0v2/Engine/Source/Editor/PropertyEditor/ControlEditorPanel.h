@@ -2,9 +2,12 @@
 #include "Components/ActorComponent.h"
 #include "UnrealEd/EditorPanel.h"
 
+class SLevelEditor;
+
 class ControlEditorPanel : public UEditorPanel
 {
 public:
+    void Initialize(SLevelEditor* levelEditor);
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
 
@@ -19,6 +22,7 @@ private:
     uint64 ConvertSelectionToFlags(const bool selected[]) const;
     
 private:
+    SLevelEditor* activeLevelEditor;
     float Width = 300, Height = 100;
     bool bOpenMenu = false;
 

@@ -5,16 +5,18 @@
 
 extern UEditorEngine* GEngine;
 
-class UEditorStateManager
+class FEditorStateManager
 {
 public:
-    static UEditorStateManager& Get()
-    {
-        static UEditorStateManager Instance;
-        return Instance;
-    }
+    FEditorStateManager() = default;
+    ~FEditorStateManager() = default;
+    // static FEditorStateManager& Get()
+    // {
+    //     static FEditorStateManager Instance;
+    //     return Instance;
+    // }
 
-    EEditorState GetCurrentState() const { return CurrentState; }
+    EEditorState GetEditorState() const { return CurrentState; }
     void SetState(EEditorState NewState);
     bool IsPIERunning() 
     { 
@@ -27,11 +29,6 @@ public:
     bool IsPaused() { return CurrentState == EEditorState::Paused; }
 
 private:
-    UEditorStateManager() = default;
-    ~UEditorStateManager() = default;
-
-    UEditorStateManager(const UEditorStateManager&) = delete;
-    UEditorStateManager& operator=(const UEditorStateManager&) = delete;
 
     bool IsValidTransition(EEditorState To);
 
@@ -51,9 +48,10 @@ private:
 
 private:
     EEditorState CurrentState = EEditorState::Editing;
+public:
 };
 
-inline void UEditorStateManager::SetState(EEditorState NewState)
+inline void FEditorStateManager::SetState(EEditorState NewState)
 {
     if (!IsValidTransition(NewState))
     {
@@ -101,7 +99,7 @@ inline void UEditorStateManager::SetState(EEditorState NewState)
     }
 }
 
-inline bool UEditorStateManager::IsValidTransition(EEditorState To)
+inline bool FEditorStateManager::IsValidTransition(EEditorState To)
 {
     switch (CurrentState)
     {

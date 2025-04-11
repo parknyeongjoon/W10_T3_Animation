@@ -1,6 +1,9 @@
 #pragma once
 #include "Define.h"
+#include "FEditorStateManager.h"
 #include "Container/Map.h"
+#include "FEditorStateManager.h"
+
 class SSplitterH;
 class SSplitterV;
 class UWorld;
@@ -38,6 +41,7 @@ private:
     float EditorWidth;
     float EditorHeight;
 
+    FEditorStateManager EditorStateManager;
 public:
     std::shared_ptr<FEditorViewportClient>* GetViewports() { return viewportClients; }
     std::shared_ptr<FEditorViewportClient> GetActiveViewportClient() const
@@ -53,6 +57,7 @@ public:
         ActiveViewportClient = viewportClients[index];
     }
 
+    FEditorStateManager& GetEditorStateManager() { return EditorStateManager; }
     //Save And Load
 private:
     const FString IniFilePath = "editor.ini";
