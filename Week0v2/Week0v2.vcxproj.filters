@@ -180,9 +180,6 @@
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\UClass.h">
       <Filter>Engine\Source\Runtime\CoreUObject\UObject</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Source\Runtime\Engine\World.h">
-      <Filter>Engine\Source\Runtime\Engine</Filter>
-    </ClInclude>
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraComponent.cpp">
       <Filter>Engine\Source\Runtime\Engine\Camera</Filter>
     </ClCompile>
@@ -441,8 +438,11 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\MovementComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\ProjectileMovementComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\RotatingMovementComponent.h" />
-    <ClInclude Include="Engine\Source\Runtime\Renderer\VIBuffers.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\FShaderProgram.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FBaseRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\StaticMeshRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\VBIBTopologyMapping.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\CBStructDefine.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -552,7 +552,13 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\MovementComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\ProjectileMovementComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\RotatingMovementComponent.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Renderer\VIBuffers.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\FShaderProgram.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FBaseRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\StaticMeshRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\VBIBTopologyMapping.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />
+    <None Include="Shaders\ShaderHeaders\GSamplers.hlsli" />
   </ItemGroup>
 </Project>

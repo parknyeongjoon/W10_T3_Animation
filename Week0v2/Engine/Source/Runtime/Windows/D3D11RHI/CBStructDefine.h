@@ -5,20 +5,9 @@
 #include "Math/Matrix.h"
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
+#include <Define.h>
 
 // NOTE: Generated code - do not modify manually.
-
-
-struct FLighting
-{
-    FVector Position;
-    float  Intensity;
-    FVector LightDirection;
-    float  AmbientFactor;
-    FLinearColor LightColor;
-    float  AttenuationRadius;
-    FVector pad0;
-};
 
 struct alignas(16) FCameraConstant
 {
@@ -83,7 +72,7 @@ struct alignas(16) FPrimitiveCounts
     int pad1; // offset: 12, size: 4
 };
 
-struct alignas(16) MatrixConstants
+struct alignas(16) FMatrixConstants
 {
     FMatrix Model; // offset: 0, size: 64
     FMatrix ViewProj; // offset: 64, size: 64
@@ -112,8 +101,8 @@ struct alignas(16) FLightingConstants
     uint32 NumDirectionalLights; // offset: 16, size: 4
     uint32 NumPointLights; // offset: 20, size: 4
     FVector2D pad; // offset: 24, size: 8
-    UNKNOWN[4] DirLights; // offset: 32, size: 128
-    UNKNOWN[16] PointLights; // offset: 160, size: 768
+    FDirectionalLight DirLights[4]; // offset: 32, size: 128
+    FPointLight PointLights[16]; // offset: 160, size: 768
 };
 
 struct alignas(16) FFlagConstants
@@ -153,11 +142,11 @@ enum class EShaderConstantBuffer
     FLightingConstants = 5,
     FMaterialConstants = 6,
     FMatrixBuffer = 7,
-    FPrimitiveCounts = 8,
-    FSubUVConstant = 9,
-    FTextureConstants = 10,
-    FViewportInfo = 11,
-    MatrixConstants = 12,
+    FMatrixConstants = 8,
+    FPrimitiveCounts = 9,
+    FSubUVConstant = 10,
+    FTextureConstants = 11,
+    FViewportInfo = 12,
     EShaderConstantBuffer_MAX
 };
 
@@ -173,11 +162,11 @@ inline const TCHAR* EShaderConstantBufferToString(EShaderConstantBuffer e)
     case EShaderConstantBuffer::FLightingConstants: return TEXT("FLightingConstants");
     case EShaderConstantBuffer::FMaterialConstants: return TEXT("FMaterialConstants");
     case EShaderConstantBuffer::FMatrixBuffer: return TEXT("FMatrixBuffer");
+    case EShaderConstantBuffer::FMatrixConstants: return TEXT("FMatrixConstants");
     case EShaderConstantBuffer::FPrimitiveCounts: return TEXT("FPrimitiveCounts");
     case EShaderConstantBuffer::FSubUVConstant: return TEXT("FSubUVConstant");
     case EShaderConstantBuffer::FTextureConstants: return TEXT("FTextureConstants");
     case EShaderConstantBuffer::FViewportInfo: return TEXT("FViewportInfo");
-    case EShaderConstantBuffer::MatrixConstants: return TEXT("MatrixConstants");
     default: return TEXT("unknown");
     }
 }
@@ -193,11 +182,11 @@ inline EShaderConstantBuffer EShaderConstantBufferFromString(const TCHAR* str)
     if(std::wcscmp(str, TEXT("FLightingConstants")) == 0) return EShaderConstantBuffer::FLightingConstants;
     if(std::wcscmp(str, TEXT("FMaterialConstants")) == 0) return EShaderConstantBuffer::FMaterialConstants;
     if(std::wcscmp(str, TEXT("FMatrixBuffer")) == 0) return EShaderConstantBuffer::FMatrixBuffer;
+    if(std::wcscmp(str, TEXT("FMatrixConstants")) == 0) return EShaderConstantBuffer::FMatrixConstants;
     if(std::wcscmp(str, TEXT("FPrimitiveCounts")) == 0) return EShaderConstantBuffer::FPrimitiveCounts;
     if(std::wcscmp(str, TEXT("FSubUVConstant")) == 0) return EShaderConstantBuffer::FSubUVConstant;
     if(std::wcscmp(str, TEXT("FTextureConstants")) == 0) return EShaderConstantBuffer::FTextureConstants;
     if(std::wcscmp(str, TEXT("FViewportInfo")) == 0) return EShaderConstantBuffer::FViewportInfo;
-    if(std::wcscmp(str, TEXT("MatrixConstants")) == 0) return EShaderConstantBuffer::MatrixConstants;
 #else
     if(std::strcmp(str, "FCameraConstant") == 0) return EShaderConstantBuffer::FCameraConstant;
     if(std::strcmp(str, "FConstants") == 0) return EShaderConstantBuffer::FConstants;
@@ -207,11 +196,11 @@ inline EShaderConstantBuffer EShaderConstantBufferFromString(const TCHAR* str)
     if(std::strcmp(str, "FLightingConstants") == 0) return EShaderConstantBuffer::FLightingConstants;
     if(std::strcmp(str, "FMaterialConstants") == 0) return EShaderConstantBuffer::FMaterialConstants;
     if(std::strcmp(str, "FMatrixBuffer") == 0) return EShaderConstantBuffer::FMatrixBuffer;
+    if(std::strcmp(str, "FMatrixConstants") == 0) return EShaderConstantBuffer::FMatrixConstants;
     if(std::strcmp(str, "FPrimitiveCounts") == 0) return EShaderConstantBuffer::FPrimitiveCounts;
     if(std::strcmp(str, "FSubUVConstant") == 0) return EShaderConstantBuffer::FSubUVConstant;
     if(std::strcmp(str, "FTextureConstants") == 0) return EShaderConstantBuffer::FTextureConstants;
     if(std::strcmp(str, "FViewportInfo") == 0) return EShaderConstantBuffer::FViewportInfo;
-    if(std::strcmp(str, "MatrixConstants") == 0) return EShaderConstantBuffer::MatrixConstants;
 #endif
     return EShaderConstantBuffer::EShaderConstantBuffer_MAX;
 }

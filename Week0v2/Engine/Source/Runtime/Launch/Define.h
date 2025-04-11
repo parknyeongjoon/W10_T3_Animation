@@ -9,7 +9,6 @@
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
 #include "Math/Matrix.h"
-#include "Math/Color.h"
 
 #define UE_LOG Console::GetInstance().AddLog
 
@@ -121,8 +120,10 @@ namespace OBJ
         TArray<FVertexSimple> Vertices;
         TArray<UINT> Indices;
 
-        ID3D11Buffer* VertexBuffer;
-        ID3D11Buffer* IndexBuffer;
+        FString VBName;
+        FString IBName;
+        // ID3D11Buffer* VertexBuffer;
+        // ID3D11Buffer* IndexBuffer;
         
         TArray<FObjMaterialInfo> Materials;
         TArray<FMaterialSubset> MaterialSubsets;
@@ -148,7 +149,7 @@ enum class EShaderStage
 struct FShaderConstantKey
 {
     EShaderStage ShaderType;  // 예: Vertex, Pixel 등
-    FString ConstantName;    // 상수 버퍼 내 상수 이름
+    FName ConstantName;    // 상수 버퍼 내 상수 이름
 
     // 동등 비교 연산자: 두 키가 동일하면 true
     bool operator==(const FShaderConstantKey& Other) const
@@ -166,8 +167,8 @@ namespace std
         std::size_t operator()(const FShaderConstantKey& Key) const noexcept
         {
             // EShaderType은 enum class이므로 int로 캐스팅하여 해시를 계산
-            std::size_t h1 = std::hash<int>()(static_cast<int>(Key.ShaderType));
-            std::size_t h2 = std::hash<FString>()(Key.ConstantName);
+            std::size_t h1 = std::hash<uint32>()(static_cast<int>(Key.ShaderType));
+            std::size_t h2 = std::hash<FName>()(Key.ConstantName);
             // 간단한 해시 결합: XOR과 쉬프트 사용 (더 복잡한 해시 결합도 가능)
             return h1 ^ (h2 << 1);
         }
@@ -390,120 +391,4 @@ struct FPointLight
 
     float AttenuationFalloff;
     FVector Pad;
-};
-
-struct FLightingConstant
-{
-    FVector AmbientColor;
-    float AmbientIntensity;
-
-    uint32 NumDirectionalLights;
-    uint32 NumPointLights;
-    float pad[2];
-
-    FDirectionalLight DirLights[MAX_DIRECTIONAL_LIGHTS];
-    FPointLight PointLights[MAX_POINT_LIGHTS];
-};
-
-struct FMaterialConstants
-{
-    FVector DiffuseColor;
-    float TransparencyScalar;
-    FVector AmbientColor;
-    float DensityScalar;
-    FVector SpecularColor;
-    float SpecularScalar;
-    FVector EmmisiveColor;
-    float MaterialPad0;
-};
-
-struct FConstants
-{
-    FMatrix Model;      // 모델
-    FMatrix ViewProj;   // 뷰 프로젝션 행렬
-    FMatrix ModelMatrixInverseTranspose; // normal 변환을 위한 행렬
-    FVector4 UUIDColor;
-    bool IsSelected;
-    FVector pad;
-};
-
-struct FLitUnlitConstants
-{
-    int isLit; // 1 = Lit, 0 = Unlit 
-    FVector pad;
-};
-
-struct FSubMeshConstants
-{
-    float isSelectedSubMesh;
-    FVector pad;
-};
-
-struct FTextureConstants
-{
-    float UOffset;
-    float VOffset;
-    float pad0;
-    float pad1;
-};
-
-struct FSubUVConstant
-{
-    float indexU;
-    float indexV;
-};
-
-struct alignas(16) FCameraConstants
-{
-    FMatrix ViewMatrix;
-    FMatrix ProjMatrix;
-    FMatrix InvViewMatrix;
-    FMatrix InvProjMatrix;
-
-    FVector CameraPos;
-    float NearPlane;
-    FVector CameraForward;
-    float FarPlane;
-};
-
-struct alignas(16) FViewportConstants
-{
-    float ViewportWidth, ViewportHeight;
-    float ViewportOffsetX, ViewportOffsetY;
-};
-
-struct FDepthToWorldConstants
-{
-    FMatrix InvView;
-    FMatrix InvProj;
-    float nearPlane;
-    float farPlane;
-    float pad1, pad2;
-    FVector4 FogColor;
-    float FogStartHeight;
-    float FogEndHeight;
-    float FogDensity;
-};
-
-struct alignas(16) FHeightFogConstants
-{
-    float FogDensity;       
-    float HeightFogStart;
-    float HeightFogEnd;
-    float MaxOpacity;       
-
-    float DistanceFogNear;
-    float DistanceFogFar;
-    float pad1, pad2;
-    
-    FLinearColor InscatteringColor;
-    FLinearColor DirectionalInscatteringColor;
-
-    FVector DirectionalLightDirection;
-    float DirectionalInscatteringExponent;
-
-    float DirectionalInscatteringStartDistance;
-    float pad3, pad4, pad5;
-
-    int IsExponential;
 };

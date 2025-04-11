@@ -2,6 +2,7 @@
 #include <cstdarg>
 #include <cstdio>
 
+#include "EditorEngine.h"
 #include "UnrealEd/EditorViewportClient.h"
 
 

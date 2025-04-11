@@ -1,5 +1,7 @@
 #pragma once
-#include "Define.h"
+#include "UObject/NameTypes.h"
+
+class ID3D11InputLayout;
 
 class FShaderProgram
 {
@@ -11,16 +13,9 @@ public:
     FShaderProgram() = default;
 
     // 셰이더 및 입력 레이아웃 바인딩 함수
-    void Bind(ID3D11DeviceContext* context) const;
+    void Bind() const;
 
-    void Release()
-    {
-        if (InputLayout)
-        {
-            InputLayout->Release();
-            InputLayout = nullptr;
-        }
-    }
+    void Release();
     
     FName GetVertexShaderName() const { return VSName; }
     FName GetPixelShaderName() const { return PSName; }

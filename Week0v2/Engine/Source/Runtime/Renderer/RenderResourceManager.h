@@ -4,14 +4,17 @@
 #include "Container/Map.h"
 #include "D3D11RHI/GraphicDevice.h"
 
-class FVIBuffers;
+class FVBIBTopologyMapping;
 class FShaderProgram;
 
 class FRenderResourceManager
 {
 public:
-    void Initialize(FGraphicsDevice* InGraphicDevice);
+    FRenderResourceManager(FGraphicsDevice* InGraphicDevice);
+    void Initialize();
     void LoadStates();
+
+    void ReleaseResources();
 
     template<typename T>
     ID3D11Buffer* CreateImmutableVertexBuffer(const TArray<T>& vertices) const;
@@ -61,6 +64,9 @@ public:
     
     ID3D11VertexShader* GetVertexShader(const FName InVSName);
     ID3D11PixelShader* GetPixelShader(const FName InPSName);
+
+    ID3D11Buffer* GetVertexBuffer(const FName InVBName);
+    ID3D11Buffer* GetIndexBuffer(const FName InIBName);
     ID3D11Buffer* GetConstantBuffer(const FName InCBName);
 
     ID3D11Buffer* GetStructuredBuffer(FName InName);
@@ -86,6 +92,7 @@ private:
     
     ID3D11DepthStencilState* DepthStencilStates[static_cast<uint32>(EDepthStencilState::End)] = {};
 };
+
 template <typename T>
 ID3D11Buffer* FRenderResourceManager::CreateImmutableVertexBuffer(const TArray<T>& vertices) const
 {
@@ -104,6 +111,8 @@ ID3D11Buffer* FRenderResourceManager::CreateImmutableVertexBuffer(const TArray<T
         UE_LOG(LogLevel::Warning, "VertexBuffer Creation failed");
         return nullptr;
     }
+
+    
     return vertexBuffer;
 }
 

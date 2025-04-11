@@ -1,17 +1,7 @@
 #include "ShaderHeaders/GSamplers.hlsli"
 Texture2D Textures : register(t0);
 
-cbuffer MatrixConstants : register(b0)
-{
-    row_major matrix Model;
-    row_major matrix ViewProj;
-    row_major matrix MInverseTranspose;
-    float4 UUID;
-    bool isSelected;
-    float3 MatrixPad0;
-};
-
-cbuffer FMaterialConstants : register(b1)
+cbuffer FMaterialConstants : register(b0)
 {
     float3 DiffuseColor;
     float TransparencyScalar;
@@ -43,7 +33,7 @@ struct FPointLight
     float3 pad;
 };
 
-cbuffer FLightingConstants : register(b2)
+cbuffer FLightingConstants : register(b1)
 {
     float3 AmbientColor;
     float AmbientIntensity;
@@ -56,25 +46,19 @@ cbuffer FLightingConstants : register(b2)
     FPointLight PointLights[16];
 };
 
-cbuffer FFlagConstants : register(b3)
+cbuffer FFlagConstants : register(b2)
 {
     bool IsLit;
     float3 flagPad0;
 }
 
-cbuffer FSubMeshConstants : register(b4)
+cbuffer FSubUVConstant : register(b3)
 {
-    bool IsSelectedSubMesh;
-    float3 SubMeshPad0;
+    float indexU;
+    float indexV;
 }
 
-cbuffer FTextureConstants : register(b5)
-{
-    float2 UVOffset;
-    float2 TexturePad0;
-}
-
-cbuffer FCameraConstant : register(b6)
+cbuffer FCameraConstant : register(b4)
 {
     matrix ViewMatrix;
     matrix ProjMatrix;
@@ -99,7 +83,7 @@ struct PS_INPUT
 struct PS_OUTPUT
 {
     float4 color : SV_Target0;
-    float4 UUID : SV_Target1;
+    //float4 UUID : SV_Target1;
 };
 
 float noise(float3 p)
@@ -174,9 +158,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
     
-    output.UUID = UUID;
+    //output.UUID = UUID;
+    float2 uvAdjusted = input.texcoord + float2(indexU, indexV);
     
-    float4 baseColor = Textures.Sample(linearSampler, input.texcoord + UVOffset) + float4(DiffuseColor, TransparencyScalar);
+    float4 baseColor = Textures.Sample(linearSampler, input.texcoord + uvAdjusted) + float4(DiffuseColor, TransparencyScalar);
     
     if(!IsLit)
     {

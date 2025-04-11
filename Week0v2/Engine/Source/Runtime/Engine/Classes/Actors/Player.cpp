@@ -4,17 +4,16 @@
 #include "Engine/World.h"
 #include "BaseGizmos/GizmoArrowComponent.h"
 #include "BaseGizmos/GizmoCircleComponent.h"
-#include "BaseGizmos/GizmoRectangleComponent.h"
 #include "BaseGizmos/TransformGizmo.h"
 #include "Camera/CameraComponent.h"
 #include "Components/LightComponent.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Math/JungleMath.h"
-#include "Math/MathUtility.h"
 #include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
-#include <Components/UText.h>
+
+#include "EditorEngine.h"
 
 
 using namespace DirectX;
@@ -43,14 +42,14 @@ void AEditorPlayer::Input()
             GetCursorPos(&mousePos);
             GetCursorPos(&m_LastMousePos);
 
-            uint32 UUID = GetEngine()->graphicDevice.GetPixelUUID(mousePos);
+            //uint32 UUID = GetEngine()->graphicDevice.GetPixelUUID(mousePos);
             // TArray<UObject*> objectArr = GetWorld()->GetObjectArr();
-            for ( const auto obj : TObjectRange<USceneComponent>())
-            {
-                if (obj->GetUUID() != UUID) continue;
-
-                UE_LOG(LogLevel::Display, *obj->GetName());
-            }
+            // for ( const auto obj : TObjectRange<USceneComponent>())
+            // {
+            //     if (obj->GetUUID() != UUID) continue;
+            //
+            //     UE_LOG(LogLevel::Display, *obj->GetName());
+            // }
             ScreenToClient(GetEngine()->hWnd, &mousePos);
 
             FVector pickPosition;

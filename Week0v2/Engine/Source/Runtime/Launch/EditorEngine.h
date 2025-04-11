@@ -35,6 +35,7 @@ public:
     void PausedPIE();
     void ResumingPIE();
     void StopPIE();
+    void GetLevel();
 
 private:
     void WindowInit(HINSTANCE hInstance);

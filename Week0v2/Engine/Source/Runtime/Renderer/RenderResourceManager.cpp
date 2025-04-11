@@ -1,8 +1,12 @@
 #include "RenderResourceManager.h"
 
-void FRenderResourceManager::Initialize(FGraphicsDevice* InGraphicDevice)
+FRenderResourceManager::FRenderResourceManager(FGraphicsDevice* InGraphicDevice)
 {
     GraphicDevice = InGraphicDevice;
+}
+
+void FRenderResourceManager::Initialize()
+{
     LoadStates();
 }
 
@@ -134,6 +138,51 @@ void FRenderResourceManager::LoadStates()
 #pragma endregion
 }
 
+void FRenderResourceManager::ReleaseResources()
+{
+    for (ID3D11DepthStencilState* depthStencilState : DepthStencilStates)
+    {
+        depthStencilState->Release();
+        depthStencilState = nullptr;
+    }
+
+    for (ID3D11RasterizerState* rasterizerState : RasterizerStates)
+    {
+        rasterizerState->Release();
+        rasterizerState = nullptr;
+    }
+
+    for (ID3D11BlendState* blendState : BlendStates)
+    {
+        blendState->Release();
+        blendState = nullptr;
+    }
+
+    for (ID3D11SamplerState* samplerState : SamplerStates)
+    {
+        samplerState->Release();
+        samplerState = nullptr;
+    }
+
+    for (auto CB : ConstantBuffers)
+    {
+        CB.Value->Release();
+        CB.Value = nullptr;
+    }
+
+    for (auto IB : IndexBuffers)
+    {
+        IB.Value->Release();
+        IB.Value = nullptr;
+    }
+
+    for (auto VB : VertexBuffers)
+    {
+        VB.Value->Release();
+        VB.Value = nullptr;
+    }
+}
+
 ID3D11Buffer* FRenderResourceManager::CreateIndexBuffer(const uint32* indices, const uint32 indicesSize) const
 {
     TArray<uint32> indicesToCopy;
@@ -208,26 +257,46 @@ ID3D11ShaderResourceView* FRenderResourceManager::CreateBufferSRV(ID3D11Buffer* 
 
 void FRenderResourceManager::AddOrSetVertexShader(const FName InVSName, ID3D11VertexShader* InShader)
 {
+    if (VertexShaders.Contains(InVSName))
+    {
+        VertexShaders[InVSName]->Release();
+    }
     VertexShaders.Add(InVSName, InShader);
 }
 
 void FRenderResourceManager::AddOrSetPixelShader(const FName InPSName, ID3D11PixelShader* InShader)
 {
+    if (PixelShaders.Contains(InPSName))
+    {
+        PixelShaders[InPSName]->Release();
+    }
     PixelShaders.Add(InPSName, InShader);
 }
 
 void FRenderResourceManager::AddOrSetVertexBuffer(const FName InVBName, ID3D11Buffer* InBuffer)
 {
+    if (VertexBuffers.Contains(InVBName))
+    {
+        VertexBuffers[InVBName]->Release();
+    }
     VertexBuffers.Add(InVBName, InBuffer);
 }
 
 void FRenderResourceManager::AddOrSetIndexBuffer(const FName InPBName, ID3D11Buffer* InBuffer)
 {
+    if (IndexBuffers.Contains(InPBName))
+    {
+        IndexBuffers[InPBName]->Release();
+    }
     IndexBuffers.Add(InPBName, InBuffer);
 }
 
 void FRenderResourceManager::AddOrSetConstantBuffer(const FName InCBName, ID3D11Buffer* InBuffer)
 {
+    if (ConstantBuffers.Contains(InCBName))
+    {
+        ConstantBuffers[InCBName]->Release();
+    }
     ConstantBuffers.Add(InCBName, InBuffer);
 }
 
@@ -237,6 +306,11 @@ void FRenderResourceManager::AddOrSetStructuredBuffer(const FName InSBName, ID3D
     {
         StructuredBuffers[InSBName] = TPair<ID3D11Buffer*, ID3D11ShaderResourceView*>();
     }
+
+    if (StructuredBuffers.Contains(InSBName) == true && StructuredBuffers[InSBName].Key != nullptr)
+    {
+        StructuredBuffers[InSBName].Key->Release();
+    }
     StructuredBuffers[InSBName].Key = InBuffer;
 }
 
@@ -245,6 +319,11 @@ void FRenderResourceManager::AddOrSetStructuredBufferSRV(const FName InSBName, I
     if (StructuredBuffers.Contains(InSBName) == false)
     {
         StructuredBuffers[InSBName] = TPair<ID3D11Buffer*, ID3D11ShaderResourceView*>();
+    }
+
+    if (StructuredBuffers.Contains(InSBName) == true && StructuredBuffers[InSBName].Value != nullptr)
+    {
+        StructuredBuffers[InSBName].Value->Release();
     }
     StructuredBuffers[InSBName].Value = InShaderResourceView;
 }
@@ -266,6 +345,24 @@ ID3D11PixelShader* FRenderResourceManager::GetPixelShader(const FName InPSName)
     }
     return nullptr;
 }
+ID3D11Buffer* FRenderResourceManager::GetVertexBuffer(const FName InVBName)
+{
+    if (VertexBuffers.Contains(InVBName))
+    {
+        return VertexBuffers[InVBName];
+    }
+    return nullptr;
+}
+
+ID3D11Buffer* FRenderResourceManager::GetIndexBuffer(const FName InIBName)
+{
+    if (IndexBuffers.Contains(InIBName))
+    {
+        return IndexBuffers[InIBName];
+    }
+    return nullptr;
+}
+
 
 ID3D11Buffer* FRenderResourceManager::GetConstantBuffer(const FName InCBName)
 {

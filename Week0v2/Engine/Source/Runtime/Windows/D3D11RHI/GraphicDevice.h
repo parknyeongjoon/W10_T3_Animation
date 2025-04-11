@@ -7,13 +7,8 @@
 #define _TCHAR_DEFINED
 #define SAFE_RELEASE(p) if(p) { p->Release(); p = nullptr; }
 #include <d3d11.h>
-
-#include "EngineBaseTypes.h"
 #include "Container/Array.h"
 #include "Container/String.h"
-
-#include "Core/HAL/PlatformType.h"
-#include "Core/Math/Vector4.h"
 
 enum class EShaderStage;
 

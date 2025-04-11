@@ -26,7 +26,7 @@ void SLevelEditor::Initialize()
         viewportClients[i] = std::make_shared<FEditorViewportClient>();
         viewportClients[i]->Initialize(i);
     }
-    ActiveViewportClient = viewportClients[0];
+ 
     OnResize();
     VSplitter = new SSplitterV();
     VSplitter->Initialize(FRect(0.0f, EditorHeight * 0.5f - 10, EditorHeight, 20));

@@ -5,37 +5,47 @@
 
 extern UEditorEngine* GEngine;
 
-void FShaderProgram::Bind(ID3D11DeviceContext* context) const
+void FShaderProgram::Bind() const
 {
-    FRenderResourceManager RenderResourceManager = GEngine->renderer.GetResourceManager();
+    const FGraphicsDevice GraphicDevice = GEngine->graphicDevice;
+    FRenderResourceManager* RenderResourceManager = GEngine->renderer.GetResourceManager();
     
-    ID3D11VertexShader* VertexShader = RenderResourceManager.GetVertexShader(VSName);
-    ID3D11PixelShader* PixelShader = RenderResourceManager.GetPixelShader(PSName);
+    ID3D11VertexShader* VertexShader = RenderResourceManager->GetVertexShader(VSName);
+    ID3D11PixelShader* PixelShader = RenderResourceManager->GetPixelShader(PSName);
 
     if (VertexShader)
     {
-        context->VSSetShader(VertexShader, nullptr, 0);
+        GraphicDevice.DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     }
     else
     {
-        context->VSSetShader(nullptr, nullptr, 0);
+        GraphicDevice.DeviceContext->VSSetShader(nullptr, nullptr, 0);
     }
 
     if (PixelShader)
     {
-        context->PSSetShader(PixelShader, nullptr, 0);
+        GraphicDevice.DeviceContext->PSSetShader(PixelShader, nullptr, 0);
     }
     else
     {
-        context->PSSetShader(nullptr, nullptr, 0);
+        GraphicDevice.DeviceContext->PSSetShader(nullptr, nullptr, 0);
     }
 
     if (InputLayout)
     {
-        context->IASetInputLayout(InputLayout);
+        GraphicDevice.DeviceContext->IASetInputLayout(InputLayout);
     }
     else
     {
-        context->IASetInputLayout(nullptr);
+        GraphicDevice.DeviceContext->IASetInputLayout(nullptr);
+    }
+}
+
+void FShaderProgram::Release()
+{
+    if (InputLayout)
+    {
+        InputLayout->Release();
+        InputLayout = nullptr;
     }
 }

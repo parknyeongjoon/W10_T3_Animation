@@ -1,5 +1,6 @@
 #include "UText.h"
 
+#include "EditorEngine.h"
 #include "Engine/World.h"
 #include "Engine/Source/Editor/PropertyEditor/ShowFlags.h"
 #include "UnrealEd/EditorViewportClient.h"
@@ -11,15 +12,11 @@ UText::UText()
 
 UText::~UText()
 {
-	if (vertexTextBuffer)
-	{
-		vertexTextBuffer->Release();
-		vertexTextBuffer = nullptr;
-	}
+
 }
 
-UText::UText(const UText& other) :UBillboardComponent(other), vertexTextBuffer(other.vertexTextBuffer), vertexTextureArr(other.vertexTextureArr)
-,numTextVertices(other.numTextVertices), text(other.text), quad(other.quad)
+UText::UText(const UText& other)
+:UBillboardComponent(other), vertexTextureArr(other.vertexTextureArr), text(other.text), quad(other.quad)
 {
 }
 
@@ -96,7 +93,7 @@ void UText::LoadAndConstruct(const FActorComponentInfo& Info)
 }
 
 
-void UText::SetText(FWString _text)
+void UText::SetText(const FWString& _text)
 {
 	text = _text;
 	if (_text.empty())
@@ -105,26 +102,20 @@ void UText::SetText(FWString _text)
 
 		vertexTextureArr.Empty();
 		quad.Empty();
-
-		// 기존 버텍스 버퍼가 있다면 해제
-		if (vertexTextBuffer)
-		{
-			vertexTextBuffer->Release();
-			vertexTextBuffer = nullptr;
-		}
+	    
 		return;
 	}
 	int textSize = static_cast<int>(_text.size());
 
 
-	uint32 BitmapWidth = Texture->width;
-	uint32 BitmapHeight = Texture->height;
+	const uint32 BitmapWidth = Texture->width;
+	const uint32 BitmapHeight = Texture->height;
 
-	float CellWidth =  float(BitmapWidth)/ColumnCount;
-	float CellHeight = float(BitmapHeight)/RowCount;
+	const float CellWidth =  static_cast<float>(BitmapWidth) / ColumnCount;
+	const float CellHeight = static_cast<float>(BitmapHeight) / RowCount;
 
-	float nTexelUOffset = CellWidth / BitmapWidth;
-	float nTexelVOffset = CellHeight/ BitmapHeight;
+	const float nTexelUOffset = CellWidth / BitmapWidth;
+	const float nTexelVOffset = CellHeight/ BitmapHeight;
 
 	for (int i = 0; i < _text.size(); i++)
 	{
@@ -162,17 +153,36 @@ void UText::SetText(FWString _text)
 		vertexTextureArr.Add(rightDown);
 		vertexTextureArr.Add(leftDown);
 	}
-	UINT byteWidth = static_cast<UINT>(vertexTextureArr.Num() * sizeof(FVertexTexture));
 
-	float lastX = -1.0f + quadSize* _text.size();
+	const float lastX = -1.0f + quadSize * _text.size();
 	quad.Add(FVector(-1.0f,1.0f,0.0f));
 	quad.Add(FVector(-1.0f,-1.0f,0.0f));
 	quad.Add(FVector(lastX,1.0f,0.0f));
 	quad.Add(FVector(lastX,-1.0f,0.0f));
 
-	CreateTextTextureVertexBuffer(vertexTextureArr,byteWidth);
+	//CreateTextTextureVertexBuffer(vertexTextureArr,byteWidth);
+    ID3D11Buffer* VB = nullptr;
+    
+    VB = GetEngine()->renderer.GetResourceManager()->CreateImmutableVertexBuffer<FVertexTexture>(vertexTextureArr);
+
+    int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, 
+                                     text.c_str(), -1, 
+                                     nullptr, 0, 
+                                     nullptr, nullptr);
+    std::string result(sizeNeeded, 0);
+    WideCharToMultiByte(CP_UTF8, 0, 
+                        text.c_str(), -1, 
+                        &result[0], sizeNeeded, 
+                        nullptr, nullptr);
+
+    FString textName = result;
+
+    result.pop_back(); // 널 문자 제거
+    GetEngine()->renderer.GetResourceManager()->AddOrSetVertexBuffer(textName, VB);
+    GetEngine()->renderer.MappingVBTopology(textName, textName, sizeof(FVertexSimple), vertexTextureArr.Num());
 }
-void UText::setStartUV(wchar_t hangul, float& outStartU, float& outStartV)
+
+void UText::setStartUV(const wchar_t hangul, float& outStartU, float& outStartV) const
 {
     //대문자만 받는중
     int StartU = 0;
@@ -219,7 +229,8 @@ void UText::setStartUV(wchar_t hangul, float& outStartU, float& outStartV)
     outStartU = static_cast<float>(offsetU);
     outStartV = static_cast<float>(StartV + offsetV);
 }
-void UText::setStartUV(char alphabet, float& outStartU, float& outStartV)
+
+void UText::setStartUV(const char alphabet, float& outStartU, float& outStartV) const
 {
     //대문자만 받는중
     int StartU=0;
@@ -262,54 +273,30 @@ void UText::setStartUV(char alphabet, float& outStartU, float& outStartV)
     outStartV = static_cast<float>(StartV + offsetV);
 
 }
-void UText::CreateTextTextureVertexBuffer(const TArray<FVertexTexture>& _vertex,UINT byteWidth)
-{
-	numTextVertices = static_cast<UINT>(_vertex.Num());
-	// 2. Create a vertex buffer
-	D3D11_BUFFER_DESC vertexbufferdesc = {};
-	vertexbufferdesc.ByteWidth = byteWidth;
-	vertexbufferdesc.Usage = D3D11_USAGE_IMMUTABLE; // will never be updated 
-	vertexbufferdesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-	D3D11_SUBRESOURCE_DATA vertexbufferSRD = { _vertex.GetData()};
-
-	ID3D11Buffer* vertexBuffer;
-	
-	HRESULT hr = UEditorEngine::graphicDevice.Device->CreateBuffer(&vertexbufferdesc, &vertexbufferSRD, &vertexBuffer);
-	if (FAILED(hr))
-	{
-		UE_LOG(LogLevel::Warning, "VertexBuffer Creation faild");
-	}
-	vertexTextBuffer = vertexBuffer;
-
-	//FEngineLoop::resourceMgr.RegisterMesh(&FEngineLoop::renderer, "JungleText", _vertex, _vertex.Num() * sizeof(FVertexTexture),
-	//	nullptr, 0);
-
-}
 
 
 void UText::TextMVPRendering()
 {
-    UEditorEngine::renderer.PrepareTextureShader();
-    //FEngineLoop::renderer.UpdateSubUVConstant(0, 0);
-    //FEngineLoop::renderer.PrepareSubUVConstant();
-    FMatrix Model = CreateBillboardMatrix();
-
-    FMatrix ViewProj = GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix() * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
-
-    FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
-    FVector4 UUIDColor = EncodeUUID() / 255.0f;
-    if (this == GetWorld()->GetPickingGizmo()) {
-        UEditorEngine::renderer.GetConstantBufferUpdater().UpdateConstant(UEditorEngine::renderer.ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, true);
-    }
-    else
-        UEditorEngine::renderer.GetConstantBufferUpdater().UpdateConstant(UEditorEngine::renderer.ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, false);
-
-    if (ShowFlags::GetInstance().currentFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText)) {
-        UEditorEngine::renderer.RenderTextPrimitive(vertexTextBuffer, numTextVertices,
-            Texture->TextureSRV, Texture->SamplerState);
-    }
-    //Super::Render();
-
-    UEditorEngine::renderer.PrepareShader();
+    // UEditorEngine::renderer.PrepareTextureShader();
+    // //FEngineLoop::renderer.UpdateSubUVConstant(0, 0);
+    // //FEngineLoop::renderer.PrepareSubUVConstant();
+    // FMatrix Model = CreateBillboardMatrix();
+    //
+    // FMatrix ViewProj = GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix() * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
+    //
+    // FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
+    // FVector4 UUIDColor = EncodeUUID() / 255.0f;
+    // if (this == GetWorld()->GetPickingGizmo()) {
+    //     UEditorEngine::renderer.GetConstantBufferUpdater().UpdateConstant(UEditorEngine::renderer.ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, true);
+    // }
+    // else
+    //     UEditorEngine::renderer.GetConstantBufferUpdater().UpdateConstant(UEditorEngine::renderer.ConstantBuffer, Model, ViewProj, NormalMatrix, UUIDColor, false);
+    //
+    // if (ShowFlags::GetInstance().currentFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText)) {
+    //     UEditorEngine::renderer.RenderTextPrimitive(vertexTextBuffer, numTextVertices,
+    //         Texture->TextureSRV, Texture->SamplerState);
+    // }
+    // //Super::Render();
+    //
+    // UEditorEngine::renderer.PrepareShader();
 }

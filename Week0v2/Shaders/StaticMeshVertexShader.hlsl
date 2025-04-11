@@ -1,5 +1,5 @@
 // MatrixBuffer: 변환 행렬 관리
-cbuffer MatrixConstants : register(b0)
+cbuffer FMatrixConstants : register(b0)
 {
     row_major float4x4 Model;
     row_major float4x4 ViewProj;

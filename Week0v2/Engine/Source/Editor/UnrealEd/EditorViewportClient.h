@@ -5,20 +5,14 @@
 #include "Container/Map.h"
 #include "UObject/ObjectMacros.h"
 #include "ViewportClient.h"
-#include "EditorEngine.h"
 #include "EngineBaseTypes.h"
 
 #define MIN_ORTHOZOOM				1.0							/* 2D ortho viewport zoom >= MIN_ORTHOZOOM */
 #define MAX_ORTHOZOOM				1e25	
 
-extern UEditorEngine* GEngine;
-
 struct FViewportCameraTransform
 {
-private:
-
 public:
-
     FVector GetForwardVector();
     FVector GetRightVector();
     FVector GetUpVector();
@@ -87,7 +81,7 @@ public:
     ~FEditorViewportClient();
 
     virtual void        Draw(FViewport* Viewport) override;
-    virtual UWorld*     GetWorld() const { return NULL; };
+    virtual UWorld*     GetWorld() const { return nullptr; };
     void Initialize(int32 viewportIndex);
     void Tick(float DeltaTime);
     void Release();
@@ -107,7 +101,7 @@ protected:
 public: 
     FViewport* Viewport;
     int32 ViewportIndex;
-    FViewport* GetViewport() { return Viewport; }
+    FViewport* GetViewport() const { return Viewport; }
     D3D11_VIEWPORT& GetD3DViewport();
 
 

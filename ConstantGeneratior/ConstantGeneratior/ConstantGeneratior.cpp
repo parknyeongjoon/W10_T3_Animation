@@ -121,17 +121,6 @@ static void GenerateConstantBufferStructsForShaders(const std::vector<ID3DBlob*>
     oss << "#include \"Math/Vector4.h\"\n\n";
     oss << "// NOTE: Generated code - do not modify manually.\n\n";
 
-    oss << "\nstruct FLighting\n"
-        << "{\n"
-        << "    FVector Position;\n"
-        << "    float  Intensity;\n"
-        << "    FVector LightDirection;\n"
-        << "    float  AmbientFactor;\n"
-        << "    FLinearColor LightColor;\n"
-        << "    float  AttenuationRadius;\n"
-        << "    FVector pad0;\n"
-        << "};\n\n";
-
     // 각 쉐이더 블롭에 대해 처리
     for (const auto& shaderBlob : shaderBlobs)
     {

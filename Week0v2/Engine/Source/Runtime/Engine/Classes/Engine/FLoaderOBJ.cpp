@@ -21,7 +21,6 @@ UMaterial* FManagerOBJ::GetMaterial(FString name)
 
 UStaticMesh* FManagerOBJ::CreateStaticMesh(FString filePath)
 {
-
     OBJ::FStaticMeshRenderData* staticMeshRenderData = FManagerOBJ::LoadObjStaticMeshAsset(filePath);
 
     if (staticMeshRenderData == nullptr) return nullptr;
