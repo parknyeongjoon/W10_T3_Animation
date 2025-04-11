@@ -10,12 +10,11 @@ struct FWorldContext
 {
     FWorldContext() : WorldType(EWorldType::None), thisCurrentWorld(nullptr){}
 
-    std::shared_ptr< UWorld > thisCurrentWorld;
+    UWorld* thisCurrentWorld;
     EWorldType::Type WorldType;
-    // std::shared_ptr<FEditorViewportClient> EditorViewportClient;
-    TArray<std::shared_ptr<FWorldContext>> ExternalReferences;
+    TArray<FWorldContext*> ExternalReferences;
 
-    std::shared_ptr<UWorld> World() { return thisCurrentWorld; }
+    UWorld* World() { return thisCurrentWorld; }
 };
 
 class UEngine : public UObject

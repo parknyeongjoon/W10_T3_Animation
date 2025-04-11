@@ -21,7 +21,7 @@ UObject::UObject()
 
 UWorld* UObject::GetWorld()
 {
-    return GEngine->GetWorld().get();
+    return GEngine->GetWorld();
 }
 
 bool UObject::IsA(const UClass* SomeBase) const
