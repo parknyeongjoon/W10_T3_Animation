@@ -53,12 +53,21 @@ struct FVector
     float x, y, z;
     FVector(float _x = 0, float _y = 0, float _z = 0) : x(_x), y(_y), z(_z) {}
 
-    FVector operator-(const FVector& other) const {
-        return FVector(x - other.x, y - other.y, z - other.z);
-    }
-    FVector operator+(const FVector& other) const {
-        return FVector(x + other.x, y + other.y, z + other.z);
-    }
+    FVector operator+(const FVector& Other) const;
+    FVector& operator+=(const FVector& Other);
+
+    FVector operator-(const FVector& Other) const;
+    FVector& operator-=(const FVector& Other);
+
+    FVector operator*(const FVector& Other) const;
+    FVector operator*(float Scalar) const;
+    FVector& operator*=(float Scalar);
+
+    FVector operator/(const FVector& Other) const;
+    FVector operator/(float Scalar) const;
+    FVector& operator/=(float Scalar);
+
+    FVector operator-() const;
 
     // 벡터 내적
     float Dot(const FVector& other) const {
@@ -87,15 +96,6 @@ struct FVector
             z * Other.x - x * Other.z,
             x * Other.y - y * Other.x
         };
-    }
-    // 스칼라 곱셈
-    FVector operator*(float scalar) const {
-        return FVector(x * scalar, y * scalar, z * scalar);
-    }
-
-    // 벡터 성분 곱셈
-    FVector operator*(const FVector& other) const {
-        return FVector(x * other.x, y * other.y, z * other.z);
     }
 
     bool operator==(const FVector& other) const {
@@ -145,3 +145,61 @@ struct FVector
     static const FVector ForwardVector;
     static const FVector RightVector;
 };
+inline FVector FVector::operator+(const FVector& Other) const
+{
+    return { x + Other.x, y + Other.y, z + Other.z };
+}
+
+inline FVector& FVector::operator+=(const FVector& Other)
+{
+    x += Other.x; y += Other.y; z += Other.z;
+    return *this;
+}
+
+inline FVector FVector::operator-(const FVector& Other) const
+{
+    return { x - Other.x, y - Other.y, z - Other.z };
+}
+
+inline FVector& FVector::operator-=(const FVector& Other)
+{
+    x -= Other.x; y -= Other.y; z -= Other.z;
+    return *this;
+}
+
+inline FVector FVector::operator*(const FVector& Other) const
+{
+    return { x * Other.x, y * Other.y, z * Other.z };
+}
+
+inline FVector FVector::operator*(float Scalar) const
+{
+    return { x * Scalar, y * Scalar, z * Scalar };
+}
+
+inline FVector& FVector::operator*=(float Scalar)
+{
+    x *= Scalar; y *= Scalar; z *= Scalar;
+    return *this;
+}
+
+inline FVector FVector::operator/(const FVector& Other) const
+{
+    return { x / Other.x, y / Other.y, z / Other.z };
+}
+
+inline FVector FVector::operator/(float Scalar) const
+{
+    return { x / Scalar, y / Scalar, z / Scalar };
+}
+
+inline FVector& FVector::operator/=(float Scalar)
+{
+    x /= Scalar; y /= Scalar; z /= Scalar;
+    return *this;
+}
+
+inline FVector FVector::operator-() const
+{
+    return { -x, -y, -z };
+}

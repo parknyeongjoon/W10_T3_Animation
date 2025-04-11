@@ -10,7 +10,8 @@
 #include "slate/Widgets/Layout/SSplitter.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "UnrealEd/SceneMgr.h"
-
+#include "UObject/UObjectIterator.h"
+#include "BaseGizmos/GizmoBaseComponent.h"
 
 class ULevel;
 
@@ -204,4 +205,26 @@ void UEditorEngine::Exit()
     graphicDevice.Release();
 }
 
-
+void UEditorEngine::ResizeGizmo()
+{
+    for (auto GizmoComp : TObjectRange<UGizmoBaseComponent>())
+    {
+        if (AActor* PickedActor = GWorld->GetSelectedActor())
+        {
+            std::shared_ptr<FEditorViewportClient> activeViewport = GetLevelEditor()->GetActiveViewportClient();
+            if (activeViewport->IsPerspective())
+            {
+                float scalar = abs(
+                    (activeViewport->ViewTransformPerspective.GetLocation() - PickedActor->GetRootComponent()->GetLocalLocation()).Magnitude()
+                );
+                scalar *= 0.1f;
+                GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
+            }
+            else
+            {
+                float scalar = activeViewport->orthoSize * 0.1f;
+                GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
+            }
+        }
+    }
+}

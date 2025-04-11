@@ -83,16 +83,40 @@ public:
     FVector GetLocalRotation();
     FQuat GetQuat() const { return QuatRotation; }
 
+#define region
+    FVector GetRelativeLocation() const { return RelativeLocation; }
+    FVector GetRelativeRotation() const { return RelativeRotation; }
+    FQuat GetRelativeQuat() const { return QuatRotation; }
+    FVector GetRelativeScale() const { return RelativeScale3D; }
+    FMatrix GetRelativeTransform() const;
+
+    FVector GetComponentLocation() const;
+    FVector GetComponentRotation() const;
+    FQuat GetComponentQuat() const;
+    FVector GetComponentScale() const;
+    FMatrix GetComponentTransform() const;
+
+    FMatrix GetComponentTranslateMatrix() const;
+    FMatrix GetComponentRotationMatrix() const;
+    FMatrix GetComponentScaleMatrix() const;
+    
     FVector GetLocalScale() const { return RelativeScale3D; }
     FVector GetLocalLocation() const { return RelativeLocation; }
 
+
+    void SetRelativeLocation(FVector _newLoc);
+    void SetRelativeRotation(FVector _newRot);
+    void SetRelativeQuat(FQuat _newRot);
+    void SetRelativeScale(FVector _newScale);
+    void SetupAttachment(USceneComponent* InParent);
+    void DetachFromParent();
+#define endregion
     void SetLocation(FVector _newLoc) { RelativeLocation = _newLoc; }
     virtual void SetRotation(FVector _newRot);
     void SetRotation(FQuat _newRot) { QuatRotation = _newRot; }
     void SetScale(FVector _newScale) { RelativeScale3D = _newScale; }
-    void SetupAttachment(USceneComponent* InParent);
-public:
 
+public:
     USceneComponent* GetAttachParent() const;
     void SetAttachParent(USceneComponent* InParent);
     TArray<USceneComponent*> GetAttachChildren() const { return AttachChildren; }
