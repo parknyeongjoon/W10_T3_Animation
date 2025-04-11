@@ -9,17 +9,6 @@ UStaticMesh::UStaticMesh()
 
 UStaticMesh::~UStaticMesh()
 {
-    if (staticMeshRenderData == nullptr) return;
-
-    if (staticMeshRenderData->VertexBuffer) {
-        staticMeshRenderData->VertexBuffer->Release();
-        staticMeshRenderData->VertexBuffer = nullptr;
-    }
-
-    if (staticMeshRenderData->IndexBuffer) {
-        staticMeshRenderData->IndexBuffer->Release();
-        staticMeshRenderData->IndexBuffer = nullptr;
-    }
 }
 
 uint32 UStaticMesh::GetMaterialIndex(FName MaterialSlotName) const
@@ -44,14 +33,26 @@ void UStaticMesh::SetData(OBJ::FStaticMeshRenderData* renderData)
 {
     staticMeshRenderData = renderData;
 
-    uint32 verticeNum = staticMeshRenderData->Vertices.Num();
+    ID3D11Buffer* VB = nullptr; 
+    ID3D11Buffer* IB = nullptr;
+
+    const uint32 verticeNum = staticMeshRenderData->Vertices.Num();
     if (verticeNum <= 0) return;
-    staticMeshRenderData->VertexBuffer = GetEngine()->renderer.GetResourceManager().CreateVertexBuffer(staticMeshRenderData->Vertices);
 
-    uint32 indexNum = staticMeshRenderData->Indices.Num();
+    FRenderResourceManager* renderResourceManager = GetEngine()->renderer.GetResourceManager();
+    VB = renderResourceManager->CreateImmutableVertexBuffer<FVertexSimple>(staticMeshRenderData->Vertices);
+    renderResourceManager->AddOrSetVertexBuffer(staticMeshRenderData->DisplayName, VB);
+    GetEngine()->renderer.MappingVBTopology(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, sizeof(FVertexSimple), verticeNum);
+    
+    const uint32 indexNum = staticMeshRenderData->Indices.Num();
     if (indexNum > 0)
-        staticMeshRenderData->IndexBuffer = GetEngine()->renderer.GetResourceManager().CreateIndexBuffer(staticMeshRenderData->Indices);
-
+    {
+        IB = renderResourceManager->CreateIndexBuffer(staticMeshRenderData->Indices);
+        renderResourceManager->AddOrSetIndexBuffer(staticMeshRenderData->DisplayName, IB);
+    }
+    GetEngine()->renderer.MappingVBTopology(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, sizeof(FVertexSimple), verticeNum);
+    GetEngine()->renderer.MappingIB(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, indexNum);
+    
     for (int materialIndex = 0; materialIndex < staticMeshRenderData->Materials.Num(); materialIndex++) {
         FStaticMaterial* newMaterialSlot = new FStaticMaterial();
         UMaterial* newMaterial = FManagerOBJ::CreateMaterial(staticMeshRenderData->Materials[materialIndex]);

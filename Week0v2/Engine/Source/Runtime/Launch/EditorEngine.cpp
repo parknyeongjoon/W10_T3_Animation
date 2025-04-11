@@ -72,18 +72,18 @@ void UEditorEngine::Render()
     graphicDevice.Prepare();
     if (LevelEditor->IsMultiViewport())
     {
-        std::shared_ptr<FEditorViewportClient> viewportClient = GetLevelEditor()->GetActiveViewportClient();
+        const std::shared_ptr<FEditorViewportClient> viewportClient = GetLevelEditor()->GetActiveViewportClient();
         for (int i = 0; i < 4; ++i)
         {
             LevelEditor->SetViewportClient(i);
-            renderer.PrepareRender();
-            renderer.Render(GWorld, LevelEditor->GetActiveViewportClient(), LevelEditor->GetViewports()[i]);
+            renderer.AddRenderObjectsToRenderPass(GWorld);
+            renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
         }
         GetLevelEditor()->SetViewportClient(viewportClient);
     }
     else
     {
-        renderer.PrepareRender();
+        renderer.AddRenderObjectsToRenderPass(GWorld);
         renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
     }
 }

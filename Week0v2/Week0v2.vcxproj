@@ -202,10 +202,13 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Level.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\StaticMeshActor.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Renderer\ConstantBufferUpdater.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\World.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\UnrealEngine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FBaseRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\LineBatchRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\StaticMeshRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\VBIBTopologyMapping.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Serialization\Archive.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Slate\Widgets\Layout\SSplitter.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\ResourceMgr.cpp" />
@@ -220,6 +223,7 @@
     <ClCompile Include="Engine\Source\Runtime\Launch\EditorEngine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\ImGuiManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\SlateCore\Widgets\SWindow.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\FShaderProgram.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_demo.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_draw.cpp" />
@@ -249,7 +253,6 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\QuadTexture.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResourceManager.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Renderer\ShaderManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PointLightComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light.cpp" />
@@ -316,13 +319,17 @@
     <ClInclude Include="Engine\Source\Runtime\Launch\EngineBaseTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\EditorEngine.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\ImGuiManager.h" />
-    <ClInclude Include="Engine\Source\Runtime\Renderer\ConstantBufferUpdater.h" />
-    <ClInclude Include="Engine\Source\Runtime\Renderer\ShaderManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FBaseRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\LineBatchRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\StaticMeshRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\VBIBTopologyMapping.h" />
     <ClInclude Include="Engine\Source\Runtime\Serialization\Archive.h" />
     <ClInclude Include="Engine\Source\Runtime\Serialization\FWindowsBinHelper.h" />
     <ClInclude Include="Engine\Source\Runtime\SlateCore\Widgets\SWindow.h" />
     <ClInclude Include="Engine\Source\Runtime\Slate\Widgets\Layout\SSplitter.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\CBStructDefine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\FShaderProgram.h" />
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
     <ClInclude Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.h" />
     <ClInclude Include="Font\IconDefs.h" />
@@ -381,7 +388,6 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UParticleSubUVComp.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UText.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UTextUUID.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\World.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderResourceManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PointLightComponent.h" />
@@ -390,7 +396,15 @@
     <ClInclude Include="FEditorStateManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\DebugDepthShader.hlsl">
+    <FxCompile Include="Shaders\DebugDepthPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shaders\DebugDepthVertexShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -416,6 +430,14 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <FxCompile Include="Shaders\LinePixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Shaders\StaticMeshPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -429,19 +451,13 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="Shaders\PixelTextureShader.hlsl">
+    <FxCompile Include="Shaders\TexturePixelShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="Shaders\ShaderLine.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Shaders\ShaderW0.hlsl">
+    <FxCompile Include="Shaders\LineVertexShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -460,7 +476,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="Shaders\VertexTextureShader.hlsl">
+    <FxCompile Include="Shaders\TextureVertexShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -472,6 +488,13 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week0v2.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Shaders\ShaderHeaders\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />
+    <None Include="Shaders\ShaderHeaders\GSamplers.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

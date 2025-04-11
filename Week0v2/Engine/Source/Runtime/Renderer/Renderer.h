@@ -4,169 +4,93 @@
 #pragma comment(lib, "d3dcompiler")
 
 #define _TCHAR_DEFINED
-#include <d3d11.h>
 #include "EngineBaseTypes.h"
 #include "Define.h"
-#include "Container/Set.h"
 #include "RenderResourceManager.h"
-#include "ShaderManager.h"
-#include "ConstantBufferUpdater.h"
 
-class ULightComponentBase;
-class UWorld;
-class FGraphicsDevice;
-class UMaterial;
-struct FStaticMaterial;
-class UObject;
+class FLineBatchRenderPass;
+class FStaticMeshRenderPass;
 class FEditorViewportClient;
-class UBillboardComponent;
-class UStaticMeshComponent;
-class UGizmoBaseComponent;
-class FRenderResourceManager;
+class UWorld;
+
 class FRenderer 
 {
-
 private:
-    float litFlag = 0;
+    void CreateStaticMeshShader();
+    void CreateTextureShader();
+    void CreateLineBatchShader();
+    void CreateFogShader();
+    void CreateDebugDepthShader();
 public:
     FGraphicsDevice* Graphics;
-    ID3D11VertexShader* VertexShader = nullptr;
-    ID3D11PixelShader* PixelShader = nullptr;
-    ID3D11InputLayout* InputLayout = nullptr;
-    ID3D11Buffer* ConstantBuffer = nullptr;
-    ID3D11Buffer* LightingBuffer = nullptr;
-    ID3D11Buffer* FlagBuffer = nullptr;
-    ID3D11Buffer* MaterialConstantBuffer = nullptr;
-    ID3D11Buffer* SubMeshConstantBuffer = nullptr;
-    ID3D11Buffer* TextureConstantBufer = nullptr;
-    ID3D11Buffer* CameraConstantBuffer = nullptr;
-    ID3D11Buffer* ViewportConstantBuffer = nullptr;
-    ID3D11Buffer* DepthToWorldBuffer = nullptr;
+public:
+    ID3D11SamplerState* GetSamplerState(const ESamplerType InType) const { return RenderResourceManager->GetSamplerState(InType); }
+    ID3D11RasterizerState* GetRasterizerState(const ERasterizerState InState) const { return RenderResourceManager->GetRasterizerState(InState); }
+    ID3D11BlendState* GetBlendState(const EBlendState InState) const { return RenderResourceManager->GetBlendState(InState); }
+    ID3D11DepthStencilState* GetDepthStencilState(const EDepthStencilState InState) const { return RenderResourceManager->GetDepthStencilState(InState); }
 
-    ID3D11BlendState* NormalBlendState = nullptr;
+    ID3D11RasterizerState* GetCurrentRasterizerState() const {  return RenderResourceManager->GetRasterizerState(CurrentRasterizerState); }
+    void SetCurrentRasterizerState(const ERasterizerState InState) { CurrentRasterizerState = InState; }
 
-    FLightingConstant lightingData;
-
-    uint32 Stride;
-    uint32 Stride2;
+    std::shared_ptr<FVBIBTopologyMapping> GetVBIBTopologyMapping(const FName InName) {return VBIBTopologyMappings[InName];}
 
 public:
     void Initialize(FGraphicsDevice* graphics);
-   
-    void PrepareShader() const;
     
-    //Render
-    void RenderPrimitive(OBJ::FStaticMeshRenderData* renderData, TArray<FStaticMaterial*> materials, TArray<UMaterial*> overrideMaterial, int selectedSubMeshIndex) const;
-   
     //Release
     void Release();
     void ReleaseShader();
-    void ReleaseConstantBuffer();
-    void CreateBlendState();
-    void ReleaseBlendState();
-
-    void CreateShader();
     
-    void ChangeViewMode(EViewModeIndex evi) const;
-    
-    // CreateBuffer
-    void CreateConstantBuffer();
-
-    // update
-    void UpdateMaterial(const FObjMaterialInfo& MaterialInfo) const;
-
+    void SetViewMode(EViewModeIndex evi);
 
 public://텍스쳐용 기능 추가
-    ID3D11VertexShader* VertexTextureShader = nullptr;
-    ID3D11PixelShader* PixelTextureShader = nullptr;
-    ID3D11InputLayout* TextureInputLayout = nullptr;
-
-	// 임시
-	ID3D11VertexShader* DebugDepthVertexShader = nullptr;
-	ID3D11PixelShader* DebugDepthPixelShader = nullptr;
-    ID3D11VertexShader* HeightFogVertexShader = nullptr;
-    ID3D11PixelShader* HeightFogPixelShader = nullptr;
-	// sampler
-	ID3D11SamplerState* DebugDepthSRVSampler = nullptr;
-
-    // Shaders for fog
-    // ID3D11VertexShader* HeightFogVertexShader;
-    // ID3D11PixelShader* HeightFogPixelShader;
-    ID3D11Buffer* FogConstantBuffer;
-
-    uint32 TextureStride;
-    struct FSubUVConstant
-    {
-        float indexU;
-        float indexV;
-    };
-    ID3D11Buffer* SubUVConstantBuffer = nullptr;
+    
+    // void PrepareTextureShader() const;
+    //
+    // void RenderTexturePrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices,
+    //     ID3D11Buffer* pIndexBuffer, UINT numIndices,
+    //     ID3D11ShaderResourceView* _TextureSRV,
+    //     ID3D11SamplerState* _SamplerState) const;
+    // void RenderTextPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices,
+    //     ID3D11ShaderResourceView* _TextureSRV,
+    //     ID3D11SamplerState* _SamplerState) const;
+    //
+    // void PrepareSubUVConstant() const;
 
 public:
-    void PrepareTextureShader() const;
-
-    void RenderTexturePrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices,
-        ID3D11Buffer* pIndexBuffer, UINT numIndices,
-        ID3D11ShaderResourceView* _TextureSRV,
-        ID3D11SamplerState* _SamplerState) const;
-    void RenderTextPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices,
-        ID3D11ShaderResourceView* _TextureSRV,
-        ID3D11SamplerState* _SamplerState) const;
-
-    void PrepareSubUVConstant() const;
-
-
-public: // line shader
-    void PrepareLineShader() const;
-    void RenderBatch(const FGridParameters& gridParam, ID3D11Buffer* pVertexBuffer, int boundingBoxCount, int coneCount, int coneSegmentCount, int obbCount) const;
-    void UpdateGridConstantBuffer(const FGridParameters& gridParams) const;
-    void UpdateLinePrimitveCountBuffer(int numBoundingBoxes, int numCones) const;
-
-    ID3D11ShaderResourceView* CreateBoundingBoxSRV(ID3D11Buffer* pBoundingBoxBuffer, UINT numBoundingBoxes);
-    ID3D11ShaderResourceView* CreateOBBSRV(ID3D11Buffer* pBoundingBoxBuffer, UINT numBoundingBoxes);
-    ID3D11ShaderResourceView* CreateConeSRV(ID3D11Buffer* pConeBuffer, UINT numCones);
-
-    void UpdateBoundingBoxBuffer(ID3D11Buffer* pBoundingBoxBuffer, const TArray<FBoundingBox>& BoundingBoxes, int numBoundingBoxes) const;
-    void UpdateOBBBuffer(ID3D11Buffer* pBoundingBoxBuffer, const TArray<FOBB>& BoundingBoxes, int numBoundingBoxes) const;
-    void UpdateConesBuffer(ID3D11Buffer* pConeBuffer, const TArray<FCone>& Cones, int numCones) const;
-
     //Render Pass Demo
-    void PrepareRender();
-    void ClearRenderArr();
-    void Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    void AddRenderObjectsToRenderPass(UWorld* InWorld) const;
+    void Render(UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
     void Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
-    void RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
-    void RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
-    void RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
-    void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    //void RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
+    //void RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    //void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
 
     // post process
-    void RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
-    void RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveViewport);
-    void RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
-private:
-    TArray<UStaticMeshComponent*> StaticMeshObjs;
-    TArray<UGizmoBaseComponent*> GizmoObjs;
-    TArray<UBillboardComponent*> BillboardObjs;
-    TArray<ULightComponentBase*> LightObjs;
-
+    //void RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
+    //void RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    //void RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
 public:
-    ID3D11VertexShader* VertexLineShader = nullptr;
-    ID3D11PixelShader* PixelLineShader = nullptr;
-    ID3D11Buffer* GridConstantBuffer = nullptr;
-    ID3D11Buffer* LinePrimitiveBuffer = nullptr;
-    ID3D11ShaderResourceView* pBBSRV = nullptr;
-    ID3D11ShaderResourceView* pConeSRV = nullptr;
-    ID3D11ShaderResourceView* pOBBSRV = nullptr;
-
+    void PrepareShader(FName InShaderName);
+    void BindConstantBuffers(FName InShaderName);
+    
 public:
-    FRenderResourceManager& GetResourceManager() { return RenderResourceManager; }
-    FShaderManager& GetShaderManager() { return ShaderManager; }
-    FConstantBufferUpdater& GetConstantBufferUpdater() { return ConstantBufferUpdater; }
-
+    void MappingVSPSInputLayout(FName InShaderProgramName, FName VSName, FName PSName, ID3D11InputLayout* InInputLayout);
+    void MappingVSPSCBSlot(FName InShaderName, const TMap<FShaderConstantKey, uint32>& MappedConstants);
+    void MappingVBTopology(FName InObjectName, FName InVBName, uint32 InStride, uint32 InNumVertices, D3D11_PRIMITIVE_TOPOLOGY InTopology= D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    void MappingIB(FName InObjectName, FName InIBName, uint32 InNumIndices);
+private: 
+    TMap<FName, std::shared_ptr<FShaderProgram>> ShaderPrograms;
+    TMap<FName, TMap<FShaderConstantKey, uint32>> ShaderConstantNameAndSlots;
+    TMap<FName, std::shared_ptr<FVBIBTopologyMapping>> VBIBTopologyMappings;
+public:
+    FRenderResourceManager* GetResourceManager() const { return RenderResourceManager; }
 private:
-    FRenderResourceManager RenderResourceManager;
-    FShaderManager ShaderManager;
-    FConstantBufferUpdater ConstantBufferUpdater;
+    FRenderResourceManager* RenderResourceManager = nullptr;
+
+    std::shared_ptr<FStaticMeshRenderPass> StaticMeshRenderPass;
+    std::shared_ptr<FLineBatchRenderPass> LineBatchRenderPass;
+
+    ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
 };
 

@@ -1,5 +1,5 @@
 // MatrixBuffer: 변환 행렬 관리
-cbuffer MatrixConstants : register(b0)
+cbuffer FMatrixConstants : register(b0)
 {
     row_major float4x4 Model;
     row_major float4x4 ViewProj;
@@ -15,7 +15,6 @@ struct VS_INPUT
     float4 color : COLOR; // 버텍스 색상
     float3 normal : NORMAL; // 버텍스 노멀
     float2 texcoord : TEXCOORD;
-    int materialIndex : MATERIAL_INDEX;
 };
 
 struct PS_INPUT
@@ -26,15 +25,12 @@ struct PS_INPUT
     float3 normal : NORMAL; // 정규화된 노멀 벡터
     bool normalFlag : TEXCOORD0; // 노멀 유효성 플래그 (1.0: 유효, 0.0: 무효)
     float2 texcoord : TEXCOORD1;
-    int materialIndex : MATERIAL_INDEX;
 };
 
 PS_INPUT mainVS(VS_INPUT input)
 {
     PS_INPUT output;
-    
-    output.materialIndex = input.materialIndex;
-    
+       
     float4 worldPos = mul(input.position, Model);
     output.position = mul(worldPos, ViewProj);
     // 위치 변환

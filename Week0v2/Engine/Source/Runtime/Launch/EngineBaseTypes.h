@@ -19,6 +19,7 @@ enum ELevelTick
     /** Delta time is zero, we are paused. Components don't tick. */
     LEVELTICK_PauseTick = 3,
 };
+
 enum ELevelViewportType
 {
     LVT_Perspective = 0,
@@ -37,7 +38,6 @@ enum ELevelViewportType
     LVT_MAX,
     LVT_None = 255,
 };
-
 
 enum class EEditorState
 {

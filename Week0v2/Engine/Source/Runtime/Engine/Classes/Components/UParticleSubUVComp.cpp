@@ -1,5 +1,7 @@
 #include "Engine/Source/Editor/PropertyEditor/ShowFlags.h"
 #include "UParticleSubUVComp.h"
+
+#include "EditorEngine.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "Engine/World.h"
 #include "LevelEditor/SLevelEditor.h"
@@ -24,18 +26,14 @@ CellsPerRow(other.CellsPerRow)
 
 UParticleSubUVComp::~UParticleSubUVComp()
 {
-	if (vertexSubUVBuffer)
-	{
-		vertexSubUVBuffer->Release();
-		vertexSubUVBuffer = nullptr;
-	}
+
 }
 
 void UParticleSubUVComp::InitializeComponent()
 {
 	Super::InitializeComponent();
-	UEditorEngine::renderer.GetConstantBufferUpdater().UpdateSubUVConstant(UEditorEngine::renderer.SubUVConstantBuffer, 0, 0);
-	UEditorEngine::renderer.PrepareSubUVConstant();
+	// UEditorEngine::renderer.GetConstantBufferUpdater().UpdateSubUVConstant(UEditorEngine::renderer.SubUVConstantBuffer, 0, 0);
+	// UEditorEngine::renderer.PrepareSubUVConstant();
 }
 
 void UParticleSubUVComp::TickComponent(float DeltaTime)
@@ -145,6 +143,9 @@ void UParticleSubUVComp::CreateSubUVVertexBuffer()
 	vertices[3].u = normalWidthOffset;
 	vertices[3].v = normalHeightOffset;
 
-	vertexSubUVBuffer = UEditorEngine::renderer.GetResourceManager().CreateVertexBuffer(vertices);
-	numTextVertices = static_cast<UINT>(vertices.Num());
+	ID3D11Buffer* VB = UEditorEngine::renderer.GetResourceManager()->CreateImmutableVertexBuffer<FVertexTexture>(vertices);
+    UEditorEngine::renderer.GetResourceManager()->AddOrSetVertexBuffer(TEXT("QuadVB"), VB);
+    UEditorEngine::renderer.MappingVBTopology(TEXT("Quad"), TEXT("QuadVB"), sizeof(FVertexTexture), 4);
+
+    VBIBTopologyMappingName = TEXT("Quad");
 }

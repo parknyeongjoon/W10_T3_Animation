@@ -1,6 +1,5 @@
 #pragma once
 #include "UBillboardComponent.h"
-#include <d3d11.h>
 
 struct FTextComponentInfo : public FBillboardComponentInfo
 {
@@ -34,6 +33,7 @@ struct FTextComponentInfo : public FBillboardComponentInfo
         ar >> Text;
     }
 };
+
 class UText : public UBillboardComponent
 {
     DECLARE_CLASS(UText, UBillboardComponent)
@@ -45,17 +45,15 @@ public:
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
     void ClearText();
-    void SetText(FWString _text);
+    void SetText(const FWString& _text);
     FWString GetText() { return text; }
     void SetRowColumnCount(int _cellsPerRow, int _cellsPerColumn);
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance) override;
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
-    
-    ID3D11Buffer* vertexTextBuffer;
+
     TArray<FVertexTexture> vertexTextureArr;
-    UINT numTextVertices;
 
 public:    
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
@@ -75,9 +73,8 @@ protected:
     float quadWidth = 2.0f;
     float quadHeight = 2.0f;
 
-    void setStartUV(char alphabet, float& outStartU, float& outStartV);
-    void setStartUV(wchar_t hangul, float& outStartU, float& outStartV);
-    void CreateTextTextureVertexBuffer(const TArray<FVertexTexture>& _vertex, UINT byteWidth);
+    void setStartUV(char alphabet, float& outStartU, float& outStartV) const;
+    void setStartUV(wchar_t hangul, float& outStartU, float& outStartV) const;
 
     void TextMVPRendering();
 };

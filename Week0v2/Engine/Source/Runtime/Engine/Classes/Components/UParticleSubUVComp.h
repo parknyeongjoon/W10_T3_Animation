@@ -53,8 +53,8 @@ public:
     void DuplicateSubObjects(const UObject* Source) override;
     void SetRowColumnCount(int _cellsPerRow, int _cellsPerColumn);
 
-    ID3D11Buffer* vertexSubUVBuffer;
-    UINT numTextVertices;
+    // ID3D11Buffer* vertexSubUVBuffer;
+    //UINT numTextVertices;
 
 public:
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo();

@@ -66,5 +66,9 @@ public:
 
     FBoundingBox GetBoundingBox() { return AABB; }
 
+public:
+    FName GetVBIBTopologyMappingName() const { return VBIBTopologyMappingName; }
+protected:
+    FName VBIBTopologyMappingName;
 };
 

@@ -10,130 +10,46 @@ UPrimitiveBatch::UPrimitiveBatch()
 
 UPrimitiveBatch::~UPrimitiveBatch()
 {
-    if (pVertexBuffer) {
-        pVertexBuffer->Release();
-        pVertexBuffer = nullptr;
-    }
-    ReleaseOBBResources();
-    ReleaseBoundingBoxResources();
-    ReleaseConeResources();
 }
 
 void UPrimitiveBatch::Release()
 {
-    ReleaseOBBResources();
-    ReleaseBoundingBoxResources();
-    ReleaseConeResources();
 }
 
 void UPrimitiveBatch::GenerateGrid(float spacing, int gridCount)
 {
-    GridParam.gridSpacing = spacing;
-    GridParam.numGridLines = gridCount;
-    GridParam.gridOrigin = { 0,0,0 };
+    GridParam.GridSpacing = spacing;
+    GridParam.GridCount = gridCount;
+    GridParam.GridOrigin = { 0,0,0 };
 }
 
-void UPrimitiveBatch::RenderBatch(ID3D11Buffer* ConstantBuffer, const FMatrix& View, const FMatrix& Projection)
-{
-    UEditorEngine::renderer.PrepareLineShader();
+// void UPrimitiveBatch::RenderBatch(ID3D11Buffer* ConstantBuffer, const FMatrix& View, const FMatrix& Projection)
+// {
+//     UEditorEngine::renderer.PrepareLineShader();
+//
+//     InitializeVertexBuffer();
+//
+//     FMatrix Model = FMatrix::Identity;
+//     FMatrix ViewProj = View * Projection;
+//     FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
+//     UEditorEngine::renderer.GetConstantBufferUpdater().UpdateConstant(ConstantBuffer, Model, ViewProj, NormalMatrix, FVector4(0, 0, 0, 0), false);
+//     UEditorEngine::renderer.UpdateGridConstantBuffer(GridParam);
+//
+//     UpdateBoundingBoxResources();
+//     UpdateConeResources();
+//     UpdateOBBResources();
+//     int boundingBoxSize = static_cast<int>(BoundingBoxes.Num());
+//     int coneSize = static_cast<int>(Cones.Num());
+//     int obbSize = static_cast<int>(OrientedBoundingBoxes.Num());
+//     UEditorEngine::renderer.UpdateLinePrimitveCountBuffer(boundingBoxSize, coneSize);
+//     UEditorEngine::renderer.RenderBatch(GridParam, pVertexBuffer, boundingBoxSize, coneSize, ConeSegmentCount, obbSize);
+//     BoundingBoxes.Empty();
+//     Cones.Empty();
+//     OrientedBoundingBoxes.Empty();
+//     UEditorEngine::renderer.PrepareShader();
+// }
 
-    InitializeVertexBuffer();
-
-    FMatrix Model = FMatrix::Identity;
-    FMatrix ViewProj = View * Projection;
-    FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
-    UEditorEngine::renderer.GetConstantBufferUpdater().UpdateConstant(ConstantBuffer, Model, ViewProj, NormalMatrix, FVector4(0, 0, 0, 0), false);
-    UEditorEngine::renderer.UpdateGridConstantBuffer(GridParam);
-
-    UpdateBoundingBoxResources();
-    UpdateConeResources();
-    UpdateOBBResources();
-    int boundingBoxSize = static_cast<int>(BoundingBoxes.Num());
-    int coneSize = static_cast<int>(Cones.Num());
-    int obbSize = static_cast<int>(OrientedBoundingBoxes.Num());
-    UEditorEngine::renderer.UpdateLinePrimitveCountBuffer(boundingBoxSize, coneSize);
-    UEditorEngine::renderer.RenderBatch(GridParam, pVertexBuffer, boundingBoxSize, coneSize, ConeSegmentCount, obbSize);
-    BoundingBoxes.Empty();
-    Cones.Empty();
-    OrientedBoundingBoxes.Empty();
-    UEditorEngine::renderer.PrepareShader();
-}
-void UPrimitiveBatch::InitializeVertexBuffer()
-{
-    FSimpleVertex vertices[2]{ {0}, {0} };
-
-    if (!pVertexBuffer)
-        pVertexBuffer = UEditorEngine::renderer.GetResourceManager().CreateVertexBuffer(vertices, 2);
-}
-
-void UPrimitiveBatch::UpdateBoundingBoxResources()
-{
-    if (BoundingBoxes.Num() > allocatedBoundingBoxCapacity) {
-        allocatedBoundingBoxCapacity = BoundingBoxes.Num();
-
-        ReleaseBoundingBoxResources();
-
-        pBoundingBoxBuffer = UEditorEngine::renderer.GetResourceManager().CreateStructuredBuffer<FBoundingBox>(static_cast<UINT>(allocatedBoundingBoxCapacity));
-        pBoundingBoxSRV = UEditorEngine::renderer.CreateBoundingBoxSRV(pBoundingBoxBuffer, static_cast<UINT>(allocatedBoundingBoxCapacity));
-    }
-
-    if (pBoundingBoxBuffer && pBoundingBoxSRV){
-        int boundingBoxCount = static_cast<int>(BoundingBoxes.Num());
-        UEditorEngine::renderer.UpdateBoundingBoxBuffer(pBoundingBoxBuffer, BoundingBoxes, boundingBoxCount);
-    }
-}
-
-void UPrimitiveBatch::ReleaseBoundingBoxResources()
-{
-    if (pBoundingBoxBuffer) pBoundingBoxBuffer->Release();
-    if (pBoundingBoxSRV) pBoundingBoxSRV->Release();
-}
-
-void UPrimitiveBatch::UpdateConeResources()
-{
-    if (Cones.Num() > allocatedConeCapacity) {
-        allocatedConeCapacity = Cones.Num();
-
-        ReleaseConeResources();
-
-        pConesBuffer = UEditorEngine::renderer.GetResourceManager().CreateStructuredBuffer<FCone>(static_cast<UINT>(allocatedConeCapacity));
-        pConesSRV = UEditorEngine::renderer.CreateConeSRV(pConesBuffer, static_cast<UINT>(allocatedConeCapacity));
-    }
-
-    if (pConesBuffer && pConesSRV) {
-        int coneCount = static_cast<int>(Cones.Num());
-        UEditorEngine::renderer.UpdateConesBuffer(pConesBuffer, Cones, coneCount);
-    }
-}
-
-void UPrimitiveBatch::ReleaseConeResources()
-{
-    if (pConesBuffer) pConesBuffer->Release();
-    if (pConesSRV) pConesSRV->Release();
-}
-
-void UPrimitiveBatch::UpdateOBBResources()
-{
-    if (OrientedBoundingBoxes.Num() > allocatedOBBCapacity) {
-        allocatedOBBCapacity = OrientedBoundingBoxes.Num();
-
-        ReleaseOBBResources();
-
-        pOBBBuffer = UEditorEngine::renderer.GetResourceManager().CreateStructuredBuffer<FOBB>(static_cast<UINT>(allocatedOBBCapacity));
-        pOBBSRV = UEditorEngine::renderer.CreateOBBSRV(pOBBBuffer, static_cast<UINT>(allocatedOBBCapacity));
-    }
-
-    if (pOBBBuffer && pOBBSRV) {
-        int obbCount = static_cast<int>(OrientedBoundingBoxes.Num());
-        UEditorEngine::renderer.UpdateOBBBuffer(pOBBBuffer, OrientedBoundingBoxes, obbCount);
-    }
-}
-void UPrimitiveBatch::ReleaseOBBResources()
-{
-    if (pOBBBuffer) pOBBBuffer->Release();
-    if (pOBBSRV) pOBBSRV->Release();
-}
-void UPrimitiveBatch::RenderAABB(const FBoundingBox& localAABB, const FVector& center, const FMatrix& modelMatrix)
+void UPrimitiveBatch::AddAABB(const FBoundingBox& localAABB, const FVector& center, const FMatrix& modelMatrix)
 {
     FVector localVertices[8] = {
          { localAABB.min.x, localAABB.min.y, localAABB.min.z },
@@ -169,7 +85,7 @@ void UPrimitiveBatch::RenderAABB(const FBoundingBox& localAABB, const FVector& c
     BoundingBox.max = max;
     BoundingBoxes.Add(BoundingBox);
 }
-void UPrimitiveBatch::RenderOBB(const FBoundingBox& localAABB, const FVector& center, const FMatrix& modelMatrix)
+void UPrimitiveBatch::AddOBB(const FBoundingBox& localAABB, const FVector& center, const FMatrix& modelMatrix)
 {
     // 1) 로컬 AABB의 8개 꼭짓점
     FVector localVertices[8] =

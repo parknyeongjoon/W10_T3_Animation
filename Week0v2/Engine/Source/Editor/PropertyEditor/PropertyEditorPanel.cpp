@@ -11,7 +11,6 @@
 #include "Math/MathUtility.h"
 #include "UnrealEd/ImGuiWidget.h"
 #include "UObject/Casts.h"
-#include "UObject/ObjectFactory.h"
 #include <Components/CubeComp.h>
 #include <Components/UParticleSubUVComp.h>
 

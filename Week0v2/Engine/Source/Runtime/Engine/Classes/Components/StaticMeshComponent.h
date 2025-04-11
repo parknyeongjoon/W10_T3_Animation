@@ -63,6 +63,7 @@ public:
         staticMesh = value;
         OverrideMaterials.SetNum(value->GetMaterials().Num());
         AABB = FBoundingBox(staticMesh->GetRenderData()->BoundingBoxMin, staticMesh->GetRenderData()->BoundingBoxMax);
+        VBIBTopologyMappingName = staticMesh->GetRenderData()->DisplayName;
     }
 
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo();

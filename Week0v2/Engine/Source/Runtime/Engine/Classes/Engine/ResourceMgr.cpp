@@ -38,7 +38,8 @@ void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/SpotLight_64x.png");
 }
 
-void FResourceMgr::Release(FRenderer* renderer) {
+void FResourceMgr::Release(FRenderer* renderer)
+{
 	for (const auto& Pair : textureMap)
     {
 		FTexture* texture =	Pair.Value.get();
@@ -148,21 +149,9 @@ HRESULT FResourceMgr::LoadTextureFromFile(ID3D11Device* device, ID3D11DeviceCont
 	frame->Release();
 	converter->Release();
 
-	//샘플러 스테이트 생성
-	ID3D11SamplerState* SamplerState;
-	D3D11_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	device->CreateSamplerState(&samplerDesc, &SamplerState);
 	FWString name = FWString(filename);
 
-	textureMap[name] = std::make_shared<FTexture>(TextureSRV, Texture2D, SamplerState, width, height, name);
+	textureMap[name] = std::make_shared<FTexture>(TextureSRV, Texture2D, width, height, name);
 
 	Console::GetInstance().AddLog(LogLevel::Warning, "Texture File Load Successs");
 	return hr;
@@ -201,23 +190,9 @@ HRESULT FResourceMgr::LoadTextureFromDDS(ID3D11Device* device, ID3D11DeviceConte
 
 #pragma endregion WidthHeight
 
-#pragma region Sampler
-	ID3D11SamplerState* SamplerState;
-	D3D11_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	device->CreateSamplerState(&samplerDesc, &SamplerState);
-#pragma endregion Sampler
-
 	FWString name = FWString(filename);
 
-	textureMap[name] = std::make_shared<FTexture>(textureView, texture2D, SamplerState, width, height, name);
+	textureMap[name] = std::make_shared<FTexture>(textureView, texture2D, width, height, name);
 
 	Console::GetInstance().AddLog(LogLevel::Warning, "Texture File Load Successs");
 

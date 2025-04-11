@@ -59,17 +59,13 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
     
-    ID3D11Buffer* vertexTextureBuffer;
-    ID3D11Buffer* indexTextureBuffer;
-    UINT numVertices;
-    UINT numIndices;
     float finalIndexU = 0.0f;
     float finalIndexV = 0.0f;
     std::shared_ptr<FTexture> Texture;
 
 public:
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
-    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
+    void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 protected:
     USceneComponent* m_parent = nullptr;
