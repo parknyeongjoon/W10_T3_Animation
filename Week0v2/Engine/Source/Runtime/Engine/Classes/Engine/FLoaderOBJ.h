@@ -504,17 +504,17 @@ public:
             return *It;
         }
         
-        // FWString BinaryPath = (PathFileName + ".bin").ToWideString();
-        // if (std::ifstream(BinaryPath).good())
-        // {
-        //     if (LoadStaticMeshFromBinary(BinaryPath, *NewStaticMesh))
-        //     {
-        //         ObjStaticMeshMap.Add(PathFileName, NewStaticMesh);
-        //         // 패스 명 추가
-        //         NewStaticMesh->PathName = PathFileName.ToWideString();
-        //         return NewStaticMesh;
-        //     }
-        // }
+        FWString BinaryPath = (PathFileName + ".bin").ToWideString();
+        if (std::ifstream(BinaryPath).good())
+        {
+            if (LoadStaticMeshFromBinary(BinaryPath, *NewStaticMesh))
+            {
+                ObjStaticMeshMap.Add(PathFileName, NewStaticMesh);
+                // 패스 명 추가
+                NewStaticMesh->PathName = PathFileName.ToWideString();
+                return NewStaticMesh;
+            }
+        }
         
         // Parse OBJ
         FObjInfo NewObjInfo;
@@ -553,7 +553,7 @@ public:
             return nullptr;
         }
 
-        // SaveStaticMeshToBinary(BinaryPath, *NewStaticMesh);
+        SaveStaticMeshToBinary(BinaryPath, *NewStaticMesh);
         ObjStaticMeshMap.Add(PathFileName, NewStaticMesh);
         return NewStaticMesh;
     }
@@ -630,6 +630,8 @@ public:
             Serializer::WriteFString(File, Material.AlphaTextureName);
             Serializer::WriteFWString(File, Material.AlphaTexturePath);
             Serializer::WriteFString(File, Material.NormalTextureName);
+            Serializer::WriteFWString(File, Material.NormalTexturePath);
+
         }
 
         // Material Subsets
@@ -711,6 +713,8 @@ public:
             Serializer::ReadFString(File, Material.AlphaTextureName);
             Serializer::ReadFWString(File, Material.AlphaTexturePath);
             Serializer::ReadFString(File, Material.NormalTextureName);
+            Serializer::ReadFWString(File, Material.NormalTexturePath);
+
             
             if (!Material.DiffuseTexturePath.empty())
             {
