@@ -504,17 +504,17 @@ public:
             return *It;
         }
         
-        FWString BinaryPath = (PathFileName + ".bin").ToWideString();
-        if (std::ifstream(BinaryPath).good())
-        {
-            if (LoadStaticMeshFromBinary(BinaryPath, *NewStaticMesh))
-            {
-                ObjStaticMeshMap.Add(PathFileName, NewStaticMesh);
-                // 패스 명 추가
-                NewStaticMesh->PathName = PathFileName.ToWideString();
-                return NewStaticMesh;
-            }
-        }
+        // FWString BinaryPath = (PathFileName + ".bin").ToWideString();
+        // if (std::ifstream(BinaryPath).good())
+        // {
+        //     if (LoadStaticMeshFromBinary(BinaryPath, *NewStaticMesh))
+        //     {
+        //         ObjStaticMeshMap.Add(PathFileName, NewStaticMesh);
+        //         // 패스 명 추가
+        //         NewStaticMesh->PathName = PathFileName.ToWideString();
+        //         return NewStaticMesh;
+        //     }
+        // }
         
         // Parse OBJ
         FObjInfo NewObjInfo;
@@ -553,7 +553,7 @@ public:
             return nullptr;
         }
 
-        SaveStaticMeshToBinary(BinaryPath, *NewStaticMesh);
+        // SaveStaticMeshToBinary(BinaryPath, *NewStaticMesh);
         ObjStaticMeshMap.Add(PathFileName, NewStaticMesh);
         return NewStaticMesh;
     }

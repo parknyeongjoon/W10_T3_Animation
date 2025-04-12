@@ -1,5 +1,7 @@
 #include "ShaderHeaders/GSamplers.hlsli"
-Texture2D Textures : register(t0);
+Texture2D Texture : register(t0);
+Texture2D NormalTexture : register(t1);
+Texture2D BumpTexture : register(t2);
 
 cbuffer FMaterialConstants : register(b0)
 {
@@ -72,9 +74,8 @@ struct PS_INPUT
     float3 worldPos : POSITION;
     float4 color : COLOR; // 전달할 색상
     float2 texcoord : TEXCOORD0;
-    float3 tangent: TEXCOORD1;
-    float3 biTangent: TEXCOORD2;
-    float3 normal: TEXCOORD3;
+    float3 normal : TEXCOORD1;
+    float3x3 TBN: TEXCOORD2;
 };
 
 struct PS_OUTPUT
@@ -174,8 +175,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float2 uvAdjusted = input.texcoord + float2(indexU, indexV);
     
     // 기본 색상 추출  
-    float4 baseColor = Textures.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
-
+    float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
+    float4 normalTex = ((NormalTexture.Sample(linearSampler, uvAdjusted)- 0.5) * 2);
+    float4 bumpTex = BumpTexture.Sample(linearSampler, uvAdjusted) * 0.04 ; //0.04f
+    
     input.normal = (input.normal - 0.5) * 2;
     
     if(!IsLit)
@@ -183,35 +186,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
         output.color = float4(baseColor.rgb, 1.0);
         return output;
     }
-
-    //float3x3 TBN = float3x3( 
-    //    input.tangent, //이미 normalize 된 상태여서 안해도 될듯?
-    //    input.biTangent,
-    //    input.normal
-    //);
-    float4 T = float4(input.tangent,0);
-    float4 N = float4(input.normal,0);
-
-// 재계산을 통해 orthogonal한 biTangent를 구함.
-// 만약 원래의 biTangent가 신뢰할 만하다면 normalize(input.biTangent)를 사용할 수도 있지만,
-// 교차곱을 통해 정상적인 수직 벡터를 얻는 것이 안전합니다.
-    float4 B = float4(input.biTangent,0);
-
-// 최종 TBN 행렬 구성 (T, B, N는 각각 한 열 또는 행이 될 수 있음, 아래 예제는 행 벡터로 구성)
-    row_major float4x4 TBN = float4x4(T, B, N, float4(0,0,0,1));
-    // TBN[0].x = T.x;
-    // TBN[0].y = T.y;
-    // TBN[0].z = T.z;
     
-    //TBN[1].x = B.x;
-    //TBN[1].y = B.y;
-    //TBN[1].z = B.z;
-    
-    //TBN[2].x = N.x;
-    //TBN[2].y = N.y;
-    //TBN[2].z = N.z;
-    
-    float3 Normal = normalize(mul(float4(input.normal, 0), TBN));
+    float3 Normal = normalize(mul(normalTex.rgb, input.TBN));
 
     if (length(Normal) < 0.001) // tangent 값이 없을때 ( uv 없을때 )
     {
