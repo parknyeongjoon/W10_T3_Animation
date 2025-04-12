@@ -159,7 +159,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     float2 uvAdjusted = input.texcoord + float2(indexU, indexV);
     
-    float4 baseColor = Textures.Sample(linearSampler, input.texcoord + uvAdjusted) + float4(DiffuseColor, TransparencyScalar);
+    float4 baseColor = Textures.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, TransparencyScalar);
     
     if(!IsLit)
     {
