@@ -107,6 +107,9 @@ struct FObjMaterialInfo
     
     FString AlphaTextureName;    // map_d : Alpha texture
     FWString AlphaTexturePath;
+
+    FString NormalTextureName;  // map_Ns : Normal Texture
+    FWString NormalTexturePath;
 };
 
 // Cooked Data

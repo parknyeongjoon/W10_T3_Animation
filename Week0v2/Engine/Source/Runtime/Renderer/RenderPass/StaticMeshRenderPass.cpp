@@ -100,7 +100,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         
         UpdateMatrixConstants(staticMeshComp, View, Proj);
 
-        UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
+        // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
 
         UpdateLightConstants();
 
@@ -260,7 +260,20 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
     if (MaterialInfo.bHasTexture == true)
     {
         const std::shared_ptr<FTexture> texture = GEngine->resourceMgr.GetTexture(MaterialInfo.DiffuseTexturePath);
-        Graphics.DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
+        const std::shared_ptr<FTexture> NormalTexture = GEngine->resourceMgr.GetTexture(MaterialInfo.NormalTexturePath);
+        const std::shared_ptr<FTexture> BumpTexture = GEngine->resourceMgr.GetTexture(MaterialInfo.BumpTexturePath);
+        if (texture)
+        {
+            Graphics.DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
+        }
+        if (NormalTexture)
+        {
+            Graphics.DeviceContext->PSSetShaderResources(1, 1, &NormalTexture->TextureSRV);
+        }
+        if (BumpTexture)
+        {
+            Graphics.DeviceContext->PSSetShaderResources(2, 1, &BumpTexture->TextureSRV);
+        }
         ID3D11SamplerState* linearSampler = renderResourceManager->GetSamplerState(ESamplerType::Linear);
         Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &linearSampler);
     }

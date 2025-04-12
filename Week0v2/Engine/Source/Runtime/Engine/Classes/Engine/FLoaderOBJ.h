@@ -304,6 +304,30 @@ struct FLoaderOBJ
 
                 CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].DiffuseTexturePath);
             }
+            
+            if (Token == "map_Ns")
+            {
+                LineStream >> Line;
+                OutFStaticMesh.Materials[MaterialIndex].NormalTextureName = Line;
+
+                FWString TexturePath = OutObjInfo.PathName + OutFStaticMesh.Materials[MaterialIndex].NormalTextureName.ToWideString();
+                OutFStaticMesh.Materials[MaterialIndex].NormalTexturePath = TexturePath;
+                OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
+
+                CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].NormalTexturePath);
+            }
+
+            if (Token == "map_Bump")
+            {
+                LineStream >> Line;
+                OutFStaticMesh.Materials[MaterialIndex].BumpTextureName = Line;
+
+                FWString TexturePath = OutObjInfo.PathName + OutFStaticMesh.Materials[MaterialIndex].BumpTextureName.ToWideString();
+                OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath = TexturePath;
+                OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
+
+                CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath);
+            }
         }
         
         return true;
@@ -605,6 +629,7 @@ public:
             Serializer::WriteFWString(File, Material.BumpTexturePath);
             Serializer::WriteFString(File, Material.AlphaTextureName);
             Serializer::WriteFWString(File, Material.AlphaTexturePath);
+            Serializer::WriteFString(File, Material.NormalTextureName);
         }
 
         // Material Subsets
@@ -685,7 +710,8 @@ public:
             Serializer::ReadFWString(File, Material.BumpTexturePath);
             Serializer::ReadFString(File, Material.AlphaTextureName);
             Serializer::ReadFWString(File, Material.AlphaTexturePath);
-
+            Serializer::ReadFString(File, Material.NormalTextureName);
+            
             if (!Material.DiffuseTexturePath.empty())
             {
                 Textures.AddUnique(Material.DiffuseTexturePath);
@@ -705,6 +731,10 @@ public:
             if (!Material.AlphaTexturePath.empty())
             {
                 Textures.AddUnique(Material.AlphaTexturePath);
+            }
+            if (!Material.NormalTexturePath.empty())
+            {
+                Textures.AddUnique(Material.NormalTexturePath);
             }
         }
 
