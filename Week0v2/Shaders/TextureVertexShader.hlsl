@@ -1,10 +1,10 @@
-struct VSInput
+struct VS_Input
 {
     float3 position : POSITION;
     float2 texCoord : TEXCOORD;
 };
 
-struct PSInput 
+struct PS_Input 
 {
     float4 position : SV_POSITION;
     float2 texCoord : TEXCOORD;
@@ -17,9 +17,9 @@ cbuffer FConstants : register(b0)
     float Flag;
 }
 
-PSInput mainVS(VSInput input) {
+PS_Input mainVS(VS_Input input) {
     
-    PSInput output;
+    PS_Input output;
     output.position = mul(float4(input.position, 1.0f), Model);
     output.position = mul(output.position, ViewProj);
     

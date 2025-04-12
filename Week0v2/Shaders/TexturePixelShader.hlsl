@@ -8,7 +8,7 @@ cbuffer FSubUVConstant : register(b1)
 }
 
 
-struct PSInput 
+struct PS_Input 
 {
     float4 position : SV_POSITION;
     float2 texCoord : TEXCOORD;
@@ -19,7 +19,7 @@ struct PSOutput
     float4 color : SV_Target0;
 };
 
-float4 mainPS(PSInput input) : SV_TARGET
+float4 mainPS(PS_Input input) : SV_TARGET
 {
     PSOutput output;
     
