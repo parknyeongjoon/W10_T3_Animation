@@ -378,8 +378,7 @@ struct FDirectionalLight
     FVector Direction;
     float Intensity;
 
-    FVector Color;
-    float Padding0 = 0.f;
+    FVector4 Color;
 };
 
 struct FPointLight
@@ -387,9 +386,9 @@ struct FPointLight
     FVector Position;
     float Radius;
 
-    FVector Color;
-    float Intensity;
+    FVector4 Color;
 
+    float Intensity;
     float AttenuationFalloff;
-    FVector Pad;
+    FVector2D Padd;
 };

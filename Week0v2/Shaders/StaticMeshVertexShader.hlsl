@@ -38,7 +38,7 @@ PS_INPUT mainVS(VS_INPUT input)
     output.texcoord = input.texcoord;
 
     // TBN 행렬 구성 요소 전달
-    output.normal = normalize(mul(input.normal, MInverseTranspose));
+    output.normal = normalize(mul(input.normal, MInverseTranspose)) / 2 + 0.5; //0~1사이로 변환
     output.tangent = normalize(mul(input.tangentNormal, Model));
     output.biTangent = normalize(cross(output.normal, output.tangent));
     

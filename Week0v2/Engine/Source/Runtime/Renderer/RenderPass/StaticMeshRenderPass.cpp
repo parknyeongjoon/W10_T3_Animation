@@ -2,6 +2,9 @@
 
 #include "EditorEngine.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
+#include "Components/DirectionalLightComponent.h"
+#include "Components/LightComponent.h"
+#include "Components/PointLightComponent.h"
 #include "Components/SkySphereComponent.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
@@ -12,12 +15,26 @@
 #include "Renderer/VBIBTopologyMapping.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/PrimitiveBatch.h"
+#include "UObject/UObjectIterator.h"
 
 extern UEditorEngine* GEngine;
 
 void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
     StaticMesheComponents.Empty();
+
+    LightComponents.Empty();
+    
+    if (InWorld->WorldType == EWorldType::Editor)
+    {
+        for (const auto iter : TObjectRange<USceneComponent>())
+        {
+            if (ULightComponentBase* pGizmoComp = Cast<ULightComponentBase>(iter))
+            {
+                LightComponents.Add(pGizmoComp);
+            }
+        }
+    }
     
     for (const AActor* actor : InWorld->GetActors())
     {
@@ -85,6 +102,10 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
 
         UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
 
+        UpdateLightConstants();
+
+        UpdateFlagConstant();
+        
         if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
         {
             if (GEngine->GetWorld()->GetSelectedActor() == staticMeshComp->GetOwner())
@@ -148,6 +169,57 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
         MatrixConstants.isSelected = false;
     }
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixConstants")), &MatrixConstants);
+}
+
+void FStaticMeshRenderPass::UpdateFlagConstant()
+{
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+
+    FFlagConstants FlagConstant;
+
+    FlagConstant.IsLit = GEngine->renderer.bIsLit;
+
+    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FFlagConstants")), &FlagConstant);
+}
+
+void FStaticMeshRenderPass::UpdateLightConstants()
+{
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+
+    FLightingConstants LightConstant;
+    uint32 DirectionalLightCount = 0;
+    uint32 PointLightCount = 0;
+
+    for (ULightComponentBase* Comp : LightComponents)
+    {
+        UPointLightComponent* PointLightComp = dynamic_cast<UPointLightComponent*>(Comp);
+
+        if (PointLightComp)
+        {
+            LightConstant.PointLights[PointLightCount].Color = PointLightComp->GetColor();
+            LightConstant.PointLights[PointLightCount].Intensity = PointLightComp->GetIntensity();
+            LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetWorldLocation();
+            LightConstant.PointLights[PointLightCount].Radius = PointLightComp->GetRadius();
+            LightConstant.PointLights[PointLightCount].AttenuationFalloff = PointLightComp->GetAttenuationFalloff();
+            PointLightCount++;
+            continue;
+        }
+
+        UDirectionalLightComponent* DirectionalLightComp = dynamic_cast<UDirectionalLightComponent*>(Comp);
+        if (DirectionalLightComp)
+        {
+            LightConstant.DirLights[DirectionalLightCount].Color = DirectionalLightComp->GetColor();
+            LightConstant.DirLights[DirectionalLightCount].Intensity = DirectionalLightComp->GetIntensity();
+            LightConstant.DirLights[DirectionalLightCount].Direction = DirectionalLightComp->GetForwardVector();
+            DirectionalLightCount++;
+            continue;
+        }
+    }
+
+    LightConstant.NumPointLights = PointLightCount;
+    LightConstant.NumDirectionalLights = DirectionalLightCount;
+    
+    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FLightingConstants")), &LightConstant);
 }
 
 void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent)
