@@ -191,6 +191,12 @@ PS_OUTPUT mainPS(PS_INPUT input)
     );
     
     float3 Normal = normalize(mul(input.normal, TBN));
+
+    if (length(Normal) < 0.001) // tangent 값이 없을때 ( uv 없을때 )
+    {
+        Normal = input.normal;
+    }
+    
     float3 ViewDir = normalize(CameraPos - input.worldPos);
     
     float3 TotalLight = MatAmbientColor; // 전역 앰비언트  
