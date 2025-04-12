@@ -35,33 +35,25 @@ PS_INPUT mainVS(VS_INPUT input)
     output.worldPos = worldPos.xyz;
     output.color = input.color;
     output.texcoord = input.texcoord;
-
-    // 정점 입력 검증
-    if (length(input.normal) < 0.001 || any(isnan(input.normal)))
-        input.normal = float3(0, 0, 1); // 기본값 설정
-
+    
     // 노멀 계산 (안전한 역전치 행렬 적용)
     float3 normal = mul(float4(input.normal, 0), MInverseTranspose);
-    if (length(normal) < 0.001 || any(isnan(normal)))
-        normal = float3(0, 0, 1);
     normal = normalize(normal);
 
     float3 tangent = normalize(mul(input.tangent, Model));
 
-    // 탄젠트-노멀 직교화 (Gram-Schmidt 과정)
+    // 탄젠트-노멀 직교화 (Gram-Schmidt 과정) 해야 안전함
     tangent = normalize(tangent - normal * dot(tangent, normal));
 
     // 바이탄젠트 계산 (안전한 교차곱)
     float3 biTangent = cross(normal, tangent);
-    if (length(biTangent) < 0.001 || any(isnan(biTangent)))
-        biTangent = cross(normal, float3(0, 1, 0)); // 대체 축 사용
 
     // 최종 TBN 행렬 구성 (T, B, N는 각각 한 열 또는 행이 될 수 있음, 아래 예제는 행 벡터로 구성)
     // row_major float4x4 TBN = float4x4(T, B, N, float4(0,0,0,1));
     float3x3 TBN = float3x3(tangent, biTangent, normal);
 
     output.TBN = TBN;
-    output.normal = normal / 2 + 0.5;
+    output.normal = normal;
     
     return output;
 }

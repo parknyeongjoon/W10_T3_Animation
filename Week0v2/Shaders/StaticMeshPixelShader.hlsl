@@ -179,7 +179,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float4 normalTex = ((NormalTexture.Sample(linearSampler, uvAdjusted)- 0.5) * 2);
     float4 bumpTex = BumpTexture.Sample(linearSampler, uvAdjusted) * 0.04 ; //0.04f
     
-    input.normal = (input.normal - 0.5) * 2;
+    input.normal = input.normal - 0.5;
     
     if(!IsLit)
     {
