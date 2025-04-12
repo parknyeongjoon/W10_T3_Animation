@@ -231,7 +231,7 @@ struct FLoaderOBJ
                 LineStream >> Line;
                 MaterialIndex++;
 
-                FObjMaterialInfo Material;
+                FObjMaterialInfo Material = {};
                 Material.MTLName = Line;
                 OutFStaticMesh.Materials.Add(Material);
             }
