@@ -439,8 +439,7 @@ struct FLoaderOBJ
             {
                 tangent = tangent.Normalize();                
             } else {
-                // UV 없는 경우 기본값 설정
-                tangent = FVector(0.0f, 0.0f, 0.0f);
+                tangent = FVector(1.0f, 0.0f, 0.0f);
             }
             vertex.Tangentnx = tangent.x;
             vertex.Tangentny = tangent.y;
