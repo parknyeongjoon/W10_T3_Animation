@@ -75,9 +75,10 @@ struct PS_INPUT
     float4 position : SV_POSITION; // 변환된 화면 좌표
     float3 worldPos : POSITION;
     float4 color : COLOR; // 전달할 색상
-    float3 normal : NORMAL; // 정규화된 노멀 벡터
-    bool normalFlag : TEXCOORD0; // 노멀 유효성 플래그 (1.0: 유효, 0.0: 무효)
-    float2 texcoord : TEXCOORD1;
+    float2 texcoord : TEXCOORD0;
+    float3 tangent: TEXCOORD1;
+    float3 biTangent: TEXCOORD2;
+    float3 normal: TEXCOORD3;
 };
 
 struct PS_OUTPUT
@@ -166,8 +167,14 @@ PS_OUTPUT mainPS(PS_INPUT input)
         output.color = float4(baseColor.rgb, 1.0);
         return output;
     }
+
+    float3x3 TBN = float3x3( 
+        normalize(input.tangent), //이미 normalize 된 상태여서 안해도 될듯?
+        normalize(input.biTangent),
+        normalize(input.normal)
+    );
     
-    float3 Normal = normalize(input.normal);
+    float3 Normal = normalize(mul(input.normal, TBN));
     float3 ViewDir = normalize(CameraPos - input.worldPos);
     
     float3 result = AmbientColor * AmbientIntensity * baseColor.rgb;

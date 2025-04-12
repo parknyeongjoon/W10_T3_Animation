@@ -138,7 +138,7 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
     FMatrixConstants MatrixConstants;
     MatrixConstants.Model = Model;
     MatrixConstants.ViewProj = InView * InProjection;
-    MatrixConstants.MInverse = NormalMatrix;
+    MatrixConstants.MInverseTranspose = NormalMatrix;
     if (InStaticMeshComponent->GetWorld()->GetSelectedActor() == InStaticMeshComponent->GetOwner())
     {
         MatrixConstants.isSelected = true;

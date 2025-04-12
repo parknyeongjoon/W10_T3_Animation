@@ -111,7 +111,7 @@ struct alignas(16) FMatrixConstants
 {
     FMatrix Model; // offset: 0, size: 64
     FMatrix ViewProj; // offset: 64, size: 64
-    FMatrix MInverse; // offset: 128, size: 64
+    FMatrix MInverseTranspose; // offset: 128, size: 64
     bool isSelected; // offset: 192, size: 4
     uint8 pad0[12]; // Padding to end of buffer
 };

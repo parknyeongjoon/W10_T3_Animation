@@ -376,6 +376,53 @@ struct FLoaderOBJ
             
         }
 
+        for (int32 i = 0; i < OutStaticMesh.Indices.Num(); i += 3)
+        {
+            const int32 i0 = OutStaticMesh.Indices[i];
+            const int32 i1 = OutStaticMesh.Indices[i + 1];
+            const int32 i2 = OutStaticMesh.Indices[i + 2];
+
+            FVertexSimple& v0 = OutStaticMesh.Vertices[i0];
+            FVertexSimple& v1 = OutStaticMesh.Vertices[i1];
+            FVertexSimple& v2 = OutStaticMesh.Vertices[i2];
+
+            // 삼각형 변 계산
+            const FVector edge1 = {v1.x - v0.x, v1.y - v0.y, v1.z - v0.z};
+            const FVector edge2 = {v2.x - v0.x, v2.y - v0.y, v2.z - v0.z};
+
+            // UV 차이 계산
+            const FVector2D deltaUV1 = {v1.u - v0.u, v1.v - v0.v};
+            const FVector2D deltaUV2 = {v2.u - v0.u, v2.v - v0.v};
+
+            // 접선 계산
+            const float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+            FVector tangent;
+            tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+            tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+            tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+            tangent = tangent.Normalize();
+
+            // 정점별 접선 누적
+            v0.Tangentnx += tangent.x; v0.Tangentny += tangent.y; v0.Tangentnz += tangent.z;
+            v1.Tangentnx += tangent.x; v1.Tangentny += tangent.y; v1.Tangentnz += tangent.z;
+            v2.Tangentnx += tangent.x; v2.Tangentny += tangent.y; v2.Tangentnz += tangent.z;
+        }
+
+        for (auto& vertex : OutStaticMesh.Vertices)
+        {
+            FVector tangent(vertex.Tangentnx, vertex.Tangentny, vertex.Tangentnz);
+            if (tangent.x > 0.001f || tangent.y > 0.001f || tangent.z > 0.001f)
+            {
+                tangent = tangent.Normalize();                
+            } else {
+                // UV 없는 경우 기본값 설정
+                tangent = FVector(0.0f, 0.0f, 0.0f);
+            }
+            vertex.Tangentnx = tangent.x;
+            vertex.Tangentny = tangent.y;
+            vertex.Tangentnz = tangent.z;
+        }
+        
         // Calculate StaticMesh BoundingBox
         ComputeBoundingBox(OutStaticMesh.Vertices, OutStaticMesh.BoundingBoxMin, OutStaticMesh.BoundingBoxMax);
         
