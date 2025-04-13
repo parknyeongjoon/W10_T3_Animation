@@ -296,6 +296,7 @@ struct FLoaderOBJ
             if (Token == "map_Kd")
             {
                 LineStream >> Line;
+                
                 OutFStaticMesh.Materials[MaterialIndex].DiffuseTextureName = Line;
 
                 FWString TexturePath = OutObjInfo.PathName + OutFStaticMesh.Materials[MaterialIndex].DiffuseTextureName.ToWideString();
@@ -304,29 +305,27 @@ struct FLoaderOBJ
 
                 CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].DiffuseTexturePath);
             }
-            
-            if (Token == "map_Ns")
-            {
-                LineStream >> Line;
-                OutFStaticMesh.Materials[MaterialIndex].NormalTextureName = Line;
 
+            if (Token == "map_Bump")
+            {
+                //나중에 Bump쓰면 파일 이름 접미사가 _Height이냐 _Normal이냐에 따라서 Bump와 normalMap이 나뉜다. fbx파일 도입되면 나누고 지금은 Bump안하기 때문에 이렇게만
+                LineStream >> Line;
+
+                if (Line[0] == '-')
+                {
+                    float NS;
+                    LineStream >> NS;
+                    OutFStaticMesh.Materials[MaterialIndex].NormalScale = NS;
+                    LineStream >> Line;
+                }
+
+                OutFStaticMesh.Materials[MaterialIndex].NormalTextureName = Line;
+                
                 FWString TexturePath = OutObjInfo.PathName + OutFStaticMesh.Materials[MaterialIndex].NormalTextureName.ToWideString();
                 OutFStaticMesh.Materials[MaterialIndex].NormalTexturePath = TexturePath;
                 OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
 
                 CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].NormalTexturePath);
-            }
-
-            if (Token == "map_Bump")
-            {
-                LineStream >> Line;
-                OutFStaticMesh.Materials[MaterialIndex].BumpTextureName = Line;
-
-                FWString TexturePath = OutObjInfo.PathName + OutFStaticMesh.Materials[MaterialIndex].BumpTextureName.ToWideString();
-                OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath = TexturePath;
-                OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
-
-                CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath);
             }
         }
         

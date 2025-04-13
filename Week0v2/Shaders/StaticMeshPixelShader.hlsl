@@ -1,7 +1,6 @@
 #include "ShaderHeaders/GSamplers.hlsli"
 Texture2D Texture : register(t0);
 Texture2D NormalTexture : register(t1);
-Texture2D BumpTexture : register(t2);
 
 cbuffer FMaterialConstants : register(b0)
 {
@@ -177,7 +176,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // 기본 색상 추출  
     float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
     float4 normalTex = ((NormalTexture.Sample(linearSampler, uvAdjusted)- 0.5) * 2);
-    float4 bumpTex = BumpTexture.Sample(linearSampler, uvAdjusted) * 0.04 ; //0.04f
     
     input.normal = input.normal - 0.5;
     

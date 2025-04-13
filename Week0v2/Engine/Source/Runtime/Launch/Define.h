@@ -122,6 +122,8 @@ struct FObjMaterialInfo
 
     FString NormalTextureName;  // map_Ns : Normal Texture
     FWString NormalTexturePath;
+
+    float NormalScale = 1.0f;
 };
 
 // Cooked Data
