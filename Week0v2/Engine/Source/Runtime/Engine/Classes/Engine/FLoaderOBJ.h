@@ -231,7 +231,7 @@ struct FLoaderOBJ
                 LineStream >> Line;
                 MaterialIndex++;
 
-                FObjMaterialInfo Material;
+                FObjMaterialInfo Material = {};
                 Material.MTLName = Line;
                 OutFStaticMesh.Materials.Add(Material);
             }
@@ -296,6 +296,7 @@ struct FLoaderOBJ
             if (Token == "map_Kd")
             {
                 LineStream >> Line;
+                
                 OutFStaticMesh.Materials[MaterialIndex].DiffuseTextureName = Line;
 
                 FWString TexturePath = OutObjInfo.PathName + OutFStaticMesh.Materials[MaterialIndex].DiffuseTextureName.ToWideString();
@@ -303,6 +304,28 @@ struct FLoaderOBJ
                 OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
 
                 CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].DiffuseTexturePath);
+            }
+
+            if (Token == "map_Bump")
+            {
+                //나중에 Bump쓰면 파일 이름 접미사가 _Height이냐 _Normal이냐에 따라서 Bump와 normalMap이 나뉜다. fbx파일 도입되면 나누고 지금은 Bump안하기 때문에 이렇게만
+                LineStream >> Line;
+
+                if (Line[0] == '-')
+                {
+                    float NS;
+                    LineStream >> NS;
+                    OutFStaticMesh.Materials[MaterialIndex].NormalScale = NS;
+                    LineStream >> Line;
+                }
+
+                OutFStaticMesh.Materials[MaterialIndex].NormalTextureName = Line;
+                
+                FWString TexturePath = OutObjInfo.PathName + OutFStaticMesh.Materials[MaterialIndex].NormalTextureName.ToWideString();
+                OutFStaticMesh.Materials[MaterialIndex].NormalTexturePath = TexturePath;
+                OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
+
+                CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].NormalTexturePath);
             }
         }
         
@@ -376,6 +399,52 @@ struct FLoaderOBJ
             
         }
 
+        for (int32 i = 0; i < OutStaticMesh.Indices.Num(); i += 3)
+        {
+            const int32 i0 = OutStaticMesh.Indices[i];
+            const int32 i1 = OutStaticMesh.Indices[i + 1];
+            const int32 i2 = OutStaticMesh.Indices[i + 2];
+
+            FVertexSimple& v0 = OutStaticMesh.Vertices[i0];
+            FVertexSimple& v1 = OutStaticMesh.Vertices[i1];
+            FVertexSimple& v2 = OutStaticMesh.Vertices[i2];
+
+            // 삼각형 변 계산
+            const FVector edge1 = {v1.x - v0.x, v1.y - v0.y, v1.z - v0.z};
+            const FVector edge2 = {v2.x - v0.x, v2.y - v0.y, v2.z - v0.z};
+
+            // UV 차이 계산
+            const FVector2D deltaUV1 = {v1.u - v0.u, v1.v - v0.v};
+            const FVector2D deltaUV2 = {v2.u - v0.u, v2.v - v0.v};
+
+            // 접선 계산
+            const float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+            FVector tangent;
+            tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+            tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+            tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+            tangent = tangent.Normalize();
+
+            // 정점별 접선 누적
+            v0.Tangentnx += tangent.x; v0.Tangentny += tangent.y; v0.Tangentnz += tangent.z;
+            v1.Tangentnx += tangent.x; v1.Tangentny += tangent.y; v1.Tangentnz += tangent.z;
+            v2.Tangentnx += tangent.x; v2.Tangentny += tangent.y; v2.Tangentnz += tangent.z;
+        }
+
+        for (auto& vertex : OutStaticMesh.Vertices)
+        {
+            FVector tangent(vertex.Tangentnx, vertex.Tangentny, vertex.Tangentnz);
+            if (tangent.x > 0.001f || tangent.y > 0.001f || tangent.z > 0.001f)
+            {
+                tangent = tangent.Normalize();                
+            } else {
+                tangent = FVector(1.0f, 0.0f, 0.0f);
+            }
+            vertex.Tangentnx = tangent.x;
+            vertex.Tangentny = tangent.y;
+            vertex.Tangentnz = tangent.z;
+        }
+        
         // Calculate StaticMesh BoundingBox
         ComputeBoundingBox(OutStaticMesh.Vertices, OutStaticMesh.BoundingBoxMin, OutStaticMesh.BoundingBoxMax);
         
@@ -558,6 +627,9 @@ public:
             Serializer::WriteFWString(File, Material.BumpTexturePath);
             Serializer::WriteFString(File, Material.AlphaTextureName);
             Serializer::WriteFWString(File, Material.AlphaTexturePath);
+            Serializer::WriteFString(File, Material.NormalTextureName);
+            Serializer::WriteFWString(File, Material.NormalTexturePath);
+
         }
 
         // Material Subsets
@@ -638,7 +710,10 @@ public:
             Serializer::ReadFWString(File, Material.BumpTexturePath);
             Serializer::ReadFString(File, Material.AlphaTextureName);
             Serializer::ReadFWString(File, Material.AlphaTexturePath);
+            Serializer::ReadFString(File, Material.NormalTextureName);
+            Serializer::ReadFWString(File, Material.NormalTexturePath);
 
+            
             if (!Material.DiffuseTexturePath.empty())
             {
                 Textures.AddUnique(Material.DiffuseTexturePath);
@@ -658,6 +733,10 @@ public:
             if (!Material.AlphaTexturePath.empty())
             {
                 Textures.AddUnique(Material.AlphaTexturePath);
+            }
+            if (!Material.NormalTexturePath.empty())
+            {
+                Textures.AddUnique(Material.NormalTexturePath);
             }
         }
 

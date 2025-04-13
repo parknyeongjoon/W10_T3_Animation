@@ -98,6 +98,7 @@ void FRenderer::CreateStaticMeshShader()
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
     
@@ -444,15 +445,6 @@ void FRenderer::CreateDebugDepthShader()
     SAFE_RELEASE(VSBlob_StaticMesh)
     SAFE_RELEASE(PSBlob_StaticMesh) 
 }
-
-void FRenderer::ReleaseShader()
-{
-    // RenderResourceManager->ReleaseShader(InputLayout, VertexShader, PixelShader);
-    // ShaderManager.ReleaseShader(TextureInputLayout, VertexTextureShader, PixelTextureShader);
-    // ShaderManager.ReleaseShader(nullptr, VertexLineShader, PixelLineShader);
-    // ShaderManager.ReleaseShader(nullptr, DebugDepthVertexShader, DebugDepthPixelShader);
-    // ShaderManager.ReleaseShader(nullptr, HeightFogVertexShader, HeightFogPixelShader);
-}
 #pragma endregion Shader
 // void FRenderer::   PrepareRender()
 // {
@@ -528,8 +520,6 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     //ChangeViewMode(ActiveViewport->GetViewMode());
 
     //RenderPostProcess(World, ActiveViewport);
-    // 0. 광원 렌더
-    //RenderLight(World, ActiveViewport);
 
     // 2. 스태틱 메시 렌더
 
@@ -677,11 +667,6 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     // Graphics->DeviceContext->Draw(4, 0);
 //}
 
-// void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
-// {
-//     // 라이트 오브젝트들 모아서 Constant 업데이트 해야함
-//     ConstantBufferUpdater.UpdateLightConstant(LightingBuffer, LightObjs);
-// }
 
 #pragma endregion Render
 
@@ -691,15 +676,15 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
     {
     case EViewModeIndex::VMI_Lit:
         CurrentRasterizerState = ERasterizerState::SolidBack;
-        //TODO : Light 받는 거 
-        //ConstantBufferUpdater.UpdateLitUnlitConstant(FlagBuffer, 1);
+        //TODO : Light 받는 거
+        bIsLit = true;
         break;
     case EViewModeIndex::VMI_Wireframe:
         CurrentRasterizerState = ERasterizerState::WireFrame;
     case EViewModeIndex::VMI_Unlit:
         CurrentRasterizerState = ERasterizerState::SolidBack;
-        //TODO : Light 안 받는 거 
-        //ConstantBufferUpdater.UpdateLitUnlitConstant(FlagBuffer, 0);
+        //TODO : Light 안 받는 거
+        bIsLit = false;
         break;
     default:
         CurrentRasterizerState = ERasterizerState::SolidBack;

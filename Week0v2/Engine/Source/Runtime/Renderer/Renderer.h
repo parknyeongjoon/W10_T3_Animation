@@ -35,12 +35,12 @@ public:
 
     std::shared_ptr<FVBIBTopologyMapping> GetVBIBTopologyMapping(const FName InName) {return VBIBTopologyMappings[InName];}
 
+    bool bIsLit = true;
 public:
     void Initialize(FGraphicsDevice* graphics);
     
     //Release
     void Release();
-    void ReleaseShader();
     
     void SetViewMode(EViewModeIndex evi);
 
