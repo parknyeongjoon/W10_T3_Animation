@@ -71,28 +71,34 @@ void FRenderer::CreateStaticMeshShader()
     ID3D11VertexShader* VertexShader;
     ID3D11PixelShader* PixelShader;
     ID3D11InputLayout* InputLayout;
+
+    D3D_SHADER_MACRO defines[] = 
+    {
+        {"LIGHTING_MODEL_GOURAUD", "1"},
+        {nullptr, nullptr}
+    };
     
-    VertexShader = RenderResourceManager->GetVertexShader(TEXT("StaticMeshVS"));
+    VertexShader = RenderResourceManager->GetVertexShader(TEXT("UberVS"));
     if (VertexShader == nullptr)
     {
-        Graphics->CreateVertexShader(TEXT("StaticMeshVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader);
+        Graphics->CreateVertexShader(TEXT("UberLitVertexShader.hlsl"), defines, &VSBlob_StaticMesh, &VertexShader);
     }
     else
     {
-        FGraphicsDevice::CompileVertexShader(TEXT("StaticMeshVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh);
+        FGraphicsDevice::CompileVertexShader(TEXT("UberLitVertexShader.hlsl"), defines,  &VSBlob_StaticMesh);
     }
-    RenderResourceManager->AddOrSetVertexShader(TEXT("StaticMeshVS"), VertexShader);
+    RenderResourceManager->AddOrSetVertexShader(TEXT("UberVS"), VertexShader);
     
-    PixelShader = RenderResourceManager->GetPixelShader(TEXT("StaticMeshPS"));
+    PixelShader = RenderResourceManager->GetPixelShader(TEXT("UberPS"));
     if (PixelShader == nullptr)
     {
-        Graphics->CreatePixelShader(TEXT("StaticMeshPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader);
+        Graphics->CreatePixelShader(TEXT("UberLitPixelShader.hlsl"), defines, &PSBlob_StaticMesh, &PixelShader);
     }
     else
     {
-        FGraphicsDevice::CompilePixelShader(TEXT("StaticMeshPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh);
+        FGraphicsDevice::CompilePixelShader(TEXT("UberLitPixelShader.hlsl"), defines, &PSBlob_StaticMesh);
     }
-    RenderResourceManager->AddOrSetPixelShader(TEXT("StaticMeshPS"), PixelShader);
+    RenderResourceManager->AddOrSetPixelShader(TEXT("UberPS"), PixelShader);
 
     D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -131,12 +137,12 @@ void FRenderer::CreateStaticMeshShader()
         }
     }
 
-    MappingVSPSInputLayout(TEXT("StaticMesh"), TEXT("StaticMeshVS"), TEXT("StaticMeshPS"), InputLayout);
-    MappingVSPSCBSlot(TEXT("StaticMesh"), ShaderStageToCB);
+    MappingVSPSInputLayout(TEXT("Uber"), TEXT("UberVS"), TEXT("UberPS"), InputLayout);
+    MappingVSPSCBSlot(TEXT("Uber"), ShaderStageToCB);
 
 
-    StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(TEXT("StaticMesh"));
-    GizmoRenderPass = std::make_shared<FGizmoRenderPass>(TEXT("StaticMesh"));
+    StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(TEXT("Uber"));
+    GizmoRenderPass = std::make_shared<FGizmoRenderPass>(TEXT("Uber"));
     // TODO : Create RenderPass
 
 
