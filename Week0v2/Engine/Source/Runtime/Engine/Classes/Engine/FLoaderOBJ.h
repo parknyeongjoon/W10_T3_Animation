@@ -416,9 +416,9 @@ struct FLoaderOBJ
             // UV 차이 계산
             const FVector2D deltaUV1 = {v1.u - v0.u, v1.v - v0.v};
             const FVector2D deltaUV2 = {v2.u - v0.u, v2.v - v0.v};
-
+            float deltaUV = deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y;
             // 접선 계산
-            const float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+            const float f = 1.0f / (deltaUV == 0 ? 1 : deltaUV);
             FVector tangent;
             tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
             tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
@@ -434,10 +434,12 @@ struct FLoaderOBJ
         for (auto& vertex : OutStaticMesh.Vertices)
         {
             FVector tangent(vertex.Tangentnx, vertex.Tangentny, vertex.Tangentnz);
-            if (tangent.x > 0.001f || tangent.y > 0.001f || tangent.z > 0.001f)
+            if (tangent.x > 0.00001f || tangent.y > 0.00001f || tangent.z > 0.00001f)
             {
                 tangent = tangent.Normalize();                
-            } else {
+            } 
+            else 
+            {
                 tangent = FVector(1.0f, 0.0f, 0.0f);
             }
             vertex.Tangentnx = tangent.x;
