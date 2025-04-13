@@ -130,9 +130,11 @@ float3 CalculatePointLight(
 
     // 디퓨즈  
     float NdotL = max(dot(Normal, LightDir), 0.0);  
-    float3 Diffuse = Light.Color.rgb * Albedo * NdotL;  
-
-#if LIGHTING_MODEL_PHONG
+    float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
+    
+#if LIGHTING_MODEL_LAMBERT
+    return Diffuse;
+#endif
     // 스페큘러  
     float3 HalfVec = normalize(LightDir + ViewDir);  
     float NdotH = max(dot(Normal, HalfVec), 0.0);  
@@ -140,9 +142,6 @@ float3 CalculatePointLight(
     float3 specularColor = Light.Color.rgb * Specular * SpecularColor;
 
     return (Diffuse + specularColor) * Attenuation;  
-#elif LIGHTING_MODEL_LAMBERT
-    return Diffuse;
-#endif
 }  
 
 PS_OUTPUT mainPS(PS_INPUT input)
@@ -156,7 +155,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
 #if LIGHTING_MODEL_GOURAUD
     output.color = float4(baseColor.rgb * input.color.rgb, 1.0);
     return output;
-#else
+#endif
     float4 normalTex = ((NormalTexture.Sample(linearSampler, uvAdjusted)- 0.5) * 2);
     input.normal = input.normal - 0.5;
     
@@ -189,5 +188,4 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // 최종 색상  
     output.color = float4(TotalLight * baseColor.rgb, baseColor.a * TransparencyScalar);  
     return output;  
-#endif
 }
