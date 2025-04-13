@@ -17,7 +17,7 @@ public:
     
     ULevel(const ULevel& Other)
     : UObject(Other)  // UObject 기반 클래스 복사
-    , Actors(Other.Actors)  // TSet 얕은 복사
+    , Actors(Other.Actors)  // TSet 얕은 복사6
     , PendingBeginPlayActors(Other.PendingBeginPlayActors) // TArray 깊은 복사
     {
         // 필요 시, 추가적인 복사 로직 구현 가능

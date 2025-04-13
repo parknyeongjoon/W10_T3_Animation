@@ -107,7 +107,7 @@ void UEditorEngine::Tick(float deltaSeconds)
     // Pending 처리된 오브젝트 제거
 
     // TODO : 이거 잘 안되는 것 이유 파악 
-    // GUObjectArray.ProcessPendingDestroyObjects();
+    GUObjectArray.ProcessPendingDestroyObjects();
 
     graphicDevice.SwapBuffer();
 }
