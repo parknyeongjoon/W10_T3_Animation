@@ -19,8 +19,8 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     Graphics = graphics;
     RenderResourceManager = new FRenderResourceManager(graphics);
     RenderResourceManager->Initialize();
-    CreateStaticMeshShader();
-    CreateLineBatchShader();
+    //CreateStaticMeshShader();
+    CreateOrUpdateLineBatchShader();
 }
 
 void FRenderer::PrepareShader(const FName InShaderName)
@@ -49,6 +49,19 @@ void FRenderer::BindConstantBuffers(const FName InShaderName)
     }
 }
 
+void FRenderer::CreateMappedCB(TMap<FShaderConstantKey, uint32>& ShaderStageToCB, const TArray<FConstantBufferInfo>& CBArray, const EShaderStage Stage) const
+{
+    for (const FConstantBufferInfo& item : CBArray)
+    {
+        ShaderStageToCB[{Stage, item.Name}] = item.BindSlot;
+        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+}
+
 void FRenderer::Release()
 {
     RenderResourceManager->ReleaseResources();
@@ -63,7 +76,7 @@ void FRenderer::Release()
 }
 
 #pragma region Shader
-void FRenderer::CreateStaticMeshShader()
+void FRenderer::CreateOrUdpateStaticMeshShader()
 {
     ID3DBlob* VSBlob_StaticMesh = nullptr;
     ID3DBlob* PSBlob_StaticMesh = nullptr;
@@ -71,79 +84,69 @@ void FRenderer::CreateStaticMeshShader()
     ID3D11VertexShader* VertexShader;
     ID3D11PixelShader* PixelShader;
     ID3D11InputLayout* InputLayout;
+
+    std::filesystem::file_time_type CurrentVSWriteTime;
+    std::filesystem::file_time_type CurrentPSWriteTime;
+    
+    std::filesystem::file_time_type VS_WriteTime;
+    std::filesystem::file_time_type PS_WriteTime;
     
     VertexShader = RenderResourceManager->GetVertexShader(TEXT("StaticMeshVS"));
     if (VertexShader == nullptr)
     {
-        Graphics->CreateVertexShader(TEXT("StaticMeshVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader);
+        Graphics->CreateVertexShader(TEXT("StaticMeshVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
     }
     else
     {
-        FGraphicsDevice::CompileVertexShader(TEXT("StaticMeshVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh);
+        FGraphicsDevice::CompileVertexShader(TEXT("StaticMeshVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh, VS_WriteTime);
     }
-    RenderResourceManager->AddOrSetVertexShader(TEXT("StaticMeshVS"), VertexShader);
+    RenderResourceManager->AddOrSetVertexShader(TEXT("StaticMeshVS"), VertexShader, VS_WriteTime);
     
     PixelShader = RenderResourceManager->GetPixelShader(TEXT("StaticMeshPS"));
     if (PixelShader == nullptr)
     {
-        Graphics->CreatePixelShader(TEXT("StaticMeshPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader);
+        Graphics->CreatePixelShader(TEXT("StaticMeshPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
     }
     else
     {
-        FGraphicsDevice::CompilePixelShader(TEXT("StaticMeshPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh);
+        FGraphicsDevice::CompilePixelShader(TEXT("StaticMeshPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
     }
-    RenderResourceManager->AddOrSetPixelShader(TEXT("StaticMeshPS"), PixelShader);
+    RenderResourceManager->AddOrSetPixelShader(TEXT("StaticMeshPS"), PixelShader, PSBlob_StaticMesh, PS_WriteTime);
 
-    D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
+    // D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
+    //     {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    //     {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    //     {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    //     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    // };
+    //
+    // Graphics->Device->CreateInputLayout(
+    //     layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
+    // );
+
     
-    Graphics->Device->CreateInputLayout(
-        layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
-    );
+    TArray<FConstantBufferInfo> VertexStaticMeshConstant;
+    Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
     
-    const TArray<FConstantBufferInfo> VertexStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(VSBlob_StaticMesh);
-    const TArray<FConstantBufferInfo> PixelStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(PSBlob_StaticMesh);
+    TArray<FConstantBufferInfo> PixelStaticMeshConstant;
+    Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
     
     TMap<FShaderConstantKey, uint32> ShaderStageToCB;
 
-    for (const FConstantBufferInfo item : VertexStaticMeshConstant)
-    {
-        ShaderStageToCB[{EShaderStage::VS, item.Name}] = item.BindSlot;
-        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
-        {
-            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
-            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
-        }
-    }
-
-    for (const FConstantBufferInfo item :PixelStaticMeshConstant)
-    {
-        ShaderStageToCB[{EShaderStage::PS, item.Name}] = item.BindSlot;
-        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
-        {
-            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
-            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
-        }
-    }
+    CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
+    CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
 
     MappingVSPSInputLayout(TEXT("StaticMesh"), TEXT("StaticMeshVS"), TEXT("StaticMeshPS"), InputLayout);
     MappingVSPSCBSlot(TEXT("StaticMesh"), ShaderStageToCB);
 
-
     StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(TEXT("StaticMesh"));
     GizmoRenderPass = std::make_shared<FGizmoRenderPass>(TEXT("StaticMesh"));
-    // TODO : Create RenderPass
 
-
-    SAFE_RELEASE(VSBlob_StaticMesh)
-    SAFE_RELEASE(PSBlob_StaticMesh)
+    // SAFE_RELEASE(VSBlob_StaticMesh)
+    // SAFE_RELEASE(PSBlob_StaticMesh)
 }
 
-void FRenderer::CreateTextureShader()
+void FRenderer::CreateOrUpdateTextureShader()
 {
     ID3DBlob* VSBlob_StaticMesh = nullptr;
     ID3DBlob* PSBlob_StaticMesh = nullptr;
@@ -151,62 +154,41 @@ void FRenderer::CreateTextureShader()
     ID3D11VertexShader* VertexShader;
     ID3D11PixelShader* PixelShader;
     ID3D11InputLayout* InputLayout;
+    std::filesystem::file_time_type VS_WriteTime;
+    std::filesystem::file_time_type PS_WriteTime;
     
     VertexShader = RenderResourceManager->GetVertexShader(TEXT("TextureVS"));
     if (VertexShader == nullptr)
     {
-        Graphics->CreateVertexShader(TEXT("TextureVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader);
+        Graphics->CreateVertexShader(TEXT("TextureVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
     }
     else
     {
-        FGraphicsDevice::CompileVertexShader(TEXT("TextureVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh);
+        FGraphicsDevice::CompileVertexShader(TEXT("TextureVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh, VS_WriteTime);
     }
-    RenderResourceManager->AddOrSetVertexShader(TEXT("TextureVS"), VertexShader);
+    RenderResourceManager->AddOrSetVertexShader(TEXT("TextureVS"), VertexShader, VS_WriteTime);
     
     PixelShader = RenderResourceManager->GetPixelShader(TEXT("TexturePS"));
     if (PixelShader == nullptr)
     {
-        Graphics->CreatePixelShader(TEXT("TexturePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader);
+        Graphics->CreatePixelShader(TEXT("TexturePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
     }
     else
     {
-        FGraphicsDevice::CompilePixelShader(TEXT("TexturePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh);
+        FGraphicsDevice::CompilePixelShader(TEXT("TexturePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
     }
-    RenderResourceManager->AddOrSetPixelShader(TEXT("TexturePS"), PixelShader);
+    RenderResourceManager->AddOrSetPixelShader(TEXT("TexturePS"), PixelShader,  PS_WriteTime);
 
-    D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
+    TArray<FConstantBufferInfo> VertexStaticMeshConstant;
+    Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
     
-    Graphics->Device->CreateInputLayout(
-        layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
-    );
-    
-    const TArray<FConstantBufferInfo> VertexStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(VSBlob_StaticMesh);
-    const TArray<FConstantBufferInfo> PixelStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(PSBlob_StaticMesh);
+    TArray<FConstantBufferInfo> PixelStaticMeshConstant;
+    Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
     
     TMap<FShaderConstantKey, uint32> ShaderStageToCB;
 
-    for (const FConstantBufferInfo item : VertexStaticMeshConstant)
-    {
-        ShaderStageToCB[{EShaderStage::VS, item.Name}] = item.BindSlot;
-        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
-        {
-            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
-            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
-        }
-    }
-
-    for (const FConstantBufferInfo item :PixelStaticMeshConstant)
-    {
-        ShaderStageToCB[{EShaderStage::PS, item.Name}] = item.BindSlot;
-        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
-        {
-            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
-            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
-        }
-    }
+    CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
+    CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
 
     MappingVSPSInputLayout(TEXT("Texture"), TEXT("TextureVS"), TEXT("TexturePS"), InputLayout);
     MappingVSPSCBSlot(TEXT("Texture"), ShaderStageToCB);
@@ -217,7 +199,7 @@ void FRenderer::CreateTextureShader()
     SAFE_RELEASE(PSBlob_StaticMesh)
 }
 
-void FRenderer::CreateLineBatchShader()
+void FRenderer::CreateOrUpdateLineBatchShader()
 {
     ID3DBlob* VSBlob_StaticMesh = nullptr;
     ID3DBlob* PSBlob_StaticMesh = nullptr;
@@ -225,67 +207,42 @@ void FRenderer::CreateLineBatchShader()
     ID3D11VertexShader* VertexShader;
     ID3D11PixelShader* PixelShader;
     ID3D11InputLayout* InputLayout;
+    std::filesystem::file_time_type VS_WriteTime;
+    std::filesystem::file_time_type PS_WriteTime;
     
     VertexShader = RenderResourceManager->GetVertexShader(TEXT("LineVS"));
     if (VertexShader == nullptr)
     {
-        Graphics->CreateVertexShader(TEXT("LineVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader);
+        Graphics->CreateVertexShader(TEXT("LineVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
     }
     else
     {
-        FGraphicsDevice::CompileVertexShader(TEXT("LineVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh);
+        FGraphicsDevice::CompileVertexShader(TEXT("LineVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh, VS_WriteTime);
     }
-    RenderResourceManager->AddOrSetVertexShader(TEXT("LineVS"), VertexShader);
+    RenderResourceManager->AddOrSetVertexShader(TEXT("LineVS"), VertexShader, VS_WriteTime);
     
     PixelShader = RenderResourceManager->GetPixelShader(TEXT("LinePS"));
     if (PixelShader == nullptr)
     {
-        Graphics->CreatePixelShader(TEXT("LinePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader);
+        Graphics->CreatePixelShader(TEXT("LinePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
     }
     else
     {
-        FGraphicsDevice::CompilePixelShader(TEXT("LinePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh);
+        FGraphicsDevice::CompilePixelShader(TEXT("LinePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
     }
-    RenderResourceManager->AddOrSetPixelShader(TEXT("LinePS"), PixelShader);
-
-    D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
-    {
-        // 정점 ID: 32비트 부호 없는 정수, 입력 슬로트 0, Per-Vertex 데이터
-        { "SV_VertexID", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    RenderResourceManager->AddOrSetPixelShader(TEXT("LinePS"), PixelShader, PS_WriteTime);
     
-        // 인스턴스 ID: 32비트 부호 없는 정수, 입력 슬로트 1, Per-Instance 데이터
-        { "SV_InstanceID", 0, DXGI_FORMAT_R32_UINT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-    };
+    TArray<FConstantBufferInfo> VertexStaticMeshConstant;
+    Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
     
-    Graphics->Device->CreateInputLayout(
-        layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
-    );
-    
-    const TArray<FConstantBufferInfo> VertexStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(VSBlob_StaticMesh);
-    const TArray<FConstantBufferInfo> PixelStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(PSBlob_StaticMesh);
+    TArray<FConstantBufferInfo> PixelStaticMeshConstant;
+    Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
     
     TMap<FShaderConstantKey, uint32> ShaderStageToCB;
 
-    for (const FConstantBufferInfo item : VertexStaticMeshConstant)
-    {
-        ShaderStageToCB[{EShaderStage::VS, item.Name}] = item.BindSlot;
-        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
-        {
-            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
-            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
-        }
-    }
-
-    for (const FConstantBufferInfo item :PixelStaticMeshConstant)
-    {
-        ShaderStageToCB[{EShaderStage::PS, item.Name}] = item.BindSlot;
-        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
-        {
-            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
-            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
-        }
-    }
-
+    CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
+    CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
+    
     MappingVSPSInputLayout(TEXT("LineBatch"), TEXT("LineVS"), TEXT("LinePS"), InputLayout);
     MappingVSPSCBSlot(TEXT("LineBatch"), ShaderStageToCB);
     
@@ -295,7 +252,7 @@ void FRenderer::CreateLineBatchShader()
     SAFE_RELEASE(PSBlob_StaticMesh)
 }
 
-void FRenderer::CreateFogShader()
+void FRenderer::CreateOrUpdateFogShader()
 {
     ID3DBlob* VSBlob_StaticMesh = nullptr;
     ID3DBlob* PSBlob_StaticMesh = nullptr;
@@ -303,63 +260,41 @@ void FRenderer::CreateFogShader()
     ID3D11VertexShader* VertexShader;
     ID3D11PixelShader* PixelShader;
     ID3D11InputLayout* InputLayout;
+    std::filesystem::file_time_type VS_WriteTime;
+    std::filesystem::file_time_type PS_WriteTime;
     
     VertexShader = RenderResourceManager->GetVertexShader(TEXT("FogVS"));
     if (VertexShader == nullptr)
     {
-        Graphics->CreateVertexShader(TEXT("HeightFogVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader);
+        Graphics->CreateVertexShader(TEXT("HeightFogVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
     }
     else
     {
-        FGraphicsDevice::CompileVertexShader(TEXT("HeightFogVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh);
+        FGraphicsDevice::CompileVertexShader(TEXT("HeightFogVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh,VS_WriteTime);
     }
-    RenderResourceManager->AddOrSetVertexShader(TEXT("FogVS"), VertexShader);
+    RenderResourceManager->AddOrSetVertexShader(TEXT("FogVS"), VertexShader,VS_WriteTime);
     
     PixelShader = RenderResourceManager->GetPixelShader(TEXT("FogPS"));
     if (PixelShader == nullptr)
     {
-        Graphics->CreatePixelShader(TEXT("HeightFogPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader);
+        Graphics->CreatePixelShader(TEXT("HeightFogPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
     }
     else
     {
-        FGraphicsDevice::CompilePixelShader(TEXT("HeightFogPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh);
+        FGraphicsDevice::CompilePixelShader(TEXT("HeightFogPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
     }
-    RenderResourceManager->AddOrSetPixelShader(TEXT("FogPS"), PixelShader);
+    RenderResourceManager->AddOrSetPixelShader(TEXT("FogPS"), PixelShader, PS_WriteTime);
 
-    D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
-    {
-        // 정점 ID: 32비트 부호 없는 정수, 입력 슬로트 0, Per-Vertex 데이터
-        { "SV_VertexID", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
+    TArray<FConstantBufferInfo> VertexStaticMeshConstant;
+    Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
     
-    Graphics->Device->CreateInputLayout(
-        layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
-    );
-    
-    const TArray<FConstantBufferInfo> VertexStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(VSBlob_StaticMesh);
-    const TArray<FConstantBufferInfo> PixelStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(PSBlob_StaticMesh);
+    TArray<FConstantBufferInfo> PixelStaticMeshConstant;
+    Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
     
     TMap<FShaderConstantKey, uint32> ShaderStageToCB;
 
-    for (const FConstantBufferInfo item : VertexStaticMeshConstant)
-    {
-        ShaderStageToCB[{EShaderStage::VS, item.Name}] = item.BindSlot;
-        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
-        {
-            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
-            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
-        }
-    }
-
-    for (const FConstantBufferInfo item :PixelStaticMeshConstant)
-    {
-        ShaderStageToCB[{EShaderStage::PS, item.Name}] = item.BindSlot;
-        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
-        {
-            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
-            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
-        }
-    }
+    CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
+    CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
 
     MappingVSPSInputLayout(TEXT("Fog"), TEXT("FogVS"), TEXT("FogPS"), InputLayout);
     MappingVSPSCBSlot(TEXT("Fog"), ShaderStageToCB);
@@ -370,7 +305,7 @@ void FRenderer::CreateFogShader()
     SAFE_RELEASE(PSBlob_StaticMesh)
 }
 
-void FRenderer::CreateDebugDepthShader()
+void FRenderer::CreateOrUpdateDebugDepthShader()
 {
     ID3DBlob* VSBlob_StaticMesh = nullptr;
     ID3DBlob* PSBlob_StaticMesh = nullptr;
@@ -378,63 +313,41 @@ void FRenderer::CreateDebugDepthShader()
     ID3D11VertexShader* VertexShader;
     ID3D11PixelShader* PixelShader;
     ID3D11InputLayout* InputLayout;
+    std::filesystem::file_time_type VS_WriteTime;
+    std::filesystem::file_time_type PS_WriteTime;
     
     VertexShader = RenderResourceManager->GetVertexShader(TEXT("DebugDepthVS"));
     if (VertexShader == nullptr)
     {
-        Graphics->CreateVertexShader(TEXT("DebugDepthVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader);
+        Graphics->CreateVertexShader(TEXT("DebugDepthVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
     }
     else
     {
-        FGraphicsDevice::CompileVertexShader(TEXT("DebugDepthVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh);
+        FGraphicsDevice::CompileVertexShader(TEXT("DebugDepthVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh, VS_WriteTime);
     }
-    RenderResourceManager->AddOrSetVertexShader(TEXT("DebugDepthVS"), VertexShader);
+    RenderResourceManager->AddOrSetVertexShader(TEXT("DebugDepthVS"), VertexShader, VS_WriteTime);
     
     PixelShader = RenderResourceManager->GetPixelShader(TEXT("DebugDepthPS"));
     if (PixelShader == nullptr)
     {
-        Graphics->CreatePixelShader(TEXT("DebugDepthPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader);
+        Graphics->CreatePixelShader(TEXT("DebugDepthPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
     }
     else
     {
-        FGraphicsDevice::CompilePixelShader(TEXT("DebugDepthPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh);
+        FGraphicsDevice::CompilePixelShader(TEXT("DebugDepthPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
     }
-    RenderResourceManager->AddOrSetPixelShader(TEXT("DebugDepthPS"), PixelShader);
+    RenderResourceManager->AddOrSetPixelShader(TEXT("DebugDepthPS"), PixelShader, PS_WriteTime);
 
-    D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
-    {
-        // 정점 ID: 32비트 부호 없는 정수, 입력 슬로트 0, Per-Vertex 데이터
-        { "SV_VertexID", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
+    TArray<FConstantBufferInfo> VertexStaticMeshConstant;
+    Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
     
-    Graphics->Device->CreateInputLayout(
-        layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
-    );
-    
-    const TArray<FConstantBufferInfo> VertexStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(VSBlob_StaticMesh);
-    const TArray<FConstantBufferInfo> PixelStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(PSBlob_StaticMesh);
+    TArray<FConstantBufferInfo> PixelStaticMeshConstant;
+    Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
     
     TMap<FShaderConstantKey, uint32> ShaderStageToCB;
 
-    for (const FConstantBufferInfo item : VertexStaticMeshConstant)
-    {
-        ShaderStageToCB[{EShaderStage::VS, item.Name}] = item.BindSlot;
-        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
-        {
-            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
-            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
-        }
-    }
-
-    for (const FConstantBufferInfo item :PixelStaticMeshConstant)
-    {
-        ShaderStageToCB[{EShaderStage::PS, item.Name}] = item.BindSlot;
-        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
-        {
-            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
-            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
-        }
-    }
+    CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
+    CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
 
     MappingVSPSInputLayout(TEXT("DebugDepth"), TEXT("DebugDepthVS"), TEXT("DebugDepthPS"), InputLayout);
     MappingVSPSCBSlot(TEXT("DebugDepth"), ShaderStageToCB);

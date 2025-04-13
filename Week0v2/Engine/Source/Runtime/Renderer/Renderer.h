@@ -16,14 +16,16 @@ class UWorld;
 
 class FRenderer 
 {
-private:
-    void CreateStaticMeshShader();
-    void CreateTextureShader();
-    void CreateLineBatchShader();
-    void CreateFogShader();
-    void CreateDebugDepthShader();
 public:
     FGraphicsDevice* Graphics;
+    void UpdateShaders();
+private:
+    void CreateOrUdpateStaticMeshShader();
+    void CreateOrUpdateTextureShader();
+    void CreateOrUpdateLineBatchShader();
+    void CreateOrUpdateFogShader();
+    void CreateOrUpdateDebugDepthShader();
+
 public:
     ID3D11SamplerState* GetSamplerState(const ESamplerType InType) const { return RenderResourceManager->GetSamplerState(InType); }
     ID3D11RasterizerState* GetRasterizerState(const ERasterizerState InState) const { return RenderResourceManager->GetRasterizerState(InState); }
@@ -75,6 +77,8 @@ public:
     void BindConstantBuffers(FName InShaderName);
     
 public:
+    void CreateMappedCB(TMap<FShaderConstantKey, uint32>& ShaderStageToCB, const TArray<FConstantBufferInfo>& CBArray, EShaderStage Stage) const;
+    
     void MappingVSPSInputLayout(FName InShaderProgramName, FName VSName, FName PSName, ID3D11InputLayout* InInputLayout);
     void MappingVSPSCBSlot(FName InShaderName, const TMap<FShaderConstantKey, uint32>& MappedConstants);
     void MappingVBTopology(FName InObjectName, FName InVBName, uint32 InStride, uint32 InNumVertices, D3D11_PRIMITIVE_TOPOLOGY InTopology= D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

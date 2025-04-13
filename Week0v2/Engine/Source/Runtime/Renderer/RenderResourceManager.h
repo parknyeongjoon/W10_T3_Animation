@@ -4,6 +4,8 @@
 #include "Container/Map.h"
 #include "D3D11RHI/GraphicDevice.h"
 
+class FPixelShader;
+class FVertexShader;
 class FVBIBTopologyMapping;
 class FShaderProgram;
 
@@ -54,8 +56,9 @@ public:
     ID3D11BlendState* GetBlendState(EBlendState InState) const { return BlendStates[static_cast<uint32>(InState)]; }
     ID3D11DepthStencilState* GetDepthStencilState(EDepthStencilState InState) const { return DepthStencilStates[static_cast<uint32>(InState)]; }
 
-    void AddOrSetVertexShader(FName InVSName, ID3D11VertexShader* InShader);
-    void AddOrSetPixelShader(FName InPSName, ID3D11PixelShader* InShader);
+    void CreateVertexShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines);
+    void AddOrSetVertexShader(FName InVSName, const FString& InFullPath, ID3D11VertexShader* InVS, ID3DBlob* InShaderBlob, std::filesystem::file_time_type InWriteTime);
+    void AddOrSetPixelShader(FName InPSName, const FString& InFullPath, ID3D11PixelShader* InPS, ID3DBlob* InShaderBlob, std::filesystem::file_time_type InWriteTime);
     void AddOrSetVertexBuffer(FName InVBName, ID3D11Buffer* InBuffer);
     void AddOrSetIndexBuffer(FName InPBName, ID3D11Buffer* InBuffer);
     void AddOrSetConstantBuffer(FName InCBName, ID3D11Buffer* InBuffer);
@@ -71,12 +74,14 @@ public:
 
     ID3D11Buffer* GetStructuredBuffer(FName InName);
     ID3D11ShaderResourceView* GetStructuredBufferSRV(const FName InName);
+
+    void HotReloadShaders();
 private:
     FGraphicsDevice* GraphicDevice = nullptr;
     
 private:
-    TMap<FName, ID3D11VertexShader*> VertexShaders;
-    TMap<FName, ID3D11PixelShader*> PixelShaders;
+    TMap<FName, std::shared_ptr<FVertexShader>> VertexShaders;
+    TMap<FName, std::shared_ptr<FPixelShader>> PixelShaders;
 
     TMap<FName, ID3D11Buffer*> VertexBuffers;
     TMap<FName, ID3D11Buffer*> IndexBuffers;
@@ -92,6 +97,10 @@ private:
     
     ID3D11DepthStencilState* DepthStencilStates[static_cast<uint32>(EDepthStencilState::End)] = {};
 };
+
+inline void FRenderResourceManager::HotReloadShaders()
+{
+}
 
 template <typename T>
 ID3D11Buffer* FRenderResourceManager::CreateImmutableVertexBuffer(const TArray<T>& vertices) const

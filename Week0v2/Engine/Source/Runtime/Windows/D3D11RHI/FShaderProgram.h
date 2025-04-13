@@ -27,5 +27,5 @@ public:
 private:
     FName VSName;
     FName PSName;
-    ID3D11InputLayout*  InputLayout;
+    ID3D11InputLayout* InputLayout;
 };
