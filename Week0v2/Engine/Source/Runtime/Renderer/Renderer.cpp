@@ -24,9 +24,9 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
         {"LIGHTING_MODEL_GOURAUD", "1"},
         {nullptr, nullptr}
     };
-    CreateVertexPixelShader(TEXT("UberLit"), defines);
+    CreateVertexPixelShader(TEXT("UberLit"), nullptr);
     FString Prefix = TEXT("UberLit");
-    Prefix += defines->Name;
+    //Prefix += defines->Name;
     StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(Prefix);
     GizmoRenderPass = std::make_shared<FGizmoRenderPass>(Prefix);
     

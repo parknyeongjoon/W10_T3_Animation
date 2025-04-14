@@ -210,9 +210,9 @@ void PropertyEditorPanel::Render()
             {
                 LastComponent = PickedComponent;
                 bFirstFrame = true;
-                Location = SceneComp->GetComponentLocation();
-                Rotation = SceneComp->GetComponentRotation();
-                Scale = SceneComp->GetComponentScale();
+                Location = SceneComp->GetRelativeLocation();
+                Rotation = SceneComp->GetRelativeRotation();
+                Scale = SceneComp->GetRelativeScale();
             }
 
             bool bChanged = false;
@@ -232,17 +232,18 @@ void PropertyEditorPanel::Render()
                 SceneComp->SetRotation(Rotation);
                 SceneComp->SetScale(Scale);
             }
+            
+            //always local
+            //std::string coordiButtonLabel;
+            //if (player->GetCoordiMode() == CoordiMode::CDM_WORLD)
+            //    coordiButtonLabel = "World";
+            //else if (player->GetCoordiMode() == CoordiMode::CDM_LOCAL)
+            //    coordiButtonLabel = "Local";
 
-            std::string coordiButtonLabel;
-            if (player->GetCoordiMode() == CoordiMode::CDM_WORLD)
-                coordiButtonLabel = "World";
-            else if (player->GetCoordiMode() == CoordiMode::CDM_LOCAL)
-                coordiButtonLabel = "Local";
-
-            if (ImGui::Button(coordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
-            {
-                player->AddCoordiMode();
-            }
+            //if (ImGui::Button(coordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
+            //{
+            //    player->AddCoordiMode();
+            //}
             ImGui::TreePop(); // 트리 닫기
         }
         ImGui::PopStyleColor();
