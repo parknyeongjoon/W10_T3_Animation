@@ -158,6 +158,13 @@ void UWorld::ReloadScene(const FString& FileName)
     ar >> *this;
 }
 
+void UWorld::DuplicateSeletedActors()
+{
+    AActor* DupedActor = Cast<AActor>(SelectedActor->Duplicate());
+    Level->GetActors().Add(DupedActor);
+    Level->PendingBeginPlayActors.Add(DupedActor);
+}
+
 bool UWorld::DestroyActor(AActor* ThisActor)
 {
     if (ThisActor->GetWorld() == nullptr)

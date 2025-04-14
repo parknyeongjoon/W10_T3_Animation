@@ -162,7 +162,7 @@ public: //Camera Movement
 private: // Input
     POINT lastMousePos;
     bool bRightMouseDown = false;
-   
+    bool bLCtrlDown = false;
 
 public:
     void LoadConfig(const TMap<FString, FString>& config);

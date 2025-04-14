@@ -91,29 +91,32 @@ void FEditorViewportClient::Input()
 
             SetCursorPos(lastMousePos.x, lastMousePos.y);
         }
-        if (GetAsyncKeyState('A') & 0x8000)
+        if (!bLCtrlDown)
         {
-            CameraMoveRight(-1.f);
-        }
-        if (GetAsyncKeyState('D') & 0x8000)
-        {
-            CameraMoveRight(1.f);
-        }
-        if (GetAsyncKeyState('W') & 0x8000)
-        {
-            CameraMoveForward(1.f);
-        }
-        if (GetAsyncKeyState('S') & 0x8000)
-        {
-            CameraMoveForward(-1.f);
-        }
-        if (GetAsyncKeyState('E') & 0x8000)
-        {
-            CameraMoveUp(1.f);
-        }
-        if (GetAsyncKeyState('Q') & 0x8000)
-        {
-            CameraMoveUp(-1.f);
+            if (GetAsyncKeyState('A') & 0x8000)
+            {
+                CameraMoveRight(-1.f);
+            }
+            if (GetAsyncKeyState('D') & 0x8000)
+            {
+                CameraMoveRight(1.f);
+            }
+            if (GetAsyncKeyState('W') & 0x8000)
+            {
+                CameraMoveForward(1.f);
+            }
+            if (GetAsyncKeyState('S') & 0x8000)
+            {
+                CameraMoveForward(-1.f);
+            }
+            if (GetAsyncKeyState('E') & 0x8000)
+            {
+                CameraMoveUp(1.f);
+            }
+            if (GetAsyncKeyState('Q') & 0x8000)
+            {
+                CameraMoveUp(-1.f);
+            }
         }
     }
     else
@@ -133,6 +136,15 @@ void FEditorViewportClient::Input()
                 PickedActor->GetActorLocation() - (ViewTransform.GetForwardVector() * 10.0f)
             );
         }
+    }
+    if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
+    {
+        if (!bLCtrlDown)
+            bLCtrlDown = true;
+    }
+    else
+    {
+        bLCtrlDown = false;
     }
 }
 void FEditorViewportClient::ResizeViewport(const DXGI_SWAP_CHAIN_DESC& swapchaindesc)

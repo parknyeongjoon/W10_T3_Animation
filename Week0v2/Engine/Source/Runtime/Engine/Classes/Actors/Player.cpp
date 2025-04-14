@@ -97,7 +97,6 @@ void AEditorPlayer::Input()
     else
     {
         bRightMouseDown = false;
-
         if (GetAsyncKeyState('Q') & 0x8000)
         {
             //GetWorld()->SetPickingObj(nullptr);
@@ -115,7 +114,6 @@ void AEditorPlayer::Input()
             cMode = CM_SCALE;
         }
     }
-
     if (GetAsyncKeyState(VK_DELETE) & 0x8000)
     {
         UWorld* World = GetWorld();
@@ -125,6 +123,33 @@ void AEditorPlayer::Input()
             World->SetPickedActor(nullptr);
         }
     }
+    if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
+    {
+        if (!bLCtrlDown)
+        {
+            bLCtrlDown =true;
+        }
+    }
+    else
+    {
+        bLCtrlDown= false;
+    }
+    if (GetAsyncKeyState('D') & 0x8000)
+    {
+        if (!bDkeyDown)
+        {
+            bDkeyDown = true;
+            if (bLCtrlDown)
+            {
+                GetEngine()->GetWorld()->DuplicateSeletedActors();
+            }
+        }
+    }
+    else
+    {
+        bDkeyDown = false;
+    }
+
 }
 
 bool AEditorPlayer::PickGizmo(FVector& pickPosition)
