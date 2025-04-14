@@ -57,21 +57,21 @@ void UGizmoBaseComponent::TickComponent(float DeltaTime)
 {
     // Super::TickComponent(DeltaTime);
 
-    if (AActor* PickedActor = GetWorld()->GetSelectedActor())
-    {
-        std::shared_ptr<FEditorViewportClient> activeViewport = GetEngine()->GetLevelEditor()->GetActiveViewportClient();
-        if (activeViewport->IsPerspective())
-        {
-            float scaler = abs(
-                (activeViewport->ViewTransformPerspective.GetLocation() - PickedActor->GetRootComponent()->GetLocalLocation()).Magnitude()
-            );
-            scaler *= 0.1f;
-            RelativeScale3D = FVector( scaler,scaler,scaler);
-        }
-        else
-        {
-            float scaler = activeViewport->orthoSize * 0.1f;
-            RelativeScale3D = FVector( scaler,scaler,scaler);
-        }
-    }
+    // if (AActor* PickedActor = GetWorld()->GetSelectedActor())
+    // {
+    //     std::shared_ptr<FEditorViewportClient> activeViewport = GetEngine()->GetLevelEditor()->GetActiveViewportClient();
+    //     if (activeViewport->IsPerspective())
+    //     {
+    //         float scaler = abs(
+    //             (activeViewport->ViewTransformPerspective.GetLocation() - PickedActor->GetRootComponent()->GetLocalLocation()).Magnitude()
+    //         );
+    //         scaler *= 0.1f;
+    //         RelativeScale3D = FVector( scaler,scaler,scaler);
+    //     }
+    //     else
+    //     {
+    //         float scaler = activeViewport->orthoSize * 0.1f;
+    //         RelativeScale3D = FVector( scaler,scaler,scaler);
+    //     }
+    // }
 }

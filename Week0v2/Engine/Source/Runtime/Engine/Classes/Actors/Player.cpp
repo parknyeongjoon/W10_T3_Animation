@@ -450,24 +450,26 @@ void AEditorPlayer::ControlTranslation(USceneComponent* pObj, UGizmoBaseComponen
     }
     else if (cdMode == CDM_WORLD)
     {
+        float distance = (GEngine->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetLocation() - pObj->GetLocalLocation()).Magnitude();
+        distance/=100.0f;
         // 월드 좌표계에서 카메라 방향을 고려한 이동
         if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)
         {
             // 카메라의 오른쪽 방향을 X축 이동에 사용
             FVector moveDir = CamearRight * DeltaX * 0.05f;
-            pObj->AddLocation(FVector(moveDir.x, 0.0f, 0.0f));
+            pObj->AddLocation(FVector(moveDir.x, 0.0f, 0.0f) * distance);
         }
         else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowY)
         {
             // 카메라의 오른쪽 방향을 Y축 이동에 사용
             FVector moveDir = CamearRight * DeltaX * 0.05f;
-            pObj->AddLocation(FVector(0.0f, moveDir.y, 0.0f));
+            pObj->AddLocation(FVector(0.0f, moveDir.y, 0.0f) * distance);
         }
         else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
         {
             // 카메라의 위쪽 방향을 Z축 이동에 사용
             FVector moveDir = CameraUp * -DeltaY * 0.05f;
-            pObj->AddLocation(FVector(0.0f, 0.0f, moveDir.z));
+            pObj->AddLocation(FVector(0.0f, 0.0f, moveDir.z) * distance);
         }
     }
 }
