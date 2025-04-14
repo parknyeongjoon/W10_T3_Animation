@@ -77,11 +77,11 @@ protected:
     TArray<USceneComponent*> AttachChildren;
 
 public:
-    virtual FVector GetWorldRotation();
-    FVector GetWorldScale();
-    FVector GetWorldLocation();
-    FVector GetLocalRotation();
-    FQuat GetQuat() const { return QuatRotation; }
+    // virtual FVector GetWorldRotation();
+    // FVector GetWorldScale();
+    // FVector GetWorldLocation();
+    // FVector GetLocalRotation();
+    // FQuat GetQuat() const { return QuatRotation; }
 
 #define region
     FVector GetRelativeLocation() const { return RelativeLocation; }

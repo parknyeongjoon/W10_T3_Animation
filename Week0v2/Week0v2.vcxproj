@@ -227,7 +227,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\StaticMeshComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UBillboardComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UParticleSubUVComp.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UText.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UTextComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UTexture.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UTextUUID.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.cpp" />
@@ -348,7 +348,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\StaticMeshComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UBillboardComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UParticleSubUVComp.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UText.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UTextComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UTexture.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UTextUUID.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />

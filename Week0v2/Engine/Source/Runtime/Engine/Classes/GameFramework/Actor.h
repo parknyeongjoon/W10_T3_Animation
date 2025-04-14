@@ -78,9 +78,9 @@ public:
     void SetOwner(AActor* NewOwner) { Owner = NewOwner; }
 
 public:
-    FVector GetActorLocation() const { return RootComponent ? RootComponent->GetWorldLocation() : FVector::ZeroVector; }
-    FVector GetActorRotation() const { return RootComponent ? RootComponent->GetWorldRotation() : FVector::ZeroVector; }
-    FVector GetActorScale() const { return RootComponent ? RootComponent->GetWorldScale() : FVector::ZeroVector; }
+    FVector GetActorLocation() const { return RootComponent ? RootComponent->GetComponentLocation() : FVector::ZeroVector; }
+    FVector GetActorRotation() const { return RootComponent ? RootComponent->GetComponentRotation() : FVector::ZeroVector; }
+    FVector GetActorScale() const { return RootComponent ? RootComponent->GetComponentScale() : FVector::ZeroVector; }
 
     FVector GetActorForwardVector() const { return RootComponent ? RootComponent->GetForwardVector() : FVector::ForwardVector; }
     FVector GetActorRightVector() const { return RootComponent ? RootComponent->GetRightVector() : FVector::RightVector; }

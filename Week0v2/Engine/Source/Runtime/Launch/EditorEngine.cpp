@@ -77,6 +77,7 @@ void UEditorEngine::Render()
         for (int i = 0; i < 4; ++i)
         {
             LevelEditor->SetViewportClient(i);
+            ResizeGizmo();
             renderer.AddRenderObjectsToRenderPass(GWorld);
             renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
         }
@@ -87,6 +88,7 @@ void UEditorEngine::Render()
         renderer.AddRenderObjectsToRenderPass(GWorld);
         renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
     }
+    ResizeGizmo();
 }
 
 void UEditorEngine::Tick(float deltaSeconds)

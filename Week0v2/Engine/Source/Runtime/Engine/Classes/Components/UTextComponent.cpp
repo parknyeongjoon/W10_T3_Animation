@@ -1,4 +1,4 @@
-#include "UText.h"
+#include "UTextComponent.h"
 
 #include "EditorEngine.h"
 #include "Engine/World.h"
@@ -6,42 +6,42 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "LevelEditor/SLevelEditor.h"
 
-UText::UText()
+UTextComponent::UTextComponent()
 {
 }
 
-UText::~UText()
+UTextComponent::~UTextComponent()
 {
 
 }
 
-UText::UText(const UText& other)
+UTextComponent::UTextComponent(const UTextComponent& other)
 :UBillboardComponent(other), vertexTextureArr(other.vertexTextureArr), text(other.text), quad(other.quad)
 {
 }
 
-void UText::InitializeComponent()
+void UTextComponent::InitializeComponent()
 {
     Super::InitializeComponent();
 }
 
-void UText::TickComponent(float DeltaTime)
+void UTextComponent::TickComponent(float DeltaTime)
 {
 	Super::TickComponent(DeltaTime);
     
 }
 
-void UText::ClearText()
+void UTextComponent::ClearText()
 {
     vertexTextureArr.Empty();
 }
-void UText::SetRowColumnCount(int _cellsPerRow, int _cellsPerColumn) 
+void UTextComponent::SetRowColumnCount(int _cellsPerRow, int _cellsPerColumn) 
 {
     RowCount = _cellsPerRow;
     ColumnCount = _cellsPerColumn;
 }
 
-int UText::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
+int UTextComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
 {
 	if (!(ShowFlags::GetInstance().currentFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))) {
 		return 0;
@@ -55,25 +55,25 @@ int UText::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float
 	return CheckPickingOnNDC(quad,pfNearHitDistance);
 }
 
-UObject* UText::Duplicate() const
+UObject* UTextComponent::Duplicate() const
 {
-    UText* ClonedActor = FObjectFactory::ConstructObjectFrom<UText>(this);
+    UTextComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UTextComponent>(this);
     ClonedActor->DuplicateSubObjects(this);
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }
 
-void UText::DuplicateSubObjects(const UObject* Source)
+void UTextComponent::DuplicateSubObjects(const UObject* Source)
 {
     UBillboardComponent::DuplicateSubObjects(Source);
 }
 
-void UText::PostDuplicate()
+void UTextComponent::PostDuplicate()
 {
     UBillboardComponent::PostDuplicate();
 }
 
-std::shared_ptr<FActorComponentInfo> UText::GetActorComponentInfo()
+std::shared_ptr<FActorComponentInfo> UTextComponent::GetActorComponentInfo()
 {
     std::shared_ptr<FTextComponentInfo> Info = std::make_shared<FTextComponentInfo>();
     Super::GetActorComponentInfo()->Copy(*Info);
@@ -83,7 +83,7 @@ std::shared_ptr<FActorComponentInfo> UText::GetActorComponentInfo()
     return Info;
 }
 
-void UText::LoadAndConstruct(const FActorComponentInfo& Info)
+void UTextComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 {
     Super::LoadAndConstruct(Info);
 
@@ -93,7 +93,7 @@ void UText::LoadAndConstruct(const FActorComponentInfo& Info)
 }
 
 
-void UText::SetText(const FWString& _text)
+void UTextComponent::SetText(const FWString& _text)
 {
 	text = _text;
 	if (_text.empty())
@@ -182,7 +182,7 @@ void UText::SetText(const FWString& _text)
     GetEngine()->renderer.MappingVBTopology(textName, textName, sizeof(FVertexSimple), vertexTextureArr.Num());
 }
 
-void UText::setStartUV(const wchar_t hangul, float& outStartU, float& outStartV) const
+void UTextComponent::setStartUV(const wchar_t hangul, float& outStartU, float& outStartV) const
 {
     //대문자만 받는중
     int StartU = 0;
@@ -230,7 +230,7 @@ void UText::setStartUV(const wchar_t hangul, float& outStartU, float& outStartV)
     outStartV = static_cast<float>(StartV + offsetV);
 }
 
-void UText::setStartUV(const char alphabet, float& outStartU, float& outStartV) const
+void UTextComponent::setStartUV(const char alphabet, float& outStartU, float& outStartV) const
 {
     //대문자만 받는중
     int StartU=0;
@@ -275,7 +275,7 @@ void UText::setStartUV(const char alphabet, float& outStartU, float& outStartV) 
 }
 
 
-void UText::TextMVPRendering()
+void UTextComponent::TextMVPRendering()
 {
     // UEditorEngine::renderer.PrepareTextureShader();
     // //FEngineLoop::renderer.UpdateSubUVConstant(0, 0);

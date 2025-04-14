@@ -95,8 +95,8 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     
     for (UStaticMeshComponent* staticMeshComp : StaticMesheComponents)
     {
-        const FMatrix Model = JungleMath::CreateModelMatrix(staticMeshComp->GetWorldLocation(), staticMeshComp->GetWorldRotation(),
-                                                    staticMeshComp->GetWorldScale());
+        const FMatrix Model = JungleMath::CreateModelMatrix(staticMeshComp->GetComponentLocation(), staticMeshComp->GetComponentRotation(),
+                                                    staticMeshComp->GetComponentScale());
         
         UpdateMatrixConstants(staticMeshComp, View, Proj);
 
@@ -112,7 +112,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
             {
                 UPrimitiveBatch::GetInstance().AddAABB(
                     staticMeshComp->GetBoundingBox(),
-                    staticMeshComp->GetWorldLocation(),
+                    staticMeshComp->GetComponentLocation(),
                     Model
                 );
             }
@@ -152,8 +152,8 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
     // MVP Update
-    const FMatrix Model = JungleMath::CreateModelMatrix(InStaticMeshComponent->GetWorldLocation(), InStaticMeshComponent->GetWorldRotation(),
-                                                        InStaticMeshComponent->GetWorldScale());
+    const FMatrix Model = JungleMath::CreateModelMatrix(InStaticMeshComponent->GetComponentLocation(), InStaticMeshComponent->GetComponentRotation(),
+                                                        InStaticMeshComponent->GetComponentScale());
     const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
         
     FMatrixConstants MatrixConstants;
@@ -198,7 +198,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
         {
             LightConstant.PointLights[PointLightCount].Color = PointLightComp->GetColor();
             LightConstant.PointLights[PointLightCount].Intensity = PointLightComp->GetIntensity();
-            LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetWorldLocation();
+            LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetComponentLocation();
             LightConstant.PointLights[PointLightCount].Radius = PointLightComp->GetRadius();
             LightConstant.PointLights[PointLightCount].AttenuationFalloff = PointLightComp->GetAttenuationFalloff();
             PointLightCount++;
