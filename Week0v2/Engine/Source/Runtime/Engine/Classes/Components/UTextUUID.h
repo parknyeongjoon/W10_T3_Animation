@@ -7,6 +7,7 @@ class UTextUUID : public UTextComponent
 
 public:
     UTextUUID();
+    UTextUUID(const UTextUUID& Other);
     virtual ~UTextUUID() override;
 
     virtual int CheckRayIntersection(

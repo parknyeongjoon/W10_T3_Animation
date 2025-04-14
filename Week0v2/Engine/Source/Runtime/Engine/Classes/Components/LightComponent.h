@@ -69,9 +69,8 @@ public:
 protected:
     FVector4 color = { 1, 1, 1, 1 }; // RGBA
     float Intensity = 1.0f;
-    FBoundingBox AABB;
+
 public:
-    FBoundingBox GetBoundingBox() const {return AABB;}
     FVector4 GetColor() {return color;}
     float GetIntensity() const { return Intensity; }
     void SetIntensity(float _intensity) { Intensity = _intensity; }

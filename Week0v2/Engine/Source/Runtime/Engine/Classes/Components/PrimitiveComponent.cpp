@@ -4,13 +4,14 @@
 #include "UObject/ObjectFactory.h"
 
 UPrimitiveComponent::UPrimitiveComponent()
+    : Super()
 {
 }
 
 
 UPrimitiveComponent::UPrimitiveComponent(const UPrimitiveComponent& Other)
     : USceneComponent(Other)
-    , AABB(Other.AABB)
+    , VBIBTopologyMappingName(Other.VBIBTopologyMappingName)
 {
 }
 

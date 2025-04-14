@@ -17,8 +17,12 @@ UProjectileMovementComponent::UProjectileMovementComponent()
 
 UProjectileMovementComponent::UProjectileMovementComponent(const UProjectileMovementComponent& Other)
     : UMovementComponent(Other)
+    , InitialSpeed(Other.InitialSpeed)
+    , MaxSpeed(Other.MaxSpeed)
+    , bRotationFollowsVelocity(Other.bRotationFollowsVelocity)
+    , bInitialVelocityInLocalSpace(Other.bInitialVelocityInLocalSpace)
+    , ProjectileGravityScale(Other.ProjectileGravityScale)
 {
-    
 }
 
 
@@ -138,16 +142,6 @@ UObject* UProjectileMovementComponent::Duplicate() const
 void UProjectileMovementComponent::DuplicateSubObjects(const UObject* Source)
 {
     UMovementComponent::DuplicateSubObjects(Source);
-    UProjectileMovementComponent* SourceComp = Cast<UProjectileMovementComponent>(Source);
-    if (SourceComp)
-    {
-        InitialSpeed = SourceComp->InitialSpeed;
-        Velocity = SourceComp->Velocity;
-        MaxSpeed = SourceComp->MaxSpeed;
-        ProjectileGravityScale = SourceComp->ProjectileGravityScale;
-        bInitialVelocityInLocalSpace = SourceComp->bInitialVelocityInLocalSpace;
-        bRotationFollowsVelocity = SourceComp->bRotationFollowsVelocity;
-    }
 }
 
 void UProjectileMovementComponent::PostDuplicate()

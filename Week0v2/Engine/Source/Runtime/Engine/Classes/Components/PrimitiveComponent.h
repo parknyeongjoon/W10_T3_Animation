@@ -57,15 +57,11 @@ public:
     virtual void PostDuplicate() override;
 
     bool MoveComponent(const FVector& Delta) override;
-    FBoundingBox AABB;
     FVector ComponentVelocity;
 
 public:
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
-
-    FBoundingBox GetBoundingBox() { return AABB; }
-
 public:
     FName GetVBIBTopologyMappingName() const { return VBIBTopologyMappingName; }
 protected:
