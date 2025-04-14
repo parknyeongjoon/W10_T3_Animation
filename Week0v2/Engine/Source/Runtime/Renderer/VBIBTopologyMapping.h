@@ -1,6 +1,7 @@
 #pragma once
 #define _TCHAR_DEFINED
 #include <d3d11.h>
+#include <filesystem>
 
 #include "UObject/NameTypes.h"
 
@@ -17,13 +18,15 @@ public:
     
     void Bind() const;
 private:
-    FName VBName = TEXT("None");
+    FName VBName = TEXT("");
     uint32 Stride = 0;
     uint32 Offset = 0;
     uint32 NumVertices = 0;
+    std::filesystem::file_time_type VB_LastWriteTime;
 
-    FName IBName= TEXT("None");
+    FName IBName= TEXT("");
     uint32 numIndices = 0;
+    std::filesystem::file_time_type IB_LastWriteTime;
 
     D3D11_PRIMITIVE_TOPOLOGY Topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 };

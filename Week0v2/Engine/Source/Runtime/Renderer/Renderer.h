@@ -16,14 +16,17 @@ class UWorld;
 
 class FRenderer 
 {
-private:
-    void CreateStaticMeshShader();
-    void CreateTextureShader();
-    void CreateLineBatchShader();
-    void CreateFogShader();
-    void CreateDebugDepthShader();
 public:
     FGraphicsDevice* Graphics;
+    void UpdateShaders();
+private:
+    void CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACRO* pDefines);
+    //void CreateStaticMeshShader();
+    //void CreateTextureShader();
+    //void CreateLineBatchShader();
+    //void CreateFogShader();
+    //void CreateDebugDepthShader();
+
 public:
     ID3D11SamplerState* GetSamplerState(const ESamplerType InType) const { return RenderResourceManager->GetSamplerState(InType); }
     ID3D11RasterizerState* GetRasterizerState(const ERasterizerState InState) const { return RenderResourceManager->GetRasterizerState(InState); }
@@ -62,8 +65,6 @@ public:
     //Render Pass Demo
     void AddRenderObjectsToRenderPass(UWorld* InWorld) const;
     void Render(UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
-    //void RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
-    //void RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     //void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
 
     // post process
@@ -75,7 +76,9 @@ public:
     void BindConstantBuffers(FName InShaderName);
     
 public:
-    void MappingVSPSInputLayout(FName InShaderProgramName, FName VSName, FName PSName, ID3D11InputLayout* InInputLayout);
+    void CreateMappedCB(TMap<FShaderConstantKey, uint32>& ShaderStageToCB, const TArray<FConstantBufferInfo>& CBArray, EShaderStage Stage) const;
+    
+    void MappingVSPSInputLayout(FName InShaderProgramName, FName VSName, FName PSName, FName InInputLayoutName);
     void MappingVSPSCBSlot(FName InShaderName, const TMap<FShaderConstantKey, uint32>& MappedConstants);
     void MappingVBTopology(FName InObjectName, FName InVBName, uint32 InStride, uint32 InNumVertices, D3D11_PRIMITIVE_TOPOLOGY InTopology= D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     void MappingIB(FName InObjectName, FName InIBName, uint32 InNumIndices);
