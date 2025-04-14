@@ -51,14 +51,30 @@ struct FPointLight
     float2 pad;
 };
 
+struct FSpotLight
+{
+    float3 Position;
+    float Intensity;
+    
+    float4 Color;
+    
+    float3 Direction;
+    float InnerAngle;
+    
+    float OuterAngle;
+    float3 pad;
+};
+
 cbuffer FLightingConstants : register(b1)
 {
     uint NumDirectionalLights;
     uint NumPointLights;
-    float2 pad;
+    uint NumSpotLights;
+    float pad;
 
     FDirectionalLight DirLights[4];
     FPointLight PointLights[16];
+    FSpotLight SpotLights[NUM_SPOT_LIGHT];
 };
 
 cbuffer FFlagConstants : register(b2)
@@ -147,6 +163,45 @@ float3 CalculatePointLight(
     return (Diffuse + specularColor) * Attenuation;
 }
 
+float3 CalculateSpotLight(
+    FSpotLight Light,
+    float3 WorldPos,
+    float3 Normal,
+    float3 ViewDir,
+    float3 Albedo)
+{
+    //빛 방향
+    float3 LightDir = normalize(-Light.Direction);
+    
+    //월드에서 빛 방향
+    float3 WorldToLight = Light.Position - WorldPos;
+    float3 WorldToLightDir = normalize(WorldToLight);
+    //빛 위치 방향
+    float3 LightPosDir = normalize(Light.Position);
+    //각도 체크
+    float CosInner = cos(Light.InnerAngle);
+    float CosOuter = cos(Light.OuterAngle);
+    float CosAngle = dot(LightPosDir, WorldToLightDir);
+    if (CosAngle < CosOuter)
+        return float3(0, 0, 0);
+
+    //빛 감쇠 계산
+    float Attenuation = saturate((CosAngle - CosOuter) / (CosInner - CosOuter));
+    float Distance = length(WorldToLight);
+    float DistanceAttenuation = saturate(1.0 / (Distance * Distance));
+    
+    //디퓨즈
+    float NdotL = max(dot(Normal, Light.Position), 0.0);
+    float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
+    
+    //스페큘러
+    float3 HalfVec = normalize(Light.Position + ViewDir);
+    float NdotH = max(dot(Normal, HalfVec), 0.0);
+    float Specular = pow(NdotH, SpecularScalar * 128.0) * SpecularScalar;
+    float3 SpecularColor = Light.Color.rgb * Specular * SpecularColor;
+    
+    return (Diffuse + SpecularColor) * Light.Intensity * Attenuation * DistanceAttenuation;
+}
 
 PS_INPUT mainVS(VS_INPUT input)
 {
@@ -178,6 +233,9 @@ PS_INPUT mainVS(VS_INPUT input)
     for(uint j=0; j<NumPointLights; ++j)  
         totalLight += CalculatePointLight(PointLights[j], worldPos.xyz, normal, viewDir, input.color.rgb);  
 
+    //SpotLight 처리
+    for(uint k=0; k<NumSpotLights; ++k)
+        totalLight += CalculateSpotLight(SpotLights[k], worldPos.xyz, normal, viewDir, input.color.rgb);
 
     // 정점 셰이더에서 계산된 색상을 픽셀 셰이더로 전달
     output.color = float4(totalLight * input.color.rgb, input.color.a * TransparencyScalar);  

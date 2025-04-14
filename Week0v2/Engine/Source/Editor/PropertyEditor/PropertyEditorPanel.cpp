@@ -343,7 +343,7 @@ void PropertyEditorPanel::Render()
                 float InnerAngle = SpotLight->GetInnerConeAngle();
 
                 // 먼저 Outer 처리
-                if (ImGui::SliderFloat("Outer Angle", &OuterAngle, 0.0f, 179.9f))
+                if (ImGui::SliderFloat("Outer Angle", &OuterAngle, 0.0f, 89.9f))
                 {
                     SpotLight->SetOuterConeAngle(OuterAngle);
 
