@@ -1,7 +1,7 @@
 #pragma once
-#include "LightComponent.h"
+#include "DirectionalLightComponent.h"
 
-struct FSpotlightComponentInfo : public FLightComponentInfo
+struct FSpotlightComponentInfo : public FDirectionalLightComponentInfo
 {
     DECLARE_ACTORCOMPONENT_INFO(FSpotlightComponentInfo);
 
@@ -9,7 +9,7 @@ struct FSpotlightComponentInfo : public FLightComponentInfo
     float OuterConeAngle;
 
     FSpotlightComponentInfo()
-        :FLightComponentInfo()
+        :FDirectionalLightComponentInfo()
         , InnerConeAngle(0.0f)
         , OuterConeAngle(0.768f)
     {
@@ -19,7 +19,7 @@ struct FSpotlightComponentInfo : public FLightComponentInfo
 
     virtual void Copy(FActorComponentInfo& Other) override
     {
-        FLightComponentInfo::Copy(Other);
+        FDirectionalLightComponentInfo::Copy(Other);
         FSpotlightComponentInfo& SpotLightInfo = static_cast<FSpotlightComponentInfo&>(Other);
         SpotLightInfo.InnerConeAngle = InnerConeAngle;
         SpotLightInfo.OuterConeAngle = OuterConeAngle;
@@ -27,20 +27,20 @@ struct FSpotlightComponentInfo : public FLightComponentInfo
 
     virtual void Serialize(FArchive& ar) const override
     {
-        FLightComponentInfo::Serialize(ar);
+        FDirectionalLightComponentInfo::Serialize(ar);
         ar << InnerConeAngle << OuterConeAngle;
     }
 
     virtual void Deserialize(FArchive& ar) override
     {
-        FLightComponentInfo::Deserialize(ar);
+        FDirectionalLightComponentInfo::Deserialize(ar);
         ar >> InnerConeAngle >> OuterConeAngle;
     }
 };
 
-class USpotLightComponent : public ULightComponentBase
+class USpotLightComponent : public UDirectionalLightComponent
 {
-    DECLARE_CLASS(USpotLightComponent, ULightComponentBase)
+    DECLARE_CLASS(USpotLightComponent, UDirectionalLightComponent)
 public:
     USpotLightComponent();
     USpotLightComponent(const USpotLightComponent& Other);
