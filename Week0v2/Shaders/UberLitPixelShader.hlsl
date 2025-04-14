@@ -94,7 +94,8 @@ struct PS_INPUT
     float4 color : COLOR; // 전달할 색상
     float2 texcoord : TEXCOORD0;
     float3 normal : TEXCOORD1;
-    float3x3 TBN: TEXCOORD2;
+    int bHasTex : TEXCOORD2;
+    float3x3 TBN: TEXCOORD3;
 };
 
 struct PS_OUTPUT
@@ -219,11 +220,16 @@ PS_OUTPUT mainPS(PS_INPUT input)
         return output;
     }
     
-    float3 Normal = normalize(mul(normalTex.rgb, input.TBN));
-
-    if (length(Normal) < 0.001) // tangent 값이 없을때 ( uv 없을때 )
+    float3 Normal = input.normal;
+    
+    if (input.bHasTex)
     {
-        Normal = input.normal;
+        Normal = normalize(mul(normalTex.rgb, input.TBN));
+
+        if (length(Normal) < 0.001) // tangent 값이 없을때 ( uv 없을때 )
+        {
+            Normal = input.normal;
+        }        
     }
     
     float3 ViewDir = normalize(CameraPos - input.worldPos);
@@ -242,7 +248,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
         TotalLight += CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);  
 
     for (uint k = 0; k < NumSpotLights; ++k)
-        TotalLight += CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
+        TotalLight += CalculateSpotLight(SpotLights[k], input.worldPos, Normal, ViewDir, baseColor.rgb);
     
     // 최종 색상 
     output.color = float4(TotalLight*baseColor.rgb, baseColor.a * TransparencyScalar);
