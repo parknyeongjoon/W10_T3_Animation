@@ -172,6 +172,19 @@ void UWorld::DuplicateSeletedActors()
     }
     SelectedActors = newSelectedActors;
 }
+void UWorld::DuplicateSeletedActorsOnLocation()
+{
+    TSet<AActor*> newSelectedActors;
+    for (AActor* Actor : SelectedActors)
+    {
+        AActor* DupedActor = Cast<AActor>(Actor->Duplicate());
+        FVector DupedLocation = DupedActor->GetActorLocation();
+        Level->GetActors().Add(DupedActor);
+        Level->PendingBeginPlayActors.Add(DupedActor);
+        newSelectedActors.Add(DupedActor);
+    }
+    SelectedActors = newSelectedActors;
+}
 
 bool UWorld::DestroyActor(AActor* ThisActor)
 {

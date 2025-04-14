@@ -68,6 +68,8 @@ public:
     }
 
     void DuplicateSeletedActors();
+    void DuplicateSeletedActorsOnLocation();
+
     /** World에 존재하는 Actor를 제거합니다. */
     bool DestroyActor(AActor* ThisActor);
 

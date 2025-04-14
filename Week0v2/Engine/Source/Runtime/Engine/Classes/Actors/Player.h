@@ -34,6 +34,8 @@ private:
     bool bLCtrlDown = false;
     bool bDkeyDown = false;
     bool bLShiftDown = false;
+    bool bLAltDown = false;
+    bool bAlreadyDup = false;
     POINT m_LastMousePos;
     ControlMode cMode = CM_TRANSLATION;
     CoordiMode cdMode = CDM_WORLD;

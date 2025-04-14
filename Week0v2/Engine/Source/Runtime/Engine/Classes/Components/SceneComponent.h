@@ -126,6 +126,5 @@ public:
 
 private:
     class UTextUUID* uuidText = nullptr;
-
 public:
 };

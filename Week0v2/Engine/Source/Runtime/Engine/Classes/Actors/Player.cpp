@@ -78,7 +78,8 @@ void AEditorPlayer::Input()
     {
         if (bLeftMouseDown)
         {
-            bLeftMouseDown = false; // ���콺 ������ ��ư�� ���� ���� �ʱ�ȭ
+            bLeftMouseDown = false;
+            bAlreadyDup = false;
             GetWorld()->SetPickingGizmo(nullptr);
         }
     }
@@ -158,7 +159,18 @@ void AEditorPlayer::Input()
     {
         bDkeyDown = false;
     }
-
+    if (GetAsyncKeyState(VK_LMENU) & 0x8000)
+    {
+        if (!bLAltDown)
+        {
+            bLAltDown = true;
+            UE_LOG(LogLevel::Error, "Alt");
+        }
+    }
+    else
+    {
+        bLAltDown =false;
+    }
 }
 
 bool AEditorPlayer::PickGizmo(FVector& pickPosition)
@@ -406,7 +418,6 @@ void AEditorPlayer::PickedObjControl()
                 break;
             case CM_SCALE:
                 ControlScale(pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
-
                 break;
             case CM_ROTATION:
                 ControlRotation(pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
@@ -430,6 +441,11 @@ void AEditorPlayer::ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* 
 
     FQuat rotationDelta;
 
+    if (bLAltDown && !bAlreadyDup)
+    {
+        GetWorld()->DuplicateSeletedActorsOnLocation();
+        bAlreadyDup = true;
+    }
     if (Gizmo->GetGizmoType() == UGizmoBaseComponent::CircleX)
     {
         float rotationAmount = (cameraUp.z >= 0 ? -1.0f : 1.0f) * deltaY * 0.01f;
@@ -471,7 +487,12 @@ void AEditorPlayer::ControlTranslation(USceneComponent* pObj, UGizmoBaseComponen
         ActiveViewport->ViewTransformPerspective.GetUpVector() : ActiveViewport->ViewTransformOrthographic.GetUpVector();
     
     FVector WorldMoveDirection = (CamearRight * DeltaX + CameraUp * -DeltaY) * 0.1f;
-    
+
+    if (bLAltDown && !bAlreadyDup)
+    {
+        GetWorld()->DuplicateSeletedActorsOnLocation();
+        bAlreadyDup = true;
+    }
     if (cdMode == CDM_LOCAL)
     {
         if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)
