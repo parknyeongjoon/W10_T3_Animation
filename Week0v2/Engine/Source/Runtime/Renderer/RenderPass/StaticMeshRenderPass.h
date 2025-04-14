@@ -2,6 +2,7 @@
 #include "FBaseRenderPass.h"
 #include "Container/Array.h"
 
+class ULightComponentBase;
 class USkySphereComponent;
 struct FObjMaterialInfo;
 struct FMatrix;
@@ -20,7 +21,11 @@ public:
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
 private:
     static void UpdateMatrixConstants(UStaticMeshComponent* InStaticMeshComponent, const FMatrix& InView, const FMatrix& InProjection);
+    void UpdateFlagConstant();
+    void UpdateLightConstants();
+    static void UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent);
     static void UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo);
-    
+
+    TArray<ULightComponentBase*> LightComponents;
     TArray<UStaticMeshComponent*> StaticMesheComponents;
 };

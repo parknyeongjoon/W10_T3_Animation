@@ -2,6 +2,9 @@
 
 #include "EditorEngine.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
+#include "Components/DirectionalLightComponent.h"
+#include "Components/LightComponent.h"
+#include "Components/PointLightComponent.h"
 #include "Components/SkySphereComponent.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
@@ -12,12 +15,26 @@
 #include "Renderer/VBIBTopologyMapping.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/PrimitiveBatch.h"
+#include "UObject/UObjectIterator.h"
 
 extern UEditorEngine* GEngine;
 
 void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
     StaticMesheComponents.Empty();
+
+    LightComponents.Empty();
+    
+    if (InWorld->WorldType == EWorldType::Editor)
+    {
+        for (const auto iter : TObjectRange<USceneComponent>())
+        {
+            if (ULightComponentBase* pGizmoComp = Cast<ULightComponentBase>(iter))
+            {
+                LightComponents.Add(pGizmoComp);
+            }
+        }
+    }
     
     for (const AActor* actor : InWorld->GetActors())
     {
@@ -78,18 +95,24 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     
     for (UStaticMeshComponent* staticMeshComp : StaticMesheComponents)
     {
-        const FMatrix Model = JungleMath::CreateModelMatrix(staticMeshComp->GetWorldLocation(), staticMeshComp->GetWorldRotation(),
-                                                    staticMeshComp->GetWorldScale());
+        const FMatrix Model = JungleMath::CreateModelMatrix(staticMeshComp->GetComponentLocation(), staticMeshComp->GetComponentRotation(),
+                                                    staticMeshComp->GetComponentScale());
         
         UpdateMatrixConstants(staticMeshComp, View, Proj);
 
+        // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
+
+        UpdateLightConstants();
+
+        UpdateFlagConstant();
+        
         if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
         {
             if (GEngine->GetWorld()->GetSelectedActor() == staticMeshComp->GetOwner())
             {
                 UPrimitiveBatch::GetInstance().AddAABB(
                     staticMeshComp->GetBoundingBox(),
-                    staticMeshComp->GetWorldLocation(),
+                    staticMeshComp->GetComponentLocation(),
                     Model
                 );
             }
@@ -129,14 +152,14 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
     // MVP Update
-    const FMatrix Model = JungleMath::CreateModelMatrix(InStaticMeshComponent->GetWorldLocation(), InStaticMeshComponent->GetWorldRotation(),
-                                                        InStaticMeshComponent->GetWorldScale());
+    const FMatrix Model = JungleMath::CreateModelMatrix(InStaticMeshComponent->GetComponentLocation(), InStaticMeshComponent->GetComponentRotation(),
+                                                        InStaticMeshComponent->GetComponentScale());
     const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
         
     FMatrixConstants MatrixConstants;
     MatrixConstants.Model = Model;
     MatrixConstants.ViewProj = InView * InProjection;
-    MatrixConstants.MInverse = NormalMatrix;
+    MatrixConstants.MInverseTranspose = NormalMatrix;
     if (InStaticMeshComponent->GetWorld()->GetSelectedActor() == InStaticMeshComponent->GetOwner())
     {
         MatrixConstants.isSelected = true;
@@ -146,6 +169,77 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
         MatrixConstants.isSelected = false;
     }
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixConstants")), &MatrixConstants);
+}
+
+void FStaticMeshRenderPass::UpdateFlagConstant()
+{
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+
+    FFlagConstants FlagConstant;
+
+    FlagConstant.IsLit = GEngine->renderer.bIsLit;
+
+    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FFlagConstants")), &FlagConstant);
+}
+
+void FStaticMeshRenderPass::UpdateLightConstants()
+{
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+
+    FLightingConstants LightConstant;
+    uint32 DirectionalLightCount = 0;
+    uint32 PointLightCount = 0;
+
+    for (ULightComponentBase* Comp : LightComponents)
+    {
+        UPointLightComponent* PointLightComp = dynamic_cast<UPointLightComponent*>(Comp);
+
+        if (PointLightComp)
+        {
+            LightConstant.PointLights[PointLightCount].Color = PointLightComp->GetColor();
+            LightConstant.PointLights[PointLightCount].Intensity = PointLightComp->GetIntensity();
+            LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetComponentLocation();
+            LightConstant.PointLights[PointLightCount].Radius = PointLightComp->GetRadius();
+            LightConstant.PointLights[PointLightCount].AttenuationFalloff = PointLightComp->GetAttenuationFalloff();
+            PointLightCount++;
+            continue;
+        }
+
+        UDirectionalLightComponent* DirectionalLightComp = dynamic_cast<UDirectionalLightComponent*>(Comp);
+        if (DirectionalLightComp)
+        {
+            LightConstant.DirLights[DirectionalLightCount].Color = DirectionalLightComp->GetColor();
+            LightConstant.DirLights[DirectionalLightCount].Intensity = DirectionalLightComp->GetIntensity();
+            LightConstant.DirLights[DirectionalLightCount].Direction = DirectionalLightComp->GetForwardVector();
+            DirectionalLightCount++;
+            continue;
+        }
+    }
+
+    LightConstant.NumPointLights = PointLightCount;
+    LightConstant.NumDirectionalLights = DirectionalLightCount;
+    
+    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FLightingConstants")), &LightConstant);
+}
+
+void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent)
+{
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    
+    FSubUVConstant UVBuffer;
+    
+    if (InSkySphereComponent != nullptr)
+    {
+        UVBuffer.indexU = InSkySphereComponent->UOffset;
+        UVBuffer.indexV = InSkySphereComponent->VOffset;
+    }
+    else
+    {
+        UVBuffer.indexU = 0;
+        UVBuffer.indexV = 0;
+    }
+    
+    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FSubUVConstant")), &UVBuffer);
 }
 
 void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
@@ -161,12 +255,24 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
     MaterialConstants.SpecularColor = MaterialInfo.Specular;
     MaterialConstants.SpecularScalar = MaterialInfo.SpecularScalar;
     MaterialConstants.EmissiveColor = MaterialInfo.Emissive;
+    //normalScale값 있는데 parse만 하고 constant로 넘기고 있진 않음
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMaterialConstants")), &MaterialConstants);
     
     if (MaterialInfo.bHasTexture == true)
     {
         const std::shared_ptr<FTexture> texture = GEngine->resourceMgr.GetTexture(MaterialInfo.DiffuseTexturePath);
-        Graphics.DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
+        const std::shared_ptr<FTexture> NormalTexture = GEngine->resourceMgr.GetTexture(MaterialInfo.NormalTexturePath);
+        if (texture)
+        {
+            Graphics.DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
+        }
+        if (NormalTexture)
+        {
+            Graphics.DeviceContext->PSSetShaderResources(1, 1, &NormalTexture->TextureSRV);
+        }
+        
+        ID3D11SamplerState* linearSampler = renderResourceManager->GetSamplerState(ESamplerType::Linear);
+        Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &linearSampler);
     }
     else
     {

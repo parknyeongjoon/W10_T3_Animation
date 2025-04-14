@@ -59,16 +59,13 @@ void UWorld::ReleaseBaseObject()
 {
     if (LocalGizmo)
     {
-        delete LocalGizmo;
         LocalGizmo = nullptr;
     }
     
     if (EditorPlayer)
     {
-        delete EditorPlayer;
         EditorPlayer = nullptr;
     }
-
 }
 
 void UWorld::Tick(ELevelTick tickType, float deltaSeconds)

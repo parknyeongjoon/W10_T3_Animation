@@ -85,11 +85,9 @@ struct alignas(16) FMaterialConstants
 
 struct alignas(16) FLightingConstants
 {
-    FVector AmbientColor; // offset: 0, size: 12
-    float AmbientIntensity; // offset: 12, size: 4
-    uint32 NumDirectionalLights; // offset: 16, size: 4
-    uint32 NumPointLights; // offset: 20, size: 4
-    FVector2D pad; // offset: 24, size: 8
+    uint32 NumDirectionalLights; // offset: 0, size: 4
+    uint32 NumPointLights; // offset: 4, size: 4
+    FVector2D pad; // offset: 8, size: 8
     FDirectionalLight DirLights[4];
     FPointLight PointLights[16];
 };
@@ -100,20 +98,20 @@ struct alignas(16) FFlagConstants
     FVector flagPad0; // offset: 4, size: 12
 };
 
-struct alignas(16) FMatrixConstants
-{
-    FMatrix Model; // offset: 0, size: 64
-    FMatrix ViewProj; // offset: 64, size: 64
-    FMatrix MInverse; // offset: 128, size: 64
-    bool isSelected; // offset: 192, size: 4
-    FVector padding; // offset: 196, size: 12
-};
-
 struct alignas(16) FSubUVConstant
 {
     float indexU; // offset: 0, size: 4
     float indexV; // offset: 4, size: 4
     uint8 pad0[8]; // Padding to end of buffer
+};
+
+struct alignas(16) FMatrixConstants
+{
+    FMatrix Model; // offset: 0, size: 64
+    FMatrix ViewProj; // offset: 64, size: 64
+    FMatrix MInverseTranspose; // offset: 128, size: 64
+    bool isSelected; // offset: 192, size: 4
+    uint8 pad0[12]; // Padding to end of buffer
 };
 
 struct alignas(16) FConstants

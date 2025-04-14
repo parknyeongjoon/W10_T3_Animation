@@ -1,4 +1,8 @@
 #include "ShaderHeaders/GSamplers.hlsli"
+
+#define NUM_POINT_LIGHT 4
+#define NUM_SPOT_LIGHT 4
+
 Texture2D Texture : register(t0);
 Texture2D NormalTexture : register(t1);
 
@@ -82,36 +86,6 @@ struct PS_OUTPUT
     float4 color : SV_Target0;
 };
 
-float noise(float3 p)
-{
-    return frac(sin(dot(p, float3(12.9898, 78.233, 37.719))) * 43758.5453);
-}
-
-float4 PaperTexture(float3 originalColor)
-{
-    // 입력 색상을 0~1 범위로 제한
-    float3 color = saturate(originalColor);
-    
-    float3 paperColor = float3(0.95, 0.95, 0.95);
-    float blendFactor = 0.5;
-    float3 mixedColor = lerp(color, paperColor, blendFactor);
-    
-    // 정적 grain 효과
-    float grain = noise(color * 10.0) * 0.1;
-    
-    // 거친 질감 효과: 두 단계의 노이즈 레이어를 결합
-    float rough1 = (noise(color * 20.0) - 0.5) * 0.15; // 첫 번째 레이어: 큰 규모의 노이즈
-    float rough2 = (noise(color * 40.0) - 0.5) * 0.01; // 두 번째 레이어: 세부 질감 추가
-    float rough = rough1 + rough2;
-    
-    // vignette 효과: 중앙에서 멀어질수록 어두워지는 효과
-    float vignetting = smoothstep(0.4, 1.0, length(color.xy - 0.5) * 2.0);
-    
-    // 최종 색상 계산
-    float3 finalColor = mixedColor + grain + rough - vignetting * 0.1;
-    return float4(saturate(finalColor), 1.0);
-}
-
 float3 CalculateDirectionalLight(  
     FDirectionalLight Light,  
     float3 Normal,  
@@ -156,13 +130,16 @@ float3 CalculatePointLight(
 
     // 디퓨즈  
     float NdotL = max(dot(Normal, LightDir), 0.0);  
-    float3 Diffuse = Light.Color.rgb * Albedo * NdotL;  
-
+    float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
+    
+#if LIGHTING_MODEL_LAMBERT
+    return Diffuse;
+#endif
     // 스페큘러  
     float3 HalfVec = normalize(LightDir + ViewDir);  
     float NdotH = max(dot(Normal, HalfVec), 0.0);  
     float Specular = pow(NdotH, SpecularScalar * 64.0) * SpecularScalar;  
-    float3 specularColor = Light.Color.rgb * Specular * SpecularColor;  
+    float3 specularColor = Light.Color.rgb * Specular * SpecularColor;
 
     return (Diffuse + specularColor) * Attenuation;  
 }  
@@ -170,13 +147,16 @@ float3 CalculatePointLight(
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
-    
     float2 uvAdjusted = input.texcoord + float2(indexU, indexV);
     
     // 기본 색상 추출  
     float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
+
+#if LIGHTING_MODEL_GOURAUD
+    output.color = float4(baseColor.rgb * input.color.rgb, 1.0);
+    return output;
+#endif
     float4 normalTex = ((NormalTexture.Sample(linearSampler, uvAdjusted)- 0.5) * 2);
-    
     input.normal = input.normal - 0.5;
     
     if(!IsLit)
@@ -194,7 +174,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     float3 ViewDir = normalize(CameraPos - input.worldPos);
     
-    float3 TotalLight = MatAmbientColor; // 전역 앰비언트  
+    //float3 TotalLight = MatAmbientColor; // 전역 앰비언트
+    // TODO : Lit이면 낮은 값 Unlit이면 float3(1.0f,1.0f,1.0f)면 됩니다. 
+    float3 TotalLight = float3(0.01f,0.01f,0.01f); // 전역 앰비언트  
     TotalLight += EmissiveColor; // 자체 발광  
 
     // 방향광 처리  

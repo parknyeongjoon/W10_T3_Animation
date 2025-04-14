@@ -132,14 +132,14 @@ void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoCompone
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
     // MVP Update
-    const FMatrix Model = JungleMath::CreateModelMatrix(InGizmoComponent->GetWorldLocation(), InGizmoComponent->GetWorldRotation(),
-                                                        InGizmoComponent->GetWorldScale());
-    const FMatrix NormalMatrix = FMatrix::Inverse(Model);
+    const FMatrix Model = JungleMath::CreateModelMatrix(InGizmoComponent->GetComponentLocation(), InGizmoComponent->GetComponentRotation(),
+                                                        InGizmoComponent->GetComponentScale());
+    const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
         
     FMatrixConstants MatrixConstants;
     MatrixConstants.Model = Model;
     MatrixConstants.ViewProj = InView * InProjection;
-    MatrixConstants.MInverse = NormalMatrix;
+    MatrixConstants.MInverseTranspose = NormalMatrix;
     if (InGizmoComponent->GetWorld()->GetSelectedActor() == InGizmoComponent->GetOwner())
     {
         MatrixConstants.isSelected = true;

@@ -21,6 +21,8 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     RenderResourceManager->Initialize();
     CreateVertexPixelShader(TEXT("StaticMesh"), nullptr);
     StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(TEXT("StaticMesh"));
+    CreateStaticMeshShader();
+    CreateLineBatchShader();
     //CreateLineBatchShader();
 }
 
@@ -76,11 +78,6 @@ void FRenderer::Release()
     }
 }
 
-#pragma region Shader
-void FRenderer::UpdateShaders()
-{
-}
-
 void FRenderer::CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACRO* pDefines)
 {
     FString Prefix = InPrefix;
@@ -117,6 +114,166 @@ void FRenderer::CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACR
     
     MappingVSPSInputLayout(Prefix, VertexShaderFile, PixelShaderFile, VertexShaderFile);
     MappingVSPSCBSlot(Prefix, ShaderStageToCB);
+}
+
+#pragma region Shader
+void FRenderer::CreateStaticMeshShader()
+{
+    ID3DBlob* VSBlob_StaticMesh = nullptr;
+    ID3DBlob* PSBlob_StaticMesh = nullptr;
+
+    ID3D11VertexShader* VertexShader;
+    ID3D11PixelShader* PixelShader;
+    ID3D11InputLayout* InputLayout;
+
+    D3D_SHADER_MACRO defines[] = 
+    {
+        {"LIGHTING_MODEL_GOURAUD", "1"},
+        {nullptr, nullptr}
+    };
+    
+    VertexShader = RenderResourceManager->GetVertexShader(TEXT("UberVS"));
+    if (VertexShader == nullptr)
+    {
+        Graphics->CreateVertexShader(TEXT("UberLitVertexShader.hlsl"), defines, &VSBlob_StaticMesh, &VertexShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompileVertexShader(TEXT("UberLitVertexShader.hlsl"), defines,  &VSBlob_StaticMesh);
+    }
+    RenderResourceManager->AddOrSetVertexShader(TEXT("UberVS"), VertexShader);
+    
+    PixelShader = RenderResourceManager->GetPixelShader(TEXT("UberPS"));
+    if (PixelShader == nullptr)
+    {
+        Graphics->CreatePixelShader(TEXT("UberLitPixelShader.hlsl"), defines, &PSBlob_StaticMesh, &PixelShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompilePixelShader(TEXT("UberLitPixelShader.hlsl"), defines, &PSBlob_StaticMesh);
+    }
+    RenderResourceManager->AddOrSetPixelShader(TEXT("UberPS"), PixelShader);
+
+    D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+    
+    Graphics->Device->CreateInputLayout(
+        layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
+    );
+    
+    const TArray<FConstantBufferInfo> VertexStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(VSBlob_StaticMesh);
+    const TArray<FConstantBufferInfo> PixelStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(PSBlob_StaticMesh);
+    
+    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+
+    for (const FConstantBufferInfo item : VertexStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::VS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    for (const FConstantBufferInfo item :PixelStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::PS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    MappingVSPSInputLayout(TEXT("Uber"), TEXT("UberVS"), TEXT("UberPS"), InputLayout);
+    MappingVSPSCBSlot(TEXT("Uber"), ShaderStageToCB);
+
+
+    StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(TEXT("Uber"));
+    GizmoRenderPass = std::make_shared<FGizmoRenderPass>(TEXT("Uber"));
+    
+    SAFE_RELEASE(VSBlob_StaticMesh)
+    SAFE_RELEASE(PSBlob_StaticMesh)
+}
+
+void FRenderer::CreateTextureShader()
+{
+    ID3DBlob* VSBlob_StaticMesh = nullptr;
+    ID3DBlob* PSBlob_StaticMesh = nullptr;
+
+    ID3D11VertexShader* VertexShader;
+    ID3D11PixelShader* PixelShader;
+    ID3D11InputLayout* InputLayout;
+    
+    VertexShader = RenderResourceManager->GetVertexShader(TEXT("TextureVS"));
+    if (VertexShader == nullptr)
+    {
+        Graphics->CreateVertexShader(TEXT("TextureVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompileVertexShader(TEXT("TextureVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh);
+    }
+    RenderResourceManager->AddOrSetVertexShader(TEXT("TextureVS"), VertexShader);
+    
+    PixelShader = RenderResourceManager->GetPixelShader(TEXT("TexturePS"));
+    if (PixelShader == nullptr)
+    {
+        Graphics->CreatePixelShader(TEXT("TexturePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompilePixelShader(TEXT("TexturePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh);
+    }
+    RenderResourceManager->AddOrSetPixelShader(TEXT("TexturePS"), PixelShader);
+
+    D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+    
+    Graphics->Device->CreateInputLayout(
+        layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
+    );
+    
+    const TArray<FConstantBufferInfo> VertexStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(VSBlob_StaticMesh);
+    const TArray<FConstantBufferInfo> PixelStaticMeshConstant = FGraphicsDevice::ExtractConstantBufferNames(PSBlob_StaticMesh);
+    
+    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+
+    for (const FConstantBufferInfo item : VertexStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::VS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    for (const FConstantBufferInfo item :PixelStaticMeshConstant)
+    {
+        ShaderStageToCB[{EShaderStage::PS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    MappingVSPSInputLayout(TEXT("Texture"), TEXT("TextureVS"), TEXT("TexturePS"), InputLayout);
+    MappingVSPSCBSlot(TEXT("Texture"), ShaderStageToCB);
+
+    // TODO : Create RenderPass
+
+    SAFE_RELEASE(VSBlob_StaticMesh)
+    SAFE_RELEASE(PSBlob_StaticMesh)
 }
 
 // void FRenderer::CreateStaticMeshShader()
@@ -369,7 +526,6 @@ void FRenderer::CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACR
 //     SAFE_RELEASE(VSBlob_StaticMesh)
 //     SAFE_RELEASE(PSBlob_StaticMesh) 
 // }
-
 #pragma endregion Shader
 // void FRenderer::   PrepareRender()
 // {
@@ -445,8 +601,6 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     //ChangeViewMode(ActiveViewport->GetViewMode());
 
     //RenderPostProcess(World, ActiveViewport);
-    // 0. 광원 렌더
-    //RenderLight(World, ActiveViewport);
 
     // 2. 스태틱 메시 렌더
 
@@ -594,11 +748,6 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     // Graphics->DeviceContext->Draw(4, 0);
 //}
 
-// void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
-// {
-//     // 라이트 오브젝트들 모아서 Constant 업데이트 해야함
-//     ConstantBufferUpdater.UpdateLightConstant(LightingBuffer, LightObjs);
-// }
 
 #pragma endregion Render
 
@@ -608,15 +757,15 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
     {
     case EViewModeIndex::VMI_Lit:
         CurrentRasterizerState = ERasterizerState::SolidBack;
-        //TODO : Light 받는 거 
-        //ConstantBufferUpdater.UpdateLitUnlitConstant(FlagBuffer, 1);
+        //TODO : Light 받는 거
+        bIsLit = true;
         break;
     case EViewModeIndex::VMI_Wireframe:
         CurrentRasterizerState = ERasterizerState::WireFrame;
     case EViewModeIndex::VMI_Unlit:
         CurrentRasterizerState = ERasterizerState::SolidBack;
-        //TODO : Light 안 받는 거 
-        //ConstantBufferUpdater.UpdateLitUnlitConstant(FlagBuffer, 0);
+        //TODO : Light 안 받는 거
+        bIsLit = false;
         break;
     default:
         CurrentRasterizerState = ERasterizerState::SolidBack;

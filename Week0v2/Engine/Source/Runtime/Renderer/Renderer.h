@@ -38,6 +38,7 @@ public:
 
     std::shared_ptr<FVBIBTopologyMapping> GetVBIBTopologyMapping(const FName InName) {return VBIBTopologyMappings[InName];}
 
+    bool bIsLit = true;
 public:
     void Initialize(FGraphicsDevice* graphics);
     
