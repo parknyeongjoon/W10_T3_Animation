@@ -409,3 +409,17 @@ struct FPointLight
     float AttenuationFalloff;
     FVector2D Padd;
 };
+
+struct FSpotLight
+{
+    FVector Position;
+    float Intensity;
+
+    FVector4 Color;
+
+    FVector Direction;
+    float InnerAngle;
+
+    float OuterAngle;
+    FVector pad;
+};

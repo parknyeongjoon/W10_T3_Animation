@@ -16,6 +16,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/PrimitiveBatch.h"
 #include "UObject/UObjectIterator.h"
+#include <Components/SpotLightComponent.h>
 
 extern UEditorEngine* GEngine;
 
@@ -189,6 +190,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     FLightingConstants LightConstant;
     uint32 DirectionalLightCount = 0;
     uint32 PointLightCount = 0;
+    uint32 SpotLightCount = 0;
 
     for (ULightComponentBase* Comp : LightComponents)
     {
@@ -208,6 +210,18 @@ void FStaticMeshRenderPass::UpdateLightConstants()
         UDirectionalLightComponent* DirectionalLightComp = dynamic_cast<UDirectionalLightComponent*>(Comp);
         if (DirectionalLightComp)
         {
+            USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(DirectionalLightComp);
+            if (SpotLightComp)
+            {
+                LightConstant.SpotLights[SpotLightCount].Position = SpotLightComp->GetComponentLocation();
+                LightConstant.SpotLights[SpotLightCount].Color = SpotLightComp->GetColor();
+                LightConstant.SpotLights[SpotLightCount].Intensity = SpotLightComp->GetIntensity();
+                LightConstant.SpotLights[SpotLightCount].Direction = SpotLightComp->GetOwner()->GetActorForwardVector();
+                LightConstant.SpotLights[SpotLightCount].InnerAngle = SpotLightComp->GetInnerConeAngle();
+                LightConstant.SpotLights[SpotLightCount].OuterAngle = SpotLightComp->GetOuterConeAngle();
+                SpotLightCount++;
+                continue;
+            }
             LightConstant.DirLights[DirectionalLightCount].Color = DirectionalLightComp->GetColor();
             LightConstant.DirLights[DirectionalLightCount].Intensity = DirectionalLightComp->GetIntensity();
             LightConstant.DirLights[DirectionalLightCount].Direction = DirectionalLightComp->GetForwardVector();
@@ -218,6 +232,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
 
     LightConstant.NumPointLights = PointLightCount;
     LightConstant.NumDirectionalLights = DirectionalLightCount;
+    LightConstant.NumSpotLights = SpotLightCount;
     
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FLightingConstants")), &LightConstant);
 }

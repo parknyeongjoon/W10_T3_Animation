@@ -74,7 +74,7 @@ cbuffer FLightingConstants : register(b1)
 
     FDirectionalLight DirLights[4];
     FPointLight PointLights[16];
-    FSpotLight SpotLights[NUM_SPOT_LIGHT];
+    FSpotLight SpotLights[8];
 };
 
 cbuffer FFlagConstants : register(b2)
@@ -170,37 +170,35 @@ float3 CalculateSpotLight(
     float3 ViewDir,
     float3 Albedo)
 {
-    //빛 방향
-    float3 LightDir = normalize(-Light.Direction);
-    
-    //월드에서 빛 방향
-    float3 WorldToLight = Light.Position - WorldPos;
-    float3 WorldToLightDir = normalize(WorldToLight);
-    //빛 위치 방향
-    float3 LightPosDir = normalize(Light.Position);
-    //각도 체크
+    // 조명 방향 벡터 (광원 위치 → 픽셀)
+    float3 LightDir = normalize(Light.Position - WorldPos);
+    float Distance = length(Light.Position - WorldPos);
+
+    // Spot Light 중심 방향
+    float3 SpotDirection = normalize(-Light.Direction);
+
+    // 각도 감쇠 계산
     float CosInner = cos(Light.InnerAngle);
     float CosOuter = cos(Light.OuterAngle);
-    float CosAngle = dot(LightPosDir, WorldToLightDir);
+    float CosAngle = dot(SpotDirection, -LightDir); // 광원 기준 → 픽셀 방향
+
     if (CosAngle < CosOuter)
         return float3(0, 0, 0);
 
-    //빛 감쇠 계산
-    float Attenuation = saturate((CosAngle - CosOuter) / (CosInner - CosOuter));
-    float Distance = length(WorldToLight);
-    float DistanceAttenuation = saturate(1.0 / (Distance * Distance));
-    
-    //디퓨즈
-    float NdotL = max(dot(Normal, Light.Position), 0.0);
+    float SpotAttenuation = saturate((CosAngle - CosOuter) / (CosInner - CosOuter));
+    float DistanceAttenuation = (1.0 / (1.0 + Distance * Distance * 0.1)); // 간단 거리 감쇠
+
+    // 디퓨즈
+    float NdotL = max(dot(Normal, LightDir), 0.0);
     float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
-    
-    //스페큘러
-    float3 HalfVec = normalize(Light.Position + ViewDir);
+
+    // 스페큘러 (Blinn-Phong)
+    float3 HalfVec = normalize(LightDir + ViewDir);
     float NdotH = max(dot(Normal, HalfVec), 0.0);
     float Specular = pow(NdotH, SpecularScalar * 128.0) * SpecularScalar;
-    float3 SpecularColor = Light.Color.rgb * Specular * SpecularColor;
-    
-    return (Diffuse + SpecularColor) * Light.Intensity * Attenuation * DistanceAttenuation;
+    float3 specularColor = Light.Color.rgb * Specular * SpecularColor;
+
+    return (Diffuse + specularColor) * Light.Intensity * SpotAttenuation * DistanceAttenuation;
 }
 
 PS_INPUT mainVS(VS_INPUT input)

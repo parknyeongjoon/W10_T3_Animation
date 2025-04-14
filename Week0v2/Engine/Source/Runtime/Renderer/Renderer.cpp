@@ -74,7 +74,7 @@ void FRenderer::CreateStaticMeshShader()
 
     D3D_SHADER_MACRO defines[] = 
     {
-        {"LIGHTING_MODEL_GOURAUD", "1"},
+        //{"LIGHTING_MODEL_GOURAUD", "1"},
         {nullptr, nullptr}
     };
     
