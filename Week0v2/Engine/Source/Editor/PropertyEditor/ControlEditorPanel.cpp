@@ -367,8 +367,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<ASpotLightActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_SpotLight"));
-                    UBillboardComponent* BillboardComponent = SpawnedActor->AddComponent<UBillboardComponent>();
-                    BillboardComponent->SetTexture(L"Assets/Texture/spotLight.png");
                     break;
                 }
                 case OBJ_DIRECTIONALLIGHT:

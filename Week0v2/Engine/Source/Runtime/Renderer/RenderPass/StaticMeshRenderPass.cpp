@@ -224,7 +224,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             }
             LightConstant.DirLights[DirectionalLightCount].Color = DirectionalLightComp->GetColor();
             LightConstant.DirLights[DirectionalLightCount].Intensity = DirectionalLightComp->GetIntensity();
-            LightConstant.DirLights[DirectionalLightCount].Direction = DirectionalLightComp->GetForwardVector();
+            LightConstant.DirLights[DirectionalLightCount].Direction = DirectionalLightComp->GetOwner()->GetActorForwardVector();
             DirectionalLightCount++;
             continue;
         }

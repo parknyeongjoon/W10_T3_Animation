@@ -5,6 +5,7 @@
 
 USpotLightComponent::USpotLightComponent()
 {
+
 }
 
 USpotLightComponent::USpotLightComponent(const USpotLightComponent& Other)

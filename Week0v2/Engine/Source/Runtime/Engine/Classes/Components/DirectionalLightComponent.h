@@ -1,4 +1,5 @@
 #pragma once
+#include "Actors/Light.h"
 #include "LightComponent.h"
 
 struct FDirectionalLightComponentInfo : public FLightComponentInfo
@@ -43,7 +44,7 @@ public:
 private:
     FVector Direction = FVector(0.0f, 0.0f, -1.0f);
 public:
-    FVector GetDirection() const { return Direction; }
+    FVector GetDirection() { return Direction; }
     void SetDirection(FVector _newDir) { Direction = _newDir; }
 
 public:

@@ -337,7 +337,8 @@ void PropertyEditorPanel::Render()
         {
             // direction
             UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(PickedComponent);
-            if (DirectionalLight)
+            //TODO: 회전 각에 맞춰 direction 변동
+            /*if (DirectionalLight)
             {
                 FVector LightDirection = DirectionalLight->GetDirection();
                 bool bChanged = FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
@@ -347,7 +348,7 @@ void PropertyEditorPanel::Render()
                 {
                     DirectionalLight->SetDirection(LightDirection);
                 }
-            }
+            }*/
         }
 
         if (PickedComponent->IsA<UPointLightComponent>())

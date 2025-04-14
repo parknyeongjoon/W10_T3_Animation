@@ -172,25 +172,25 @@ float3 CalculateSpotLight(
     float Distance = length(Light.Position - WorldPos);
 
     // Spot Light 중심 방향
-    float3 SpotDirection = normalize(Light.Direction);
+    float3 SpotDirection = normalize(-Light.Direction);
 
     // 각도 감쇠 계산
     float CosInner = cos(Light.InnerAngle);
     float CosOuter = cos(Light.OuterAngle);
-    float CosAngle = dot(SpotDirection, -LightDir); // 광원 기준 → 픽셀 방향
+    float CosAngle = dot(SpotDirection, LightDir); // 광원 기준 → 픽셀 방향
 
     if (CosAngle < CosOuter)
         return float3(0, 0, 0);
 
     float SpotAttenuation = saturate((CosAngle - CosOuter) / (CosInner - CosOuter));
-    float DistanceAttenuation = (1.0 / (1.0 + Distance * Distance * 0.1)); // 간단 거리 감쇠
+    float DistanceAttenuation = (1.0 / (1.0 + Distance * Distance * 0.01)); // 간단 거리 감쇠
 
     // 디퓨즈
-    float NdotL = max(dot(Normal, LightDir), 0.0);
+    float NdotL = max(dot(Normal, SpotDirection), 0.0);
     float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
 
     // 스페큘러 (Blinn-Phong)
-    float3 HalfVec = normalize(LightDir + ViewDir);
+    float3 HalfVec = normalize(SpotDirection + ViewDir);
     float NdotH = max(dot(Normal, HalfVec), 0.0);
     float Specular = pow(NdotH, SpecularScalar * 128.0) * SpecularScalar;
     float3 specularColor = Light.Color.rgb * Specular * SpecularColor;
@@ -242,7 +242,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
         TotalLight += CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);  
 
     for (uint k = 0; k < NumSpotLights; ++k)
-        TotalLight += CalculateSpotLight(SpotLights[k], input.worldPos, Normal, ViewDir, baseColor.rgb);
+        TotalLight += CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
     
     // 최종 색상 
     output.color = float4(TotalLight*baseColor.rgb, baseColor.a * TransparencyScalar);
