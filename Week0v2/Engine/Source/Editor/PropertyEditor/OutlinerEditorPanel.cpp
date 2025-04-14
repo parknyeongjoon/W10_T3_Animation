@@ -38,9 +38,10 @@ void OutlinerEditorPanel::Render()
         UWorld* World = GEngine->GetWorld();
         for (AActor* Actor : World->GetActors())
         {
-            if (ImGui::Selectable(*Actor->GetActorLabel(), World->GetSelectedActor() == Actor))
+            bool bSelected = !World->GetSelectedActors().IsEmpty() && *World->GetSelectedActors().begin() == Actor;
+            if (ImGui::Selectable(*Actor->GetActorLabel(), bSelected))
             {
-                World->SetPickedActor(Actor);
+                World->SetSelectedActor(Actor);
                 break;
             }
         }

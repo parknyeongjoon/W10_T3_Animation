@@ -516,7 +516,7 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     LineBatchRenderPass->Prepare(ActiveViewport);
     LineBatchRenderPass->Execute(ActiveViewport);
 
-    if (World->GetSelectedActor() != nullptr)
+    if (!World->GetSelectedActors().IsEmpty())
     {
         GizmoRenderPass->Prepare(ActiveViewport);
         GizmoRenderPass->Execute(ActiveViewport);

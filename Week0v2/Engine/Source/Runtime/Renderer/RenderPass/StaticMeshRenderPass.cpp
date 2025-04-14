@@ -108,7 +108,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         
         if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
         {
-            if (GEngine->GetWorld()->GetSelectedActor() == staticMeshComp->GetOwner())
+            if ( !GEngine->GetWorld()->GetSelectedActors().IsEmpty() && *GEngine->GetWorld()->GetSelectedActors().begin() == staticMeshComp->GetOwner())
             {
                 UPrimitiveBatch::GetInstance().AddAABB(
                     staticMeshComp->GetBoundingBox(),
@@ -160,7 +160,7 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
     MatrixConstants.Model = Model;
     MatrixConstants.ViewProj = InView * InProjection;
     MatrixConstants.MInverseTranspose = NormalMatrix;
-    if (InStaticMeshComponent->GetWorld()->GetSelectedActor() == InStaticMeshComponent->GetOwner())
+    if (InStaticMeshComponent->GetWorld()->GetSelectedActors().Contains(InStaticMeshComponent->GetOwner()))
     {
         MatrixConstants.isSelected = true;
     }

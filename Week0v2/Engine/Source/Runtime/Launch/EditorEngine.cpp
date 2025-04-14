@@ -211,8 +211,9 @@ void UEditorEngine::ResizeGizmo()
 {
     for (auto GizmoComp : TObjectRange<UGizmoBaseComponent>())
     {
-        if (AActor* PickedActor = GWorld->GetSelectedActor())
+        if (!GWorld->GetSelectedActors().IsEmpty())
         {
+            AActor* PickedActor = *GWorld->GetSelectedActors().begin();
             std::shared_ptr<FEditorViewportClient> activeViewport = GetLevelEditor()->GetActiveViewportClient();
             if (activeViewport->IsPerspective())
             {

@@ -76,7 +76,7 @@ private:
     ULevel* Level;
     /** World에서 관리되는 모든 Actor의 목록 */
     /** Actor가 Spawn되었고, 아직 BeginPlay가 호출되지 않은 Actor들 */
-    AActor* SelectedActor = nullptr;
+    TSet<AActor*> SelectedActors;
     USceneComponent* pickingGizmo = nullptr;
     AEditorPlayer* EditorPlayer = nullptr;
 public:
@@ -86,12 +86,17 @@ public:
     UTransformGizmo* LocalGizmo = nullptr;
     AEditorPlayer* GetEditorPlayer() const { return EditorPlayer; }
     // EditorManager 같은데로 보내기
-    AActor* GetSelectedActor() const { return SelectedActor; }
-    void SetPickedActor(AActor* InActor)
+    TSet<AActor*>& GetSelectedActors() { return SelectedActors; }
+    void SetSelectedActor(AActor* InActor)
     {
-        SelectedActor = InActor;
+        SelectedActors.Empty();
+        SelectedActors.Add(InActor);
     }
-
+    void AddSelectedActor(AActor* InActor)
+    {
+        SelectedActors.Add(InActor);
+    }
+    void ClearSelectedActors() { SelectedActors.Empty();}
     USceneComponent* GetPickingGizmo() const { return pickingGizmo; }
     void SetPickingGizmo(UObject* Object);
 

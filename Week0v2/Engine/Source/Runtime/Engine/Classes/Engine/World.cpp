@@ -117,7 +117,7 @@ void UWorld::Release()
 void UWorld::ClearScene()
 {
     // 1. PickedActor제거
-    SelectedActor = nullptr;
+    SelectedActors.Empty();
     // 2. 모든 Actor Destroy
     
     for (AActor* actor : TObjectRange<AActor>())
@@ -160,12 +160,17 @@ void UWorld::ReloadScene(const FString& FileName)
 
 void UWorld::DuplicateSeletedActors()
 {
-    AActor* DupedActor = Cast<AActor>(SelectedActor->Duplicate());
-    FVector DupedLocation = DupedActor->GetActorLocation();
-    DupedActor->SetActorLocation(FVector(DupedLocation.x+50, DupedLocation.y+50, DupedLocation.z));
-    Level->GetActors().Add(DupedActor);
-    Level->PendingBeginPlayActors.Add(DupedActor);
-    SelectedActor = DupedActor;
+    TSet<AActor*> newSelectedActors;
+    for (AActor* Actor : SelectedActors)
+    {
+        AActor* DupedActor = Cast<AActor>(Actor->Duplicate());
+        FVector DupedLocation = DupedActor->GetActorLocation();
+        DupedActor->SetActorLocation(FVector(DupedLocation.x+50, DupedLocation.y+50, DupedLocation.z));
+        Level->GetActors().Add(DupedActor);
+        Level->PendingBeginPlayActors.Add(DupedActor);
+        newSelectedActors.Add(DupedActor);
+    }
+    SelectedActors = newSelectedActors;
 }
 
 bool UWorld::DestroyActor(AActor* ThisActor)

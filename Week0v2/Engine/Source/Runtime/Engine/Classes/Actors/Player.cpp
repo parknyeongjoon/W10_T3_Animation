@@ -32,10 +32,20 @@ void AEditorPlayer::Input()
 {
     ImGuiIO& io = ImGui::GetIO();
     if (io.WantCaptureMouse) return;
+    if (GetAsyncKeyState(VK_LSHIFT) & 0x8000)
+    {
+        if (!bLShiftDown)
+            bLShiftDown = true;
+    }
+    else
+    {
+        bLShiftDown = false;
+    }
     if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
     {
         if (!bLeftMouseDown)
         {
+
             bLeftMouseDown = true;
 
             POINT mousePos;
@@ -116,12 +126,11 @@ void AEditorPlayer::Input()
     }
     if (GetAsyncKeyState(VK_DELETE) & 0x8000)
     {
-        UWorld* World = GetWorld();
-        if (AActor* PickedActor = World->GetSelectedActor())
+        for (AActor* actor : GEngine->GetWorld()->GetSelectedActors())
         {
-            World->DestroyActor(PickedActor);
-            World->SetPickedActor(nullptr);
+            actor->Destroy();
         }
+        GEngine->GetWorld()->ClearSelectedActors();
     }
     if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
     {
@@ -155,7 +164,7 @@ void AEditorPlayer::Input()
 bool AEditorPlayer::PickGizmo(FVector& pickPosition)
 {
     bool isPickedGizmo = false;
-    if (GetWorld()->GetSelectedActor())
+    if (!GetWorld()->GetSelectedActors().IsEmpty())
     {
         if (cMode == CM_TRANSLATION)
         {
@@ -246,7 +255,8 @@ bool AEditorPlayer::PickGizmo(FVector& pickPosition)
 void AEditorPlayer::PickActor(const FVector& pickPosition)
 {
     if (!(ShowFlags::GetInstance().currentFlags & EEngineShowFlags::SF_Primitives)) return;
-
+    if (!bLShiftDown)
+        GetWorld()->ClearSelectedActors();
     const UActorComponent* Possible = nullptr;
     int maxIntersect = 0;
     float minDistance = FLT_MAX;
@@ -284,7 +294,7 @@ void AEditorPlayer::PickActor(const FVector& pickPosition)
     }
     if (Possible)
     {
-        GetWorld()->SetPickedActor(Possible->GetOwner());
+        GetWorld()->AddSelectedActor(Possible->GetOwner());
     }
 }
 
@@ -374,7 +384,8 @@ int AEditorPlayer::RayIntersectsObject(const FVector& pickPosition, USceneCompon
 
 void AEditorPlayer::PickedObjControl()
 {
-    if (GetWorld()->GetSelectedActor() && GetWorld()->GetPickingGizmo())
+    
+    if (GetWorld()->GetPickingGizmo())
     {
         POINT currentMousePos;
         GetCursorPos(&currentMousePos);
@@ -382,25 +393,31 @@ void AEditorPlayer::PickedObjControl()
         int32 deltaY = currentMousePos.y - m_LastMousePos.y;
 
         // USceneComponent* pObj = GetWorld()->GetPickingObj();
-        AActor* PickedActor = GetWorld()->GetSelectedActor();
-        UGizmoBaseComponent* Gizmo = static_cast<UGizmoBaseComponent*>(GetWorld()->GetPickingGizmo());
-        switch (cMode)
+        //AActor* PickedActor = GetWorld()->GetSelectedActors();
+        for (auto pickedActor : GetWorld()->GetSelectedActors())
         {
-        case CM_TRANSLATION:
-            ControlTranslation(PickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
-            break;
-        case CM_SCALE:
-            ControlScale(PickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
+            if (pickedActor== nullptr)
+                continue;
+            UGizmoBaseComponent* Gizmo = static_cast<UGizmoBaseComponent*>(GetWorld()->GetPickingGizmo());
+            switch (cMode)
+            {
+            case CM_TRANSLATION:
+                ControlTranslation(pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
+                break;
+            case CM_SCALE:
+                ControlScale(pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
 
-            break;
-        case CM_ROTATION:
-            ControlRotation(PickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
-            break;
-        default:
-            break;
+                break;
+            case CM_ROTATION:
+                ControlRotation(pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
+                break;
+            default:
+                break;
+            }
         }
         m_LastMousePos = currentMousePos;
     }
+        
 }
 
 void AEditorPlayer::ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY)
@@ -475,7 +492,7 @@ void AEditorPlayer::ControlTranslation(USceneComponent* pObj, UGizmoBaseComponen
     }
     else if (cdMode == CDM_WORLD)
     {
-        float distance = (GEngine->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetLocation() - pObj->GetLocalLocation()).Magnitude();
+        float distance = (GEngine->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetLocation() - (*GEngine->GetWorld()->GetSelectedActors().begin())->GetActorLocation()).Magnitude();
         distance/=100.0f;
         // 월드 좌표계에서 카메라 방향을 고려한 이동
         if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)

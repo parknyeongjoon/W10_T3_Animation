@@ -140,7 +140,7 @@ void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoCompone
     MatrixConstants.Model = Model;
     MatrixConstants.ViewProj = InView * InProjection;
     MatrixConstants.MInverseTranspose = NormalMatrix;
-    if (InGizmoComponent->GetWorld()->GetSelectedActor() == InGizmoComponent->GetOwner())
+    if (!InGizmoComponent->GetWorld()->GetSelectedActors().IsEmpty() &&*InGizmoComponent->GetWorld()->GetSelectedActors().begin() == InGizmoComponent->GetOwner())
     {
         MatrixConstants.isSelected = true;
     }
