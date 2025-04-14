@@ -72,10 +72,18 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
 
     FRenderer& Renderer = GEngine->renderer;
     const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderResourceManager* renderResourceManager = Renderer.GetResourceManager();
     
     Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState()); //레스터 라이저 상태 설정
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
-    Graphics.DeviceContext->OMSetRenderTargets(1, Graphics.RTVs, Graphics.DepthStencilView); // 렌더 타겟 설정
+    Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView); // 렌더 타겟 설정
+
+    ID3D11ShaderResourceView* FBoundingBoxSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("BoundingBox"));
+    Graphics.DeviceContext->VSSetShaderResources(3, 1, &FBoundingBoxSRV);
+    ID3D11ShaderResourceView* FConeSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Cone"));
+    Graphics.DeviceContext->VSSetShaderResources(4, 1, &FConeSRV);
+    ID3D11ShaderResourceView* FOBBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("OBB"));
+    Graphics.DeviceContext->VSSetShaderResources(5, 1, &FOBBSRV);
 }
 
 void FLineBatchRenderPass::UpdateBatchResources()
