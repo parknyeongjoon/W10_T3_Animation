@@ -4,7 +4,7 @@
 #include "Actors/Player.h"
 #include "Components/SphereComp.h"
 #include "Components/UParticleSubUVComp.h"
-#include "Components/UText.h"
+#include "Components/UTextComponent.h"
 #include "Components/HeightFogComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Engine/StaticMeshActor.h"
@@ -388,16 +388,16 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     Particle->Activate();
                     break;
                 }
-                // case OBJ_TEXT:
-                // {
-                //     SpawnedActor = World->SpawnActor<AActor>();
-                //     SpawnedActor->SetActorLabel(TEXT("OBJ_TEXT"));
-                //     UTextRenderComponent* Text = SpawnedActor->AddComponent<UTextRenderComponent>();
-                //     Text->SetTexture(L"Assets/Texture/font.png");
-                //     Text->SetRowColumnCount(106, 106);
-                //     Text->SetText(L"안녕하세요 Jungle 1");
-                //     break;
-                // }
+                case OBJ_TEXT:
+                {
+                    SpawnedActor = World->SpawnActor<AActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_TEXT"));
+                    UTextComponent* Text = SpawnedActor->AddComponent<UTextComponent>();
+                    Text->SetTexture(L"Assets/Texture/font.png");
+                    Text->SetRowColumnCount(106, 106);
+                    Text->SetText(L"안녕하세요 Jungle 1");
+                    break;
+                }
                 // case OBJ_FOG:
                 // {
                 //     SpawnedActor = World->SpawnActor<AExponentialHeightFog>();

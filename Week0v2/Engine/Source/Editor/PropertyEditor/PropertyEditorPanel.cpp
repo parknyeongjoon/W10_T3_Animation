@@ -6,7 +6,7 @@
 #include "Components/PointLightComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/HeightFogComponent.h"
-#include "Components/UText.h"
+#include "Components/UTextComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Math/MathUtility.h"
 #include "UnrealEd/ImGuiWidget.h"
@@ -78,7 +78,7 @@ void PropertyEditorPanel::Render()
             {
                 if (ImGui::Selectable("TextComponent"))
                 {
-                    UText* TextComponent = PickedActor->AddComponent<UText>(EComponentOrigin::Editor);
+                    UTextComponent* TextComponent = PickedActor->AddComponent<UTextComponent>(EComponentOrigin::Editor);
                     PickedComponent = TextComponent;
                     TextComponent->SetTexture(L"Assets/Texture/font.png");
                     TextComponent->SetRowColumnCount(106, 106);
@@ -330,9 +330,9 @@ void PropertyEditorPanel::Render()
     }
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
-    if (PickedActor && PickedComponent && PickedComponent->IsA<UText>())
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UTextComponent>())
     {
-        UText* textOBj = Cast<UText>(PickedComponent);
+        UTextComponent* textOBj = Cast<UTextComponent>(PickedComponent);
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         if (ImGui::TreeNodeEx("Text Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
         {
