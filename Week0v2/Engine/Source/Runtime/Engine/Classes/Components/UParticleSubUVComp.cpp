@@ -12,13 +12,14 @@ UParticleSubUVComp::UParticleSubUVComp()
     bIsLoop = true;
 }
 
-UParticleSubUVComp::UParticleSubUVComp(const UParticleSubUVComp& other): UBillboardComponent(other),
-bIsLoop(other.bIsLoop),
-indexU(other.indexU),
-indexV(other.indexV),
-second(other.second),
-CellsPerColumn(other.CellsPerColumn),
-CellsPerRow(other.CellsPerRow)
+UParticleSubUVComp::UParticleSubUVComp(const UParticleSubUVComp& other)
+    : UBillboardComponent(other)
+    , bIsLoop(other.bIsLoop)
+    , indexU(other.indexU)
+    , indexV(other.indexV)
+    , second(other.second)
+    , CellsPerColumn(other.CellsPerColumn)
+    , CellsPerRow(other.CellsPerRow)
 {
 }
 

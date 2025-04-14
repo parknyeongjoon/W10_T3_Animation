@@ -7,6 +7,8 @@ UDirectionalLightComponent::UDirectionalLightComponent()
 }
 
 UDirectionalLightComponent::UDirectionalLightComponent(const UDirectionalLightComponent& Other)
+    : Super(Other)
+    , Direction(Other.Direction)
 {
 }
 

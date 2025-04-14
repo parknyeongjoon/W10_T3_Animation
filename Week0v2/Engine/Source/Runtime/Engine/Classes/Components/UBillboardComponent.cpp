@@ -13,6 +13,7 @@
 
 
 UBillboardComponent::UBillboardComponent()
+    : Super()
 {
 }
 
@@ -104,6 +105,7 @@ UObject* UBillboardComponent::Duplicate() const
 void UBillboardComponent::DuplicateSubObjects(const UObject* Source)
 {
     UPrimitiveComponent::DuplicateSubObjects(Source);
+
 }
 
 void UBillboardComponent::PostDuplicate()

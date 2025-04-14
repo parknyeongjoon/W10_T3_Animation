@@ -67,6 +67,8 @@ public:
     void AddRotation(FVector _added);
     void AddScale(FVector _added);
 
+    FBoundingBox GetBoundingBox() { return AABB; }
+    void SetBoundingBox(const FBoundingBox& InAABB) { AABB = InAABB; }
 protected:
     FVector RelativeLocation;
     FVector RelativeRotation;
@@ -76,6 +78,7 @@ protected:
     USceneComponent* AttachParent = nullptr;
     TArray<USceneComponent*> AttachChildren;
 
+    FBoundingBox AABB;
 public:
     // virtual FVector GetWorldRotation();
     // FVector GetWorldScale();

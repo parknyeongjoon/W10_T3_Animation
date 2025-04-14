@@ -12,6 +12,13 @@ USkySphereComponent::USkySphereComponent()
 {
 }
 
+USkySphereComponent::USkySphereComponent(const USkySphereComponent& Other)
+    : Super(Other)
+    , UOffset(Other.UOffset)
+    , VOffset(Other.VOffset)
+{
+}
+
 USkySphereComponent::~USkySphereComponent()
 {
 }

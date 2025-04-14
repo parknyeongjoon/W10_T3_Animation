@@ -14,11 +14,10 @@
 #include "Serialization/FWindowsBinHelper.h"
 
 
-UWorld::UWorld(const UWorld& Other): UObject(Other)
-                                   , defaultMapName(Other.defaultMapName)
-                                   , Level(Other.Level)
-                                   , WorldType(Other.WorldType)
-                                    , EditorPlayer(Other.EditorPlayer)
+UWorld::UWorld(const UWorld& Other)
+    : Super(Other)
+    , defaultMapName(Other.defaultMapName)
+    , WorldType(Other.WorldType)
 {
 }
 
@@ -138,7 +137,8 @@ UObject* UWorld::Duplicate() const
 void UWorld::DuplicateSubObjects(const UObject* SourceObj)
 {
     UObject::DuplicateSubObjects(SourceObj);
-    Level = Cast<ULevel>(Level->Duplicate());
+    UWorld* SourceWorld = Cast<UWorld>(SourceObj);
+    Level = Cast<ULevel>(SourceWorld->Level->Duplicate());
     EditorPlayer = FObjectFactory::ConstructObject<AEditorPlayer>();
 }
 

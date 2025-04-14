@@ -85,6 +85,7 @@ class UHeightFogComponent : public UPrimitiveComponent
     DECLARE_CLASS(UHeightFogComponent, UPrimitiveComponent)
 public:
     UHeightFogComponent();
+    UHeightFogComponent(const UHeightFogComponent& Other);
     bool bIsActive;
     bool bIsExponential;
     float FogDensity;

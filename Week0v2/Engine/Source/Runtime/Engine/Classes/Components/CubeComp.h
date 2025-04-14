@@ -7,6 +7,7 @@ class UCubeComp : public UStaticMeshComponent
 
 public:
     UCubeComp();
+    UCubeComp(UCubeComp& Other);
     virtual ~UCubeComp() override;
 
     virtual void InitializeComponent() override;
