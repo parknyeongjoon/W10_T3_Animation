@@ -79,6 +79,11 @@ void PropertyEditorPanel::Render()
                 if (ImGui::Selectable("TextComponent"))
                 {
                     UTextComponent* TextComponent = PickedActor->AddComponent<UTextComponent>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        TextComponent->DetachFromParent();
+                        TextComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = TextComponent;
                     TextComponent->SetTexture(L"Assets/Texture/font.png");
                     TextComponent->SetRowColumnCount(106, 106);
@@ -87,6 +92,11 @@ void PropertyEditorPanel::Render()
                 if (ImGui::Selectable("BillboardComponent"))    
                 {
                     UBillboardComponent* BillboardComponent = PickedActor->AddComponent<UBillboardComponent>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        BillboardComponent->DetachFromParent();
+                        BillboardComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = BillboardComponent;
                     BillboardComponent->SetTexture(L"Assets/Texture/Pawn_64x.png");
                     BillboardComponent->SetLocation(FVector(0.0f, 0.0f, 3.0f));
@@ -99,16 +109,31 @@ void PropertyEditorPanel::Render()
                 if (ImGui::Selectable("DirectionalLightComponent"))
                 {
                     UDirectionalLightComponent* DirectionalLightComponent = PickedActor->AddComponent<UDirectionalLightComponent>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        DirectionalLightComponent->DetachFromParent();
+                        DirectionalLightComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = DirectionalLightComponent;
                 }
                 if (ImGui::Selectable("PointLightComponent"))
                 {
                     UPointLightComponent* PointLightComponent = PickedActor->AddComponent<UPointLightComponent>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        PointLightComponent->DetachFromParent();
+                        PointLightComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = PointLightComponent;
                 }
                 if (ImGui::Selectable("ParticleComponent"))
                 {
                     UParticleSubUVComp* ParticleComponent = PickedActor->AddComponent<UParticleSubUVComp>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        ParticleComponent->DetachFromParent();
+                        ParticleComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = ParticleComponent;
                     ParticleComponent->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
                     ParticleComponent->SetRowColumnCount(6, 6);
@@ -118,6 +143,11 @@ void PropertyEditorPanel::Render()
                 if (ImGui::Selectable("StaticMeshComponent"))
                 {
                     UStaticMeshComponent* StaticMeshComponent = PickedActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        StaticMeshComponent->DetachFromParent();
+                        StaticMeshComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = StaticMeshComponent;
                     FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
                     StaticMeshComponent->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
@@ -125,6 +155,11 @@ void PropertyEditorPanel::Render()
                 if (ImGui::Selectable("CubeComponent"))
                 {
                     UCubeComp* CubeComponent = PickedActor->AddComponent<UCubeComp>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        CubeComponent->DetachFromParent();
+                        CubeComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = CubeComponent;
                 }
 
