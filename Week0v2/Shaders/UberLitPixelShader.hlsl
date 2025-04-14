@@ -174,7 +174,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     float3 ViewDir = normalize(CameraPos - input.worldPos);
     
-    float3 TotalLight = MatAmbientColor; // 전역 앰비언트  
+    //float3 TotalLight = MatAmbientColor; // 전역 앰비언트
+    // TODO : Lit이면 낮은 값 Unlit이면 float3(1.0f,1.0f,1.0f)면 됩니다. 
+    float3 TotalLight = float3(0.01f,0.01f,0.01f); // 전역 앰비언트  
     TotalLight += EmissiveColor; // 자체 발광  
 
     // 방향광 처리  
