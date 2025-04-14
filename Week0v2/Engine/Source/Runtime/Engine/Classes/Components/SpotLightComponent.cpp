@@ -1,6 +1,7 @@
 #include "SpotLightComponent.h"
 #include "UObject/ObjectFactory.h"
 #include "CoreUObject/UObject/Casts.h"
+#include "Math/JungleMath.h"
 
 USpotLightComponent::USpotLightComponent()
 {
@@ -12,11 +13,13 @@ USpotLightComponent::USpotLightComponent(const USpotLightComponent& Other)
 
 void USpotLightComponent::SetInnerConeAngle(float Angle)
 {
+    Angle = JungleMath::DegToRad(Angle);
     InnerConeAngle = Angle;
 }
 
 void USpotLightComponent::SetOuterConeAngle(float Angle)
 {
+    Angle = JungleMath::DegToRad(Angle);
     OuterConeAngle = Angle;
 }
 

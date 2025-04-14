@@ -46,12 +46,14 @@ public:
     USpotLightComponent(const USpotLightComponent& Other);
     virtual ~USpotLightComponent() override = default;
 protected:
+    //angle은 내부적으로 radian
     float InnerConeAngle = 0.0f;
     float OuterConeAngle = 0.768f;
 
 public:
     float GetInnerConeAngle() const { return InnerConeAngle; }
     float GetOuterConeAngle() const { return OuterConeAngle; }
+    //외부에서 set 해줄때는 degree로 들어옴
     void SetInnerConeAngle(float Angle);
     void SetOuterConeAngle(float Angle);
     virtual UObject* Duplicate() const override;

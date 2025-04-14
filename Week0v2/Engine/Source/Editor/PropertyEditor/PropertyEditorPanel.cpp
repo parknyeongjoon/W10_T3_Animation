@@ -16,6 +16,7 @@
 
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Components/GameFramework/RotatingMovementComponent.h"
+#include <Components/SpotLightComponent.h>
 
 void PropertyEditorPanel::Render()
 {
@@ -90,7 +91,7 @@ void PropertyEditorPanel::Render()
                     PickedComponent = BillboardComponent;
                     BillboardComponent->SetTexture(L"Assets/Texture/Pawn_64x.png");
                     BillboardComponent->SetLocation(FVector(0.0f, 0.0f, 3.0f));
-                }
+                }  
                 //if (ImGui::Selectable("LightComponent"))
                 //{
                 //    ULightComponentBase* LightComponent = PickedActor->AddComponent<ULightComponentBase>();
@@ -105,6 +106,11 @@ void PropertyEditorPanel::Render()
                 {
                     UPointLightComponent* PointLightComponent = PickedActor->AddComponent<UPointLightComponent>(EComponentOrigin::Editor);
                     PickedComponent = PointLightComponent;
+                }
+                if (ImGui::Selectable("SpotLightComponent"))
+                {
+                    USpotLightComponent* SpotLightComponent = PickedActor->AddComponent<USpotLightComponent>(EComponentOrigin::Editor);
+                    PickedComponent = SpotLightComponent;
                 }
                 if (ImGui::Selectable("ParticleComponent"))
                 {
@@ -325,6 +331,33 @@ void PropertyEditorPanel::Render()
                 //{
                 //    PointLight->SetAttenuationFallOff(attenuationVal);
                 //}
+            }
+        }
+
+        if (PickedComponent->IsA<USpotLightComponent>())
+        {
+            USpotLightComponent* SpotLight = Cast<USpotLightComponent>(PickedComponent);
+            if (SpotLight)
+            {
+                float OuterAngle = SpotLight->GetOuterConeAngle();
+                float InnerAngle = SpotLight->GetInnerConeAngle();
+
+                // 먼저 Outer 처리
+                if (ImGui::SliderFloat("Outer Angle", &OuterAngle, 0.0f, 179.9f))
+                {
+                    SpotLight->SetOuterConeAngle(OuterAngle);
+
+                    // Outer를 줄였으면 Inner도 맞춰줌
+                    InnerAngle = FMath::Min(InnerAngle, OuterAngle);
+                    SpotLight->SetInnerConeAngle(InnerAngle);
+                }
+
+                // Inner는 항상 Outer보다 작게 clamp
+                if (ImGui::SliderFloat("Inner Angle", &InnerAngle, 0.0f, OuterAngle))
+                {
+                    InnerAngle = FMath::Clamp(InnerAngle, 0.0f, OuterAngle);
+                    SpotLight->SetInnerConeAngle(InnerAngle);
+                }
             }
         }
     }

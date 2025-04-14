@@ -19,7 +19,8 @@
 #include "Serialization/Archive.h"
 #include "Serialization/FWindowsBinHelper.h"
 #include "LevelEditor/SLevelEditor.h"
-
+#include "Components/SpotLightComponent.h"
+#include "Actors/SpotLightActor.h"
 void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
 {
     activeLevelEditor = levelEditor;
@@ -306,15 +307,14 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
                     break;
                 }
-                //case OBJ_SpotLight:
-                //{
-                //    SpawnedActor = World->SpawnActor<AActor>();
-                //    SpawnedActor->SetActorLabel(TEXT("OBJ_SpotLight"));
-                //    SpawnedActor->AddComponent<ULightComponentBase>();
-                //    UBillboardComponent* BillboardComponent = SpawnedActor->AddComponent<UBillboardComponent>();
-                //    BillboardComponent->SetTexture(L"Assets/Texture/spotLight.png");
-                //    break;
-                //}
+                case OBJ_SpotLight:
+                {
+                    SpawnedActor = World->SpawnActor<ASpotLightActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_SpotLight"));
+                    UBillboardComponent* BillboardComponent = SpawnedActor->AddComponent<UBillboardComponent>();
+                    BillboardComponent->SetTexture(L"Assets/Texture/spotLight.png");
+                    break;
+                }
                 case OBJ_PARTICLE:
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
