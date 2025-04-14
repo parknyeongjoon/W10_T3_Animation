@@ -40,7 +40,7 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
     const FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
-    // Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
+    Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
     Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState());
 
     // RTVs 배열의 유효성을 확인합니다.
@@ -82,8 +82,6 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
                                                     staticMeshComp->GetWorldScale());
         
         UpdateMatrixConstants(staticMeshComp, View, Proj);
-
-        UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
 
         if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
         {
@@ -150,26 +148,6 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixConstants")), &MatrixConstants);
 }
 
-void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent)
-{
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
-    
-    FSubUVConstant UVBuffer;
-    
-    if (InSkySphereComponent != nullptr)
-    {
-        UVBuffer.indexU = InSkySphereComponent->UOffset;
-        UVBuffer.indexV = InSkySphereComponent->VOffset;
-    }
-    else
-    {
-        UVBuffer.indexU = 0;
-        UVBuffer.indexV = 0;
-    }
-    
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FSubUVConstant")), &UVBuffer);
-}
-
 void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
 {
     FGraphicsDevice& Graphics = GEngine->graphicDevice;
@@ -189,8 +167,6 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
     {
         const std::shared_ptr<FTexture> texture = GEngine->resourceMgr.GetTexture(MaterialInfo.DiffuseTexturePath);
         Graphics.DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
-        ID3D11SamplerState* linearSampler = renderResourceManager->GetSamplerState(ESamplerType::Linear);
-        Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &linearSampler);
     }
     else
     {

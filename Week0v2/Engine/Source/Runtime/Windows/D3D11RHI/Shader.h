@@ -10,6 +10,9 @@ public:
 
     FString GetFullPath() { return FullPath; }
     void SetFullPath(const FString& InFullPath) { FullPath = InFullPath; }
+
+    D3D_SHADER_MACRO* GetShaderMacro() const { return ShaderMacro; }
+    void SetShaderMacro(D3D_SHADER_MACRO* InShaderMacro) { ShaderMacro = InShaderMacro; }
     
     ID3DBlob* GetShaderBlob() const { return ShaderBlob; }
     void SetShaderBlob(ID3DBlob* blob) { ShaderBlob = blob; }
@@ -23,18 +26,17 @@ public:
     EDepthStencilState GetDepthStencilState() const { return DepthStencilState; }
 
     virtual void Bind() = 0;
-    bool IsOutDated() const;
+    bool IsOutDated();
+    virtual void UpdateShader() = 0;
 
     virtual void Release();
-
-    void UpdateShader();
-    
 protected:
     FName ShaderName = TEXT("");
     FString FullPath = TEXT("");
     std::filesystem::file_time_type LastWriteTime;
     
     ID3DBlob* ShaderBlob = nullptr;
+    D3D_SHADER_MACRO* ShaderMacro = nullptr;
     ERasterizerState RasterizerState = ERasterizerState::SolidBack;
     EBlendState BlendState = EBlendState::AlphaBlend;
     EDepthStencilState DepthStencilState = EDepthStencilState::LessEqual;

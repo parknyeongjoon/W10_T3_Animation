@@ -52,13 +52,7 @@ cbuffer FFlagConstants : register(b2)
     float3 flagPad0;
 }
 
-cbuffer FSubUVConstant : register(b3)
-{
-    float indexU;
-    float indexV;
-}
-
-cbuffer FCameraConstant : register(b4)
+cbuffer FCameraConstant : register(b3)
 {
     matrix ViewMatrix;
     matrix ProjMatrix;
@@ -157,9 +151,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
     
-    float2 uvAdjusted = input.texcoord + float2(indexU, indexV);
-    
-    float4 baseColor = Textures.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, TransparencyScalar);
+    float4 baseColor = Textures.Sample(linearSampler, input.texcoord ) + float4(DiffuseColor, TransparencyScalar);
     
     if(!IsLit)
     {

@@ -87,6 +87,11 @@ void UEditorEngine::Render()
         renderer.AddRenderObjectsToRenderPass(GWorld);
         renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
     }
+
+    if (GetAsyncKeyState('P') & 0x8000)
+    {
+        renderer.GetResourceManager()->HotReloadShaders();
+    }
 }
 
 void UEditorEngine::Tick(float deltaSeconds)

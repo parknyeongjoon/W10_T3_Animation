@@ -59,7 +59,7 @@ static std::string MapHLSLTypeToCPP(const D3D11_SHADER_TYPE_DESC& typeDesc)
             case 4:
                 cType = "FVector4";
                 break;
-            case 3:
+            case 3: 
                 cType = "FVector";
                 break;
             case 2:

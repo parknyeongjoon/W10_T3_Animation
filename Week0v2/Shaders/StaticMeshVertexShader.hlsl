@@ -5,6 +5,7 @@ cbuffer FMatrixConstants : register(b0)
     row_major float4x4 ViewProj;
     row_major float4x4 MInverse;
     bool isSelected;
+    float3 padding; // 12바이트 패딩: 상수 버퍼 정렬을 위해 추가함
 };
 
 struct VS_INPUT

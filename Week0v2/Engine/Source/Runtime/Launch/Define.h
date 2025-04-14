@@ -8,7 +8,6 @@
 // 수학 관련
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
-#include "Math/Matrix.h"
 
 #define UE_LOG Console::GetInstance().AddLog
 
@@ -21,7 +20,7 @@
 
 struct FVertexSimple
 {
-    float x, y, z;    // Position
+    float x, y, z, w;    // Position
     float r, g, b, a; // Color
     float nx, ny, nz;
     float u=0, v=0;

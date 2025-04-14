@@ -6,6 +6,7 @@
 #include "UObject/ObjectMacros.h"
 #include "ViewportClient.h"
 #include "EngineBaseTypes.h"
+#include "Math/Matrix.h"
 
 #define MIN_ORTHOZOOM				1.0							/* 2D ortho viewport zoom >= MIN_ORTHOZOOM */
 #define MAX_ORTHOZOOM				1e25	

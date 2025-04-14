@@ -727,7 +727,14 @@ ID3D11InputLayout* FGraphicsDevice::ExtractInputLayout(ID3DBlob* InShaderBlob, I
         elementDesc.SemanticName = paramDesc.SemanticName;
         elementDesc.SemanticIndex = paramDesc.SemanticIndex;
         elementDesc.InputSlot = 0;
-        elementDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+        if (i == 0)
+        {
+            elementDesc.AlignedByteOffset = 0;
+        }
+        else
+        {
+            elementDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+        }
         elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
         elementDesc.InstanceDataStepRate = 0;
 

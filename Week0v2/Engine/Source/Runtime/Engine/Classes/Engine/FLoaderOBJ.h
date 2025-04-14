@@ -337,6 +337,7 @@ struct FLoaderOBJ
                 vertex.x = RawData.Vertices[vIdx].x;
                 vertex.y = RawData.Vertices[vIdx].y;
                 vertex.z = RawData.Vertices[vIdx].z;
+                vertex.w = 1;
 
                 vertex.r = 1.0f; vertex.g = 1.0f; vertex.b = 1.0f; vertex.a = 1.0f; // 기본 색상
 

@@ -19,8 +19,9 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     Graphics = graphics;
     RenderResourceManager = new FRenderResourceManager(graphics);
     RenderResourceManager->Initialize();
-    //CreateStaticMeshShader();
-    CreateOrUpdateLineBatchShader();
+    CreateVertexPixelShader(TEXT("StaticMesh"), nullptr);
+    StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(TEXT("StaticMesh"));
+    //CreateLineBatchShader();
 }
 
 void FRenderer::PrepareShader(const FName InShaderName)
@@ -76,296 +77,299 @@ void FRenderer::Release()
 }
 
 #pragma region Shader
-void FRenderer::CreateOrUdpateStaticMeshShader()
+void FRenderer::UpdateShaders()
 {
-    ID3DBlob* VSBlob_StaticMesh = nullptr;
-    ID3DBlob* PSBlob_StaticMesh = nullptr;
-
-    ID3D11VertexShader* VertexShader;
-    ID3D11PixelShader* PixelShader;
-    ID3D11InputLayout* InputLayout;
-
-    std::filesystem::file_time_type CurrentVSWriteTime;
-    std::filesystem::file_time_type CurrentPSWriteTime;
-    
-    std::filesystem::file_time_type VS_WriteTime;
-    std::filesystem::file_time_type PS_WriteTime;
-    
-    VertexShader = RenderResourceManager->GetVertexShader(TEXT("StaticMeshVS"));
-    if (VertexShader == nullptr)
-    {
-        Graphics->CreateVertexShader(TEXT("StaticMeshVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
-    }
-    else
-    {
-        FGraphicsDevice::CompileVertexShader(TEXT("StaticMeshVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh, VS_WriteTime);
-    }
-    RenderResourceManager->AddOrSetVertexShader(TEXT("StaticMeshVS"), VertexShader, VS_WriteTime);
-    
-    PixelShader = RenderResourceManager->GetPixelShader(TEXT("StaticMeshPS"));
-    if (PixelShader == nullptr)
-    {
-        Graphics->CreatePixelShader(TEXT("StaticMeshPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
-    }
-    else
-    {
-        FGraphicsDevice::CompilePixelShader(TEXT("StaticMeshPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
-    }
-    RenderResourceManager->AddOrSetPixelShader(TEXT("StaticMeshPS"), PixelShader, PSBlob_StaticMesh, PS_WriteTime);
-
-    // D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
-    //     {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    //     {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    //     {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    //     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    // };
-    //
-    // Graphics->Device->CreateInputLayout(
-    //     layoutDesc, ARRAYSIZE(layoutDesc), VSBlob_StaticMesh->GetBufferPointer(), VSBlob_StaticMesh->GetBufferSize(), &InputLayout
-    // );
-
-    
-    TArray<FConstantBufferInfo> VertexStaticMeshConstant;
-    Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
-    
-    TArray<FConstantBufferInfo> PixelStaticMeshConstant;
-    Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
-    
-    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
-
-    CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
-    CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
-
-    MappingVSPSInputLayout(TEXT("StaticMesh"), TEXT("StaticMeshVS"), TEXT("StaticMeshPS"), InputLayout);
-    MappingVSPSCBSlot(TEXT("StaticMesh"), ShaderStageToCB);
-
-    StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(TEXT("StaticMesh"));
-    GizmoRenderPass = std::make_shared<FGizmoRenderPass>(TEXT("StaticMesh"));
-
-    // SAFE_RELEASE(VSBlob_StaticMesh)
-    // SAFE_RELEASE(PSBlob_StaticMesh)
 }
 
-void FRenderer::CreateOrUpdateTextureShader()
+void FRenderer::CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACRO* pDefines)
 {
-    ID3DBlob* VSBlob_StaticMesh = nullptr;
-    ID3DBlob* PSBlob_StaticMesh = nullptr;
-
-    ID3D11VertexShader* VertexShader;
-    ID3D11PixelShader* PixelShader;
-    ID3D11InputLayout* InputLayout;
-    std::filesystem::file_time_type VS_WriteTime;
-    std::filesystem::file_time_type PS_WriteTime;
+    FString Prefix = InPrefix;
+    if (pDefines != nullptr)
+    {
+#if USE_WIDECHAR
+        Prefix += ConvertAnsiToWchar(pDefines->Name);
+#else
+        Prefix += pDefines->Name;
+#endif
+    }
+    // 접미사를 각각 붙여서 전체 파일명 생성
+    const FString VertexShaderFile = Prefix + TEXT("VertexShader.hlsl");
+    const FString PixelShaderFile  = Prefix + TEXT("PixelShader.hlsl");
     
-    VertexShader = RenderResourceManager->GetVertexShader(TEXT("TextureVS"));
-    if (VertexShader == nullptr)
-    {
-        Graphics->CreateVertexShader(TEXT("TextureVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
-    }
-    else
-    {
-        FGraphicsDevice::CompileVertexShader(TEXT("TextureVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh, VS_WriteTime);
-    }
-    RenderResourceManager->AddOrSetVertexShader(TEXT("TextureVS"), VertexShader, VS_WriteTime);
-    
-    PixelShader = RenderResourceManager->GetPixelShader(TEXT("TexturePS"));
-    if (PixelShader == nullptr)
-    {
-        Graphics->CreatePixelShader(TEXT("TexturePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
-    }
-    else
-    {
-        FGraphicsDevice::CompilePixelShader(TEXT("TexturePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
-    }
-    RenderResourceManager->AddOrSetPixelShader(TEXT("TexturePS"), PixelShader,  PS_WriteTime);
+    RenderResourceManager->CreateVertexShader(VertexShaderFile, pDefines);
+    RenderResourceManager->CreatePixelShader(PixelShaderFile, pDefines);
 
-    TArray<FConstantBufferInfo> VertexStaticMeshConstant;
-    Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
-    
-    TArray<FConstantBufferInfo> PixelStaticMeshConstant;
-    Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
-    
-    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
-
-    CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
-    CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
-
-    MappingVSPSInputLayout(TEXT("Texture"), TEXT("TextureVS"), TEXT("TexturePS"), InputLayout);
-    MappingVSPSCBSlot(TEXT("Texture"), ShaderStageToCB);
-
-    // TODO : Create RenderPass
-
-    SAFE_RELEASE(VSBlob_StaticMesh)
-    SAFE_RELEASE(PSBlob_StaticMesh)
-}
-
-void FRenderer::CreateOrUpdateLineBatchShader()
-{
-    ID3DBlob* VSBlob_StaticMesh = nullptr;
-    ID3DBlob* PSBlob_StaticMesh = nullptr;
-
-    ID3D11VertexShader* VertexShader;
-    ID3D11PixelShader* PixelShader;
-    ID3D11InputLayout* InputLayout;
-    std::filesystem::file_time_type VS_WriteTime;
-    std::filesystem::file_time_type PS_WriteTime;
-    
-    VertexShader = RenderResourceManager->GetVertexShader(TEXT("LineVS"));
-    if (VertexShader == nullptr)
-    {
-        Graphics->CreateVertexShader(TEXT("LineVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
-    }
-    else
-    {
-        FGraphicsDevice::CompileVertexShader(TEXT("LineVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh, VS_WriteTime);
-    }
-    RenderResourceManager->AddOrSetVertexShader(TEXT("LineVS"), VertexShader, VS_WriteTime);
-    
-    PixelShader = RenderResourceManager->GetPixelShader(TEXT("LinePS"));
-    if (PixelShader == nullptr)
-    {
-        Graphics->CreatePixelShader(TEXT("LinePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
-    }
-    else
-    {
-        FGraphicsDevice::CompilePixelShader(TEXT("LinePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
-    }
-    RenderResourceManager->AddOrSetPixelShader(TEXT("LinePS"), PixelShader, PS_WriteTime);
+    ID3DBlob* VertexShaderBlob = RenderResourceManager->GetVertexShaderBlob(VertexShaderFile);
     
     TArray<FConstantBufferInfo> VertexStaticMeshConstant;
-    Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
-    
+    ID3D11InputLayout* InputLayout = nullptr;
+    Graphics->ExtractVertexShaderInfo(VertexShaderBlob, VertexStaticMeshConstant, InputLayout);
+    RenderResourceManager->AddOrSetInputLayout(VertexShaderFile, InputLayout);
+
+    ID3DBlob* PixelShaderBlob = RenderResourceManager->GetPixelShaderBlob(PixelShaderFile);
     TArray<FConstantBufferInfo> PixelStaticMeshConstant;
-    Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
+    Graphics->ExtractPixelShaderInfo(PixelShaderBlob, PixelStaticMeshConstant);
     
     TMap<FShaderConstantKey, uint32> ShaderStageToCB;
 
     CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
     CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
     
-    MappingVSPSInputLayout(TEXT("LineBatch"), TEXT("LineVS"), TEXT("LinePS"), InputLayout);
-    MappingVSPSCBSlot(TEXT("LineBatch"), ShaderStageToCB);
-    
-    LineBatchRenderPass = std::make_shared<FLineBatchRenderPass>(TEXT("LineBatch"));
-
-    SAFE_RELEASE(VSBlob_StaticMesh)
-    SAFE_RELEASE(PSBlob_StaticMesh)
+    MappingVSPSInputLayout(Prefix, VertexShaderFile, PixelShaderFile, VertexShaderFile);
+    MappingVSPSCBSlot(Prefix, ShaderStageToCB);
 }
 
-void FRenderer::CreateOrUpdateFogShader()
-{
-    ID3DBlob* VSBlob_StaticMesh = nullptr;
-    ID3DBlob* PSBlob_StaticMesh = nullptr;
+// void FRenderer::CreateStaticMeshShader()
+// {
+//     // "StaticMesh"라는 접두사를 선언합니다.
+//     FString Prefix = TEXT("StaticMesh");
+//
+//     // 접미사를 각각 붙여서 전체 파일명 생성
+//     const FString VertexShaderFile = Prefix + TEXT("VertexShader.hlsl");
+//     const FString PixelShaderFile  = Prefix + TEXT("PixelShader.hlsl");
+//     
+//     RenderResourceManager->CreateVertexShader(VertexShaderFile, nullptr);
+//     RenderResourceManager->CreatePixelShader(PixelShaderFile, nullptr);
+//
+//     ID3DBlob* VertexShaderBlob = RenderResourceManager->GetVertexShaderBlob(VertexShaderFile);
+//     
+//     TArray<FConstantBufferInfo> VertexStaticMeshConstant;
+//     ID3D11InputLayout* InputLayout = nullptr;
+//     Graphics->ExtractVertexShaderInfo(VertexShaderBlob, VertexStaticMeshConstant, InputLayout);
+//
+//     RenderResourceManager->AddOrSetInputLayout(VertexShaderFile, InputLayout);
+//
+//     ID3DBlob* PixelShaderBlob = RenderResourceManager->GetPixelShaderBlob(PixelShaderFile);
+//     TArray<FConstantBufferInfo> PixelStaticMeshConstant;
+//     Graphics->ExtractPixelShaderInfo(PixelShaderBlob, PixelStaticMeshConstant);
+//     
+//     TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+//
+//     CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
+//     CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
+//     
+//     MappingVSPSInputLayout(Prefix, VertexShaderFile, PixelShaderFile, VertexShaderFile);
+//     MappingVSPSCBSlot(Prefix, ShaderStageToCB);
+//
+//     StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(Prefix);
+//     GizmoRenderPass = std::make_shared<FGizmoRenderPass>(Prefix);
+//
+//     // SAFE_RELEASE(VSBlob_StaticMesh)
+//     // SAFE_RELEASE(PSBlob_StaticMesh)
+// }
 
-    ID3D11VertexShader* VertexShader;
-    ID3D11PixelShader* PixelShader;
-    ID3D11InputLayout* InputLayout;
-    std::filesystem::file_time_type VS_WriteTime;
-    std::filesystem::file_time_type PS_WriteTime;
-    
-    VertexShader = RenderResourceManager->GetVertexShader(TEXT("FogVS"));
-    if (VertexShader == nullptr)
-    {
-        Graphics->CreateVertexShader(TEXT("HeightFogVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
-    }
-    else
-    {
-        FGraphicsDevice::CompileVertexShader(TEXT("HeightFogVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh,VS_WriteTime);
-    }
-    RenderResourceManager->AddOrSetVertexShader(TEXT("FogVS"), VertexShader,VS_WriteTime);
-    
-    PixelShader = RenderResourceManager->GetPixelShader(TEXT("FogPS"));
-    if (PixelShader == nullptr)
-    {
-        Graphics->CreatePixelShader(TEXT("HeightFogPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
-    }
-    else
-    {
-        FGraphicsDevice::CompilePixelShader(TEXT("HeightFogPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
-    }
-    RenderResourceManager->AddOrSetPixelShader(TEXT("FogPS"), PixelShader, PS_WriteTime);
+// void FRenderer::CreateTextureShader()
+// {
+//     ID3DBlob* VSBlob_StaticMesh = nullptr;
+//     ID3DBlob* PSBlob_StaticMesh = nullptr;
+//
+//     ID3D11VertexShader* VertexShader;
+//     ID3D11PixelShader* PixelShader;
+//     ID3D11InputLayout* InputLayout;
+//     std::filesystem::file_time_type VS_WriteTime;
+//     std::filesystem::file_time_type PS_WriteTime;
+//     
+//     VertexShader = RenderResourceManager->GetVertexShader(TEXT("TextureVS"));
+//     if (VertexShader == nullptr)
+//     {
+//         Graphics->CreateVertexShader(TEXT("TextureVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
+//     }
+//     else
+//     {
+//         FGraphicsDevice::CompileVertexShader(TEXT("TextureVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh, VS_WriteTime);
+//     }
+//     RenderResourceManager->AddOrSetVertexShader(TEXT("TextureVS"), VertexShader, VS_WriteTime);
+//     
+//     PixelShader = RenderResourceManager->GetPixelShader(TEXT("TexturePS"));
+//     if (PixelShader == nullptr)
+//     {
+//         Graphics->CreatePixelShader(TEXT("TexturePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
+//     }
+//     else
+//     {
+//         FGraphicsDevice::CompilePixelShader(TEXT("TexturePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
+//     }
+//     RenderResourceManager->AddOrSetPixelShader(TEXT("TexturePS"), PixelShader,  PS_WriteTime);
+//
+//     TArray<FConstantBufferInfo> VertexStaticMeshConstant;
+//     Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
+//     
+//     TArray<FConstantBufferInfo> PixelStaticMeshConstant;
+//     Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
+//     
+//     TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+//
+//     CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
+//     CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
+//
+//     MappingVSPSInputLayout(TEXT("Texture"), TEXT("TextureVS"), TEXT("TexturePS"), TODO, InputLayout);
+//     MappingVSPSCBSlot(TEXT("Texture"), ShaderStageToCB);
+//
+//     // TODO : Create RenderPass
+//
+//     SAFE_RELEASE(VSBlob_StaticMesh)
+//     SAFE_RELEASE(PSBlob_StaticMesh)
+// }
+//
+// void FRenderer::CreateLineBatchShader()
+// {
+//     ID3DBlob* VSBlob_StaticMesh = nullptr;
+//     ID3DBlob* PSBlob_StaticMesh = nullptr;
+//
+//     ID3D11VertexShader* VertexShader;
+//     ID3D11PixelShader* PixelShader;
+//     ID3D11InputLayout* InputLayout;
+//     std::filesystem::file_time_type VS_WriteTime;
+//     std::filesystem::file_time_type PS_WriteTime;
+//     
+//     VertexShader = RenderResourceManager->GetVertexShader(TEXT("LineVS"));
+//     if (VertexShader == nullptr)
+//     {
+//         Graphics->CreateVertexShader(TEXT("LineVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
+//     }
+//     else
+//     {
+//         FGraphicsDevice::CompileVertexShader(TEXT("LineVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh, VS_WriteTime);
+//     }
+//     RenderResourceManager->AddOrSetVertexShader(TEXT("LineVS"), VertexShader, VS_WriteTime);
+//     
+//     PixelShader = RenderResourceManager->GetPixelShader(TEXT("LinePS"));
+//     if (PixelShader == nullptr)
+//     {
+//         Graphics->CreatePixelShader(TEXT("LinePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
+//     }
+//     else
+//     {
+//         FGraphicsDevice::CompilePixelShader(TEXT("LinePixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
+//     }
+//     RenderResourceManager->AddOrSetPixelShader(TEXT("LinePS"), PixelShader, PS_WriteTime);
+//     
+//     TArray<FConstantBufferInfo> VertexStaticMeshConstant;
+//     Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
+//     
+//     TArray<FConstantBufferInfo> PixelStaticMeshConstant;
+//     Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
+//     
+//     TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+//
+//     CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
+//     CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
+//     
+//     MappingVSPSInputLayout(TEXT("LineBatch"), TEXT("LineVS"), TEXT("LinePS"), TODO, InputLayout);
+//     MappingVSPSCBSlot(TEXT("LineBatch"), ShaderStageToCB);
+//     
+//     LineBatchRenderPass = std::make_shared<FLineBatchRenderPass>(TEXT("LineBatch"));
+//
+//     SAFE_RELEASE(VSBlob_StaticMesh)
+//     SAFE_RELEASE(PSBlob_StaticMesh)
+// }
+//
+// void FRenderer::CreateFogShader()
+// {
+//     ID3DBlob* VSBlob_StaticMesh = nullptr;
+//     ID3DBlob* PSBlob_StaticMesh = nullptr;
+//
+//     ID3D11VertexShader* VertexShader;
+//     ID3D11PixelShader* PixelShader;
+//     ID3D11InputLayout* InputLayout;
+//     std::filesystem::file_time_type VS_WriteTime;
+//     std::filesystem::file_time_type PS_WriteTime;
+//     
+//     VertexShader = RenderResourceManager->GetVertexShader(TEXT("FogVS"));
+//     if (VertexShader == nullptr)
+//     {
+//         Graphics->CreateVertexShader(TEXT("HeightFogVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
+//     }
+//     else
+//     {
+//         FGraphicsDevice::CompileVertexShader(TEXT("HeightFogVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh,VS_WriteTime);
+//     }
+//     RenderResourceManager->AddOrSetVertexShader(TEXT("FogVS"), VertexShader,VS_WriteTime);
+//     
+//     PixelShader = RenderResourceManager->GetPixelShader(TEXT("FogPS"));
+//     if (PixelShader == nullptr)
+//     {
+//         Graphics->CreatePixelShader(TEXT("HeightFogPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
+//     }
+//     else
+//     {
+//         FGraphicsDevice::CompilePixelShader(TEXT("HeightFogPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
+//     }
+//     RenderResourceManager->AddOrSetPixelShader(TEXT("FogPS"), PixelShader, PS_WriteTime);
+//
+//     TArray<FConstantBufferInfo> VertexStaticMeshConstant;
+//     Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
+//     
+//     TArray<FConstantBufferInfo> PixelStaticMeshConstant;
+//     Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
+//     
+//     TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+//
+//     CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
+//     CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
+//
+//     MappingVSPSInputLayout(TEXT("Fog"), TEXT("FogVS"), TEXT("FogPS"), TODO, InputLayout);
+//     MappingVSPSCBSlot(TEXT("Fog"), ShaderStageToCB);
+//
+//     // TODO : Create RenderPass
+//
+//     SAFE_RELEASE(VSBlob_StaticMesh)
+//     SAFE_RELEASE(PSBlob_StaticMesh)
+// }
+//
+// void FRenderer::CreateDebugDepthShader()
+// {
+//     ID3DBlob* VSBlob_StaticMesh = nullptr;
+//     ID3DBlob* PSBlob_StaticMesh = nullptr;
+//
+//     ID3D11VertexShader* VertexShader;
+//     ID3D11PixelShader* PixelShader;
+//     ID3D11InputLayout* InputLayout;
+//     std::filesystem::file_time_type VS_WriteTime;
+//     std::filesystem::file_time_type PS_WriteTime;
+//     
+//     VertexShader = RenderResourceManager->GetVertexShader(TEXT("DebugDepthVS"));
+//     if (VertexShader == nullptr)
+//     {
+//         Graphics->CreateVertexShader(TEXT("DebugDepthVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
+//     }
+//     else
+//     {
+//         FGraphicsDevice::CompileVertexShader(TEXT("DebugDepthVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh, VS_WriteTime);
+//     }
+//     RenderResourceManager->AddOrSetVertexShader(TEXT("DebugDepthVS"), VertexShader, VS_WriteTime);
+//     
+//     PixelShader = RenderResourceManager->GetPixelShader(TEXT("DebugDepthPS"));
+//     if (PixelShader == nullptr)
+//     {
+//         Graphics->CreatePixelShader(TEXT("DebugDepthPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
+//     }
+//     else
+//     {
+//         FGraphicsDevice::CompilePixelShader(TEXT("DebugDepthPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
+//     }
+//     RenderResourceManager->AddOrSetPixelShader(TEXT("DebugDepthPS"), PixelShader, PS_WriteTime);
+//
+//     TArray<FConstantBufferInfo> VertexStaticMeshConstant;
+//     Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
+//     
+//     TArray<FConstantBufferInfo> PixelStaticMeshConstant;
+//     Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
+//     
+//     TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+//
+//     CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
+//     CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
+//
+//     MappingVSPSInputLayout(TEXT("DebugDepth"), TEXT("DebugDepthVS"), TEXT("DebugDepthPS"), TODO, InputLayout);
+//     MappingVSPSCBSlot(TEXT("DebugDepth"), ShaderStageToCB);
+//
+//     // TODO : Create RenderPass
+//
+//     SAFE_RELEASE(VSBlob_StaticMesh)
+//     SAFE_RELEASE(PSBlob_StaticMesh) 
+// }
 
-    TArray<FConstantBufferInfo> VertexStaticMeshConstant;
-    Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
-    
-    TArray<FConstantBufferInfo> PixelStaticMeshConstant;
-    Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
-    
-    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
-
-    CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
-    CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
-
-    MappingVSPSInputLayout(TEXT("Fog"), TEXT("FogVS"), TEXT("FogPS"), InputLayout);
-    MappingVSPSCBSlot(TEXT("Fog"), ShaderStageToCB);
-
-    // TODO : Create RenderPass
-
-    SAFE_RELEASE(VSBlob_StaticMesh)
-    SAFE_RELEASE(PSBlob_StaticMesh)
-}
-
-void FRenderer::CreateOrUpdateDebugDepthShader()
-{
-    ID3DBlob* VSBlob_StaticMesh = nullptr;
-    ID3DBlob* PSBlob_StaticMesh = nullptr;
-
-    ID3D11VertexShader* VertexShader;
-    ID3D11PixelShader* PixelShader;
-    ID3D11InputLayout* InputLayout;
-    std::filesystem::file_time_type VS_WriteTime;
-    std::filesystem::file_time_type PS_WriteTime;
-    
-    VertexShader = RenderResourceManager->GetVertexShader(TEXT("DebugDepthVS"));
-    if (VertexShader == nullptr)
-    {
-        Graphics->CreateVertexShader(TEXT("DebugDepthVertexShader.hlsl"), nullptr, &VSBlob_StaticMesh, &VertexShader, VS_WriteTime);
-    }
-    else
-    {
-        FGraphicsDevice::CompileVertexShader(TEXT("DebugDepthVertexShader.hlsl"), nullptr,  &VSBlob_StaticMesh, VS_WriteTime);
-    }
-    RenderResourceManager->AddOrSetVertexShader(TEXT("DebugDepthVS"), VertexShader, VS_WriteTime);
-    
-    PixelShader = RenderResourceManager->GetPixelShader(TEXT("DebugDepthPS"));
-    if (PixelShader == nullptr)
-    {
-        Graphics->CreatePixelShader(TEXT("DebugDepthPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, &PixelShader, PS_WriteTime);
-    }
-    else
-    {
-        FGraphicsDevice::CompilePixelShader(TEXT("DebugDepthPixelShader.hlsl"), nullptr, &PSBlob_StaticMesh, PS_WriteTime);
-    }
-    RenderResourceManager->AddOrSetPixelShader(TEXT("DebugDepthPS"), PixelShader, PS_WriteTime);
-
-    TArray<FConstantBufferInfo> VertexStaticMeshConstant;
-    Graphics->ExtractVertexShaderInfo(VSBlob_StaticMesh, VertexStaticMeshConstant, InputLayout);
-    
-    TArray<FConstantBufferInfo> PixelStaticMeshConstant;
-    Graphics->ExtractPixelShaderInfo(PSBlob_StaticMesh, PixelStaticMeshConstant);
-    
-    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
-
-    CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
-    CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
-
-    MappingVSPSInputLayout(TEXT("DebugDepth"), TEXT("DebugDepthVS"), TEXT("DebugDepthPS"), InputLayout);
-    MappingVSPSCBSlot(TEXT("DebugDepth"), ShaderStageToCB);
-
-    // TODO : Create RenderPass
-
-    SAFE_RELEASE(VSBlob_StaticMesh)
-    SAFE_RELEASE(PSBlob_StaticMesh) 
-}
-
-void FRenderer::ReleaseShader()
-{
-    // RenderResourceManager->ReleaseShader(InputLayout, VertexShader, PixelShader);
-    // ShaderManager.ReleaseShader(TextureInputLayout, VertexTextureShader, PixelTextureShader);
-    // ShaderManager.ReleaseShader(nullptr, VertexLineShader, PixelLineShader);
-    // ShaderManager.ReleaseShader(nullptr, DebugDepthVertexShader, DebugDepthPixelShader);
-    // ShaderManager.ReleaseShader(nullptr, HeightFogVertexShader, HeightFogPixelShader);
-}
 #pragma endregion Shader
 // void FRenderer::   PrepareRender()
 // {
@@ -428,13 +432,13 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
         StaticMeshRenderPass->Execute(ActiveViewport);
     }
 
-    LineBatchRenderPass->Prepare(ActiveViewport);
-    LineBatchRenderPass->Execute(ActiveViewport);
+    //LineBatchRenderPass->Prepare(ActiveViewport);
+    //LineBatchRenderPass->Execute(ActiveViewport);
 
     if (World->GetSelectedActor() != nullptr)
     {
-        GizmoRenderPass->Prepare(ActiveViewport);
-        GizmoRenderPass->Execute(ActiveViewport);
+        //GizmoRenderPass->Prepare(ActiveViewport);
+        //GizmoRenderPass->Execute(ActiveViewport);
     }
     
     //Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
@@ -623,7 +627,7 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
 void FRenderer::AddRenderObjectsToRenderPass(UWorld* InWorld) const
 {
     StaticMeshRenderPass->AddRenderObjectsToRenderPass(InWorld);
-    GizmoRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    //GizmoRenderPass->AddRenderObjectsToRenderPass(InWorld);
 }
 
 //void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport)
@@ -701,9 +705,9 @@ void FRenderer::AddRenderObjectsToRenderPass(UWorld* InWorld) const
     // Graphics->DeviceContext->Draw(4, 0);
 //}
 
-void FRenderer::MappingVSPSInputLayout(const FName InShaderProgramName, FName VSName, FName PSName, ID3D11InputLayout* InInputLayout)
+void FRenderer::MappingVSPSInputLayout(const FName InShaderProgramName, FName VSName, FName PSName, FName InInputLayoutName)
 {
-    ShaderPrograms.Add(InShaderProgramName, std::make_shared<FShaderProgram>(VSName, PSName, InInputLayout));
+    ShaderPrograms.Add(InShaderProgramName, std::make_shared<FShaderProgram>(VSName, PSName, InInputLayoutName));
 }
 
 void FRenderer::MappingVSPSCBSlot(const FName InShaderName, const TMap<FShaderConstantKey, uint32>& MappedConstants)
@@ -711,7 +715,7 @@ void FRenderer::MappingVSPSCBSlot(const FName InShaderName, const TMap<FShaderCo
     ShaderConstantNameAndSlots.Add(InShaderName, MappedConstants);
 }
 
-void FRenderer::MappingVBTopology(const FName InObjectName, const FName InVBName, const uint32 InStride, const uint32 InNumVertices, D3D11_PRIMITIVE_TOPOLOGY InTopology)
+void FRenderer::MappingVBTopology(const FName InObjectName, const FName InVBName, const uint32 InStride, const uint32 InNumVertices, const D3D11_PRIMITIVE_TOPOLOGY InTopology)
 {
     if (VBIBTopologyMappings.Contains(InObjectName) == false)
     {

@@ -20,7 +20,6 @@ public:
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
 private:
     static void UpdateMatrixConstants(UStaticMeshComponent* InStaticMeshComponent, const FMatrix& InView, const FMatrix& InProjection);
-    static void UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent);
     static void UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo);
     
     TArray<UStaticMeshComponent*> StaticMesheComponents;
