@@ -18,7 +18,6 @@ class FRenderer
 {
 public:
     FGraphicsDevice* Graphics;
-    void UpdateShaders();
 private:
     void CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACRO* pDefines);
     //void CreateStaticMeshShader();
