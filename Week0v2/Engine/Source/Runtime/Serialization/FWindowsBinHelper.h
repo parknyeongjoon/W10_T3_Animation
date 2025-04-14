@@ -1,7 +1,6 @@
 #pragma once
 #include "Serialization/Archive.h"
 #include "Core/Container/String.h"
-#include "Engine/AssetDefine.h"
 #include <filesystem>
 
 class FWindowsBinHelper

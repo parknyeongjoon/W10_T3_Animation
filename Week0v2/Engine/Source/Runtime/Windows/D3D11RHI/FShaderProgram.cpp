@@ -12,6 +12,7 @@ void FShaderProgram::Bind() const
     
     ID3D11VertexShader* VertexShader = RenderResourceManager->GetVertexShader(VSName);
     ID3D11PixelShader* PixelShader = RenderResourceManager->GetPixelShader(PSName);
+    ID3D11InputLayout* InputLayout = RenderResourceManager->GetInputLayout(InputLayoutName);
 
     if (VertexShader)
     {
@@ -43,9 +44,4 @@ void FShaderProgram::Bind() const
 
 void FShaderProgram::Release()
 {
-    if (InputLayout)
-    {
-        InputLayout->Release();
-        InputLayout = nullptr;
-    }
 }
