@@ -11,6 +11,7 @@ UPrimitiveComponent::UPrimitiveComponent()
 UPrimitiveComponent::UPrimitiveComponent(const UPrimitiveComponent& Other)
     : USceneComponent(Other)
     , AABB(Other.AABB)
+    , VBIBTopologyMappingName(Other.VBIBTopologyMappingName)
 {
 }
 

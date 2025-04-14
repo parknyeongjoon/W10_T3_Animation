@@ -161,8 +161,11 @@ void UWorld::ReloadScene(const FString& FileName)
 void UWorld::DuplicateSeletedActors()
 {
     AActor* DupedActor = Cast<AActor>(SelectedActor->Duplicate());
+    FVector DupedLocation = DupedActor->GetActorLocation();
+    DupedActor->SetActorLocation(FVector(DupedLocation.x+50, DupedLocation.y+50, DupedLocation.z));
     Level->GetActors().Add(DupedActor);
     Level->PendingBeginPlayActors.Add(DupedActor);
+    SelectedActor = DupedActor;
 }
 
 bool UWorld::DestroyActor(AActor* ThisActor)
