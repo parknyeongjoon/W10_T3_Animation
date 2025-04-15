@@ -89,37 +89,40 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     ID3D11ShaderResourceView* FOBBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("OBB"));
     Graphics.DeviceContext->VSSetShaderResources(5, 1, &FOBBSRV);
 
-    ASpotLightActor* Light = Cast<ASpotLightActor>(GEngine->GetWorld()->GetSelectedActor());
-    if (Light)
+    for (AActor* actor :GEngine->GetWorld()->GetSelectedActors() )
     {
-        TArray<UActorComponent*> Comps = Light->GetComponents();
-        for (const auto& Comp : Comps)
+        ASpotLightActor* Light = Cast<ASpotLightActor>(actor);
+        if (Light)
         {
-            if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Comp))
+            TArray<UActorComponent*> Comps = Light->GetComponents();
+            for (const auto& Comp : Comps)
             {
-                const FMatrix Model = JungleMath::CreateModelMatrix(SpotLight->GetComponentLocation(), SpotLight->GetComponentRotation(),
-                    SpotLight->GetComponentScale());
-                if (SpotLight->GetOuterConeAngle() > 0) 
+                if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Comp))
                 {
-                    UPrimitiveBatch::GetInstance().AddCone(
-                        SpotLight->GetComponentLocation(),
-                        tan(SpotLight->GetOuterConeAngle()) * 15.0f,
-                        15.0f,
-                        15,
-                        SpotLight->GetColor(),
-                        Model
-                    );
-                }
-                if (SpotLight->GetInnerConeAngle() > 0)
-                {
-                    UPrimitiveBatch::GetInstance().AddCone(
-                        SpotLight->GetComponentLocation(),
-                        tan(SpotLight->GetInnerConeAngle()) * 15.0f,
-                        15.0f,
-                        15,
-                        SpotLight->GetColor(),
-                        Model
-                    );
+                    const FMatrix Model = JungleMath::CreateModelMatrix(SpotLight->GetComponentLocation(), SpotLight->GetComponentRotation(),
+                        SpotLight->GetComponentScale());
+                    if (SpotLight->GetOuterConeAngle() > 0) 
+                    {
+                        UPrimitiveBatch::GetInstance().AddCone(
+                            SpotLight->GetComponentLocation(),
+                            tan(SpotLight->GetOuterConeAngle()) * 15.0f,
+                            15.0f,
+                            15,
+                            SpotLight->GetColor(),
+                            Model
+                        );
+                    }
+                    if (SpotLight->GetInnerConeAngle() > 0)
+                    {
+                        UPrimitiveBatch::GetInstance().AddCone(
+                            SpotLight->GetComponentLocation(),
+                            tan(SpotLight->GetInnerConeAngle()) * 15.0f,
+                            15.0f,
+                            15,
+                            SpotLight->GetColor(),
+                            Model
+                        );
+                    }
                 }
             }
         }
