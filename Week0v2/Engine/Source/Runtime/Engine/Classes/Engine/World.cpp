@@ -14,23 +14,14 @@
 #include "Serialization/FWindowsBinHelper.h"
 
 
-UWorld::UWorld(const UWorld& Other)
-    : Super(Other)
-    , defaultMapName(Other.defaultMapName)
-    , WorldType(Other.WorldType)
-    , Level(Other.Level)
+UWorld::UWorld(const UWorld& Other): UObject(Other)
+                                   , defaultMapName(Other.defaultMapName)
+                                   , Level(Other.Level)
+                                   , WorldType(Other.WorldType)
+                                    , EditorPlayer(nullptr)
+                                    , LocalGizmo(nullptr)
 {
 }
-
-// UWorld::UWorld(const UWorld& Other): UObject(Other)
-//                                    , defaultMapName(Other.defaultMapName)
-//                                    , Level(Other.Level)
-//                                    , WorldType(Other.WorldType)
-//                                     , EditorPlayer(nullptr)
-//                                     , LocalGizmo(nullptr)
-// {
-// }
-
 
 void UWorld::InitWorld()
 {
@@ -67,15 +58,8 @@ void UWorld::CreateBaseObject()
 
 void UWorld::ReleaseBaseObject()
 {
-    if (LocalGizmo)
-    {
-        LocalGizmo = nullptr;
-    }
-    
-    if (EditorPlayer)
-    {
-        EditorPlayer = nullptr;
-    }
+    LocalGizmo = nullptr;
+    EditorPlayer = nullptr;
 }
 
 void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
@@ -150,8 +134,7 @@ UObject* UWorld::Duplicate() const
 void UWorld::DuplicateSubObjects(const UObject* SourceObj)
 {
     UObject::DuplicateSubObjects(SourceObj);
-    UWorld* SourceWorld = Cast<UWorld>(SourceObj);
-    Level = Cast<ULevel>(SourceWorld->Level->Duplicate());
+    Level = Cast<ULevel>(Level->Duplicate());
     EditorPlayer = FObjectFactory::ConstructObject<AEditorPlayer>();
     LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
 }
@@ -237,13 +220,11 @@ bool UWorld::DestroyActor(AActor* ThisActor)
 void UWorld::SetPickingGizmo(UObject* Object)
 {
 	pickingGizmo = Cast<USceneComponent>(Object);
-} 
+}
 
 void UWorld::Serialize(FArchive& ar) const
 {
-    int ActorCount = 0;
-    TArray<AActor*> Actors = Level->GetActors();
-    ActorCount = Actors.Num(); // 터지는 부분 
+    int ActorCount = Level->GetActors().Num();
     ar << ActorCount;
     for (AActor* Actor : Level->GetActors())
     {
