@@ -3,15 +3,15 @@
 ////////
 /// 공용: 13 ~ 15
 ///////
-cbuffer ObjectBuffer : register(b11)
+cbuffer FObjectConstant : register(b11)
 {
     row_major matrix ModelMatrix;
-    row_major matrix Inverse;
+    row_major matrix Inverse ;
     bool IsSelected;
     float3 ObjectPadding;
 };
 
-cbuffer ViewBuffer : register(b12)
+cbuffer FViewConstant : register(b12)
 {
     row_major matrix ViewMatrix;
     row_major matrix InvViewMatrix;
@@ -19,7 +19,7 @@ cbuffer ViewBuffer : register(b12)
     float ViewPadding;
 }
 
-cbuffer ProjectionBuffer : register(b13)
+cbuffer FProjectionConstant : register(b13)
 {
     row_major matrix ProjectionMatrix;
     row_major matrix InvProjectionMatrix;

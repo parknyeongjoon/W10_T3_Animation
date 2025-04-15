@@ -56,10 +56,10 @@ public:
     ID3D11BlendState* GetBlendState(EBlendState InState) const { return BlendStates[static_cast<uint32>(InState)]; }
     ID3D11DepthStencilState* GetDepthStencilState(EDepthStencilState InState) const { return DepthStencilStates[static_cast<uint32>(InState)]; }
 
-    void CreateVertexShader(const FString& InFileName, D3D_SHADER_MACRO* pDefines);
+    void CreateVertexShader(const FString& InShaderName, const FString& InFileName, D3D_SHADER_MACRO* pDefines);
     void UpdateVertexShader(const FString& InFileName, D3D_SHADER_MACRO* pDefines);
     
-    void CreatePixelShader(const FString& InFileName, D3D_SHADER_MACRO* pDefines);
+    void CreatePixelShader(const FString& InShaderName, const FString& InFileName, D3D_SHADER_MACRO* pDefines);
     void UpdatePixelShader(const FString& InFileName, D3D_SHADER_MACRO* pDefines);
     
     void AddOrSetVertexShader(FName InVSName, const FString& InFullPath, ID3D11VertexShader* InVS, ID3DBlob* InShaderBlob, D3D_SHADER_MACRO*

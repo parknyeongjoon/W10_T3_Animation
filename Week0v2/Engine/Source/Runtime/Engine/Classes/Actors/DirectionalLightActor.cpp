@@ -1,10 +1,13 @@
 #include "DirectionalLightActor.h"
 #include <Components/DirectionalLightComponent.h>
 
+#include "Components/UBillboardComponent.h"
+
 ADirectionalLightActor::ADirectionalLightActor()
     : Super()
 {
     LightComponent = AddComponent<UDirectionalLightComponent>();
+    BillboardComponent->SetTexture(L"Assets/Texture/S_LightDirectional.png");
 }
 
 ADirectionalLightActor::ADirectionalLightActor(const ADirectionalLightActor& Other)
