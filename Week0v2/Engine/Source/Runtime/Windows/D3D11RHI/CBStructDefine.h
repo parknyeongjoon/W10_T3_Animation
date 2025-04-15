@@ -116,7 +116,7 @@ struct alignas(16) FMaterialConstants
     FVector SpecularColor; // offset: 32, size: 12
     float SpecularScalar; // offset: 44, size: 4
     FVector EmissiveColor; // offset: 48, size: 12
-    float MaterialPad0; // offset: 60, size: 4
+    uint32 bHasNormalTexture; // offset: 60, size: 4
 };
 
 struct alignas(16) FLightingConstants

@@ -15,7 +15,7 @@ cbuffer FMaterialConstants : register(b0)
     float3 SpecularColor;
     float SpecularScalar;
     float3 EmissiveColor;
-    float MaterialPad0;
+    uint bHasNormalTexture;
 }
 
 struct FDirectionalLight
@@ -96,7 +96,6 @@ struct PS_INPUT
     float4 color : COLOR; // 전달할 색상
     float2 texcoord : TEXCOORD0;
     float3 normal : TEXCOORD1;
-    int bHasTex : TEXCOORD2;
     float3x3 TBN: TEXCOORD3;
 };
 
@@ -148,10 +147,11 @@ float3 CalculatePointLight(
     Attenuation *= 1.0 - smoothstep(0.0, Light.Radius, Distance);  
 
     // 디퓨즈  
-    float NdotL = max(dot(Normal, LightDir), 0.0);  
+    float NdotL = max(dot(Normal, LightDir), 0.0);
     float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
-    return (NdotL.xxx);
-    
+    //return float3(abs(LightDir));
+    return float3(NdotL.xxx);
+
 #if LIGHTING_MODEL_LAMBERT
     return Diffuse * Light.Intensity * Attenuation;
 #endif
@@ -228,7 +228,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     float3 Normal = input.normal;
     
-    if (input.bHasTex)
+    if (bHasNormalTexture)
     {
         Normal = normalize(mul(normalTex.rgb, input.TBN));
 
@@ -240,6 +240,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     if (IsNormal)
     {
+        //Normal = input.normal;
         Normal = Normal * 0.5 + 0.5;
         output.color = float4(Normal.rgb, 1.0);
         return output;
@@ -261,7 +262,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
         TotalLight += CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);  
 
     for (uint k = 0; k < NumSpotLights; ++k)
-        TotalLight += CalculateSpotLight(SpotLights[k], input.worldPos, Normal, ViewDir, baseColor.rgb);
+        TotalLight += CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
     
     // 최종 색상 
     output.color = float4(TotalLight*baseColor.rgb, baseColor.a * TransparencyScalar);

@@ -273,7 +273,7 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
     MaterialConstants.SpecularScalar = MaterialInfo.SpecularScalar;
     MaterialConstants.EmissiveColor = MaterialInfo.Emissive;
     //normalScale값 있는데 parse만 하고 constant로 넘기고 있진 않음
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMaterialConstants")), &MaterialConstants);
+    MaterialConstants.bHasNormalTexture = false;
     
     if (MaterialInfo.bHasTexture == true)
     {
@@ -286,6 +286,7 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
         if (NormalTexture)
         {
             Graphics.DeviceContext->PSSetShaderResources(1, 1, &NormalTexture->TextureSRV);
+            MaterialConstants.bHasNormalTexture = true;
         }
         
         ID3D11SamplerState* linearSampler = renderResourceManager->GetSamplerState(ESamplerType::Linear);
@@ -296,4 +297,5 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
         ID3D11ShaderResourceView* nullSRV[1] = {nullptr};
         Graphics.DeviceContext->PSSetShaderResources(0, 1, nullSRV);
     }
+    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMaterialConstants")), &MaterialConstants);
 }
