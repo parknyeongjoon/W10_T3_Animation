@@ -27,6 +27,7 @@ private:
     void PickedObjControl();
     void MultiSelectingStart();
     void MultiSelectingEnd();
+    void MakeMulitRect();
 
     void ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY);
     void ControlTranslation(USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY);

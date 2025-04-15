@@ -37,14 +37,12 @@ void AEditorPlayer::MultiSelectingEnd()
 {
     POINT multiSelectingEndPos;
     GetCursorPos(&multiSelectingEndPos);
-    // UE_LOG(LogLevel::Display, "MultiEnd End Pos : %ld %ld", multiSelectingEndPos.x, multiSelectingEndPos.y);
     
     long leftTopX = std::min(multiSelectingStartPos.x, multiSelectingEndPos.x);
     long leftTopY = std::min(multiSelectingStartPos.y, multiSelectingEndPos.y);
     long rightBottomX = std::max(multiSelectingStartPos.x, multiSelectingEndPos.x);
     long rightBottomY =  std::max(multiSelectingStartPos.y, multiSelectingEndPos.y);
-    // UE_LOG(LogLevel::Display, "MultiEnd End min Pos : %ld %ld",  leftTopX, leftTopY);
-    // UE_LOG(LogLevel::Display, "MultiEnd End min Pos : %ld %ld",  rightBottomX, rightBottomY);
+
     GEngine->GetWorld()->ClearSelectedActors();
     
     // TODO : 현재 UUID 가 높은 애들은 선택이 안됩니다.
@@ -64,6 +62,19 @@ void AEditorPlayer::MultiSelectingEnd()
 
     bMultiSeleting = false;
 }
+
+void AEditorPlayer::MakeMulitRect()
+{
+    UE_LOG(LogLevel::Error, " MakeRecting");
+    POINT multiSelectingEndPos;
+    GetCursorPos(&multiSelectingEndPos);
+    ImVec2 topLeft(std::min(multiSelectingStartPos.x, multiSelectingEndPos.x), std::min(multiSelectingStartPos.y, multiSelectingEndPos.y));
+    ImVec2 bottomRight(std::max(multiSelectingStartPos.x, multiSelectingEndPos.x),std::max(multiSelectingStartPos.y, multiSelectingEndPos.y));
+    ImU32 rectColor = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    float thickness = 2.0f;
+    ImGui::GetForegroundDrawList()->AddRect(topLeft, bottomRight, rectColor, 0.0f, 0, thickness);
+}
+
 void AEditorPlayer::Input()
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -108,6 +119,10 @@ void AEditorPlayer::Input()
         }
         else
         {
+            if (bMultiSeleting)
+            {
+                MakeMulitRect();
+            }
             PickedObjControl();
         }
     }

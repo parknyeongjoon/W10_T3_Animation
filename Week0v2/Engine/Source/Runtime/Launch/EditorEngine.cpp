@@ -95,14 +95,14 @@ void UEditorEngine::Render()
 void UEditorEngine::Tick(float deltaSeconds)
 {
 
+    UIMgr->BeginFrame();
     GWorld->Tick(levelType, deltaSeconds);
     Input();
     // GWorld->Tick(LEVELTICK_All, deltaSeconds);
     LevelEditor->Tick(deltaSeconds);
     Render();
-    UIMgr->BeginFrame();
     UnrealEditor->Render();
-
+    
     Console::GetInstance().Draw();
 
     UIMgr->EndFrame();
