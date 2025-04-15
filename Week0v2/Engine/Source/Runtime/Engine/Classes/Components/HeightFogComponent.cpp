@@ -1,7 +1,7 @@
 #include "HeightFogComponent.h"
 
 UHeightFogComponent::UHeightFogComponent()
-    : UPrimitiveComponent()
+    : Super()
 {
     bIsActive = true;
     bIsExponential = true;
@@ -17,6 +17,24 @@ UHeightFogComponent::UHeightFogComponent()
     DirectionalLightDirection = FVector(0.0f, 0.0f, -1.0f);
     DirectionalInscatteringExponent = 1.0f;
     DirectionalInscatteringStartDistance = 100.0f;
+}
+
+UHeightFogComponent::UHeightFogComponent(const UHeightFogComponent& Other)
+    : Super(Other)
+    , bIsActive(Other.bIsActive)
+    , bIsExponential(Other.bIsExponential)
+    , FogDensity(Other.FogDensity)
+    , HeightFogStart(Other.HeightFogStart)
+    , HeightFogEnd(Other.HeightFogEnd)
+    , DistanceFogFar(Other.DistanceFogFar)
+    , DistanceFogNear(Other.DistanceFogNear)
+    , FogMaxOpacity(Other.FogMaxOpacity)
+    , FogInscatteringColor(Other.FogInscatteringColor)
+    , DirectionalInscatteringColor(Other.DirectionalInscatteringColor)
+    , DirectionalLightDirection(Other.DirectionalLightDirection)
+    , DirectionalInscatteringExponent(Other.DirectionalInscatteringExponent)
+    , DirectionalInscatteringStartDistance(Other.DirectionalInscatteringStartDistance)
+{
 }
 
 void UHeightFogComponent::LoadAndConstruct(const FActorComponentInfo& Info)

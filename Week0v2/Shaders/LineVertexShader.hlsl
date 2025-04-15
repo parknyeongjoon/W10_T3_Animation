@@ -13,7 +13,7 @@ cbuffer FGridParametersData : register(b1)
     float Padding;
 };
 
-cbuffer FPrimitiveCounts : register(b3)
+cbuffer FPrimitiveCounts : register(b2)
 {
     int BoundingBoxCount; // 렌더링할 AABB의 개수
     int pad;
@@ -47,9 +47,9 @@ struct FOrientedBoxCornerData
     float3 corners[8]; // 회전/이동 된 월드 공간상의 8꼭짓점
 };
 
-StructuredBuffer<FBoundingBoxData> g_BoundingBoxes : register(t2);
-StructuredBuffer<FConeData> g_ConeData : register(t3);
-StructuredBuffer<FOrientedBoxCornerData> g_OrientedBoxes : register(t4);
+StructuredBuffer<FBoundingBoxData> g_BoundingBoxes : register(t3);
+StructuredBuffer<FConeData> g_ConeData : register(t4);
+StructuredBuffer<FOrientedBoxCornerData> g_OrientedBoxes : register(t5);
 
 static const int BB_EdgeIndices[12][2] =
 {

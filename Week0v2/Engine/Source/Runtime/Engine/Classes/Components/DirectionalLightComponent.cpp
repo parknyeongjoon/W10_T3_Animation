@@ -7,8 +7,19 @@ UDirectionalLightComponent::UDirectionalLightComponent()
 }
 
 UDirectionalLightComponent::UDirectionalLightComponent(const UDirectionalLightComponent& Other)
+    : Super(Other)
+    , Direction(Other.Direction)
 {
 }
+
+//void UDirectionalLightComponent::SetDirection(FVector _newDir)
+//{
+//    //잘 안됨
+//    FVector Axis = Direction.Cross(_newDir).Normalize();
+//    float Angle = acosf(Direction.Normalize().Dot(_newDir.Normalize()));
+//    GetOwner()->GetRootComponent()->SetRelativeQuat(FQuat::FromAxisAngle(Axis, Angle));
+//    Direction = _newDir;
+//}
 
 UObject* UDirectionalLightComponent::Duplicate() const
 {

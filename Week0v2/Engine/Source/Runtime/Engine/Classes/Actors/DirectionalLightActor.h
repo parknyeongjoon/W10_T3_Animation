@@ -1,12 +1,21 @@
 #pragma once
 #include "Light.h"
-class ADirectionalLightActor :
-    public ALight
+class ADirectionalLightActor : public ALight
 {
     DECLARE_CLASS(ADirectionalLightActor, ALight)
 public:
     ADirectionalLightActor();
     ADirectionalLightActor(const ADirectionalLightActor& Other);
     virtual ~ADirectionalLightActor() override = default;
+    void BeginPlay() override;
+    void Tick(float DeltaTime) override;
+    void Destroyed() override;
+    void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+    bool Destroy() override;
+    UObject* Duplicate() const override;
+    void DuplicateSubObjects(const UObject* Source) override;
+    void PostDuplicate() override;
+    void LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray) override;
+    FActorInfo GetActorInfo() override;
 };
 

@@ -1,6 +1,7 @@
 ﻿#include "ExponentialHeightFogComponent.h"
 
 UExponentialHeightFogComponent::UExponentialHeightFogComponent()
+    : Super()
 {
     FogDensity = 0.2f;
     FogHeightFalloff = 0.02f;
@@ -8,6 +9,17 @@ UExponentialHeightFogComponent::UExponentialHeightFogComponent()
     FogMaxOpacity = 1.0f;
     FogCutOffDistance = 0.0f;
     FogInscatteringColor = FLinearColor::Black;
+}
+
+UExponentialHeightFogComponent::UExponentialHeightFogComponent(const UExponentialHeightFogComponent& Other)
+    : Super(Other)
+    , FogDensity(Other.FogDensity)
+    , FogHeightFalloff(Other.FogHeightFalloff)
+    , StartDistance(Other.StartDistance)
+    , FogMaxOpacity(Other.FogMaxOpacity)
+    , FogCutOffDistance(Other.FogCutOffDistance)
+    , FogInscatteringColor(Other.FogInscatteringColor)
+{
 }
 
 void UExponentialHeightFogComponent::SetFogDensity(float Density)

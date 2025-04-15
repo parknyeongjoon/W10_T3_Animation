@@ -3,14 +3,14 @@
 #include "GameFramework/Actor.h"
 
 UActorComponent::UActorComponent(const UActorComponent& Other)
-    : UObject(Other),
-      bCanEverTick(Other.bCanEverTick),
-      bRegistered(Other.bRegistered),
-      bWantsInitializeComponent(Other.bWantsInitializeComponent),
-      bIsBeingDestroyed(Other.bIsBeingDestroyed),
-      bIsActive(Other.bIsActive),
-      bTickEnabled(Other.bTickEnabled),
-      bAutoActive(Other.bAutoActive)
+    : UObject(Other)
+    , bCanEverTick(Other.bCanEverTick)
+    , bRegistered(Other.bRegistered)
+    , bWantsInitializeComponent(Other.bWantsInitializeComponent)
+    , bIsBeingDestroyed(Other.bIsBeingDestroyed)
+    , bIsActive(Other.bIsActive)
+    , bTickEnabled(Other.bTickEnabled)
+    , bAutoActive(Other.bAutoActive)
 {
     // Owner는 복제 시점에 AActor가 직접 지정
 }

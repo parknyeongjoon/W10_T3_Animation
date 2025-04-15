@@ -6,8 +6,8 @@ class ID3D11InputLayout;
 class FShaderProgram
 {
 public:
-    FShaderProgram(const FName InVSName, const FName InPSName, ID3D11InputLayout* InInputLayout)
-        : VSName(InVSName), PSName(InPSName), InputLayout(InInputLayout)
+    FShaderProgram(const FName InVSName, const FName InPSName, const FName InInputLayoutName)
+        : VSName(InVSName), PSName(InPSName), InputLayoutName(InInputLayoutName)
     {}
 
     FShaderProgram() = default;
@@ -19,13 +19,13 @@ public:
     
     FName GetVertexShaderName() const { return VSName; }
     FName GetPixelShaderName() const { return PSName; }
-    ID3D11InputLayout*  GetInputLayout() const { return InputLayout; }
+    FName GetInputLayoutName() const { return InputLayoutName; }
     
     void SetVertexShaderName(const FName& InName) { VSName = InName;}
     void SetPixelShaderName(const FName& InName) { PSName = InName;}
-    void SetInputLayout(ID3D11InputLayout* InInputLayout) { InputLayout = InInputLayout;}
+    void SetInputLayoutName(const FName& InName) { InputLayoutName = InName; }
 private:
     FName VSName;
     FName PSName;
-    ID3D11InputLayout*  InputLayout;
+    FName InputLayoutName;
 };

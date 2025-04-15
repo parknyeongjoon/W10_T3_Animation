@@ -14,6 +14,9 @@ ULightComponentBase::ULightComponentBase()
 }
 
 ULightComponentBase::ULightComponentBase(const ULightComponentBase& Other)
+    : Super(Other)
+    , color(Other.color)
+    , Intensity(Other.Intensity)
 {
 }
 
@@ -45,16 +48,6 @@ void ULightComponentBase::DuplicateSubObjects(const UObject* Source)
 {
     // 복사할 것?
     Super::DuplicateSubObjects(Source);
-
-    ULightComponentBase* SourceComp = Cast<ULightComponentBase>(Source);
-    if (SourceComp)
-    {
-        SetLocation(SourceComp->GetLocalLocation());
-        color = SourceComp->color;
-        Intensity = SourceComp->Intensity;
-        AABB = SourceComp->AABB;
-    }
-
 }
 
 void ULightComponentBase::PostDuplicate()

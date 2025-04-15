@@ -52,6 +52,70 @@ typedef WIDECHAR TCHAR;
 typedef ANSICHAR TCHAR;
 #endif
 
+#if USE_WIDECHAR
+inline WCHAR* ConvertAnsiToWchar(const ANSICHAR* ansiStr)
+{
+    if (ansiStr == nullptr)
+    {
+        return nullptr;
+    }
+    
+    // ANSI 문자열을 변환할 때 CP_ACP (시스템 기본 ANSI 코드 페이지)를 사용합니다.
+    // 필요한 버퍼 길이(널 종료 문자 포함)를 계산합니다.
+    int bufferSize = MultiByteToWideChar(CP_ACP, 0, ansiStr, -1, nullptr, 0);
+    if (bufferSize == 0)
+    {
+        // 변환 중 오류 발생
+        return nullptr;
+    }
+    
+    // WCHAR* 버퍼 동적 할당
+    WCHAR* wstr = new WCHAR[bufferSize];
+    
+    // ANSI 문자열을 WCHAR*로 변환
+    int result = MultiByteToWideChar(CP_ACP, 0, ansiStr, -1, wstr, bufferSize);
+    if (result == 0)
+    {
+        // 변환 실패 시, 할당한 메모리 해제
+        delete[] wstr;
+        return nullptr;
+    }
+    
+    return wstr;
+}
+#else
+inline ANSICHAR* ConvertWcharToAnsi(const WCHAR* wideStr)
+{
+    if (wideStr == nullptr)
+    {
+        return nullptr;
+    }
+    
+    // 첫 번째 호출: 변환 후 필요한 버퍼 길이(널 종료 문자를 포함)를 계산합니다.
+    int bufferSize = WideCharToMultiByte(CP_ACP, 0, wideStr, -1, nullptr, 0, nullptr, nullptr);
+    if (bufferSize == 0)
+    {
+        // 변환 실패 시
+        return nullptr;
+    }
+    
+    // ANSICHAR* 버퍼 동적 할당
+    ANSICHAR* ansiStr = new ANSICHAR[bufferSize];
+    
+    // 실제 변환 수행
+    int result = WideCharToMultiByte(CP_ACP, 0, wideStr, -1, ansiStr, bufferSize, nullptr, nullptr);
+    if (result == 0)
+    {
+        // 변환 실패 시, 할당한 메모리 해제 후 nullptr 반환
+        delete[] ansiStr;
+        return nullptr;
+    }
+    
+    return ansiStr;
+}
+
+#endif
+
 // 임시로 사용
 #include <string>
 using FWString = std::wstring;

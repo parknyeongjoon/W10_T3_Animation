@@ -14,12 +14,12 @@ USceneComponent::USceneComponent(const USceneComponent& Other)
       RelativeLocation(Other.RelativeLocation),
       RelativeRotation(Other.RelativeRotation),
       QuatRotation(Other.QuatRotation),
-      RelativeScale3D(Other.RelativeScale3D)
+      RelativeScale3D(Other.RelativeScale3D),
+      AABB(Other.AABB)
 {
 }
 USceneComponent::~USceneComponent()
 {
-	if (uuidText) delete uuidText;
 }
 void USceneComponent::InitializeComponent()
 {

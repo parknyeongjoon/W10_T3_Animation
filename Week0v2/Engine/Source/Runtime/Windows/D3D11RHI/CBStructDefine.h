@@ -12,8 +12,8 @@ struct alignas(16) FCameraConstant
 {
     FMatrix ViewMatrix; // offset: 0, size: 64
     FMatrix ProjMatrix; // offset: 64, size: 64
-    FMatrix InvViewMatrix; // offset: 128, size: 64
-    FMatrix InvProjMatrix; // offset: 192, size: 64
+    FMatrix ViewProjMatrix; // offset: 128, size: 64
+
     FVector CameraPos; // offset: 256, size: 12
     float NearPlane; // offset: 268, size: 4
     FVector CameraForward; // offset: 272, size: 12
@@ -87,15 +87,18 @@ struct alignas(16) FLightingConstants
 {
     uint32 NumDirectionalLights; // offset: 0, size: 4
     uint32 NumPointLights; // offset: 4, size: 4
-    FVector2D pad; // offset: 8, size: 8
-    FDirectionalLight DirLights[4];
-    FPointLight PointLights[16];
+    uint32 NumSpotLights;
+    float pad; // offset: 8, size: 8
+    FDirectionalLight DirLights[4]; // offset: 16, size: 128
+    FPointLight PointLights[16]; // offset: 144, size: 768
+    FSpotLight SpotLights[8];
 };
 
 struct alignas(16) FFlagConstants
 {
-    bool IsLit; // offset: 0, size: 4
-    FVector flagPad0; // offset: 4, size: 12
+    uint32 IsLit; // offset: 0, size: 4
+    uint32 IsNormal;
+    FVector2D flagPad0; // offset: 4, size: 12
 };
 
 struct alignas(16) FSubUVConstant
@@ -111,14 +114,13 @@ struct alignas(16) FMatrixConstants
     FMatrix ViewProj; // offset: 64, size: 64
     FMatrix MInverseTranspose; // offset: 128, size: 64
     bool isSelected; // offset: 192, size: 4
-    uint8 pad0[12]; // Padding to end of buffer
+    FVector padding; // offset: 196, size: 12
 };
 
 struct alignas(16) FConstants
 {
-    FMatrix Model; // offset: 0, size: 64
-    FMatrix ViewProj; // offset: 64, size: 64
-    float Flag; // offset: 128, size: 4
+    FMatrix MVP; // offset: 0, size: 64
+    float Flag; // offset: 64, size: 4
     uint8 pad0[12]; // Padding to end of buffer
 };
 

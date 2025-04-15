@@ -28,7 +28,8 @@ struct PS_INPUT
     float4 color : COLOR; // 전달할 색상
     float2 texcoord : TEXCOORD0;
     float3 normal : TEXCOORD1;
-    float3x3 TBN : TEXCOORD2;
+    int bHasTex : TEXCOORD2;
+    float3x3 TBN : TEXCOORD3;
 };
 
 
@@ -51,20 +52,37 @@ struct FPointLight
     float2 pad;
 };
 
+struct FSpotLight
+{
+    float3 Position;
+    float Intensity;
+    
+    float4 Color;
+    
+    float3 Direction;
+    float InnerAngle;
+    
+    float OuterAngle;
+    float3 pad;
+};
+
 cbuffer FLightingConstants : register(b1)
 {
     uint NumDirectionalLights;
     uint NumPointLights;
-    float2 pad;
+    uint NumSpotLights;
+    float pad;
 
     FDirectionalLight DirLights[4];
     FPointLight PointLights[16];
+    FSpotLight SpotLights[8];
 };
 
 cbuffer FFlagConstants : register(b2)
 {
-    bool IsLit;
-    float3 flagPad0;
+    uint IsLit;
+    uint IsNormal;
+    float2 flagPad0;
 }
 
 cbuffer FCameraConstant : register(b3)
@@ -147,6 +165,43 @@ float3 CalculatePointLight(
     return (Diffuse + specularColor) * Attenuation;
 }
 
+float3 CalculateSpotLight(
+    FSpotLight Light,
+    float3 WorldPos,
+    float3 Normal,
+    float3 ViewDir,
+    float3 Albedo)
+{
+    // 조명 방향 벡터 (광원 위치 → 픽셀)
+    float3 LightDir = normalize(Light.Position - WorldPos);
+    float Distance = length(Light.Position - WorldPos);
+
+    // Spot Light 중심 방향
+    float3 SpotDirection = normalize(-Light.Direction);
+
+    // 각도 감쇠 계산
+    float CosInner = cos(Light.InnerAngle);
+    float CosOuter = cos(Light.OuterAngle);
+    float CosAngle = dot(SpotDirection, LightDir); // 광원 기준 → 픽셀 방향
+
+    if (CosAngle < CosOuter)
+        return float3(0, 0, 0);
+
+    float SpotAttenuation = saturate((CosAngle - CosOuter) / (CosInner - CosOuter));
+    float DistanceAttenuation = (1.0 / (1.0 + Distance * Distance * 0.01)); // 간단 거리 감쇠
+
+    // 디퓨즈
+    float NdotL = max(dot(Normal, SpotDirection), 0.0);
+    float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
+
+    // 스페큘러 (Blinn-Phong)
+    float3 HalfVec = normalize(SpotDirection + ViewDir);
+    float NdotH = max(dot(Normal, HalfVec), 0.0);
+    float Specular = pow(NdotH, SpecularScalar * 128.0) * SpecularScalar;
+    float3 specularColor = Light.Color.rgb * Specular * SpecularColor;
+
+    return (Diffuse + specularColor) * Light.Intensity * SpotAttenuation * DistanceAttenuation;
+}
 
 PS_INPUT mainVS(VS_INPUT input)
 {
@@ -181,6 +236,9 @@ PS_INPUT mainVS(VS_INPUT input)
     for(uint j=0; j<NumPointLights; ++j)  
         totalLight += CalculatePointLight(PointLights[j], worldPos.xyz, normal, viewDir, input.color.rgb);  
 
+    //SpotLight 처리
+    for(uint k=0; k<NumSpotLights; ++k)
+        totalLight += CalculateSpotLight(SpotLights[k], worldPos.xyz, normal, viewDir, input.color.rgb);
 
     // 정점 셰이더에서 계산된 색상을 픽셀 셰이더로 전달
     output.color = float4(totalLight * input.color.rgb, input.color.a * TransparencyScalar);  
@@ -188,7 +246,7 @@ PS_INPUT mainVS(VS_INPUT input)
     return output;
 #endif
     
-    // 노멀 계산 (안전한 역전치 행렬 적용)
+    
     float3 tangent = normalize(mul(input.tangent, Model));
 
     // 탄젠트-노멀 직교화 (Gram-Schmidt 과정) 해야 안전함
@@ -203,6 +261,13 @@ PS_INPUT mainVS(VS_INPUT input)
 
     output.TBN = TBN;
     output.normal = normal;
+    output.bHasTex = true;
+    
+    // 노멀 계산 (안전한 역전치 행렬 적용)
+    if (all(input.tangent == float3(1, 0, 0)))
+    {
+        output.bHasTex = false;
+    }
     
     return output;
 }

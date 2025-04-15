@@ -514,7 +514,7 @@ void FGraphicsDevice::CreateSceneColorResources()
     backBuffer->Release();
 }
 
-bool FGraphicsDevice::CompileVertexShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode)
+bool FGraphicsDevice::CompileVertexShader(const std::filesystem::path& InFilePath, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode)
 {
     DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef  _DEBUG
@@ -523,10 +523,8 @@ bool FGraphicsDevice::CompileVertexShader(const FString& InFileName, const D3D_S
     shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 
     ID3DBlob* errorBlob = nullptr;
-
-    const std::filesystem::path current = std::filesystem::current_path();
-    const std::filesystem::path fullpath = current / TEXT("Shaders") / *InFileName;
-    const std::wstring shaderFilePath = fullpath.wstring();
+    
+    const std::wstring shaderFilePath = InFilePath.wstring();
 
     const HRESULT hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", shaderFlags, 0, ppCode, &errorBlob);
 
@@ -544,7 +542,7 @@ bool FGraphicsDevice::CompileVertexShader(const FString& InFileName, const D3D_S
     return true;
 }
 
-bool FGraphicsDevice::CompilePixelShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode)
+bool FGraphicsDevice::CompilePixelShader(const std::filesystem::path& InFilePath, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode)
 {
     DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef  _DEBUG
@@ -553,11 +551,8 @@ bool FGraphicsDevice::CompilePixelShader(const FString& InFileName, const D3D_SH
     shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 
     ID3DBlob* errorBlob = nullptr;
-
-    const std::filesystem::path current = std::filesystem::current_path();
-    const std::filesystem::path fullpath = current / TEXT("Shaders") / *InFileName;
-    const std::wstring shaderFilePath = fullpath.wstring();
-
+    
+    const std::wstring shaderFilePath = InFilePath.wstring();
     const HRESULT hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", shaderFlags, 0, ppCode, &errorBlob);
 
     if (FAILED(hr))
@@ -570,11 +565,11 @@ bool FGraphicsDevice::CompilePixelShader(const FString& InFileName, const D3D_SH
         }
         return false;
     }
-
+ 
     return true;
 }
 
-bool FGraphicsDevice::CreateVertexShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode, ID3D11VertexShader** ppVertexShader) const
+bool FGraphicsDevice::CreateVertexShader(const std::filesystem::path& InFilePath, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode, ID3D11VertexShader** ppVShader) const
 {
     DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef  _DEBUG
@@ -583,11 +578,8 @@ bool FGraphicsDevice::CreateVertexShader(const FString& InFileName, const D3D_SH
     shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 
     ID3DBlob* errorBlob = nullptr;
-
-    const std::filesystem::path current = std::filesystem::current_path();
-    const std::filesystem::path fullpath = current / TEXT("Shaders") / *InFileName;
-    const std::wstring shaderFilePath = fullpath.wstring();
-
+    
+    const std::wstring shaderFilePath = InFilePath.wstring();
     const HRESULT hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", shaderFlags, 0, ppCode, &errorBlob);
 
     if (FAILED(hr))
@@ -604,13 +596,13 @@ bool FGraphicsDevice::CreateVertexShader(const FString& InFileName, const D3D_SH
     if(Device == nullptr)
         return false;
 
-    if (FAILED(Device->CreateVertexShader((*ppCode)->GetBufferPointer(), (*ppCode)->GetBufferSize(), nullptr, ppVertexShader)))
+    if (FAILED(Device->CreateVertexShader((*ppCode)->GetBufferPointer(), (*ppCode)->GetBufferSize(), nullptr, ppVShader)))
         return false;
 
     return true;
 }
 
-bool FGraphicsDevice::CreatePixelShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode, ID3D11PixelShader** ppPixelShader) const
+bool FGraphicsDevice::CreatePixelShader(const std::filesystem::path& InFilePath, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode, ID3D11PixelShader** ppPS) const
 {
     DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef  _DEBUG
@@ -619,10 +611,8 @@ bool FGraphicsDevice::CreatePixelShader(const FString& InFileName, const D3D_SHA
     shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 
     ID3DBlob* errorBlob = nullptr;
-
-    const std::filesystem::path current = std::filesystem::current_path();
-    const std::filesystem::path fullpath = current / TEXT("Shaders") / *InFileName;
-    const std::wstring shaderFilePath = fullpath.wstring();
+    
+    const std::wstring shaderFilePath = InFilePath.wstring();    
 
     const HRESULT hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", shaderFlags, 0, ppCode, &errorBlob);
     
@@ -640,47 +630,203 @@ bool FGraphicsDevice::CreatePixelShader(const FString& InFileName, const D3D_SHA
     if (Device == nullptr)
         return false;
 
-    if (FAILED(Device->CreatePixelShader((*ppCode)->GetBufferPointer(), (*ppCode)->GetBufferSize(), nullptr, ppPixelShader)))
+    if (FAILED(Device->CreatePixelShader((*ppCode)->GetBufferPointer(), (*ppCode)->GetBufferSize(), nullptr, ppPS)))
         return false;
 
     return true;
 }
 
-TArray<FConstantBufferInfo> FGraphicsDevice::ExtractConstantBufferNames(ID3DBlob* shaderBlob)
+void FGraphicsDevice::ExtractVertexShaderInfo(ID3DBlob* shaderBlob, TArray<FConstantBufferInfo>& OutCBInfos, ID3D11InputLayout*& OutInputLayout) const
 {
-    TArray<FConstantBufferInfo> CBInfos;
-
-    // 쉐이더 리플렉션 인터페이스 생성
     ID3D11ShaderReflection* pReflector = nullptr;
-    HRESULT hr = D3DReflect(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), IID_ID3D11ShaderReflection,
+    HRESULT hr = D3DReflect(shaderBlob->GetBufferPointer(),
+                            shaderBlob->GetBufferSize(),
+                            IID_ID3D11ShaderReflection,
                             reinterpret_cast<void**>(&pReflector));
-    if (FAILED(hr) || pReflector == nullptr)
-    {
-        // 오류 처리: 빈 벡터 반환
-        return CBInfos;
-    }
     
-    // 쉐이더 설명 가져오기
+    if (FAILED(hr) || !pReflector)
+    {
+        return;
+    }
+
     D3D11_SHADER_DESC shaderDesc = {};
     hr = pReflector->GetDesc(&shaderDesc);
-    assert(SUCCEEDED(hr));
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pReflector);
+        return;
+    }
+
+    OutCBInfos = ExtractConstantBufferInfos(pReflector, shaderDesc);
+    OutInputLayout = ExtractInputLayout(shaderBlob, pReflector, shaderDesc);
+    
+    SAFE_RELEASE(pReflector);
+}
+
+void FGraphicsDevice::ExtractPixelShaderInfo(ID3DBlob* shaderBlob, TArray<FConstantBufferInfo>& OutCBInfos)
+{
+    ID3D11ShaderReflection* pReflector = nullptr;
+    HRESULT hr = D3DReflect(shaderBlob->GetBufferPointer(),
+                            shaderBlob->GetBufferSize(),
+                            IID_ID3D11ShaderReflection,
+                            reinterpret_cast<void**>(&pReflector));
+    
+    if (FAILED(hr) || !pReflector)
+    {
+        return;
+    }
+
+    D3D11_SHADER_DESC shaderDesc = {};
+    hr = pReflector->GetDesc(&shaderDesc);
+    if (FAILED(hr))
+    {
+        SAFE_RELEASE(pReflector);
+        return;
+    }
+
+    OutCBInfos = ExtractConstantBufferInfos(pReflector, shaderDesc);
+}
+
+TArray<FConstantBufferInfo> FGraphicsDevice::ExtractConstantBufferInfos(ID3D11ShaderReflection* InReflector, const D3D11_SHADER_DESC& InShaderDecs)
+{
+    TArray<FConstantBufferInfo> CBInfos;
     
     // 모든 상수 버퍼에 대해 이름을 추출
-    for (UINT i = 0; i < shaderDesc.ConstantBuffers; ++i)
+    for (UINT i = 0; i < InShaderDecs.ConstantBuffers; ++i)
     {
-        ID3D11ShaderReflectionConstantBuffer* pCB = pReflector->GetConstantBufferByIndex(i);
+        ID3D11ShaderReflectionConstantBuffer* pCB = InReflector->GetConstantBufferByIndex(i);
         if (pCB)
         {
             D3D11_SHADER_BUFFER_DESC cbDesc = {};
-            hr = pCB->GetDesc(&cbDesc);
-            if (SUCCEEDED(hr))
+            const HRESULT hr = pCB->GetDesc(&cbDesc);
+            if(cbDesc.Type != D3D_CT_CBUFFER)
             {
-                const FString CBName = cbDesc.Name;
-                CBInfos.Add(FConstantBufferInfo(CBName, cbDesc.Size, i));
+                continue;
             }
+            
+            const FString CBName = cbDesc.Name;
+            uint32 BindingSlot = 0;
+            
+            for (UINT j = 0; j < InShaderDecs.BoundResources; ++j)
+            {
+                D3D11_SHADER_INPUT_BIND_DESC bindDesc = {};
+                if (SUCCEEDED(InReflector->GetResourceBindingDesc(j, &bindDesc)))
+                {
+                    if (bindDesc.Type != D3D_SIT_CBUFFER)
+                    {
+                        continue;
+                    }
+                    
+                    if (_stricmp(bindDesc.Name, cbDesc.Name) == 0)  // 이름 비교, 대소문자 무시
+                    {
+                        BindingSlot = bindDesc.BindPoint;
+                        break;
+                    }
+                }
+            }
+            CBInfos.Add(FConstantBufferInfo(CBName, cbDesc.Size, BindingSlot));
+            
+            // if (SUCCEEDED(hr))
+            // {
+            //     const FString CBName = cbDesc.Name;
+            //     // 리소스 바인딩 설명을 가져와 상수 버퍼 슬롯 정보를 얻음
+            //     D3D11_SHADER_INPUT_BIND_DESC bindDesc = {};
+            //     hr = InReflector->GetResourceBindingDesc(cbDesc.Name, &bindDesc);
+            //     uint32 BindingSlot = 0;
+            //     if (SUCCEEDED(hr))
+            //     {
+            //         BindingSlot = bindDesc.BindPoint;
+            //     }
+            //     
+            //     CBInfos.Add(FConstantBufferInfo(CBName, cbDesc.Size, i));
+            // }
         }
     }
     
-    pReflector->Release();
     return CBInfos;
+}
+
+ID3D11InputLayout* FGraphicsDevice::ExtractInputLayout(ID3DBlob* InShaderBlob, ID3D11ShaderReflection* InReflector, const D3D11_SHADER_DESC& InShaderDecs) const
+{
+    // 입력 레이아웃 기술자들을 저장할 배열
+    std::vector<D3D11_INPUT_ELEMENT_DESC> layoutDescs;
+
+    // 각 입력 파라미터에 대해 정보를 가져와서 레이아웃 기술자 배열에 추가합니다.
+    for (UINT i = 0; i < InShaderDecs.InputParameters; ++i)
+    {
+        D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
+        const HRESULT hr = InReflector->GetInputParameterDesc(i, &paramDesc);
+        if (FAILED(hr))
+            continue;
+
+        D3D11_INPUT_ELEMENT_DESC elementDesc = {};
+        elementDesc.SemanticName = paramDesc.SemanticName;
+        elementDesc.SemanticIndex = paramDesc.SemanticIndex;
+        elementDesc.InputSlot = 0;
+        if (i == 0)
+        {
+            elementDesc.AlignedByteOffset = 0;
+        }
+        else
+        {
+            elementDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+        }
+        elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+        elementDesc.InstanceDataStepRate = 0;
+
+        // 파라미터의 Mask 값에 따라 구성 요소 수를 결정하고, ComponentType를 기반으로 DXGI_FORMAT을 정합니다.
+        // Mask 값은 해당 파라미터의 몇 개 요소가 사용되는지 나타냅니다.
+        if (paramDesc.Mask == 1)
+        {
+            if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
+                elementDesc.Format = DXGI_FORMAT_R32_FLOAT;
+            else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
+                elementDesc.Format = DXGI_FORMAT_R32_SINT;
+            else if (paramDesc.ComponentType == D3D10_REGISTER_COMPONENT_UINT32)
+                elementDesc.Format = DXGI_FORMAT_R32_UINT;
+        }
+        else if (paramDesc.Mask <= 3)  // 두 구성 요소
+        {
+            if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
+                elementDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+            else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
+                elementDesc.Format = DXGI_FORMAT_R32G32_SINT;
+            else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
+                elementDesc.Format = DXGI_FORMAT_R32G32_UINT;
+        }
+        else if (paramDesc.Mask <= 7)  // 세 구성 요소
+        {
+            if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
+                elementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+            else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
+                elementDesc.Format = DXGI_FORMAT_R32G32B32_SINT;
+            else if (paramDesc.ComponentType == D3D10_REGISTER_COMPONENT_UINT32)
+                elementDesc.Format = DXGI_FORMAT_R32G32B32_UINT;
+        }
+        else if (paramDesc.Mask <= 15)  // 네 구성 요소
+        {
+            if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
+                elementDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+            else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
+                elementDesc.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+            else if (paramDesc.ComponentType == D3D10_REGISTER_COMPONENT_UINT32)
+                elementDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+        }
+        else
+        {
+            // 기본값 또는 지원되지 않는 구성의 경우 기본적인 형식으로 설정할 수 있습니다.
+            elementDesc.Format = DXGI_FORMAT_UNKNOWN;
+        }
+        layoutDescs.push_back(elementDesc);
+    }
+
+    // 입력 레이아웃 생성
+    ID3D11InputLayout* inputLayout = nullptr;
+    const HRESULT hr = Device->CreateInputLayout(layoutDescs.data(),
+                                   static_cast<UINT>(layoutDescs.size()),
+                                   InShaderBlob->GetBufferPointer(),
+                                   InShaderBlob->GetBufferSize(),
+                                   &inputLayout);
+    
+    return inputLayout;
 }

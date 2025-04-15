@@ -204,6 +204,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\SpotLightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ActorComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\CubeComp.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\DirectionalLightComponent.cpp" />
@@ -223,6 +224,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\SceneComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\SkySphereComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\SphereComp.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\SpotLightComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\StaticMeshComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UBillboardComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UParticleSubUVComp.cpp" />
@@ -249,6 +251,7 @@
     <ClCompile Include="Engine\Source\Runtime\Launch\Launch.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\Renderer.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FBaseRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\GizmoRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\LineBatchRenderPass.cpp" />
@@ -258,8 +261,11 @@
     <ClCompile Include="Engine\Source\Runtime\Serialization\Archive.cpp" />
     <ClCompile Include="Engine\Source\Runtime\SlateCore\Widgets\SWindow.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Slate\Widgets\Layout\SSplitter.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\PixelShader.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\Shader.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\FShaderProgram.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\GraphicDevice.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_demo.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_draw.cpp" />
@@ -322,6 +328,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\SpotLightActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ActorComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ActorComponentInfo.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\CubeComp.h" />
@@ -343,6 +350,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SceneComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SkySphereComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SphereComp.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SpotLightComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\StaticMeshComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UBillboardComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UParticleSubUVComp.h" />
@@ -374,6 +382,7 @@
     <ClInclude Include="Engine\Source\Runtime\Launch\ImGuiManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\Renderer.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FBaseRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\GizmoRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\LineBatchRenderPass.h" />
@@ -386,8 +395,11 @@
     <ClInclude Include="Engine\Source\Runtime\SlateCore\Widgets\SWindow.h" />
     <ClInclude Include="Engine\Source\Runtime\Slate\Widgets\Layout\SSplitter.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\CBStructDefine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\PixelShader.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\Shader.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\FShaderProgram.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\GraphicDevice.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.h" />
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
     <ClInclude Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.h" />
     <ClInclude Include="Font\IconDefs.h" />

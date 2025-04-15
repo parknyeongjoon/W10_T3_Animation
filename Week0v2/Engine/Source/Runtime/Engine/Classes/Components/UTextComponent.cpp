@@ -16,7 +16,10 @@ UTextComponent::~UTextComponent()
 }
 
 UTextComponent::UTextComponent(const UTextComponent& other)
-:UBillboardComponent(other), vertexTextureArr(other.vertexTextureArr), text(other.text), quad(other.quad)
+    : UBillboardComponent(other)
+    , vertexTextureArr(other.vertexTextureArr)
+    , text(other.text)
+    , quad(other.quad)
 {
 }
 

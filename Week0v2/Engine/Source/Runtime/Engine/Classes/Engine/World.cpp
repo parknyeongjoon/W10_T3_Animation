@@ -14,12 +14,10 @@
 #include "Serialization/FWindowsBinHelper.h"
 
 
-UWorld::UWorld(const UWorld& Other): UObject(Other)
-                                   , defaultMapName(Other.defaultMapName)
-                                   , Level(Other.Level)
-                                   , WorldType(Other.WorldType)
-                                    , EditorPlayer(nullptr)
-                                    , LocalGizmo(nullptr)
+UWorld::UWorld(const UWorld& Other)
+    : Super(Other)
+    , defaultMapName(Other.defaultMapName)
+    , WorldType(Other.WorldType)
 {
 }
 
@@ -58,8 +56,15 @@ void UWorld::CreateBaseObject()
 
 void UWorld::ReleaseBaseObject()
 {
-    LocalGizmo = nullptr;
-    EditorPlayer = nullptr;
+    if (LocalGizmo)
+    {
+        LocalGizmo = nullptr;
+    }
+    
+    if (EditorPlayer)
+    {
+        EditorPlayer = nullptr;
+    }
 }
 
 void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
@@ -134,7 +139,8 @@ UObject* UWorld::Duplicate() const
 void UWorld::DuplicateSubObjects(const UObject* SourceObj)
 {
     UObject::DuplicateSubObjects(SourceObj);
-    Level = Cast<ULevel>(Level->Duplicate());
+    UWorld* SourceWorld = Cast<UWorld>(SourceObj);
+    Level = Cast<ULevel>(SourceWorld->Level->Duplicate());
     EditorPlayer = FObjectFactory::ConstructObject<AEditorPlayer>();
     LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
 }

@@ -12,17 +12,14 @@ struct PS_Input
 
 cbuffer FConstants : register(b0)
 {
-    row_major float4x4 Model;
-    row_major float4x4 ViewProj;
+    row_major float4x4 MVP;
     float Flag;
 }
 
 PS_Input mainVS(VS_Input input) {
     
     PS_Input output;
-    output.position = mul(float4(input.position, 1.0f), Model);
-    output.position = mul(output.position, ViewProj);
-    
+    output.position = mul(float4(input.position, 1.0f), MVP);
     output.texCoord = input.texCoord;
     
     return output;

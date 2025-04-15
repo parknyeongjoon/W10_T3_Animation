@@ -15,6 +15,7 @@ class UExponentialHeightFogComponent : public UPrimitiveComponent
     DECLARE_CLASS(UExponentialHeightFogComponent, UPrimitiveComponent)
 
     UExponentialHeightFogComponent();
+    UExponentialHeightFogComponent(const UExponentialHeightFogComponent& Other);
     
 public:
     /**

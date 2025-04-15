@@ -44,20 +44,37 @@ struct FPointLight
     float2 pad;
 };
 
+struct FSpotLight
+{
+    float3 Position;
+    float Intensity;
+    
+    float4 Color;
+    
+    float3 Direction;
+    float InnerAngle;
+    
+    float OuterAngle;
+    float3 pad;
+};
+
 cbuffer FLightingConstants : register(b2)
 {
     uint NumDirectionalLights;
     uint NumPointLights;
-    float2 pad;
+    uint NumSpotLights;
+    float pad;
 
     FDirectionalLight DirLights[4];
     FPointLight PointLights[16];
+    FSpotLight SpotLights[8];
 };
 
 cbuffer FFlagConstants : register(b3)
 {
-    bool IsLit;
-    float3 flagPad0;
+    uint IsLit;
+    uint IsNormal;
+    float2 flagPad0;
 }
 
 cbuffer FSubUVConstant : register(b4)
@@ -86,7 +103,8 @@ struct PS_INPUT
     float4 color : COLOR; // 전달할 색상
     float2 texcoord : TEXCOORD0;
     float3 normal : TEXCOORD1;
-    float3x3 TBN: TEXCOORD2;
+    int bHasTex : TEXCOORD2;
+    float3x3 TBN: TEXCOORD3;
 };
 
 struct PS_OUTPUT
@@ -153,16 +171,61 @@ float3 CalculatePointLight(
     return (Diffuse + specularColor) * Attenuation;  
 }  
 
+float3 CalculateSpotLight(
+    FSpotLight Light,
+    float3 WorldPos,
+    float3 Normal,
+    float3 ViewDir,
+    float3 Albedo)
+{
+    // 조명 방향 벡터 (광원 위치 → 픽셀)
+    float3 LightDir = normalize(Light.Position - WorldPos);
+    float Distance = length(Light.Position - WorldPos);
+
+    // Spot Light 중심 방향
+    float3 SpotDirection = normalize(-Light.Direction);
+
+    // 각도 감쇠 계산
+    float CosInner = cos(Light.InnerAngle);
+    float CosOuter = cos(Light.OuterAngle);
+    float CosAngle = dot(SpotDirection, LightDir); // 광원 기준 → 픽셀 방향
+
+    if (CosAngle < CosOuter)
+        return float3(0, 0, 0);
+
+    float SpotAttenuation = saturate((CosAngle - CosOuter) / (CosInner - CosOuter));
+    float DistanceAttenuation = (1.0 / (1.0 + Distance * Distance * 0.01)); // 간단 거리 감쇠
+
+    // 디퓨즈
+    float NdotL = max(dot(Normal, SpotDirection), 0.0);
+    float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
+
+    // 스페큘러 (Blinn-Phong)
+    float3 HalfVec = normalize(SpotDirection + ViewDir);
+    float NdotH = max(dot(Normal, HalfVec), 0.0);
+    float Specular = pow(NdotH, SpecularScalar * 128.0) * SpecularScalar;
+    float3 specularColor = Light.Color.rgb * Specular * SpecularColor;
+
+    return (Diffuse + specularColor) * Light.Intensity * SpotAttenuation * DistanceAttenuation;
+}
+
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
     output.UUID = UUID;
-    float2 uvAdjusted = input.texcoord + float2(indexU, indexV);
+    float2 uvAdjusted = input.texcoord;
     
     // 기본 색상 추출  
     float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
     if (IsSelectedActor == 1)
         input.color = input.color * 5;
+
+    if (!IsLit && !IsNormal)
+    {
+        output.color = float4(baseColor.rgb, 1.0);
+        return output;
+    }
+    
 #if LIGHTING_MODEL_GOURAUD
     output.color = float4(baseColor.rgb * input.color.rgb, 1.0);
     return output;
@@ -170,17 +233,23 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float4 normalTex = ((NormalTexture.Sample(linearSampler, uvAdjusted)- 0.5) * 2);
     input.normal = input.normal - 0.5;
     
-    if(!IsLit)
+    float3 Normal = input.normal;
+    
+    if (input.bHasTex)
     {
-        output.color = float4(baseColor.rgb, 1.0);
-        return output;
+        Normal = normalize(mul(normalTex.rgb, input.TBN));
+
+        if (length(Normal) < 0.001) // tangent 값이 없을때 ( uv 없을때 )
+        {
+            Normal = input.normal;
+        }        
     }
     
-    float3 Normal = normalize(mul(normalTex.rgb, input.TBN));
-
-    if (length(Normal) < 0.001) // tangent 값이 없을때 ( uv 없을때 )
+    if (IsNormal)
     {
-        Normal = input.normal;
+        Normal = Normal * 0.5 + 0.5;
+        output.color = float4(Normal.rgb, 1.0);
+        return output;
     }
     
     float3 ViewDir = normalize(CameraPos - input.worldPos);
@@ -198,7 +267,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
     for(uint j=0; j<NumPointLights; ++j)  
         TotalLight += CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);  
 
-    // 최종 색상  
-    output.color = float4(TotalLight * baseColor.rgb, baseColor.a * TransparencyScalar);  
+    for (uint k = 0; k < NumSpotLights; ++k)
+        TotalLight += CalculateSpotLight(SpotLights[k], input.worldPos, Normal, ViewDir, baseColor.rgb);
+    
+    // 최종 색상 
+    output.color = float4(TotalLight*baseColor.rgb, baseColor.a * TransparencyScalar);
     return output;  
 }
