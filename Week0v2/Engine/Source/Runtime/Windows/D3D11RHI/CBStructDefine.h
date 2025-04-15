@@ -122,20 +122,28 @@ struct alignas(16) FConstants
     uint8 pad0[12]; // Padding to end of buffer
 };
 
+struct alignas(16) FConstatntBufferActor
+{
+    FVector4 UUID; // offset: 0, size: 16
+    uint32 IsSelectedActor; // offset: 16, size: 4
+    FVector padding; // offset: 20, size: 12
+};
+
 enum class EShaderConstantBuffer
 {
     FCameraConstant = 0,
     FConstants = 1,
-    FFlagConstants = 2,
-    FFogParams = 3,
-    FGridParametersData = 4,
-    FLightingConstants = 5,
-    FMaterialConstants = 6,
-    FMatrixBuffer = 7,
-    FMatrixConstants = 8,
-    FPrimitiveCounts = 9,
-    FSubUVConstant = 10,
-    FViewportInfo = 11,
+    FConstatntBufferActor = 2,
+    FFlagConstants = 3,
+    FFogParams = 4,
+    FGridParametersData = 5,
+    FLightingConstants = 6,
+    FMaterialConstants = 7,
+    FMatrixBuffer = 8,
+    FMatrixConstants = 9,
+    FPrimitiveCounts = 10,
+    FSubUVConstant = 11,
+    FViewportInfo = 12,
     EShaderConstantBuffer_MAX
 };
 
@@ -145,6 +153,7 @@ inline const TCHAR* EShaderConstantBufferToString(EShaderConstantBuffer e)
     {
     case EShaderConstantBuffer::FCameraConstant: return TEXT("FCameraConstant");
     case EShaderConstantBuffer::FConstants: return TEXT("FConstants");
+    case EShaderConstantBuffer::FConstatntBufferActor: return TEXT("FConstatntBufferActor");
     case EShaderConstantBuffer::FFlagConstants: return TEXT("FFlagConstants");
     case EShaderConstantBuffer::FFogParams: return TEXT("FFogParams");
     case EShaderConstantBuffer::FGridParametersData: return TEXT("FGridParametersData");
@@ -164,6 +173,7 @@ inline EShaderConstantBuffer EShaderConstantBufferFromString(const TCHAR* str)
 #if USE_WIDECHAR
     if(std::wcscmp(str, TEXT("FCameraConstant")) == 0) return EShaderConstantBuffer::FCameraConstant;
     if(std::wcscmp(str, TEXT("FConstants")) == 0) return EShaderConstantBuffer::FConstants;
+    if(std::wcscmp(str, TEXT("FConstatntBufferActor")) == 0) return EShaderConstantBuffer::FConstatntBufferActor;
     if(std::wcscmp(str, TEXT("FFlagConstants")) == 0) return EShaderConstantBuffer::FFlagConstants;
     if(std::wcscmp(str, TEXT("FFogParams")) == 0) return EShaderConstantBuffer::FFogParams;
     if(std::wcscmp(str, TEXT("FGridParametersData")) == 0) return EShaderConstantBuffer::FGridParametersData;
@@ -177,6 +187,7 @@ inline EShaderConstantBuffer EShaderConstantBufferFromString(const TCHAR* str)
 #else
     if(std::strcmp(str, "FCameraConstant") == 0) return EShaderConstantBuffer::FCameraConstant;
     if(std::strcmp(str, "FConstants") == 0) return EShaderConstantBuffer::FConstants;
+    if(std::strcmp(str, "FConstatntBufferActor") == 0) return EShaderConstantBuffer::FConstatntBufferActor;
     if(std::strcmp(str, "FFlagConstants") == 0) return EShaderConstantBuffer::FFlagConstants;
     if(std::strcmp(str, "FFogParams") == 0) return EShaderConstantBuffer::FFogParams;
     if(std::strcmp(str, "FGridParametersData") == 0) return EShaderConstantBuffer::FGridParametersData;

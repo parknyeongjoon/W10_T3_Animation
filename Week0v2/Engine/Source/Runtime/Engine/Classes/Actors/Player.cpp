@@ -27,7 +27,42 @@ void AEditorPlayer::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
     Input();
 }
+void AEditorPlayer::MultiSelectingStart()
+{
+    GetCursorPos(&multiSelectingStartPos);
+    UE_LOG(LogLevel::Display, "MultiStart Start Pos : %ld %ld" , multiSelectingStartPos.x, multiSelectingStartPos.y);
+    bMultiSeleting = true;
+}
 
+void AEditorPlayer::MultiSelectingEnd()
+{
+    POINT multiSelectingEndPos;
+    GetCursorPos(&multiSelectingEndPos);
+    // UE_LOG(LogLevel::Display, "MultiEnd End Pos : %ld %ld", multiSelectingEndPos.x, multiSelectingEndPos.y);
+    
+    long leftTopX = std::min(multiSelectingStartPos.x, multiSelectingEndPos.x);
+    long leftTopY = std::min(multiSelectingStartPos.y, multiSelectingEndPos.y);
+    long rightBottomX = std::max(multiSelectingStartPos.x, multiSelectingEndPos.x);
+    long rightBottomY =  std::max(multiSelectingStartPos.y, multiSelectingEndPos.y);
+    // UE_LOG(LogLevel::Display, "MultiEnd End min Pos : %ld %ld",  leftTopX, leftTopY);
+    // UE_LOG(LogLevel::Display, "MultiEnd End min Pos : %ld %ld",  rightBottomX, rightBottomY);
+    GEngine->GetWorld()->ClearSelectedActors();
+    for (long i = leftTopX; i <= rightBottomX; i +=10)
+    {
+        for (long j = leftTopY ; j <= rightBottomY; j +=10)
+        {
+            uint32 UUID = GetEngine()->graphicDevice.GetPixelUUID(POINT(i,j));
+             for ( USceneComponent* obj : TObjectRange<USceneComponent>())
+             {
+                 if (obj->GetUUID() != UUID) continue;
+                 UE_LOG(LogLevel::Display, *obj->GetOwner()->GetName());
+                 GEngine->GetWorld()->AddSelectedActor(obj->GetOwner());
+             }
+        }
+    }
+
+    bMultiSeleting = false;
+}
 void AEditorPlayer::Input()
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -45,21 +80,22 @@ void AEditorPlayer::Input()
     {
         if (!bLeftMouseDown)
         {
-
             bLeftMouseDown = true;
 
             POINT mousePos;
             GetCursorPos(&mousePos);
-            GetCursorPos(&m_LastMousePos);
-
-            //uint32 UUID = GetEngine()->graphicDevice.GetPixelUUID(mousePos);
-            // TArray<UObject*> objectArr = GetWorld()->GetObjectArr();
-            // for ( const auto obj : TObjectRange<USceneComponent>())
-            // {
-            //     if (obj->GetUUID() != UUID) continue;
+            GetCursorPos(&lastMousePos);
+            if ( bLAltDown && bLCtrlDown )
+            {
+                MultiSelectingStart();
+            }
+            // uint32 UUID = GetEngine()->graphicDevice.GetPixelUUID(mousePos);
+            //  for ( const auto obj : TObjectRange<USceneComponent>())
+            //  {
+            //      if (obj->GetUUID() != UUID) continue;
             //
-            //     UE_LOG(LogLevel::Display, *obj->GetName());
-            // }
+            //      UE_LOG(LogLevel::Display, *obj->GetName());
+            //  }
             ScreenToClient(GetEngine()->hWnd, &mousePos);
 
             FVector pickPosition;
@@ -80,7 +116,12 @@ void AEditorPlayer::Input()
         {
             bLeftMouseDown = false;
             bAlreadyDup = false;
-            GetWorld()->SetPickingGizmo(nullptr);
+            if (bMultiSeleting)
+            {
+                MultiSelectingEnd();
+            }
+            else
+                GetWorld()->SetPickingGizmo(nullptr);
         }
     }
     if (GetAsyncKeyState(VK_SPACE) & 0x8000)
@@ -164,13 +205,13 @@ void AEditorPlayer::Input()
         if (!bLAltDown)
         {
             bLAltDown = true;
-            UE_LOG(LogLevel::Error, "Alt");
         }
     }
     else
     {
         bLAltDown =false;
     }
+    
 }
 
 bool AEditorPlayer::PickGizmo(FVector& pickPosition)
@@ -401,8 +442,8 @@ void AEditorPlayer::PickedObjControl()
     {
         POINT currentMousePos;
         GetCursorPos(&currentMousePos);
-        int32 deltaX = currentMousePos.x - m_LastMousePos.x;
-        int32 deltaY = currentMousePos.y - m_LastMousePos.y;
+        int32 deltaX = currentMousePos.x - lastMousePos.x;
+        int32 deltaY = currentMousePos.y - lastMousePos.y;
 
         // USceneComponent* pObj = GetWorld()->GetPickingObj();
         //AActor* PickedActor = GetWorld()->GetSelectedActors();
@@ -426,10 +467,13 @@ void AEditorPlayer::PickedObjControl()
                 break;
             }
         }
-        m_LastMousePos = currentMousePos;
+        lastMousePos = currentMousePos;
     }
         
 }
+
+
+
 
 void AEditorPlayer::ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY)
 {

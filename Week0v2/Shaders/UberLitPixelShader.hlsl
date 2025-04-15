@@ -18,6 +18,13 @@ cbuffer FMaterialConstants : register(b0)
     float MaterialPad0;
 }
 
+cbuffer FConstatntBufferActor : register(b1)
+{
+    float4 UUID; // 임시
+    uint IsSelectedActor;
+    float3 padding;
+}
+
 struct FDirectionalLight
 {
     float3 Direction;
@@ -37,7 +44,7 @@ struct FPointLight
     float2 pad;
 };
 
-cbuffer FLightingConstants : register(b1)
+cbuffer FLightingConstants : register(b2)
 {
     uint NumDirectionalLights;
     uint NumPointLights;
@@ -47,19 +54,20 @@ cbuffer FLightingConstants : register(b1)
     FPointLight PointLights[16];
 };
 
-cbuffer FFlagConstants : register(b2)
+cbuffer FFlagConstants : register(b3)
 {
     bool IsLit;
     float3 flagPad0;
 }
 
-cbuffer FSubUVConstant : register(b3)
+cbuffer FSubUVConstant : register(b4)
 {
     float indexU;
     float indexV;
+    float2 subUVpadding;
 }
 
-cbuffer FCameraConstant : register(b4)
+cbuffer FCameraConstant : register(b5)
 {
     matrix ViewMatrix;
     matrix ProjMatrix;
@@ -84,6 +92,7 @@ struct PS_INPUT
 struct PS_OUTPUT
 {
     float4 color : SV_Target0;
+    float4 UUID : SV_Target1;
 };
 
 float3 CalculateDirectionalLight(  
@@ -147,6 +156,7 @@ float3 CalculatePointLight(
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
+    output.UUID = UUID;
     float2 uvAdjusted = input.texcoord + float2(indexU, indexV);
     
     // 기본 색상 추출  

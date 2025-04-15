@@ -25,6 +25,9 @@ private:
     int RayIntersectsObject(const FVector& pickPosition, USceneComponent* obj, float& hitDistance, int& intersectCount);
     void ScreenToViewSpace(int screenX, int screenY, const FMatrix& viewMatrix, const FMatrix& projectionMatrix, FVector& rayOrigin);
     void PickedObjControl();
+    void MultiSelectingStart();
+    void MultiSelectingEnd();
+
     void ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY);
     void ControlTranslation(USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY);
     void ControlScale(USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY);
@@ -36,7 +39,9 @@ private:
     bool bLShiftDown = false;
     bool bLAltDown = false;
     bool bAlreadyDup = false;
-    POINT m_LastMousePos;
+    bool bMultiSeleting =false;
+    POINT lastMousePos;
+    POINT multiSelectingStartPos;
     ControlMode cMode = CM_TRANSLATION;
     CoordiMode cdMode = CDM_WORLD;
 
@@ -45,3 +50,4 @@ public:
     ControlMode GetControlMode() const { return cMode; }
     CoordiMode GetCoordiMode() const { return cdMode; }
 };
+

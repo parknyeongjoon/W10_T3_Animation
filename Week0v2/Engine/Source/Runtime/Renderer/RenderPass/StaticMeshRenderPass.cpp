@@ -63,7 +63,7 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
     // RTVs 배열의 유효성을 확인합니다.
     if (Graphics.RTVs[0] != nullptr)
     {
-        Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView); // 렌더 타겟 설정
+        Graphics.DeviceContext->OMSetRenderTargets(2, Graphics.RTVs, Graphics.DepthStencilView); // 렌더 타겟 설정
     }
     else
     {
@@ -92,16 +92,17 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         View = curEditorViewportClient->GetViewMatrix();
         Proj = curEditorViewportClient->GetProjectionMatrix();
     }
-    
+
+
     for (UStaticMeshComponent* staticMeshComp : StaticMesheComponents)
     {
         const FMatrix Model = JungleMath::CreateModelMatrix(staticMeshComp->GetComponentLocation(), staticMeshComp->GetComponentRotation(),
                                                     staticMeshComp->GetComponentScale());
         
         UpdateMatrixConstants(staticMeshComp, View, Proj);
-
+        FVector4 UUIDColor = staticMeshComp->EncodeUUID() / 255.0f ;
         // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
-
+        UpdateContstantBufferActor(UUIDColor , 0);
         UpdateLightConstants();
 
         UpdateFlagConstant();
@@ -220,6 +221,18 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     LightConstant.NumDirectionalLights = DirectionalLightCount;
     
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FLightingConstants")), &LightConstant);
+}
+
+void FStaticMeshRenderPass::UpdateContstantBufferActor(const FVector4 UUID, int32 isSelected)
+{
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    
+    FConstatntBufferActor ConstatntBufferActor;
+
+    ConstatntBufferActor.UUID = UUID;
+    ConstatntBufferActor.IsSelectedActor = isSelected;
+    
+    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FConstatntBufferActor")), &ConstatntBufferActor);
 }
 
 void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent)
