@@ -12,8 +12,8 @@ struct alignas(16) FCameraConstant
 {
     FMatrix ViewMatrix; // offset: 0, size: 64
     FMatrix ProjMatrix; // offset: 64, size: 64
-    FMatrix InvViewMatrix; // offset: 128, size: 64
-    FMatrix InvProjMatrix; // offset: 192, size: 64
+    FMatrix ViewProjMatrix; // offset: 128, size: 64
+
     FVector CameraPos; // offset: 256, size: 12
     float NearPlane; // offset: 268, size: 4
     FVector CameraForward; // offset: 272, size: 12
@@ -114,14 +114,13 @@ struct alignas(16) FMatrixConstants
     FMatrix ViewProj; // offset: 64, size: 64
     FMatrix MInverseTranspose; // offset: 128, size: 64
     bool isSelected; // offset: 192, size: 4
-    uint8 pad0[12]; // Padding to end of buffer
+    FVector padding; // offset: 196, size: 12
 };
 
 struct alignas(16) FConstants
 {
-    FMatrix Model; // offset: 0, size: 64
-    FMatrix ViewProj; // offset: 64, size: 64
-    float Flag; // offset: 128, size: 4
+    FMatrix MVP; // offset: 0, size: 64
+    float Flag; // offset: 64, size: 4
     uint8 pad0[12]; // Padding to end of buffer
 };
 

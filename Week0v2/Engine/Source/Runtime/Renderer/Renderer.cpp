@@ -32,6 +32,9 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     
     CreateVertexPixelShader(TEXT("Line"), nullptr);
     LineBatchRenderPass = std::make_shared<FLineBatchRenderPass>(TEXT("Line"));
+
+    CreateVertexPixelShader(TEXT("DebugDepth"), nullptr);
+    DebugDepthRenderPass = std::make_shared<FDebugDepthRenderPass>(TEXT("DebugDepth"));
     // CreateStaticMeshShader();
     // CreateLineBatchShader();
     //CreateLineBatchShader();
@@ -49,7 +52,7 @@ void FRenderer::BindConstantBuffers(const FName InShaderName)
     TMap<FShaderConstantKey, uint32> curShaderBindedConstant = ShaderConstantNameAndSlots[InShaderName];
     for (const auto item : curShaderBindedConstant)
     {
-        auto curConstantBuffer = RenderResourceManager->GetConstantBuffer(item.Key.ConstantName);
+          auto curConstantBuffer = RenderResourceManager->GetConstantBuffer(item.Key.ConstantName);
         if (item.Key.ShaderType == EShaderStage::VS)
         {
             if (curConstantBuffer)
@@ -593,7 +596,7 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
 {
     SetViewMode(ActiveViewport->GetViewMode());
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
-    
+
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
     {
         StaticMeshRenderPass->Prepare(ActiveViewport);
@@ -602,6 +605,12 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
 
     LineBatchRenderPass->Prepare(ActiveViewport);
     LineBatchRenderPass->Execute(ActiveViewport);
+
+    if (ActiveViewport->GetViewMode() == EViewModeIndex::VMI_Depth)
+    {
+        DebugDepthRenderPass->Prepare(ActiveViewport);
+        DebugDepthRenderPass->Execute(ActiveViewport);
+    }
 
     if (World->GetSelectedActor() != nullptr)
     {
@@ -775,6 +784,8 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
         break;
     case EViewModeIndex::VMI_Wireframe:
         CurrentRasterizerState = ERasterizerState::WireFrame;
+        bIsLit = false;
+        bIsNormal = false;
         break;
     case EViewModeIndex::VMI_Unlit:
         CurrentRasterizerState = ERasterizerState::SolidBack;
@@ -782,10 +793,14 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
         bIsLit = false;
         bIsNormal = false;
         break;
+    case EViewModeIndex::VMI_Depth:
+        CurrentRasterizerState = ERasterizerState::SolidBack;
+        break;
     case EViewModeIndex::VMI_Normal:
         CurrentRasterizerState = ERasterizerState::SolidBack;
         bIsLit = false;
         bIsNormal = true;
+        break;
     default:
         CurrentRasterizerState = ERasterizerState::SolidBack;
         break;
