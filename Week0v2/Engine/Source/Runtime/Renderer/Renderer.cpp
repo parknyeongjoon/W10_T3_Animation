@@ -773,6 +773,7 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
         break;
     case EViewModeIndex::VMI_Wireframe:
         CurrentRasterizerState = ERasterizerState::WireFrame;
+        break;
     case EViewModeIndex::VMI_Unlit:
         CurrentRasterizerState = ERasterizerState::SolidBack;
         //TODO : Light 안 받는 거
