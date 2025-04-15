@@ -34,14 +34,14 @@ struct FTextComponentInfo : public FBillboardComponentInfo
     }
 };
 
-class UText : public UBillboardComponent
+class UTextComponent : public UBillboardComponent
 {
-    DECLARE_CLASS(UText, UBillboardComponent)
+    DECLARE_CLASS(UTextComponent, UBillboardComponent)
 
 public:
-    UText();
-    virtual ~UText() override;
-    UText(const UText& other);
+    UTextComponent();
+    virtual ~UTextComponent() override;
+    UTextComponent(const UTextComponent& other);
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
     void ClearText();

@@ -6,6 +6,11 @@ UTextUUID::UTextUUID()
     SetLocation(FVector(0.0f, 0.0f, -0.5f));
 }
 
+UTextUUID::UTextUUID(const UTextUUID& Other)
+    : Super(Other)
+{
+}
+
 UTextUUID::~UTextUUID()
 {
 }

@@ -8,7 +8,6 @@
 // 수학 관련
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
-#include "Math/Matrix.h"
 
 #define UE_LOG Console::GetInstance().AddLog
 
@@ -21,7 +20,7 @@
 
 struct FVertexSimple
 {
-    float x, y, z;    // Position
+    float x, y, z, w;    // Position
     float r, g, b, a; // Color
     float nx, ny, nz;
     float Tangentnx, Tangentny, Tangentnz;
@@ -417,4 +416,17 @@ struct FComputeConstants{
     float screenHeight;
     float Pad;
     float Pad2;
+};
+struct FSpotLight
+{
+    FVector Position;
+    float Intensity;
+
+    FVector4 Color;
+
+    FVector Direction;
+    float InnerAngle;
+
+    float OuterAngle;
+    FVector pad;
 };

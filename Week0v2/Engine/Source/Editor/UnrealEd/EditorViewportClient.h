@@ -6,6 +6,7 @@
 #include "UObject/ObjectMacros.h"
 #include "ViewportClient.h"
 #include "EngineBaseTypes.h"
+#include "Math/Matrix.h"
 
 #define MIN_ORTHOZOOM				1.0							/* 2D ortho viewport zoom >= MIN_ORTHOZOOM */
 #define MAX_ORTHOZOOM				1e25	
@@ -116,7 +117,7 @@ public:
     float FOVAngle = 60.0f;
     float AspectRatio;
     float nearPlane = 0.1f;
-    float farPlane = 1000.0f;
+    float farPlane = 1000000.0f;
     static FVector Pivot;
     static float orthoSize;
     ELevelViewportType ViewportType;

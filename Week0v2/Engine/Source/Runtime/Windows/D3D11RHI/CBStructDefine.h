@@ -87,9 +87,11 @@ struct alignas(16) FLightingConstants
 {
     uint32 NumDirectionalLights; // offset: 0, size: 4
     uint32 NumPointLights; // offset: 4, size: 4
-    FVector2D pad; // offset: 8, size: 8
-    FDirectionalLight DirLights[4];
-    FPointLight PointLights[16];
+    uint32 NumSpotLights;
+    float pad; // offset: 8, size: 8
+    FDirectionalLight DirLights[4]; // offset: 16, size: 128
+    FPointLight PointLights[16]; // offset: 144, size: 768
+    FSpotLight SpotLights[8];
 };
 
 struct alignas(16) FFlagConstants

@@ -13,6 +13,7 @@
 
 
 UBillboardComponent::UBillboardComponent()
+    : Super()
 {
 }
 
@@ -57,10 +58,10 @@ void UBillboardComponent::SetTexture(FWString _fileName)
 	Texture = UEditorEngine::resourceMgr.GetTexture(_fileName);
 }
 
-void UBillboardComponent::SetUUIDParent(USceneComponent* _parent)
-{
-	m_parent = _parent;
-}
+// void UBillboardComponent::SetUUIDParent(USceneComponent* _parent)
+// {
+// 	m_parent = _parent;
+// }
 
 
 FMatrix UBillboardComponent::CreateBillboardMatrix()
@@ -83,7 +84,7 @@ FMatrix UBillboardComponent::CreateBillboardMatrix()
 	CameraView.M[2][2] = -CameraView.M[2][2];
 	FMatrix LookAtCamera = FMatrix::Transpose(CameraView);
 	
-	FVector worldLocation = GetWorldLocation();
+	FVector worldLocation = GetComponentLocation();
 	FVector worldScale = RelativeScale3D;
 	FMatrix S = FMatrix::CreateScale(worldScale.x, worldScale.y, worldScale.z);
 	FMatrix R = LookAtCamera;
@@ -104,6 +105,7 @@ UObject* UBillboardComponent::Duplicate() const
 void UBillboardComponent::DuplicateSubObjects(const UObject* Source)
 {
     UPrimitiveComponent::DuplicateSubObjects(Source);
+
 }
 
 void UBillboardComponent::PostDuplicate()

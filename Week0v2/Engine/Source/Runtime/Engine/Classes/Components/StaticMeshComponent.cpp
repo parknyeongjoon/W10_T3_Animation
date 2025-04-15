@@ -9,9 +9,9 @@
 
 
 UStaticMeshComponent::UStaticMeshComponent(const UStaticMeshComponent& Other)
-    : UMeshComponent(Other),
-      staticMesh(Other.staticMesh),
-      selectedSubMeshIndex(Other.selectedSubMeshIndex)
+    : UMeshComponent(Other)
+    , staticMesh(Other.staticMesh)
+    , selectedSubMeshIndex(Other.selectedSubMeshIndex)
 {
 }
 uint32 UStaticMeshComponent::GetNumMaterials() const
@@ -147,7 +147,6 @@ UObject* UStaticMeshComponent::Duplicate() const
 void UStaticMeshComponent::DuplicateSubObjects(const UObject* Source)
 {
     UMeshComponent::DuplicateSubObjects(Source);
-    // staticMesh는 복사 생성자에서 복제됨
 }
 
 void UStaticMeshComponent::PostDuplicate() {}

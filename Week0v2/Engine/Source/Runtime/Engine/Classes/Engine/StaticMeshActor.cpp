@@ -7,3 +7,8 @@ AStaticMeshActor::AStaticMeshActor()
     StaticMeshComponent = AddComponent<UStaticMeshComponent>();
     RootComponent = StaticMeshComponent;
 }
+
+AStaticMeshActor::AStaticMeshActor(const AStaticMeshActor& Other)
+    : Super(Other)
+{
+}

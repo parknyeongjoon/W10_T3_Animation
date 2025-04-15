@@ -33,7 +33,7 @@ void OutlinerEditorPanel::Render()
     /* Render Start */
     ImGui::Begin("Outliner", nullptr, PanelFlags);
 
-    if (ImGui::TreeNode("Primitives")) // 트리 노드 생성
+    if (ImGui::TreeNode("Actors")) // 트리 노드 생성
     {
         UWorld* World = GEngine->GetWorld();
         for (AActor* Actor : World->GetActors())

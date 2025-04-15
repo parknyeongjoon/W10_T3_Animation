@@ -17,7 +17,7 @@ URotatingMovementComponent::URotatingMovementComponent(const URotatingMovementCo
 
 void URotatingMovementComponent::TickComponent(float DeltaTime)
 {
-    const FVector OldRotation = UpdatedComponent->GetWorldRotation();
+    const FVector OldRotation = UpdatedComponent->GetComponentRotation();
     const FVector DeltaRotation = (RotationRate * DeltaTime);
     const FVector NewRotation = OldRotation + DeltaRotation;
 

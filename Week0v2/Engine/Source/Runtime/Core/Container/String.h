@@ -142,6 +142,20 @@ public:
     FORCEINLINE int32 Len() const;
     FORCEINLINE bool IsEmpty() const;
 
+    // Left 함수 선언: 앞에서 지정한 문자 수만큼의 문자열을 반환
+    FORCEINLINE FString Left(const int32 Count) const
+    {
+        // 음수 또는 0인 경우에는 빈 문자열을 반환합니다.
+        if (Count <= 0)
+        {
+            return FString();
+        }
+        // Count가 전체 길이보다 크면 전체 문자열 길이를 사용합니다.
+        const int32 LengthToUse = (Count < Len()) ? Count : Len();
+        // std::basic_string::substr은 Count가 문자열 길이를 초과해도 자동으로 끝까지 반환합니다.
+        return FString(PrivateString.substr(0, LengthToUse));
+    }
+
     /** 배열의 모든 요소를 지웁니다. */
     void Empty();
 

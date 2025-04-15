@@ -16,8 +16,12 @@ UMovementComponent::UMovementComponent()
 
 UMovementComponent::UMovementComponent(const UMovementComponent& Other)
     : UActorComponent(Other)
+    , Velocity(Other.Velocity)
+    , bUpdateOnlyIfRendered(Other.bUpdateOnlyIfRendered)
+    , bAutoUpdateTickRegistration(Other.bAutoUpdateTickRegistration)
+    , bAutoRegisterUpdatedComponent(Other.bAutoRegisterUpdatedComponent)
+    , bInInitializeComponent(Other.bInInitializeComponent)
 {
-    
 }
 
 float UMovementComponent::GetGravityZ() const
@@ -79,15 +83,6 @@ UObject* UMovementComponent::Duplicate() const
 void UMovementComponent::DuplicateSubObjects(const UObject* Source)
 {
     UActorComponent::DuplicateSubObjects(Source);
-
-    UMovementComponent* SourceComp = Cast<UMovementComponent>(Source);
-    if (SourceComp)
-    {
-        Velocity = SourceComp->Velocity;
-        bUpdateOnlyIfRendered = SourceComp->bUpdateOnlyIfRendered;
-        bAutoUpdateTickRegistration = SourceComp->bAutoUpdateTickRegistration;
-        bAutoRegisterUpdatedComponent = SourceComp->bAutoRegisterUpdatedComponent;
-    }
 }
 
 void UMovementComponent::PostDuplicate()

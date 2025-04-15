@@ -77,6 +77,7 @@ void UEditorEngine::Render()
         for (int i = 0; i < 4; ++i)
         {
             LevelEditor->SetViewportClient(i);
+            ResizeGizmo();
             renderer.AddRenderObjectsToRenderPass(GWorld);
             renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
         }
@@ -86,6 +87,12 @@ void UEditorEngine::Render()
     {
         renderer.AddRenderObjectsToRenderPass(GWorld);
         renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
+    }
+    ResizeGizmo();
+
+    if (GetAsyncKeyState('P') & 0x8000)
+    {
+        renderer.GetResourceManager()->HotReloadShaders();
     }
 }
 

@@ -1,12 +1,13 @@
 #pragma once
-#include "UText.h"
+#include "UTextComponent.h"
 
-class UTextUUID : public UText
+class UTextUUID : public UTextComponent
 {
-    DECLARE_CLASS(UTextUUID, UText)
+    DECLARE_CLASS(UTextUUID, UTextComponent)
 
 public:
     UTextUUID();
+    UTextUUID(const UTextUUID& Other);
     virtual ~UTextUUID() override;
 
     virtual int CheckRayIntersection(

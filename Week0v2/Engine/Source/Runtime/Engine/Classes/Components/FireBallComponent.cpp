@@ -4,7 +4,8 @@
 #include "GameFramework/Actor.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
-UFireBallComponent::UFireBallComponent(const UFireBallComponent& Other): Super(Other)
+UFireBallComponent::UFireBallComponent(const UFireBallComponent& Other)
+    : Super(Other)
 {
 }
 

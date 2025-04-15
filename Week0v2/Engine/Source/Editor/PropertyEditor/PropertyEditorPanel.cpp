@@ -6,7 +6,7 @@
 #include "Components/PointLightComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/HeightFogComponent.h"
-#include "Components/UText.h"
+#include "Components/UTextComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Math/MathUtility.h"
 #include "UnrealEd/ImGuiWidget.h"
@@ -16,6 +16,8 @@
 
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Components/GameFramework/RotatingMovementComponent.h"
+#include <Components/SpotLightComponent.h>
+#include <Math/JungleMath.h>
 
 void PropertyEditorPanel::Render()
 {
@@ -28,10 +30,10 @@ void PropertyEditorPanel::Render()
 
     ImVec2 MinSize(140, 370);
     ImVec2 MaxSize(FLT_MAX, 900);
-    
+
     /* Min, Max Size */
     ImGui::SetNextWindowSizeConstraints(MinSize, MaxSize);
-    
+
     /* Panel Position */
     ImGui::SetNextWindowPos(ImVec2(PanelPosX, PanelPosY), ImGuiCond_Always);
 
@@ -43,7 +45,7 @@ void PropertyEditorPanel::Render()
 
     /* Render Start */
     ImGui::Begin("Detail", nullptr, PanelFlags);
-    
+
     AEditorPlayer* player = GEngine->GetWorld()->GetEditorPlayer();
     AActor* PickedActor = GEngine->GetWorld()->GetSelectedActor();
 
@@ -78,15 +80,25 @@ void PropertyEditorPanel::Render()
             {
                 if (ImGui::Selectable("TextComponent"))
                 {
-                    UText* TextComponent = PickedActor->AddComponent<UText>(EComponentOrigin::Editor);
+                    UTextComponent* TextComponent = PickedActor->AddComponent<UTextComponent>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        TextComponent->DetachFromParent();
+                        TextComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = TextComponent;
                     TextComponent->SetTexture(L"Assets/Texture/font.png");
                     TextComponent->SetRowColumnCount(106, 106);
                     TextComponent->SetText(L"안녕하세요 Jungle");
                 }
-                if (ImGui::Selectable("BillboardComponent"))    
+                if (ImGui::Selectable("BillboardComponent"))
                 {
                     UBillboardComponent* BillboardComponent = PickedActor->AddComponent<UBillboardComponent>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        BillboardComponent->DetachFromParent();
+                        BillboardComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = BillboardComponent;
                     BillboardComponent->SetTexture(L"Assets/Texture/Pawn_64x.png");
                     BillboardComponent->SetLocation(FVector(0.0f, 0.0f, 3.0f));
@@ -99,16 +111,36 @@ void PropertyEditorPanel::Render()
                 if (ImGui::Selectable("DirectionalLightComponent"))
                 {
                     UDirectionalLightComponent* DirectionalLightComponent = PickedActor->AddComponent<UDirectionalLightComponent>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        DirectionalLightComponent->DetachFromParent();
+                        DirectionalLightComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = DirectionalLightComponent;
                 }
                 if (ImGui::Selectable("PointLightComponent"))
                 {
                     UPointLightComponent* PointLightComponent = PickedActor->AddComponent<UPointLightComponent>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        PointLightComponent->DetachFromParent();
+                        PointLightComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = PointLightComponent;
+                }
+                if (ImGui::Selectable("SpotLightComponent"))
+                {
+                    USpotLightComponent* SpotLightComponent = PickedActor->AddComponent<USpotLightComponent>(EComponentOrigin::Editor);
+                    PickedComponent = SpotLightComponent;
                 }
                 if (ImGui::Selectable("ParticleComponent"))
                 {
                     UParticleSubUVComp* ParticleComponent = PickedActor->AddComponent<UParticleSubUVComp>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        ParticleComponent->DetachFromParent();
+                        ParticleComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = ParticleComponent;
                     ParticleComponent->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
                     ParticleComponent->SetRowColumnCount(6, 6);
@@ -118,6 +150,11 @@ void PropertyEditorPanel::Render()
                 if (ImGui::Selectable("StaticMeshComponent"))
                 {
                     UStaticMeshComponent* StaticMeshComponent = PickedActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        StaticMeshComponent->DetachFromParent();
+                        StaticMeshComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = StaticMeshComponent;
                     FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
                     StaticMeshComponent->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
@@ -125,6 +162,11 @@ void PropertyEditorPanel::Render()
                 if (ImGui::Selectable("CubeComponent"))
                 {
                     UCubeComp* CubeComponent = PickedActor->AddComponent<UCubeComp>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        CubeComponent->DetachFromParent();
+                        CubeComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = CubeComponent;
                 }
 
@@ -168,9 +210,9 @@ void PropertyEditorPanel::Render()
             {
                 LastComponent = PickedComponent;
                 bFirstFrame = true;
-                Location = SceneComp->GetWorldLocation();
-                Rotation = SceneComp->GetWorldRotation();
-                Scale = SceneComp->GetWorldScale();
+                Location = SceneComp->GetRelativeLocation();
+                Rotation = SceneComp->GetRelativeRotation();
+                Scale = SceneComp->GetRelativeScale();
             }
 
             bool bChanged = false;
@@ -190,17 +232,18 @@ void PropertyEditorPanel::Render()
                 SceneComp->SetRotation(Rotation);
                 SceneComp->SetScale(Scale);
             }
+            
+            //always local
+            //std::string coordiButtonLabel;
+            //if (player->GetCoordiMode() == CoordiMode::CDM_WORLD)
+            //    coordiButtonLabel = "World";
+            //else if (player->GetCoordiMode() == CoordiMode::CDM_LOCAL)
+            //    coordiButtonLabel = "Local";
 
-            std::string coordiButtonLabel;
-            if (player->GetCoordiMode() == CoordiMode::CDM_WORLD)
-                coordiButtonLabel = "World";
-            else if (player->GetCoordiMode() == CoordiMode::CDM_LOCAL)
-                coordiButtonLabel = "Local";
-
-            if (ImGui::Button(coordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
-            {
-                player->AddCoordiMode();
-            }
+            //if (ImGui::Button(coordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
+            //{
+            //    player->AddCoordiMode();
+            //}
             ImGui::TreePop(); // 트리 닫기
         }
         ImGui::PopStyleColor();
@@ -295,7 +338,8 @@ void PropertyEditorPanel::Render()
         {
             // direction
             UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(PickedComponent);
-            if (DirectionalLight)
+            //TODO: 회전 각에 맞춰 direction 변동
+            /*if (DirectionalLight)
             {
                 FVector LightDirection = DirectionalLight->GetDirection();
                 bool bChanged = FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
@@ -305,7 +349,7 @@ void PropertyEditorPanel::Render()
                 {
                     DirectionalLight->SetDirection(LightDirection);
                 }
-            }
+            }*/
         }
 
         if (PickedComponent->IsA<UPointLightComponent>())
@@ -327,12 +371,39 @@ void PropertyEditorPanel::Render()
                 //}
             }
         }
+
+        if (PickedComponent->IsA<USpotLightComponent>())
+        {
+            USpotLightComponent* SpotLight = Cast<USpotLightComponent>(PickedComponent);
+            if (SpotLight)
+            {
+                float OuterAngle = JungleMath::RadToDeg(SpotLight->GetOuterConeAngle());
+                float InnerAngle = JungleMath::RadToDeg(SpotLight->GetInnerConeAngle());
+
+                // 먼저 Outer 처리
+                if (ImGui::SliderFloat("Outer Angle", &OuterAngle, 0.0f, 89.9f))
+                {
+                    SpotLight->SetOuterConeAngle(OuterAngle);
+
+                    // Outer를 줄였으면 Inner도 맞춰줌
+                    InnerAngle = FMath::Min(InnerAngle, OuterAngle);
+                    SpotLight->SetInnerConeAngle(InnerAngle);
+                }
+
+                // Inner는 항상 Outer보다 작게 clamp
+                if (ImGui::SliderFloat("Inner Angle", &InnerAngle, 0.0f, OuterAngle))
+                {
+                    InnerAngle = FMath::Clamp(InnerAngle, 0.0f, OuterAngle);
+                    SpotLight->SetInnerConeAngle(InnerAngle);
+                }
+            }
+        }
     }
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
-    if (PickedActor && PickedComponent && PickedComponent->IsA<UText>())
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UTextComponent>())
     {
-        UText* textOBj = Cast<UText>(PickedComponent);
+        UTextComponent* textOBj = Cast<UTextComponent>(PickedComponent);
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         if (ImGui::TreeNodeEx("Text Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
         {
@@ -367,11 +438,11 @@ void PropertyEditorPanel::Render()
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)
-    if (UStaticMeshComponent* StaticMeshComponent = PickedActor->GetComponentByClass<UStaticMeshComponent>())
-    {
-        RenderForStaticMesh(StaticMeshComponent);
-        RenderForMaterial(StaticMeshComponent);
-    }
+        if (UStaticMeshComponent* StaticMeshComponent = PickedActor->GetComponentByClass<UStaticMeshComponent>())
+        {
+            RenderForStaticMesh(StaticMeshComponent);
+            RenderForMaterial(StaticMeshComponent);
+        }
 
     if (PickedActor && PickedComponent && PickedComponent->IsA<UBillboardComponent>())
     {
@@ -482,9 +553,9 @@ void PropertyEditorPanel::Render()
 
         if (ImGui::TreeNodeEx("Projectile", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
         {
-            
-            ImGui::DragFloat("Initial Speed", &ProjectileComp->InitialSpeed,1.0f, 0.0f, 1000000.0f);
-            ImGui::DragFloat("Max Speed", &ProjectileComp->MaxSpeed,1.0f, 0.0f, 1000000.0f);
+
+            ImGui::DragFloat("Initial Speed", &ProjectileComp->InitialSpeed, 1.0f, 0.0f, 1000000.0f);
+            ImGui::DragFloat("Max Speed", &ProjectileComp->MaxSpeed, 1.0f, 0.0f, 1000000.0f);
             ImGui::DragFloat("Gravity Scale", &ProjectileComp->ProjectileGravityScale, 0.01f, 0.0f, 2.0f);
 
             FVector Velocity = ProjectileComp->Velocity;
@@ -493,7 +564,7 @@ void PropertyEditorPanel::Render()
             {
                 ProjectileComp->Velocity = Velocity;
             }
-            
+
             ImGui::TreePop();
         }
     }
@@ -510,11 +581,11 @@ void PropertyEditorPanel::Render()
             {
                 RotatingComp->RotationRate = RotationRate;
             }
-            
+
             ImGui::TreePop();
         }
     }
-    
+
     ImGui::End();
 
 
@@ -524,31 +595,31 @@ void PropertyEditorPanel::DrawSceneComponentTree(USceneComponent* Component, UAc
 {
     if (!Component) return;
 
-   FString Label = *Component->GetName();
-   bool bSelected = (PickedComponent == Component);
+    FString Label = *Component->GetName();
+    bool bSelected = (PickedComponent == Component);
 
-   ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow;
-   if (bSelected)
-       nodeFlags |= ImGuiTreeNodeFlags_Selected;
+    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow;
+    if (bSelected)
+        nodeFlags |= ImGuiTreeNodeFlags_Selected;
 
-   // 노드를 클릭 가능한 셀렉션으로 표시
-   bool bOpened = ImGui::TreeNodeEx(*Label, nodeFlags);
+    // 노드를 클릭 가능한 셀렉션으로 표시
+    bool bOpened = ImGui::TreeNodeEx(*Label, nodeFlags);
 
-   // 클릭되었을 때 선택 갱신
-   if (ImGui::IsItemClicked())
-   {
-       PickedComponent = Component;
-   }
+    // 클릭되었을 때 선택 갱신
+    if (ImGui::IsItemClicked())
+    {
+        PickedComponent = Component;
+    }
 
-   // 자식 재귀 호출
-   if (bOpened)
-   {
-       for (USceneComponent* Child : Component->GetAttachChildren())
-       {
-           DrawSceneComponentTree(Child, PickedComponent);
-       }
-       ImGui::TreePop();
-   }
+    // 자식 재귀 호출
+    if (bOpened)
+    {
+        for (USceneComponent* Child : Component->GetAttachChildren())
+        {
+            DrawSceneComponentTree(Child, PickedComponent);
+        }
+        ImGui::TreePop();
+    }
 }
 
 void PropertyEditorPanel::DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent)
@@ -629,7 +700,7 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
     {
         return;
     }
-    
+
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
     if (ImGui::TreeNodeEx("Static Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
@@ -650,7 +721,7 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
 
             ImGui::EndCombo();
         }
-        
+
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();
@@ -663,7 +734,7 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
     {
         return;
     }
-    
+
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
     if (ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
@@ -683,7 +754,7 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
         if (ImGui::Button("    +    ")) {
             IsCreateMaterial = true;
         }
-        
+
         ImGui::TreePop();
     }
 
@@ -729,7 +800,7 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
     ImGui::Begin("Material Viewer", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav);
 
     static ImGuiSelectableFlags BaseFlag = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_None | ImGuiColorEditFlags_NoAlpha;
-    
+
     FVector MatDiffuseColor = Material->GetMaterialInfo().Diffuse;
     FVector MatSpecularColor = Material->GetMaterialInfo().Specular;
     FVector MatAmbientColor = Material->GetMaterialInfo().Ambient;
@@ -800,10 +871,10 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
 
     ImGui::Spacing();
     ImGui::Separator();
-    
+
     ImGui::Text("Choose Material");
     ImGui::Spacing();
-    
+
     ImGui::Text("Material Slot Name |");
     ImGui::SameLine();
     ImGui::Text(GetData(SelectedStaticMeshComp->GetMaterialSlotNames()[SelectedMaterialIndex].ToString()));
@@ -825,13 +896,13 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
         UMaterial* material = FManagerOBJ::GetMaterial(materialChars[CurMaterialIndex]);
         SelectedStaticMeshComp->SetMaterial(SelectedMaterialIndex, material);
     }
-    
+
     if (ImGui::Button("Close"))
     {
         SelectedMaterialIndex = -1;
         SelectedStaticMeshComp = nullptr;
     }
-     
+
     ImGui::End();
 }
 

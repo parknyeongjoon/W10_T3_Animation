@@ -7,6 +7,9 @@ UPointLightComponent::UPointLightComponent()
 }
 
 UPointLightComponent::UPointLightComponent(const UPointLightComponent& Other)
+    : Super(Other)
+    , Radius(Other.Radius)
+    , AttenuationFalloff(Other.AttenuationFalloff)
 {
 }
 
@@ -23,12 +26,12 @@ void UPointLightComponent::DuplicateSubObjects(const UObject* Source)
 {
     Super::DuplicateSubObjects(Source);
     // 여기서 복사할 것? 반경뿐임
-    UPointLightComponent* SourceComp = Cast<UPointLightComponent>(Source);
-    if (SourceComp)
-    {
-        Radius = SourceComp->Radius;
-        AttenuationFalloff = SourceComp->AttenuationFalloff;
-    }
+    // UPointLightComponent* SourceComp = Cast<UPointLightComponent>(Source);
+    // if (SourceComp)
+    // {
+    //     Radius = SourceComp->Radius;
+    //     AttenuationFalloff = SourceComp->AttenuationFalloff;
+    // }
 }
 
 void UPointLightComponent::PostDuplicate()

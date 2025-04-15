@@ -5,12 +5,13 @@
 struct FPrimitiveComponentInfo : FSceneComponentInfo
 {
     DECLARE_ACTORCOMPONENT_INFO(FPrimitiveComponentInfo);
-
-    FBoundingBox AABB;
+    FVector ComponentVelocity;
+    FName VBIBTopologyMappingName;
 
     FPrimitiveComponentInfo()
         : FSceneComponentInfo()
-        , AABB(FVector::ZeroVector, FVector::ZeroVector)
+        , ComponentVelocity(FVector::ZeroVector)
+        , VBIBTopologyMappingName(TEXT(""))
     {
         InfoType = TEXT("FPrimitiveComponentInfo");
         ComponentType = TEXT("UPrimitiveComponent");
@@ -20,19 +21,20 @@ struct FPrimitiveComponentInfo : FSceneComponentInfo
     {
         FSceneComponentInfo::Copy(Other);
         FPrimitiveComponentInfo& OtherPrimitive = static_cast<FPrimitiveComponentInfo&>(Other);
-        AABB = OtherPrimitive.AABB;
+        OtherPrimitive.ComponentVelocity = ComponentVelocity;
+        OtherPrimitive.VBIBTopologyMappingName = VBIBTopologyMappingName;
     }
 
     virtual void Serialize(FArchive& ar) const override
     {
         FSceneComponentInfo::Serialize(ar);
-        ar << AABB;
+        ar << ComponentVelocity << VBIBTopologyMappingName;
     }
 
     virtual void Deserialize(FArchive& ar) override
     {
         FSceneComponentInfo::Deserialize(ar);
-        ar >> AABB;
+        ar >> ComponentVelocity >> VBIBTopologyMappingName;
     }
 };
 
@@ -57,15 +59,11 @@ public:
     virtual void PostDuplicate() override;
 
     bool MoveComponent(const FVector& Delta) override;
-    FBoundingBox AABB;
     FVector ComponentVelocity;
 
 public:
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
-
-    FBoundingBox GetBoundingBox() { return AABB; }
-
 public:
     FName GetVBIBTopologyMappingName() const { return VBIBTopologyMappingName; }
 protected:

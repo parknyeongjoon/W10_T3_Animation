@@ -16,6 +16,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/PrimitiveBatch.h"
 #include "UObject/UObjectIterator.h"
+#include <Components/SpotLightComponent.h>
 
 extern UEditorEngine* GEngine;
 
@@ -57,7 +58,7 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
     const FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
-    // Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
+    Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
     Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState());
 
     // RTVs 배열의 유효성을 확인합니다.
@@ -111,8 +112,8 @@ void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InVi
     
     for (UStaticMeshComponent* staticMeshComp : StaticMesheComponents)
     {
-        const FMatrix Model = JungleMath::CreateModelMatrix(staticMeshComp->GetWorldLocation(), staticMeshComp->GetWorldRotation(),
-                                                    staticMeshComp->GetWorldScale());
+        const FMatrix Model = JungleMath::CreateModelMatrix(staticMeshComp->GetComponentLocation(), staticMeshComp->GetComponentRotation(),
+                                                    staticMeshComp->GetComponentScale());
         
         UpdateMatrixConstants(staticMeshComp, View, Proj);
 
@@ -128,7 +129,7 @@ void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InVi
             {
                 UPrimitiveBatch::GetInstance().AddAABB(
                     staticMeshComp->GetBoundingBox(),
-                    staticMeshComp->GetWorldLocation(),
+                    staticMeshComp->GetComponentLocation(),
                     Model
                 );
             }
@@ -168,8 +169,8 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
     // MVP Update
-    const FMatrix Model = JungleMath::CreateModelMatrix(InStaticMeshComponent->GetWorldLocation(), InStaticMeshComponent->GetWorldRotation(),
-                                                        InStaticMeshComponent->GetWorldScale());
+    const FMatrix Model = JungleMath::CreateModelMatrix(InStaticMeshComponent->GetComponentLocation(), InStaticMeshComponent->GetComponentRotation(),
+                                                        InStaticMeshComponent->GetComponentScale());
     const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
         
     FMatrixConstants MatrixConstants;
@@ -205,6 +206,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     FLightingConstants LightConstant;
     uint32 DirectionalLightCount = 0;
     uint32 PointLightCount = 0;
+    uint32 SpotLightCount = 0;
 
     for (ULightComponentBase* Comp : LightComponents)
     {
@@ -214,7 +216,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
         {
             LightConstant.PointLights[PointLightCount].Color = PointLightComp->GetColor();
             LightConstant.PointLights[PointLightCount].Intensity = PointLightComp->GetIntensity();
-            LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetWorldLocation();
+            LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetComponentLocation();
             LightConstant.PointLights[PointLightCount].Radius = PointLightComp->GetRadius();
             LightConstant.PointLights[PointLightCount].AttenuationFalloff = PointLightComp->GetAttenuationFalloff();
             PointLightCount++;
@@ -224,9 +226,21 @@ void FStaticMeshRenderPass::UpdateLightConstants()
         UDirectionalLightComponent* DirectionalLightComp = dynamic_cast<UDirectionalLightComponent*>(Comp);
         if (DirectionalLightComp)
         {
+            USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(DirectionalLightComp);
+            if (SpotLightComp)
+            {
+                LightConstant.SpotLights[SpotLightCount].Position = SpotLightComp->GetComponentLocation();
+                LightConstant.SpotLights[SpotLightCount].Color = SpotLightComp->GetColor();
+                LightConstant.SpotLights[SpotLightCount].Intensity = SpotLightComp->GetIntensity();
+                LightConstant.SpotLights[SpotLightCount].Direction = SpotLightComp->GetOwner()->GetActorForwardVector();
+                LightConstant.SpotLights[SpotLightCount].InnerAngle = SpotLightComp->GetInnerConeAngle();
+                LightConstant.SpotLights[SpotLightCount].OuterAngle = SpotLightComp->GetOuterConeAngle();
+                SpotLightCount++;
+                continue;
+            }
             LightConstant.DirLights[DirectionalLightCount].Color = DirectionalLightComp->GetColor();
             LightConstant.DirLights[DirectionalLightCount].Intensity = DirectionalLightComp->GetIntensity();
-            LightConstant.DirLights[DirectionalLightCount].Direction = DirectionalLightComp->GetForwardVector();
+            LightConstant.DirLights[DirectionalLightCount].Direction = DirectionalLightComp->GetOwner()->GetActorForwardVector();
             DirectionalLightCount++;
             continue;
         }
@@ -234,6 +248,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
 
     LightConstant.NumPointLights = PointLightCount;
     LightConstant.NumDirectionalLights = DirectionalLightCount;
+    LightConstant.NumSpotLights = SpotLightCount;
     
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FLightingConstants")), &LightConstant);
 }

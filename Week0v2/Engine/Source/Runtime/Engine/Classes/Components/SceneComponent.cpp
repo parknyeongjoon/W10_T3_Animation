@@ -14,12 +14,12 @@ USceneComponent::USceneComponent(const USceneComponent& Other)
       RelativeLocation(Other.RelativeLocation),
       RelativeRotation(Other.RelativeRotation),
       QuatRotation(Other.QuatRotation),
-      RelativeScale3D(Other.RelativeScale3D)
+      RelativeScale3D(Other.RelativeScale3D),
+      AABB(Other.AABB)
 {
 }
 USceneComponent::~USceneComponent()
 {
-	if (uuidText) delete uuidText;
 }
 void USceneComponent::InitializeComponent()
 {
@@ -79,40 +79,40 @@ void USceneComponent::AddScale(FVector _added)
 
 }
 
-FVector USceneComponent::GetWorldRotation()
-{
-	if (AttachParent)
-	{
-		return FVector(AttachParent->GetLocalRotation() + GetLocalRotation());
-	}
-	else
-		return GetLocalRotation();
-}
-
-FVector USceneComponent::GetWorldScale()
-{
-	if (AttachParent)
-	{
-		return FVector(AttachParent->GetWorldScale() * GetLocalScale());
-	}
-	else
-		return GetLocalScale();
-}
-
-FVector USceneComponent::GetWorldLocation()
-{
-	if (AttachParent)
-	{
-		return FVector(AttachParent->GetWorldLocation() + GetLocalLocation());
-	}
-	else
-		return GetLocalLocation();
-}
-
-FVector USceneComponent::GetLocalRotation()
-{
-	return JungleMath::QuaternionToEuler(QuatRotation);
-}
+// FVector USceneComponent::GetWorldRotation()
+// {
+// 	if (AttachParent)
+// 	{
+// 		return FVector(AttachParent->GetLocalRotation() + GetLocalRotation());
+// 	}
+// 	else
+// 		return GetLocalRotation();
+// }
+//
+// FVector USceneComponent::GetWorldScale()
+// {
+// 	if (AttachParent)
+// 	{
+// 		return FVector(AttachParent->GetWorldScale() * GetLocalScale());
+// 	}
+// 	else
+// 		return GetLocalScale();
+// }
+//
+// FVector USceneComponent::GetWorldLocation()
+// {
+// 	if (AttachParent)
+// 	{
+// 		return FVector(AttachParent->GetWorldLocation() + GetLocalLocation());
+// 	}
+// 	else
+// 		return GetLocalLocation();
+// }
+//
+// FVector USceneComponent::GetLocalRotation()
+// {
+// 	return JungleMath::QuaternionToEuler(QuatRotation);
+// }
 
 void USceneComponent::SetRotation(FVector _newRot)
 {
@@ -159,7 +159,7 @@ FVector USceneComponent::GetComponentScale() const
 {
     if (AttachParent)
     {
-        return GetComponentScale() * RelativeScale3D;
+        return AttachParent->GetComponentScale() * RelativeScale3D;
     }
     else
     {
