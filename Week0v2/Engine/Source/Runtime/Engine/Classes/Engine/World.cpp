@@ -118,6 +118,8 @@ void UWorld::ClearScene()
     {
         DestroyActor(actor);
     }
+    Level->GetActors().Empty();
+    Level->PendingBeginPlayActors.Empty();
     ReleaseBaseObject();
 }
 

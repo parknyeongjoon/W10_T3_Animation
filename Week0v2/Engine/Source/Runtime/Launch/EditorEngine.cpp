@@ -12,6 +12,7 @@
 #include "UnrealEd/SceneMgr.h"
 #include "UObject/UObjectIterator.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
+#include "BaseGizmos/TransformGizmo.h"
 
 class ULevel;
 
@@ -107,8 +108,6 @@ void UEditorEngine::Tick(float deltaSeconds)
     UIMgr->EndFrame();
 
     // Pending 처리된 오브젝트 제거
-
-    // TODO : 이거 잘 안되는 것 이유 파악 
     GUObjectArray.ProcessPendingDestroyObjects();
 
     graphicDevice.SwapBuffer();
@@ -186,6 +185,7 @@ void UEditorEngine::StopPIE()
     }
     GUObjectArray.MarkRemoveObject(worldContexts[1].World()->GetLevel());
     worldContexts[1].World()->GetEditorPlayer()->Destroy();
+    worldContexts[1].World()->LocalGizmo->Destroy();
     GUObjectArray.MarkRemoveObject( worldContexts[1].World());
     worldContexts[1].thisCurrentWorld = nullptr; 
     
