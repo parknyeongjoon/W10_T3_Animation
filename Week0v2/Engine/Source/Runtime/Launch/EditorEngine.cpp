@@ -213,6 +213,8 @@ void UEditorEngine::ResizeGizmo()
         if (!GWorld->GetSelectedActors().IsEmpty())
         {
             AActor* PickedActor = *GWorld->GetSelectedActors().begin();
+            if (PickedActor == nullptr)
+                break;
             std::shared_ptr<FEditorViewportClient> activeViewport = GetLevelEditor()->GetActiveViewportClient();
             if (activeViewport->IsPerspective())
             {

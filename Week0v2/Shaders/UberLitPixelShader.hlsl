@@ -217,8 +217,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     // 기본 색상 추출  
     float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
-    if (IsSelectedActor == 1)
-        input.color = input.color * 5;
 
     if (!IsLit && !IsNormal)
     {
@@ -227,6 +225,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
     }
     
 #if LIGHTING_MODEL_GOURAUD
+    if (IsSelectedActor == 1)
+        input.color = input.color * 5;
+
     output.color = float4(baseColor.rgb * input.color.rgb, 1.0);
     return output;
 #endif
@@ -255,8 +256,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float3 ViewDir = normalize(CameraPos - input.worldPos);
     
     //float3 TotalLight = MatAmbientColor; // 전역 앰비언트
-    // TODO : Lit이면 낮은 값 Unlit이면 float3(1.0f,1.0f,1.0f)면 됩니다. 
+    // TODO : Lit이면 낮은 값 Unlit이면 float3(1.0f,1.0f,1.0f)면 됩니다.
     float3 TotalLight = float3(0.01f,0.01f,0.01f); // 전역 앰비언트  
+    if (IsSelectedActor == 1)
+         TotalLight = TotalLight * 10.0f;
     TotalLight += EmissiveColor; // 자체 발광  
 
     // 방향광 처리  
