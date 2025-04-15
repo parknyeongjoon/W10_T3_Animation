@@ -97,7 +97,8 @@ struct alignas(16) FLightingConstants
 struct alignas(16) FFlagConstants
 {
     uint32 IsLit; // offset: 0, size: 4
-    FVector flagPad0; // offset: 4, size: 12
+    uint32 IsNormal;
+    FVector2D flagPad0; // offset: 4, size: 12
 };
 
 struct alignas(16) FSubUVConstant

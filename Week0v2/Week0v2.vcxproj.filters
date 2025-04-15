@@ -249,12 +249,6 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UParticleSubUVComp.h">
       <Filter>Engine\Source\Runtime\Engine\Classes\Components</Filter>
     </ClInclude>
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UText.cpp">
-      <Filter>Engine\Source\Runtime\Engine\Classes\Components</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UText.h">
-      <Filter>Engine\Source\Runtime\Engine\Classes\Components</Filter>
-    </ClInclude>
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UTextUUID.cpp">
       <Filter>Engine\Source\Runtime\Engine\Classes\Components</Filter>
     </ClCompile>
@@ -412,7 +406,6 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\StaticMeshActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Actor.cpp" />
-    <ClInclude Include="UEditorStateManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Level.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\World.h" />
@@ -443,6 +436,18 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\StaticMeshRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\VBIBTopologyMapping.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\CBStructDefine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\SpotLightActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ExponentialHeightFogComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SpotLightComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UTextComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UTexture.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\GizmoRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\LineBatchRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\PixelShader.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\Shader.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.h" />
+    <ClInclude Include="FEditorStateManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -526,12 +531,13 @@
     <FxCompile Include="Shaders\TextureVertexShader.hlsl" />
     <FxCompile Include="Shaders\LinePixelShader.hlsl" />
     <FxCompile Include="Shaders\DebugDepthPixelShader.hlsl" />
+    <FxCompile Include="Shaders\UberLitPixelShader.hlsl" />
+    <FxCompile Include="Shaders\UberLitVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week0v2.natvis" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="UEditorStateManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Level.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\World.cpp" />
@@ -556,6 +562,18 @@
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FBaseRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\StaticMeshRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\VBIBTopologyMapping.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\Matrix.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\SpotLightActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ExponentialHeightFogComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\SpotLightComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UTextComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UTexture.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\GizmoRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\LineBatchRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\PixelShader.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\Shader.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.cpp" />
+    <ClCompile Include="FEditorStateManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

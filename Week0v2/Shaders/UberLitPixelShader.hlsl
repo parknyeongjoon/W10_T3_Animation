@@ -66,7 +66,8 @@ cbuffer FLightingConstants : register(b1)
 cbuffer FFlagConstants : register(b2)
 {
     uint IsLit;
-    float3 flagPad0;
+    uint IsNormal;
+    float2 flagPad0;
 }
 
 cbuffer FSubUVConstant : register(b3)
@@ -202,12 +203,13 @@ float3 CalculateSpotLight(
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
+    
     float2 uvAdjusted = input.texcoord + float2(indexU, indexV);
     
     // 기본 색상 추출  
     float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
 
-    if (!IsLit)
+    if (!IsLit && !IsNormal)
     {
         output.color = float4(baseColor.rgb, 1.0);
         return output;
@@ -230,6 +232,13 @@ PS_OUTPUT mainPS(PS_INPUT input)
         {
             Normal = input.normal;
         }        
+    }
+    
+    if (IsNormal)
+    {
+        Normal = Normal * 0.5 + 0.5;
+        output.color = float4(Normal.rgb, 1.0);
+        return output;
     }
     
     float3 ViewDir = normalize(CameraPos - input.worldPos);

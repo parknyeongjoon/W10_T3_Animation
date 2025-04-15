@@ -770,6 +770,7 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
         CurrentRasterizerState = ERasterizerState::SolidBack;
         //TODO : Light 받는 거
         bIsLit = true;
+        bIsNormal = false;
         break;
     case EViewModeIndex::VMI_Wireframe:
         CurrentRasterizerState = ERasterizerState::WireFrame;
@@ -778,7 +779,12 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
         CurrentRasterizerState = ERasterizerState::SolidBack;
         //TODO : Light 안 받는 거
         bIsLit = false;
+        bIsNormal = false;
         break;
+    case EViewModeIndex::VMI_Normal:
+        CurrentRasterizerState = ERasterizerState::SolidBack;
+        bIsLit = false;
+        bIsNormal = true;
     default:
         CurrentRasterizerState = ERasterizerState::SolidBack;
         break;
