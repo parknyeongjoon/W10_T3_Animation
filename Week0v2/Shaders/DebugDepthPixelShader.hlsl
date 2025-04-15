@@ -1,12 +1,11 @@
 #include "ShaderHeaders/GSamplers.hlsli"
-Texture2D<float> SceneDepthTex : register(t0);
+Texture2D SceneDepthTex : register(t0);
 
 cbuffer FCameraConstant : register(b0)
 {
     matrix ViewMatrix;
     matrix ProjMatrix;
-    matrix InvViewMatrix;
-    matrix InvProjMatrix;
+    matrix ViewProjMatrix;
     
     float3 CameraPos;
     float NearPlane;
@@ -31,16 +30,11 @@ float4 mainPS(VS_OUT input) : SV_Target
     float2 viewportUV = input.uv * ViewportSize + ViewportOffset;
     
     float depth = SceneDepthTex.Sample(pointSampler, viewportUV).r;
-    if (depth == 1.0)
-    {
-        return float4(0, 0, 0, 1);
-    }
 
+//    float linearDepth = (0.1 * 1000) / (1000 - depth * (1000 - 0.1));
     float linearDepth = (NearPlane * FarPlane) / (FarPlane - depth * (FarPlane - NearPlane));
-    float normalized = saturate((linearDepth - NearPlane) / (FarPlane - NearPlane));
+    
+    float normalized = saturate((linearDepth - 0.1) / (1000 - 0.1));
 
-    float expo = 1 - exp(-normalized * 1.0);
-
-
-    return float4(expo, expo, expo, 1.0);
+    return float4(normalized, normalized, normalized, 1.0);
 }

@@ -447,6 +447,7 @@
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\Shader.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.h" />
     <ClInclude Include="FEditorStateManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -575,6 +576,7 @@
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\Shader.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.cpp" />
     <ClCompile Include="FEditorStateManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

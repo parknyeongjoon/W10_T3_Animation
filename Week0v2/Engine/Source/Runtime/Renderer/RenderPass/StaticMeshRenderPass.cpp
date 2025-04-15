@@ -180,6 +180,8 @@ void FStaticMeshRenderPass::UpdateFlagConstant()
 
     FlagConstant.IsLit = GEngine->renderer.bIsLit;
 
+    FlagConstant.IsNormal = GEngine->renderer.bIsNormal;
+
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FFlagConstants")), &FlagConstant);
 }
 

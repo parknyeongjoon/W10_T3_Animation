@@ -460,7 +460,7 @@ void ControlEditorPanel::CreateFlagButton() const
 
     ImGui::SameLine();
 
-    const char* ViewModeNames[] = { "Lit", "Unlit", "Wireframe", "Depth" };
+    const char* ViewModeNames[] = { "Lit", "Unlit", "Wireframe", "Depth", "Normal"};
     FString SelectLightControl = ViewModeNames[(int)ActiveViewport->GetViewMode()];
     ImVec2 LightTextSize = ImGui::CalcTextSize(GetData(SelectLightControl));
 
@@ -477,7 +477,7 @@ void ControlEditorPanel::CreateFlagButton() const
             if (ImGui::Selectable(ViewModeNames[i], bIsSelected))
             {
                 ActiveViewport->SetViewMode((EViewModeIndex)i);
-                UEditorEngine::renderer.SetViewMode(ActiveViewport->GetViewMode());
+                //UEditorEngine::renderer.SetViewMode(ActiveViewport->GetViewMode());
             }
 
             if (bIsSelected)

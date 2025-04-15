@@ -65,8 +65,9 @@ cbuffer FLightingConstants : register(b1)
 
 cbuffer FFlagConstants : register(b2)
 {
-    bool IsLit;
-    float3 flagPad0;
+    uint IsLit;
+    uint IsNormal;
+    float2 flagPad0;
 }
 
 cbuffer FSubUVConstant : register(b3)
@@ -207,18 +208,18 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // 기본 색상 추출  
     float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
 
+    if (!IsLit && !IsNormal)
+    {
+        output.color = float4(baseColor.rgb, 1.0);
+        return output;
+    }
+    
 #if LIGHTING_MODEL_GOURAUD
     output.color = float4(baseColor.rgb * input.color.rgb, 1.0);
     return output;
 #endif
     float4 normalTex = ((NormalTexture.Sample(linearSampler, uvAdjusted)- 0.5) * 2);
     input.normal = input.normal - 0.5;
-    
-    if(!IsLit)
-    {
-        output.color = float4(baseColor.rgb, 1.0);
-        return output;
-    }
     
     float3 Normal = input.normal;
     
@@ -230,6 +231,13 @@ PS_OUTPUT mainPS(PS_INPUT input)
         {
             Normal = input.normal;
         }        
+    }
+    
+    if (IsNormal)
+    {
+        Normal = Normal * 0.5 + 0.5;
+        output.color = float4(Normal.rgb, 1.0);
+        return output;
     }
     
     float3 ViewDir = normalize(CameraPos - input.worldPos);
