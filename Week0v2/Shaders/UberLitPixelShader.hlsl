@@ -65,7 +65,7 @@ cbuffer FLightingConstants : register(b1)
 
 cbuffer FFlagConstants : register(b2)
 {
-    bool IsLit;
+    uint IsLit;
     float3 flagPad0;
 }
 
@@ -207,18 +207,18 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // 기본 색상 추출  
     float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
 
+    if (!IsLit)
+    {
+        output.color = float4(baseColor.rgb, 1.0);
+        return output;
+    }
+    
 #if LIGHTING_MODEL_GOURAUD
     output.color = float4(baseColor.rgb * input.color.rgb, 1.0);
     return output;
 #endif
     float4 normalTex = ((NormalTexture.Sample(linearSampler, uvAdjusted)- 0.5) * 2);
     input.normal = input.normal - 0.5;
-    
-    if(!IsLit)
-    {
-        output.color = float4(baseColor.rgb, 1.0);
-        return output;
-    }
     
     float3 Normal = input.normal;
     

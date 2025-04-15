@@ -80,7 +80,7 @@ cbuffer FLightingConstants : register(b1)
 
 cbuffer FFlagConstants : register(b2)
 {
-    bool IsLit;
+    uint IsLit;
     float3 flagPad0;
 }
 
