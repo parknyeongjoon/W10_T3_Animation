@@ -18,7 +18,8 @@ UWorld::UWorld(const UWorld& Other): UObject(Other)
                                    , defaultMapName(Other.defaultMapName)
                                    , Level(Other.Level)
                                    , WorldType(Other.WorldType)
-                                    , EditorPlayer(Other.EditorPlayer)
+                                    , EditorPlayer(nullptr)
+                                    , LocalGizmo(nullptr)
 {
 }
 
@@ -57,15 +58,8 @@ void UWorld::CreateBaseObject()
 
 void UWorld::ReleaseBaseObject()
 {
-    if (LocalGizmo)
-    {
-        LocalGizmo = nullptr;
-    }
-    
-    if (EditorPlayer)
-    {
-        EditorPlayer = nullptr;
-    }
+    LocalGizmo = nullptr;
+    EditorPlayer = nullptr;
 }
 
 void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
@@ -140,6 +134,7 @@ void UWorld::DuplicateSubObjects(const UObject* SourceObj)
     UObject::DuplicateSubObjects(SourceObj);
     Level = Cast<ULevel>(Level->Duplicate());
     EditorPlayer = FObjectFactory::ConstructObject<AEditorPlayer>();
+    LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
 }
 
 void UWorld::PostDuplicate()

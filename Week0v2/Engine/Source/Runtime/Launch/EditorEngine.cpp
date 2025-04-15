@@ -146,11 +146,10 @@ void UEditorEngine::Input()
 void UEditorEngine::PreparePIE()
 {
     // 1. World 복제
-    worldContexts[1].thisCurrentWorld = Cast<UWorld>(GWorld->Duplicate());
+    worldContexts[1].thisCurrentWorld = Cast<UWorld>(worldContexts[0].thisCurrentWorld->Duplicate());
     GWorld = worldContexts[1].thisCurrentWorld;
     GWorld->WorldType = EWorldType::PIE;
     levelType = LEVELTICK_All;
-    
 }
 
 void UEditorEngine::StartPIE()
@@ -187,12 +186,11 @@ void UEditorEngine::StopPIE()
     }
     GUObjectArray.MarkRemoveObject(worldContexts[1].World()->GetLevel());
     worldContexts[1].World()->GetEditorPlayer()->Destroy();
-    GUObjectArray.MarkRemoveObject( worldContexts[1].World()->GetWorld());
+    GUObjectArray.MarkRemoveObject( worldContexts[1].World());
     worldContexts[1].thisCurrentWorld = nullptr; 
     
     // GWorld->WorldType = EWorldType::Editor;
     levelType = LEVELTICK_ViewportsOnly;
-
 }
 
 void UEditorEngine::Exit()
