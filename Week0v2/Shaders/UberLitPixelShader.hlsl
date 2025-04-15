@@ -161,7 +161,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     // 기본 색상 추출  
     float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
-
+    if (IsSelectedActor == 1)
+        input.color = input.color * 5;
 #if LIGHTING_MODEL_GOURAUD
     output.color = float4(baseColor.rgb * input.color.rgb, 1.0);
     return output;

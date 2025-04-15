@@ -101,8 +101,13 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         
         UpdateMatrixConstants(staticMeshComp, View, Proj);
         FVector4 UUIDColor = staticMeshComp->EncodeUUID() / 255.0f ;
+        uint32 isSelected = 0;
+        if (GEngine->GetWorld()->GetSelectedActors().Contains(staticMeshComp->GetOwner()))
+        {
+            isSelected = 1;
+        }
         // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
-        UpdateContstantBufferActor(UUIDColor , 0);
+        UpdateContstantBufferActor(UUIDColor , isSelected);
         UpdateLightConstants();
 
         UpdateFlagConstant();

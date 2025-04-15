@@ -30,7 +30,6 @@ void AEditorPlayer::Tick(float DeltaTime)
 void AEditorPlayer::MultiSelectingStart()
 {
     GetCursorPos(&multiSelectingStartPos);
-    UE_LOG(LogLevel::Display, "MultiStart Start Pos : %ld %ld" , multiSelectingStartPos.x, multiSelectingStartPos.y);
     bMultiSeleting = true;
 }
 
@@ -47,6 +46,8 @@ void AEditorPlayer::MultiSelectingEnd()
     // UE_LOG(LogLevel::Display, "MultiEnd End min Pos : %ld %ld",  leftTopX, leftTopY);
     // UE_LOG(LogLevel::Display, "MultiEnd End min Pos : %ld %ld",  rightBottomX, rightBottomY);
     GEngine->GetWorld()->ClearSelectedActors();
+    
+    // TODO : 현재 UUID 가 높은 애들은 선택이 안됩니다.
     for (long i = leftTopX; i <= rightBottomX; i +=10)
     {
         for (long j = leftTopY ; j <= rightBottomY; j +=10)
