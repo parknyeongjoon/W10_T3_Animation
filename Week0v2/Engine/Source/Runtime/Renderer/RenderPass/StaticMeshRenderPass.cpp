@@ -78,20 +78,36 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
     Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &linearSampler);
 }
 
-void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
+void FStaticMeshRenderPass::UpdateComputeResource()
 {
+    FRenderer& Renderer = GEngine->renderer;
+    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderResourceManager* renderResourceManager = Renderer.GetResourceManager(); 
+
+    ID3D11ShaderResourceView* TileCullingSRV = renderResourceManager->GetStructuredBufferSRV("TileLightCulling");
+    
+    Graphics.DeviceContext->PSSetShaderResources(0, 5, &TileCullingSRV);
+}
+
+void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InViewportClient)
+{
+    FRenderer& Renderer = GEngine->renderer;
+    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    
     FMatrix View = FMatrix::Identity;
     FMatrix Proj = FMatrix::Identity;
 
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderer& Renderer = GEngine->renderer;
-    
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
     if (curEditorViewportClient != nullptr)
     {
         View = curEditorViewportClient->GetViewMatrix();
         Proj = curEditorViewportClient->GetProjectionMatrix();
     }
+
+    // 일단 지금은 staticMesh돌면서 업데이트 해줄 필요가 없어서 여기 넣는데, Prepare에 넣을지 아니면 여기 그대로 둘지는 좀 더 생각해봐야함.
+    // 매프레임 한번씩만 해줘도 충분하고 라이트 갯수가 변경될때만 해줘도 충분할듯하다
+    // 지금 딸깍이에서 structuredBuffer도 처리해줘서 그 타이밍보고 나중에 다시 PSSetShaderResources를 해줘야함
+    UpdateComputeResource();
     
     for (UStaticMeshComponent* staticMeshComp : StaticMesheComponents)
     {

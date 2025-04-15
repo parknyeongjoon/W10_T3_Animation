@@ -409,3 +409,12 @@ struct FPointLight
     float AttenuationFalloff;
     FVector2D Padd;
 };
+
+struct FComputeConstants{
+    FMatrix InverseView;
+    FMatrix InverseProj;
+    float screenWidth;
+    float screenHeight;
+    float Pad;
+    float Pad2;
+};

@@ -23,6 +23,7 @@ public:
     
     template <typename T>
     ID3D11Buffer* CreateStructuredBuffer(uint32 numElements) const;
+
     template<typename T>
     ID3D11Buffer* CreateStaticVertexBuffer(const TArray<T>& vertices) const;
     template<typename T>
@@ -48,6 +49,7 @@ public:
     void UpdateStructuredBuffer(ID3D11Buffer* pBuffer, const TArray<T>& Data) const;
     
     ID3D11ShaderResourceView* CreateBufferSRV(ID3D11Buffer* pBuffer, UINT numElements) const;
+    ID3D11UnorderedAccessView* CreateBufferUAV(ID3D11Buffer* pBuffer, UINT numElements) const;
 
     ID3D11SamplerState* GetSamplerState(ESamplerType InType) const { return SamplerStates[static_cast<uint32>(InType)]; }
     ID3D11RasterizerState* GetRasterizerState(ERasterizerState InState) const { return RasterizerStates[static_cast<uint32>(InState)]; }
@@ -56,25 +58,42 @@ public:
 
     void AddOrSetVertexShader(FName InVSName, ID3D11VertexShader* InShader);
     void AddOrSetPixelShader(FName InPSName, ID3D11PixelShader* InShader);
+    void AddOrSetComputeShader(FName InCSName, ID3D11ComputeShader* InShader);
+    
     void AddOrSetVertexBuffer(FName InVBName, ID3D11Buffer* InBuffer);
     void AddOrSetIndexBuffer(FName InPBName, ID3D11Buffer* InBuffer);
     void AddOrSetConstantBuffer(FName InCBName, ID3D11Buffer* InBuffer);
-    void AddOrSetStructuredBuffer(FName InSBName, ID3D11Buffer* InBuffer);
-    void AddOrSetStructuredBufferSRV(FName InSBName, ID3D11ShaderResourceView* InShaderResourceView);
+    void AddOrSetSRVStructuredBuffer(FName InSBName, ID3D11Buffer* InBuffer);
+    void AddOrSetSRVStructuredBufferSRV(FName InSBName, ID3D11ShaderResourceView* InShaderResourceView);
+    void AddOrSetUAVStructuredBuffer(FName InSBName, ID3D11Buffer* InBuffer);
+    void AddOrSetUAVStructuredBufferUAV(FName InSBName, ID3D11UnorderedAccessView* InUnorderedAccessView);
     
     ID3D11VertexShader* GetVertexShader(const FName InVSName);
     ID3D11PixelShader* GetPixelShader(const FName InPSName);
+    ID3D11ComputeShader* GetComputeShader(const FName InCSName);
 
     ID3D11Buffer* GetVertexBuffer(const FName InVBName);
     ID3D11Buffer* GetIndexBuffer(const FName InIBName);
     ID3D11Buffer* GetConstantBuffer(const FName InCBName);
 
-    ID3D11Buffer* GetStructuredBuffer(FName InName);
+    ID3D11Buffer* GetSRVStructuredBuffer(FName InName);
+    ID3D11Buffer* GetUAVStructuredBuffer(FName InName);
     ID3D11ShaderResourceView* GetStructuredBufferSRV(const FName InName);
+    ID3D11UnorderedAccessView* GetStructuredBufferUAV(const FName InName);
 private:
     FGraphicsDevice* GraphicDevice = nullptr;
+
+    ////////////////////////////////////////
+    /// compute shader
+    // ID3D11ComputeShader* ComputeShader;
+    // ID3D11Buffer* LightBuffer;
+    // ID3D11Buffer* TileBuffer;
+    // ID3D11UnorderedAccessView* LightUAV;
+    // ID3D11UnorderedAccessView* TileUAV;
+    ////////////////////////////////////////
     
 private:
+    TMap<FName, ID3D11ComputeShader*> ComputeShaders;
     TMap<FName, ID3D11VertexShader*> VertexShaders;
     TMap<FName, ID3D11PixelShader*> PixelShaders;
 
@@ -82,7 +101,8 @@ private:
     TMap<FName, ID3D11Buffer*> IndexBuffers;
     TMap<FName, ID3D11Buffer*> ConstantBuffers;
 
-    TMap<FName, TPair<ID3D11Buffer*, ID3D11ShaderResourceView*>> StructuredBuffers;
+    TMap<FName, TPair<ID3D11Buffer*, ID3D11ShaderResourceView*>> SRVStructuredBuffers;
+    TMap<FName, TPair<ID3D11Buffer*, ID3D11UnorderedAccessView*>> UAVStructuredBuffers;
 private:
     ID3D11SamplerState* SamplerStates[static_cast<uint32>(ESamplerType::End)] = {};
       
@@ -131,7 +151,7 @@ ID3D11Buffer* FRenderResourceManager::CreateStructuredBuffer(const uint32 numEle
     D3D11_BUFFER_DESC bufferDesc = {};
     bufferDesc.Usage = D3D11_USAGE_DYNAMIC; // CPU가 데이터를 업데이트할 수 있도록 설정
     bufferDesc.ByteWidth = sizeof(T) * numElements;
-    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
     bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
     bufferDesc.StructureByteStride = sizeof(T);

@@ -81,8 +81,10 @@ private:
 public:
     static bool CompileVertexShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode);
     static bool CompilePixelShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode);
+    static bool CompileComputeShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode);
     bool CreateVertexShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode, ID3D11VertexShader** ppVertexShader) const;
     bool CreatePixelShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode, ID3D11PixelShader** ppPixelShader) const;
+    bool CreateComputeShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode, ID3D11ComputeShader** ppComputeShader) const;
     static TArray<FConstantBufferInfo> ExtractConstantBufferNames(ID3DBlob* shaderBlob);
 
 };

@@ -8,6 +8,7 @@
 #include "Define.h"
 #include "RenderResourceManager.h"
 
+class FComputeTileLightCulling;
 class FGizmoRenderPass;
 class FLineBatchRenderPass;
 class FStaticMeshRenderPass;
@@ -22,6 +23,8 @@ private:
     void CreateLineBatchShader();
     void CreateFogShader();
     void CreateDebugDepthShader();
+    void CreateComputeShader();
+    
 public:
     FGraphicsDevice* Graphics;
 public:
@@ -43,20 +46,6 @@ public:
     void Release();
     
     void SetViewMode(EViewModeIndex evi);
-
-public://텍스쳐용 기능 추가
-    
-    // void PrepareTextureShader() const;
-    //
-    // void RenderTexturePrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices,
-    //     ID3D11Buffer* pIndexBuffer, UINT numIndices,
-    //     ID3D11ShaderResourceView* _TextureSRV,
-    //     ID3D11SamplerState* _SamplerState) const;
-    // void RenderTextPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices,
-    //     ID3D11ShaderResourceView* _TextureSRV,
-    //     ID3D11SamplerState* _SamplerState) const;
-    //
-    // void PrepareSubUVConstant() const;
 
 public:
     //Render Pass Demo
@@ -91,7 +80,8 @@ private:
     std::shared_ptr<FStaticMeshRenderPass> StaticMeshRenderPass;
     std::shared_ptr<FLineBatchRenderPass> LineBatchRenderPass;
     std::shared_ptr<FGizmoRenderPass> GizmoRenderPass;
-
+    std::shared_ptr<FComputeTileLightCulling> ComputeTileLightCulling;
+    
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
 };
 

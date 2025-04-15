@@ -18,6 +18,7 @@ public:
     virtual ~FStaticMeshRenderPass() {}
     void AddRenderObjectsToRenderPass(UWorld* InWorld) override;
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
+    void UpdateComputeResource();
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
 private:
     static void UpdateMatrixConstants(UStaticMeshComponent* InStaticMeshComponent, const FMatrix& InView, const FMatrix& InProjection);

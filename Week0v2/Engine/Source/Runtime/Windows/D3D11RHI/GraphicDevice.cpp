@@ -10,6 +10,7 @@ void FGraphicsDevice::Initialize(const HWND hWindow)
     CreateDeviceAndSwapChain(hWindow);
     CreateFrameBuffer();
     CreateDepthStencilBuffer(hWindow);
+
     //CreateDepthStencilState();
     //CreateDepthStencilSRV();
     //CreateDepthCopyTexture();
@@ -574,6 +575,36 @@ bool FGraphicsDevice::CompilePixelShader(const FString& InFileName, const D3D_SH
     return true;
 }
 
+bool FGraphicsDevice::CompileComputeShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode)
+{
+    DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef  _DEBUG
+    shaderFlags |= D3DCOMPILE_DEBUG;
+#endif
+    shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+
+    ID3DBlob* errorBlob = nullptr;
+
+    const std::filesystem::path current = std::filesystem::current_path();
+    const std::filesystem::path fullpath = current / TEXT("Shaders") / *InFileName;
+    const std::wstring shaderFilePath = fullpath.wstring();
+
+    const HRESULT hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainCS", "cs_5_0", shaderFlags, 0, ppCode, &errorBlob);
+
+    if (FAILED(hr))
+    {
+        if (errorBlob)
+        {
+            // errorBlob에 저장된 메시지를 출력 (디버그 출력이나 콘솔 등)
+            OutputDebugStringA(reinterpret_cast<const char*>(errorBlob->GetBufferPointer()));
+            errorBlob->Release();
+        }
+        return false;
+    }
+
+    return true;
+}
+
 bool FGraphicsDevice::CreateVertexShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode, ID3D11VertexShader** ppVertexShader) const
 {
     DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -641,6 +672,42 @@ bool FGraphicsDevice::CreatePixelShader(const FString& InFileName, const D3D_SHA
         return false;
 
     if (FAILED(Device->CreatePixelShader((*ppCode)->GetBufferPointer(), (*ppCode)->GetBufferSize(), nullptr, ppPixelShader)))
+        return false;
+
+    return true;
+}
+
+bool FGraphicsDevice::CreateComputeShader(const FString& InFileName, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode, ID3D11ComputeShader** ppComputeShader) const
+{
+    DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef  _DEBUG
+    shaderFlags |= D3DCOMPILE_DEBUG;
+#endif
+    shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+
+    ID3DBlob* errorBlob = nullptr;
+
+    const std::filesystem::path current = std::filesystem::current_path();
+    const std::filesystem::path fullpath = current / TEXT("Shaders") / *InFileName;
+    const std::wstring shaderFilePath = fullpath.wstring();
+
+    const HRESULT hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainCS", "cs_5_0", shaderFlags, 0, ppCode, &errorBlob);
+    
+    if (FAILED(hr))
+    {
+        if (errorBlob)
+        {
+            // errorBlob에 저장된 메시지를 출력 (디버그 출력이나 콘솔 등)
+            OutputDebugStringA(reinterpret_cast<const char*>(errorBlob->GetBufferPointer()));
+            errorBlob->Release();
+        }
+        abort();
+    }
+    
+    if (Device == nullptr)
+        return false;
+
+    if (FAILED(Device->CreateComputeShader((*ppCode)->GetBufferPointer(), (*ppCode)->GetBufferSize(), nullptr, ppComputeShader)))
         return false;
 
     return true;

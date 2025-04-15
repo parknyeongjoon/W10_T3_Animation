@@ -161,10 +161,10 @@ void FEditorViewportClient::ResizeViewport(FRect Top, FRect Bottom, FRect Left, 
 }
 bool FEditorViewportClient::IsSelected(POINT point)
 {
-    float TopLeftX = Viewport->GetViewport().TopLeftX;
-    float TopLeftY = Viewport->GetViewport().TopLeftY;
-    float Width = Viewport->GetViewport().Width;
-    float Height = Viewport->GetViewport().Height;
+    float TopLeftX = Viewport->GetScreenRect().TopLeftX;
+    float TopLeftY = Viewport->GetScreenRect().TopLeftY;
+    float Width = Viewport->GetScreenRect().Width;
+    float Height = Viewport->GetScreenRect().Height;
 
     if (point.x >= TopLeftX && point.x <= TopLeftX + Width &&
         point.y >= TopLeftY && point.y <= TopLeftY + Height)
@@ -175,7 +175,7 @@ bool FEditorViewportClient::IsSelected(POINT point)
 }
 D3D11_VIEWPORT& FEditorViewportClient::GetD3DViewport()
 {
-    return Viewport->GetViewport();
+    return Viewport->GetScreenRect();
 }
 void FEditorViewportClient::CameraMoveForward(float _Value)
 {
@@ -272,7 +272,7 @@ void FEditorViewportClient::UpdateProjectionMatrix()
     if (IsPerspective()) {
         Projection = JungleMath::CreateProjectionMatrix(
             ViewFOV * (3.141592f / 180.0f),
-            GetViewport()->GetViewport().Width/ GetViewport()->GetViewport().Height,
+            GetViewport()->GetScreenRect().Width/ GetViewport()->GetScreenRect().Height,
             nearPlane,
             farPlane
         );
@@ -280,7 +280,7 @@ void FEditorViewportClient::UpdateProjectionMatrix()
     else
     {
         // 스왑체인의 가로세로 비율을 구합니다.
-        float aspectRatio = GetViewport()->GetViewport().Width / GetViewport()->GetViewport().Height;
+        float aspectRatio = GetViewport()->GetScreenRect().Width / GetViewport()->GetScreenRect().Height;
 
         // 오쏘그래픽 너비는 줌 값과 가로세로 비율에 따라 결정됩니다.
         float orthoWidth = orthoSize * aspectRatio;

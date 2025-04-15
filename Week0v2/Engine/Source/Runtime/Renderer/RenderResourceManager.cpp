@@ -1,5 +1,7 @@
 #include "RenderResourceManager.h"
 
+#include <d3dcompiler.h>
+
 FRenderResourceManager::FRenderResourceManager(FGraphicsDevice* InGraphicDevice)
 {
     GraphicDevice = InGraphicDevice;
@@ -255,6 +257,25 @@ ID3D11ShaderResourceView* FRenderResourceManager::CreateBufferSRV(ID3D11Buffer* 
     return pSRV;
 }
 
+ID3D11UnorderedAccessView* FRenderResourceManager::CreateBufferUAV(ID3D11Buffer* pBuffer, UINT numElements) const
+{
+    D3D11_UNORDERED_ACCESS_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_UNKNOWN; // 구조화된 버퍼의 경우 형식은 UNKNOWN으로 지정
+    srvDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+    srvDesc.Buffer.FirstElement = 0;
+    srvDesc.Buffer.NumElements = numElements;
+
+    ID3D11UnorderedAccessView* pSRV = nullptr;
+    const HRESULT hr = GraphicDevice->Device->CreateUnorderedAccessView(pBuffer, &srvDesc, &pSRV);
+    if (FAILED(hr))
+    {
+        // 오류 처리 (필요에 따라 로그 출력 등)
+        assert(false && "CreateStructuredBufferShaderResourceView failed");
+        return nullptr;
+    }
+    return pSRV;
+}
+
 void FRenderResourceManager::AddOrSetVertexShader(const FName InVSName, ID3D11VertexShader* InShader)
 {
     if (VertexShaders.Contains(InVSName))
@@ -271,6 +292,15 @@ void FRenderResourceManager::AddOrSetPixelShader(const FName InPSName, ID3D11Pix
         PixelShaders[InPSName]->Release();
     }
     PixelShaders.Add(InPSName, InShader);
+}
+
+void FRenderResourceManager::AddOrSetComputeShader(const FName InCSName, ID3D11ComputeShader* InShader)
+{
+    if (ComputeShaders.Contains(InCSName))
+    {
+        ComputeShaders[InCSName]->Release();
+    }
+    ComputeShaders.Add(InCSName, InShader);
 }
 
 void FRenderResourceManager::AddOrSetVertexBuffer(const FName InVBName, ID3D11Buffer* InBuffer)
@@ -300,32 +330,60 @@ void FRenderResourceManager::AddOrSetConstantBuffer(const FName InCBName, ID3D11
     ConstantBuffers.Add(InCBName, InBuffer);
 }
 
-void FRenderResourceManager::AddOrSetStructuredBuffer(const FName InSBName, ID3D11Buffer* InBuffer)
+void FRenderResourceManager::AddOrSetSRVStructuredBuffer(const FName InSBName, ID3D11Buffer* InBuffer)
 {
-    if (StructuredBuffers.Contains(InSBName) == false)
+    if (SRVStructuredBuffers.Contains(InSBName) == false)
     {
-        StructuredBuffers[InSBName] = TPair<ID3D11Buffer*, ID3D11ShaderResourceView*>();
+        SRVStructuredBuffers[InSBName] = TPair<ID3D11Buffer*, ID3D11ShaderResourceView*>();
     }
 
-    if (StructuredBuffers.Contains(InSBName) == true && StructuredBuffers[InSBName].Key != nullptr)
+    if (SRVStructuredBuffers.Contains(InSBName) == true && SRVStructuredBuffers[InSBName].Key != nullptr)
     {
-        StructuredBuffers[InSBName].Key->Release();
+        SRVStructuredBuffers[InSBName].Key->Release();
     }
-    StructuredBuffers[InSBName].Key = InBuffer;
+    SRVStructuredBuffers[InSBName].Key = InBuffer;
 }
 
-void FRenderResourceManager::AddOrSetStructuredBufferSRV(const FName InSBName, ID3D11ShaderResourceView* InShaderResourceView)
+void FRenderResourceManager::AddOrSetSRVStructuredBufferSRV(const FName InSBName, ID3D11ShaderResourceView* InShaderResourceView)
 {
-    if (StructuredBuffers.Contains(InSBName) == false)
+    if (SRVStructuredBuffers.Contains(InSBName) == false)
     {
-        StructuredBuffers[InSBName] = TPair<ID3D11Buffer*, ID3D11ShaderResourceView*>();
+        SRVStructuredBuffers[InSBName] = TPair<ID3D11Buffer*, ID3D11ShaderResourceView*>();
     }
 
-    if (StructuredBuffers.Contains(InSBName) == true && StructuredBuffers[InSBName].Value != nullptr)
+    if (SRVStructuredBuffers.Contains(InSBName) == true && SRVStructuredBuffers[InSBName].Value != nullptr)
     {
-        StructuredBuffers[InSBName].Value->Release();
+        SRVStructuredBuffers[InSBName].Value->Release();
     }
-    StructuredBuffers[InSBName].Value = InShaderResourceView;
+    SRVStructuredBuffers[InSBName].Value = InShaderResourceView;
+}
+
+void FRenderResourceManager::AddOrSetUAVStructuredBuffer(const FName InSBName, ID3D11Buffer* InBuffer)
+{
+    if (UAVStructuredBuffers.Contains(InSBName) == false)
+    {
+        UAVStructuredBuffers[InSBName] = TPair<ID3D11Buffer*, ID3D11UnorderedAccessView*>();
+    }
+
+    if (UAVStructuredBuffers.Contains(InSBName) == true && UAVStructuredBuffers[InSBName].Key != nullptr)
+    {
+        UAVStructuredBuffers[InSBName].Key->Release();
+    }
+    UAVStructuredBuffers[InSBName].Key = InBuffer;
+}
+
+void FRenderResourceManager::AddOrSetUAVStructuredBufferUAV(const FName InSBName, ID3D11UnorderedAccessView* InUnorderedAccessView)
+{
+    if (UAVStructuredBuffers.Contains(InSBName) == false)
+    {
+        UAVStructuredBuffers[InSBName] = TPair<ID3D11Buffer*, ID3D11UnorderedAccessView*>();
+    }
+
+    if (UAVStructuredBuffers.Contains(InSBName) == true && UAVStructuredBuffers[InSBName].Value != nullptr)
+    {
+        UAVStructuredBuffers[InSBName].Value->Release();
+    }
+    UAVStructuredBuffers[InSBName].Value = InUnorderedAccessView;
 }
 
 ID3D11VertexShader* FRenderResourceManager::GetVertexShader(const FName InVSName)
@@ -345,6 +403,16 @@ ID3D11PixelShader* FRenderResourceManager::GetPixelShader(const FName InPSName)
     }
     return nullptr;
 }
+
+ID3D11ComputeShader* FRenderResourceManager::GetComputeShader(const FName InCSName)
+{
+    if (ComputeShaders.Contains(InCSName))
+    {
+        return ComputeShaders[InCSName];
+    }
+    return nullptr;
+}
+
 ID3D11Buffer* FRenderResourceManager::GetVertexBuffer(const FName InVBName)
 {
     if (VertexBuffers.Contains(InVBName))
@@ -374,11 +442,21 @@ ID3D11Buffer* FRenderResourceManager::GetConstantBuffer(const FName InCBName)
     return nullptr;
 }
 
-ID3D11Buffer* FRenderResourceManager::GetStructuredBuffer(const FName InName)
+ID3D11Buffer* FRenderResourceManager::GetSRVStructuredBuffer(const FName InName)
 {
-    if (StructuredBuffers.Contains(InName))
+    if (SRVStructuredBuffers.Contains(InName))
     {
-        return StructuredBuffers[InName].Key;
+        return SRVStructuredBuffers[InName].Key;
+    }
+
+    return nullptr;
+}
+
+ID3D11Buffer* FRenderResourceManager::GetUAVStructuredBuffer(const FName InName)
+{
+    if (UAVStructuredBuffers.Contains(InName))
+    {
+        return UAVStructuredBuffers[InName].Key;
     }
 
     return nullptr;
@@ -386,9 +464,19 @@ ID3D11Buffer* FRenderResourceManager::GetStructuredBuffer(const FName InName)
 
 ID3D11ShaderResourceView* FRenderResourceManager::GetStructuredBufferSRV(const FName InName)
 {
-    if (StructuredBuffers.Contains(InName))
+    if (SRVStructuredBuffers.Contains(InName))
     {
-        return StructuredBuffers[InName].Value;
+        return SRVStructuredBuffers[InName].Value;
+    }
+
+    return nullptr;
+}
+
+ID3D11UnorderedAccessView* FRenderResourceManager::GetStructuredBufferUAV(const FName InName)
+{
+    if (UAVStructuredBuffers.Contains(InName))
+    {
+        return UAVStructuredBuffers[InName].Value;
     }
 
     return nullptr;

@@ -1,0 +1,97 @@
+#pragma kernel TileCulling
+
+struct FDirectionalLight
+{
+    float3 Direction;
+    float Intensity;
+    float4 Color;
+};
+
+struct FPointLight
+{
+    float3 Position;
+    float Radius;
+    
+    float4 Color;
+    
+    float Intensity;
+    float AttenuationFalloff;
+    float2 pad;
+};
+
+cbuffer FComputeConstants : register(b0){
+    float4x4 InverseView;
+    float4x4 InverseProj;
+    float screenWidth;
+    float screenHeight;
+    float2 Pad;
+}
+
+cbuffer FLightingConstants : register(b1)
+{
+    uint NumDirectionalLights;
+    uint NumPointLights;
+    float2 pad;
+
+    FDirectionalLight DirLights[4];
+    FPointLight PointLights[16];
+};
+
+// 출력 버퍼: 타일별 영향받는 광원 인덱스 리스트
+RWStructuredBuffer<uint> TileLightIndices : register(u2);
+
+// 타일 크기 설정
+static const uint TILE_SIZE_X = 16;
+static const uint TILE_SIZE_Y = 16;
+
+float3 ReconstructWorldPos(float2 UV, float Depth)
+{
+    float4 NDC;
+    NDC.xy = UV * 2.0 - 1.0; // [0,1] → [-1,1]
+    NDC.y *= -1;
+    NDC.z = Depth;
+    NDC.w = 1.0;
+    float4 WorldPos = mul(NDC, InverseProj);
+    WorldPos /= WorldPos.w;
+    WorldPos = mul(WorldPos, InverseView);
+    return WorldPos.xyz;
+}
+
+// 쓰레드 그룹 크기 설정
+[numthreads(TILE_SIZE_X, TILE_SIZE_Y, 1)]
+void mainCS (uint3 tid : SV_DispatchThreadID, uint3 gid : SV_GroupID) {
+    // 타일 ID 계산
+    uint tileIndex = gid.y * TILE_SIZE_X + gid.x;
+
+    // 타일의 화면 좌표 범위 계산
+    float2 tileMin = float2(gid.x * TILE_SIZE_X, gid.y * TILE_SIZE_Y);
+    float2 tileMax = tileMin + float2(TILE_SIZE_X, TILE_SIZE_Y);
+
+    float2 screenSize = float2(screenWidth, screenHeight);
+
+    
+    // 타일 경계 박스 → 월드/뷰 공간 변환 (예: 역투영)
+    float3 tileMinWorld = ReconstructWorldPos(tileMin / screenSize, 0); //각 타일의 최소위치 구하기, depth는 z를 결졍하기에 가장 가까운 0
+    float3 tileMaxWorld = ReconstructWorldPos(tileMax / screenSize, 1); //각 타일의 최대위치 구하기, depth는 z를 결졍하기에 가장 먼 1
+
+    // 타일 AABB (축 정렬 경계 박스) 생성
+    float3 tileAABBMin = min(tileMinWorld, tileMaxWorld);
+    float3 tileAABBMax = max(tileMinWorld, tileMaxWorld);
+
+    // 광원 컬링
+    uint lightCount = 0;
+    uint totalLightCount = NumPointLights; //지금은 PointLight만 하는중
+    for (uint i = 0; i < totalLightCount; ++i) {
+        uint tileOffset = tileIndex * totalLightCount;
+        TileLightIndices[tileOffset + i] = 0xFFFFFFFF; //사용하지 않으면 엄청 큰 수로 초기화.
+        
+        // 포인트 광원과 타일 AABB의 최소 거리 계산
+        float3 closestPoint = clamp(PointLights[i].Position, tileAABBMin, tileAABBMax);
+        float dist = distance(closestPoint, PointLights[i].Position);
+
+        if (dist <= PointLights[i].Radius) {
+            uint listIndex = tileOffset + lightCount++; //TileLightIndices가 공유자원이고 각자 타일별로 쓸 수 있는 구역을 정해둬서 동시 접근이 안이뤄지게 한듯
+            TileLightIndices[listIndex] = i;
+        }
+    }
+}

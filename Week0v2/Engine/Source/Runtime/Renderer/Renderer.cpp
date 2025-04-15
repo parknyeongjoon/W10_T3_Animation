@@ -2,6 +2,7 @@
 #include <d3dcompiler.h>
 
 #include "VBIBTopologyMapping.h"
+#include "ComputeShader/ComputeTileLightCulling.h"
 #include "Engine/World.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Launch/EditorEngine.h"
@@ -21,6 +22,7 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     RenderResourceManager->Initialize();
     CreateStaticMeshShader();
     CreateLineBatchShader();
+    CreateComputeShader();
 }
 
 void FRenderer::PrepareShader(const FName InShaderName)
@@ -445,6 +447,44 @@ void FRenderer::CreateDebugDepthShader()
     SAFE_RELEASE(VSBlob_StaticMesh)
     SAFE_RELEASE(PSBlob_StaticMesh) 
 }
+
+void FRenderer::CreateComputeShader()
+{
+    ID3DBlob* CSBlob_LightCulling = nullptr;
+    
+    ID3D11ComputeShader* ComputeShader = RenderResourceManager->GetComputeShader(TEXT("TileLightCulling"));
+    
+    if (ComputeShader == nullptr)
+    {
+        Graphics->CreateComputeShader(TEXT("TileLightCulling.compute"), nullptr, &CSBlob_LightCulling, &ComputeShader);
+    }
+    else
+    {
+        FGraphicsDevice::CompileComputeShader(TEXT("TileLightCulling.compute"), nullptr,  &CSBlob_LightCulling);
+    }
+    RenderResourceManager->AddOrSetComputeShader(TEXT("TileLightCulling"), ComputeShader);
+
+    const TArray<FConstantBufferInfo> LightCullingComputeConstant = FGraphicsDevice::ExtractConstantBufferNames(CSBlob_LightCulling);
+    
+    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+
+    for (const FConstantBufferInfo item : LightCullingComputeConstant)
+    {
+        ShaderStageToCB[{EShaderStage::CS, item.Name}] = item.BindSlot;
+        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
+        {
+            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
+            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+        }
+    }
+
+    MappingVSPSCBSlot(TEXT("TileLightCulling"), ShaderStageToCB);
+    
+    ComputeTileLightCulling = std::make_shared<FComputeTileLightCulling>(TEXT("TileLightCulling"));
+
+    SAFE_RELEASE(CSBlob_LightCulling)
+}
+
 #pragma endregion Shader
 // void FRenderer::   PrepareRender()
 // {
@@ -500,6 +540,10 @@ void FRenderer::CreateDebugDepthShader()
 void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
 {
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
+
+    //값을 써줄때 
+    
+    ComputeTileLightCulling->Dispatch(ActiveViewport);
     
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
     {
@@ -694,6 +738,7 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
 
 void FRenderer::AddRenderObjectsToRenderPass(UWorld* InWorld) const
 {
+    ComputeTileLightCulling->AddRenderObjectsToRenderPass(InWorld);
     StaticMeshRenderPass->AddRenderObjectsToRenderPass(InWorld);
     GizmoRenderPass->AddRenderObjectsToRenderPass(InWorld);
 }

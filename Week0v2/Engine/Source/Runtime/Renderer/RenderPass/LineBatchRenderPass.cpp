@@ -96,11 +96,11 @@ void FLineBatchRenderPass::UpdateBatchResources()
             SB = renderResourceManager->CreateStructuredBuffer<FBoundingBox>(static_cast<uint32>(PrimitveBatch.GetAllocatedBoundingBoxCapacity()));
             SBSRV = renderResourceManager->CreateBufferSRV(SB, static_cast<uint32>(PrimitveBatch.GetAllocatedBoundingBoxCapacity()));
 
-            renderResourceManager->AddOrSetStructuredBuffer(TEXT("BoundingBox"), SB);
-            renderResourceManager->AddOrSetStructuredBufferSRV(TEXT("BoundingBox"), SBSRV);
+            renderResourceManager->AddOrSetSRVStructuredBuffer(TEXT("BoundingBox"), SB);
+            renderResourceManager->AddOrSetSRVStructuredBufferSRV(TEXT("BoundingBox"), SBSRV);
         }
 
-        ID3D11Buffer* SB = renderResourceManager->GetStructuredBuffer(TEXT("BoundingBox"));
+        ID3D11Buffer* SB = renderResourceManager->GetSRVStructuredBuffer(TEXT("BoundingBox"));
         ID3D11ShaderResourceView* SBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("BoundingBox"));
         if (SB != nullptr && SBSRV != nullptr)
         {
@@ -118,11 +118,11 @@ void FLineBatchRenderPass::UpdateBatchResources()
             SB = renderResourceManager->CreateStructuredBuffer<FBoundingBox>(static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedConeCapacity()));
             SBSRV = renderResourceManager->CreateBufferSRV(SB, static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedConeCapacity()));
 
-            renderResourceManager->AddOrSetStructuredBuffer(TEXT("Cone"), SB);
-            renderResourceManager->AddOrSetStructuredBufferSRV(TEXT("Cone"), SBSRV);
+            renderResourceManager->AddOrSetSRVStructuredBuffer(TEXT("Cone"), SB);
+            renderResourceManager->AddOrSetSRVStructuredBufferSRV(TEXT("Cone"), SBSRV);
         }
 
-        ID3D11Buffer* SB = renderResourceManager->GetStructuredBuffer(TEXT("Cone"));
+        ID3D11Buffer* SB = renderResourceManager->GetSRVStructuredBuffer(TEXT("Cone"));
         ID3D11ShaderResourceView* SBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Cone"));
         if (SB != nullptr && SBSRV != nullptr)
         {
@@ -140,11 +140,11 @@ void FLineBatchRenderPass::UpdateBatchResources()
             SB = renderResourceManager->CreateStructuredBuffer<FOBB>(static_cast<uint32>(PrimitveBatch.GetAllocatedOBBCapacity()));
             SBSRV = renderResourceManager->CreateBufferSRV(SB, static_cast<uint32>(PrimitveBatch.GetAllocatedOBBCapacity()));
 
-            renderResourceManager->AddOrSetStructuredBuffer(TEXT("OBB"), SB);
-            renderResourceManager->AddOrSetStructuredBufferSRV(TEXT("OBB"), SBSRV);
+            renderResourceManager->AddOrSetSRVStructuredBuffer(TEXT("OBB"), SB);
+            renderResourceManager->AddOrSetSRVStructuredBufferSRV(TEXT("OBB"), SBSRV);
         }
 
-        ID3D11Buffer* SB = renderResourceManager->GetStructuredBuffer(TEXT("OBB"));
+        ID3D11Buffer* SB = renderResourceManager->GetSRVStructuredBuffer(TEXT("OBB"));
         ID3D11ShaderResourceView* SBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("OBB"));
         if (SB != nullptr && SBSRV != nullptr)
         {
