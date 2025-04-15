@@ -14,8 +14,11 @@
 #include "UObject/UObjectIterator.h"
 
 #include "EditorEngine.h"
+#include "PropertyEditor/PrimitiveDrawEditor.h"
+#include "UnrealEd/UnrealEd.h"
 
 
+class PrimitiveDrawEditor;
 using namespace DirectX;
 
 AEditorPlayer::AEditorPlayer()
@@ -65,14 +68,16 @@ void AEditorPlayer::MultiSelectingEnd()
 
 void AEditorPlayer::MakeMulitRect()
 {
-    UE_LOG(LogLevel::Error, " MakeRecting");
+    UE_LOG(LogLevel::Error, "MakeRecting");
     POINT multiSelectingEndPos;
     GetCursorPos(&multiSelectingEndPos);
     ImVec2 topLeft(std::min(multiSelectingStartPos.x, multiSelectingEndPos.x), std::min(multiSelectingStartPos.y, multiSelectingEndPos.y));
     ImVec2 bottomRight(std::max(multiSelectingStartPos.x, multiSelectingEndPos.x),std::max(multiSelectingStartPos.y, multiSelectingEndPos.y));
     ImU32 rectColor = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     float thickness = 2.0f;
-    ImGui::GetForegroundDrawList()->AddRect(topLeft, bottomRight, rectColor, 0.0f, 0, thickness);
+    // ImGui::GetForegroundDrawList()->AddRect(topLeft, bottomRight, rectColor, 0.0f, 0, thickness);
+    static_cast<PrimitiveDrawEditor*>(GEngine->GetUnrealEditor()->GetEditorPanel("PrimitiveDrawEditor").get())->DrawRectInfo.Add(
+        FDrawRectInfo(topLeft,bottomRight,rectColor,0.0f,0,thickness));
 }
 
 void AEditorPlayer::Input()
