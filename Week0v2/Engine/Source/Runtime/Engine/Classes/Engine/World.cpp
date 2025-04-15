@@ -18,8 +18,19 @@ UWorld::UWorld(const UWorld& Other)
     : Super(Other)
     , defaultMapName(Other.defaultMapName)
     , WorldType(Other.WorldType)
+    , Level(Other.Level)
 {
 }
+
+// UWorld::UWorld(const UWorld& Other): UObject(Other)
+//                                    , defaultMapName(Other.defaultMapName)
+//                                    , Level(Other.Level)
+//                                    , WorldType(Other.WorldType)
+//                                     , EditorPlayer(nullptr)
+//                                     , LocalGizmo(nullptr)
+// {
+// }
+
 
 void UWorld::InitWorld()
 {
@@ -226,11 +237,13 @@ bool UWorld::DestroyActor(AActor* ThisActor)
 void UWorld::SetPickingGizmo(UObject* Object)
 {
 	pickingGizmo = Cast<USceneComponent>(Object);
-}
+} 
 
 void UWorld::Serialize(FArchive& ar) const
 {
-    int ActorCount = Level->GetActors().Num();
+    int ActorCount = 0;
+    TArray<AActor*> Actors = Level->GetActors();
+    ActorCount = Actors.Num(); // 터지는 부분 
     ar << ActorCount;
     for (AActor* Actor : Level->GetActors())
     {
