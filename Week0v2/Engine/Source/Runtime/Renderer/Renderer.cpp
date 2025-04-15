@@ -591,6 +591,7 @@ void FRenderer::CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACR
 
 void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
 {
+    SetViewMode(ActiveViewport->GetViewMode());
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
     
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
