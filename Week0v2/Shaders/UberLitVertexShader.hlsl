@@ -80,8 +80,9 @@ cbuffer FLightingConstants : register(b1)
 
 cbuffer FFlagConstants : register(b2)
 {
-    bool IsLit;
-    float3 flagPad0;
+    uint IsLit;
+    uint IsNormal;
+    float2 flagPad0;
 }
 
 cbuffer FCameraConstant : register(b3)

@@ -7,6 +7,7 @@
 #include "EngineBaseTypes.h"
 #include "Define.h"
 #include "RenderResourceManager.h"
+#include "RenderPass/DebugDepthRenderPass.h"
 
 class FGizmoRenderPass;
 class FLineBatchRenderPass;
@@ -38,6 +39,8 @@ public:
     std::shared_ptr<FVBIBTopologyMapping> GetVBIBTopologyMapping(const FName InName) {return VBIBTopologyMappings[InName];}
 
     bool bIsLit = true;
+    bool bIsNormal = false;
+    bool bIsDepth = false;
 public:
     void Initialize(FGraphicsDevice* graphics);
     
@@ -93,6 +96,7 @@ private:
     std::shared_ptr<FStaticMeshRenderPass> StaticMeshRenderPass;
     std::shared_ptr<FLineBatchRenderPass> LineBatchRenderPass;
     std::shared_ptr<FGizmoRenderPass> GizmoRenderPass;
+    std::shared_ptr<FDebugDepthRenderPass> DebugDepthRenderPass;
 
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
 };
