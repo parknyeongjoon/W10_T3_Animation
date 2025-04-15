@@ -657,7 +657,7 @@ void FGraphicsDevice::ExtractVertexShaderInfo(ID3DBlob* shaderBlob, TArray<FCons
         return;
     }
 
-    OutCBInfos = ExtractConstantBufferNames(pReflector, shaderDesc);
+    OutCBInfos = ExtractConstantBufferInfos(pReflector, shaderDesc);
     OutInputLayout = ExtractInputLayout(shaderBlob, pReflector, shaderDesc);
     
     SAFE_RELEASE(pReflector);
@@ -684,10 +684,10 @@ void FGraphicsDevice::ExtractPixelShaderInfo(ID3DBlob* shaderBlob, TArray<FConst
         return;
     }
 
-    OutCBInfos = ExtractConstantBufferNames(pReflector, shaderDesc);
+    OutCBInfos = ExtractConstantBufferInfos(pReflector, shaderDesc);
 }
 
-TArray<FConstantBufferInfo> FGraphicsDevice::ExtractConstantBufferNames(ID3D11ShaderReflection* InReflector, D3D11_SHADER_DESC InShaderDecs)
+TArray<FConstantBufferInfo> FGraphicsDevice::ExtractConstantBufferInfos(ID3D11ShaderReflection* InReflector, const D3D11_SHADER_DESC& InShaderDecs)
 {
     TArray<FConstantBufferInfo> CBInfos;
     
@@ -699,11 +699,47 @@ TArray<FConstantBufferInfo> FGraphicsDevice::ExtractConstantBufferNames(ID3D11Sh
         {
             D3D11_SHADER_BUFFER_DESC cbDesc = {};
             const HRESULT hr = pCB->GetDesc(&cbDesc);
-            if (SUCCEEDED(hr))
+            if(cbDesc.Type != D3D_CT_CBUFFER)
             {
-                const FString CBName = cbDesc.Name;
-                CBInfos.Add(FConstantBufferInfo(CBName, cbDesc.Size, i));
+                continue;
             }
+            
+            const FString CBName = cbDesc.Name;
+            uint32 BindingSlot = 0;
+            
+            for (UINT j = 0; j < InShaderDecs.BoundResources; ++j)
+            {
+                D3D11_SHADER_INPUT_BIND_DESC bindDesc = {};
+                if (SUCCEEDED(InReflector->GetResourceBindingDesc(j, &bindDesc)))
+                {
+                    if (bindDesc.Type != D3D_SIT_CBUFFER)
+                    {
+                        continue;
+                    }
+                    
+                    if (_stricmp(bindDesc.Name, cbDesc.Name) == 0)  // 이름 비교, 대소문자 무시
+                    {
+                        BindingSlot = bindDesc.BindPoint;
+                        break;
+                    }
+                }
+            }
+            CBInfos.Add(FConstantBufferInfo(CBName, cbDesc.Size, BindingSlot));
+            
+            // if (SUCCEEDED(hr))
+            // {
+            //     const FString CBName = cbDesc.Name;
+            //     // 리소스 바인딩 설명을 가져와 상수 버퍼 슬롯 정보를 얻음
+            //     D3D11_SHADER_INPUT_BIND_DESC bindDesc = {};
+            //     hr = InReflector->GetResourceBindingDesc(cbDesc.Name, &bindDesc);
+            //     uint32 BindingSlot = 0;
+            //     if (SUCCEEDED(hr))
+            //     {
+            //         BindingSlot = bindDesc.BindPoint;
+            //     }
+            //     
+            //     CBInfos.Add(FConstantBufferInfo(CBName, cbDesc.Size, i));
+            // }
         }
     }
     
