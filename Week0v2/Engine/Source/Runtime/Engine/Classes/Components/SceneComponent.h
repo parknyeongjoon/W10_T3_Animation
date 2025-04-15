@@ -7,12 +7,12 @@
 struct FSceneComponentInfo : public FActorComponentInfo
 {
     DECLARE_ACTORCOMPONENT_INFO(FSceneComponentInfo);
-
-
+    
     FVector RelativeLocation;
     FVector RelativeRotation;
     FQuat QuatRotation;
     FVector RelativeScale3D;
+    FBoundingBox AABB;
 
     FSceneComponentInfo()
         : FActorComponentInfo()
@@ -20,6 +20,7 @@ struct FSceneComponentInfo : public FActorComponentInfo
         , RelativeRotation(FVector::ZeroVector)
         , QuatRotation(FQuat::Identity())
         , RelativeScale3D(FVector::OneVector)
+        , AABB(FBoundingBox(FVector::ZeroVector, FVector::ZeroVector))
     {
         InfoType = TEXT("FSceneComponentInfo");
         ComponentType = TEXT("USceneComponent");
@@ -33,18 +34,19 @@ struct FSceneComponentInfo : public FActorComponentInfo
         OtherScene.RelativeRotation = RelativeRotation;
         OtherScene.QuatRotation = QuatRotation;
         OtherScene.RelativeScale3D = RelativeScale3D;
+        OtherScene.AABB = AABB;
     }
 
     virtual void Serialize(FArchive& ar) const override
     {
         FActorComponentInfo::Serialize(ar);
-        ar << RelativeLocation << RelativeRotation << QuatRotation << RelativeScale3D;
+        ar << RelativeLocation << RelativeRotation << QuatRotation << RelativeScale3D << AABB;
     }
 
     virtual void Deserialize(FArchive& ar) override
     {
         FActorComponentInfo::Deserialize(ar);
-        ar >> RelativeLocation >> RelativeRotation >> QuatRotation >> RelativeScale3D;
+        ar >> RelativeLocation >> RelativeRotation >> QuatRotation >> RelativeScale3D >> AABB;
     }
 };
 
@@ -131,9 +133,4 @@ public:
     virtual bool MoveComponent(const FVector& Delta) { return false; }
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
-
-private:
-    class UTextUUID* uuidText = nullptr;
-
-public:
 };

@@ -2,6 +2,7 @@
 #include "Core/HAL/PlatformType.h"
 #include <functional>
 
+class FArchive;
 class FString;
 
 
@@ -23,6 +24,9 @@ public:
     uint32 GetComparisonIndex() const { return ComparisonIndex; }
 
     bool operator==(const FName& Other) const;
+
+    void Serialize(FArchive& Ar) const;
+    void Deserialize(FArchive& Ar);
 };
 
 template<>

@@ -58,10 +58,10 @@ void UBillboardComponent::SetTexture(FWString _fileName)
 	Texture = UEditorEngine::resourceMgr.GetTexture(_fileName);
 }
 
-void UBillboardComponent::SetUUIDParent(USceneComponent* _parent)
-{
-	m_parent = _parent;
-}
+// void UBillboardComponent::SetUUIDParent(USceneComponent* _parent)
+// {
+// 	m_parent = _parent;
+// }
 
 
 FMatrix UBillboardComponent::CreateBillboardMatrix()
