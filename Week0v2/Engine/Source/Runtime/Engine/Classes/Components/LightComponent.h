@@ -47,7 +47,6 @@ struct FLightComponentInfo : public FSceneComponentInfo
 
 };
 
-
 class ULightComponentBase : public USceneComponent
 {
     DECLARE_CLASS(ULightComponentBase, USceneComponent)
@@ -69,7 +68,7 @@ public:
 protected:
     FVector4 color = { 1, 1, 1, 1 }; // RGBA
     float Intensity = 1.0f;
-
+    
 public:
     FVector4 GetColor() {return color;}
     float GetIntensity() const { return Intensity; }

@@ -533,6 +533,8 @@
     <FxCompile Include="Shaders\DebugDepthPixelShader.hlsl" />
     <FxCompile Include="Shaders\UberLitPixelShader.hlsl" />
     <FxCompile Include="Shaders\UberLitVertexShader.hlsl" />
+    <FxCompile Include="Shaders\EditorVertexShader.hlsl" />
+    <FxCompile Include="Shaders\EditorPixelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week0v2.natvis" />

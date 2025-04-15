@@ -10,6 +10,7 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UObject/UObjectIterator.h"
 #include "D3D11RHI/FShaderProgram.h"
+#include "RenderPass/EditorIconRenderPass.h"
 #include "RenderPass/GizmoRenderPass.h"
 #include "RenderPass/LineBatchRenderPass.h"
 #include "RenderPass/StaticMeshRenderPass.h"
@@ -28,13 +29,40 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     FString Prefix = TEXT("UberLit");
     //Prefix += defines->Name;
     StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(Prefix);
-    GizmoRenderPass = std::make_shared<FGizmoRenderPass>(Prefix);
     
     CreateVertexPixelShader(TEXT("Line"), nullptr);
     LineBatchRenderPass = std::make_shared<FLineBatchRenderPass>(TEXT("Line"));
 
     CreateVertexPixelShader(TEXT("DebugDepth"), nullptr);
     DebugDepthRenderPass = std::make_shared<FDebugDepthRenderPass>(TEXT("DebugDepth"));
+
+    D3D_SHADER_MACRO EditorGizmoDefines[] = 
+    {
+        {"RENDER_GIZMO", "1"},
+        {nullptr, nullptr}
+    };
+    FString GizmoShaderName = TEXT("Editor");
+    GizmoShaderName += EditorGizmoDefines->Name;
+    CreateVertexPixelShader(TEXT("Editor"), EditorGizmoDefines);
+    GizmoRenderPass = std::make_shared<FGizmoRenderPass>(GizmoShaderName);
+
+    D3D_SHADER_MACRO EditorIconDefines[] = 
+    {
+        {"RENDER_ICON", "1"},
+        {nullptr, nullptr}
+    };
+    FString IconShaderName = TEXT("Editor");
+    IconShaderName += EditorIconDefines->Name;
+    CreateVertexPixelShader(TEXT("Editor"), EditorIconDefines);
+    EditorIconRenderPass = std::make_shared<FEditorIconRenderPass>(IconShaderName);
+
+    // D3D_SHADER_MACRO EditorArrowDefines[] = 
+    // {
+    //     {"RENDER_ARROW", "1"},
+    //     {nullptr, nullptr}
+    // };
+    // CreateVertexPixelShader(TEXT("Editor"), EditorArrowDefines);
+    
     // CreateStaticMeshShader();
     // CreateLineBatchShader();
     //CreateLineBatchShader();
@@ -52,7 +80,7 @@ void FRenderer::BindConstantBuffers(const FName InShaderName)
     TMap<FShaderConstantKey, uint32> curShaderBindedConstant = ShaderConstantNameAndSlots[InShaderName];
     for (const auto item : curShaderBindedConstant)
     {
-          auto curConstantBuffer = RenderResourceManager->GetConstantBuffer(item.Key.ConstantName);
+        auto curConstantBuffer = RenderResourceManager->GetConstantBuffer(item.Key.ConstantName);
         if (item.Key.ShaderType == EShaderStage::VS)
         {
             if (curConstantBuffer)
@@ -106,18 +134,21 @@ void FRenderer::CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACR
     // 접미사를 각각 붙여서 전체 파일명 생성
     const FString VertexShaderFile = InPrefix + TEXT("VertexShader.hlsl");
     const FString PixelShaderFile  = InPrefix + TEXT("PixelShader.hlsl");
-    
-    RenderResourceManager->CreateVertexShader(VertexShaderFile, pDefines);
-    RenderResourceManager->CreatePixelShader(PixelShaderFile, pDefines);
 
-    ID3DBlob* VertexShaderBlob = RenderResourceManager->GetVertexShaderBlob(VertexShaderFile);
+    const FString VertexShaderName = Prefix+ TEXT("VertexShader.hlsl");
+    const FString PixelShaderName = Prefix+ TEXT("PixelShader.hlsl");
+    
+    RenderResourceManager->CreateVertexShader(VertexShaderName, VertexShaderFile, pDefines);
+    RenderResourceManager->CreatePixelShader(PixelShaderName, PixelShaderFile, pDefines);
+
+    ID3DBlob* VertexShaderBlob = RenderResourceManager->GetVertexShaderBlob(VertexShaderName);
     
     TArray<FConstantBufferInfo> VertexStaticMeshConstant;
     ID3D11InputLayout* InputLayout = nullptr;
     Graphics->ExtractVertexShaderInfo(VertexShaderBlob, VertexStaticMeshConstant, InputLayout);
-    RenderResourceManager->AddOrSetInputLayout(VertexShaderFile, InputLayout);
+    RenderResourceManager->AddOrSetInputLayout(VertexShaderName, InputLayout);
 
-    ID3DBlob* PixelShaderBlob = RenderResourceManager->GetPixelShaderBlob(PixelShaderFile);
+    ID3DBlob* PixelShaderBlob = RenderResourceManager->GetPixelShaderBlob(PixelShaderName);
     TArray<FConstantBufferInfo> PixelStaticMeshConstant;
     Graphics->ExtractPixelShaderInfo(PixelShaderBlob, PixelStaticMeshConstant);
     
@@ -126,7 +157,7 @@ void FRenderer::CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACR
     CreateMappedCB(ShaderStageToCB, VertexStaticMeshConstant, EShaderStage::VS);  
     CreateMappedCB(ShaderStageToCB, PixelStaticMeshConstant, EShaderStage::PS);
     
-    MappingVSPSInputLayout(Prefix, VertexShaderFile, PixelShaderFile, VertexShaderFile);
+    MappingVSPSInputLayout(Prefix, VertexShaderName, PixelShaderName, VertexShaderName);
     MappingVSPSCBSlot(Prefix, ShaderStageToCB);
 }
 
@@ -617,6 +648,9 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
         GizmoRenderPass->Prepare(ActiveViewport);
         GizmoRenderPass->Execute(ActiveViewport);
     }
+
+    EditorIconRenderPass->Prepare(ActiveViewport);
+    EditorIconRenderPass->Execute(ActiveViewport);
     
     //Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
     //ChangeViewMode(ActiveViewport->GetViewMode());
@@ -810,7 +844,8 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
 void FRenderer::AddRenderObjectsToRenderPass(UWorld* InWorld) const
 {
     StaticMeshRenderPass->AddRenderObjectsToRenderPass(InWorld);
-    //GizmoRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    GizmoRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    EditorIconRenderPass->AddRenderObjectsToRenderPass(InWorld);
 }
 
 //void FRenderer::RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport)

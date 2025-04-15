@@ -1,9 +1,12 @@
 #include "PointLightActor.h"
 #include <Components/PointLightComponent.h>
 
+#include "Components/UBillboardComponent.h"
+
 APointLightActor::APointLightActor()
 {
     LightComponent = AddComponent<UPointLightComponent>();
+    BillboardComponent->SetTexture(L"Assets/Texture/S_LightPoint.png");
 }
 
 APointLightActor::APointLightActor(const APointLightActor& Other)

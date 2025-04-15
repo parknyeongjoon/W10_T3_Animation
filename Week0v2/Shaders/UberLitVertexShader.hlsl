@@ -32,7 +32,6 @@ struct PS_INPUT
     float3x3 TBN : TEXCOORD3;
 };
 
-
 struct FDirectionalLight
 {
     float3 Direction;
@@ -245,8 +244,6 @@ PS_INPUT mainVS(VS_INPUT input)
         
     return output;
 #endif
-    
-    
     float3 tangent = normalize(mul(input.tangent, Model));
 
     // 탄젠트-노멀 직교화 (Gram-Schmidt 과정) 해야 안전함

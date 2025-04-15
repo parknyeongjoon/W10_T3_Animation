@@ -725,21 +725,6 @@ TArray<FConstantBufferInfo> FGraphicsDevice::ExtractConstantBufferInfos(ID3D11Sh
                 }
             }
             CBInfos.Add(FConstantBufferInfo(CBName, cbDesc.Size, BindingSlot));
-            
-            // if (SUCCEEDED(hr))
-            // {
-            //     const FString CBName = cbDesc.Name;
-            //     // 리소스 바인딩 설명을 가져와 상수 버퍼 슬롯 정보를 얻음
-            //     D3D11_SHADER_INPUT_BIND_DESC bindDesc = {};
-            //     hr = InReflector->GetResourceBindingDesc(cbDesc.Name, &bindDesc);
-            //     uint32 BindingSlot = 0;
-            //     if (SUCCEEDED(hr))
-            //     {
-            //         BindingSlot = bindDesc.BindPoint;
-            //     }
-            //     
-            //     CBInfos.Add(FConstantBufferInfo(CBName, cbDesc.Size, i));
-            // }
         }
     }
     

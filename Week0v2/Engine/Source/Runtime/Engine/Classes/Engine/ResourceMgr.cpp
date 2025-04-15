@@ -36,6 +36,8 @@ void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/Pawn_64x.png");
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/PointLight_64x.png");
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/SpotLight_64x.png");
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/S_LightDirectional.png");
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/S_LightPoint.png");
 }
 
 void FResourceMgr::Release(FRenderer* renderer)

@@ -5,7 +5,6 @@ ALight::ALight()
     : Super()
 {
     BillboardComponent = AddComponent<UBillboardComponent>();
-    BillboardComponent->SetTexture(L"Assets/Texture/spotLight.png");
 }
 
 ALight::ALight(const ALight& Other)

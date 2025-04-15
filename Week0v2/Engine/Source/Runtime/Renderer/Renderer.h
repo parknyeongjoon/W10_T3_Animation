@@ -9,6 +9,7 @@
 #include "RenderResourceManager.h"
 #include "RenderPass/DebugDepthRenderPass.h"
 
+class FEditorIconRenderPass;
 class FGizmoRenderPass;
 class FLineBatchRenderPass;
 class FStaticMeshRenderPass;
@@ -97,6 +98,7 @@ private:
     std::shared_ptr<FLineBatchRenderPass> LineBatchRenderPass;
     std::shared_ptr<FGizmoRenderPass> GizmoRenderPass;
     std::shared_ptr<FDebugDepthRenderPass> DebugDepthRenderPass;
+    std::shared_ptr<FEditorIconRenderPass> EditorIconRenderPass;
 
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
 };

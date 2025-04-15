@@ -7,6 +7,42 @@
 #include "Math/Vector4.h"
 
 // NOTE: Generated code - do not modify manually.
+struct alignas(16) FMeshConstant
+{
+    FMatrix ModelMatrix;
+    FMatrix ModelInvTransMatrix;
+    FVector DiffuseColor;
+    float TransparencyScalar;
+    FVector AmbientColor;
+    float DensityScalar;
+    FVector SpecularColor;
+    float SpecularScalar;
+    FVector EmmisiveColor;
+    float MaterialPad0;
+    uint32 IsSelectedMesh;
+};
+
+struct alignas(16) FSceneConstant
+{
+    FMatrix ViewMatrix;
+    FMatrix ProjMatrix;
+    alignas(16) FVector CameraPos;
+    alignas(16) FVector CameraLookAt;
+};
+
+struct alignas(16) FDebugIconConstant
+{
+    FVector IconPosition;
+    float IconScale;
+};
+
+struct alignas(16) FDebugArrowConstant
+{
+    FVector ArrowPosition;
+    float ArrowScaleXYZ;
+    FVector ArrowDirection;
+    float ArrowScaleZ;
+};
 
 struct alignas(16) FCameraConstant
 {
