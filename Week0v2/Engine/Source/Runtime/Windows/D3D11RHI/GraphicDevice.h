@@ -13,6 +13,7 @@
 #include "Container/Array.h"
 #include "Container/String.h"
 
+struct FVector4;
 enum class EShaderStage;
 
 struct FConstantBufferInfo
@@ -77,8 +78,8 @@ public:
     ID3D11Texture2D* RenderTargetTexture = nullptr;
     void CreateSceneColorResources();
 
-    // uint32 GetPixelUUID(POINT pt);
-    // uint32 DecodeUUIDColor(FVector4 UUIDColor);
+    uint32 GetPixelUUID(POINT pt);
+    uint32 DecodeUUIDColor(FVector4 UUIDColor);
 private:
     //ID3D11RasterizerState* CurrentRasterizer = nullptr;
 public:

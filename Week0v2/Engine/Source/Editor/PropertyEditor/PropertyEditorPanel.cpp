@@ -47,7 +47,9 @@ void PropertyEditorPanel::Render()
     ImGui::Begin("Detail", nullptr, PanelFlags);
 
     AEditorPlayer* player = GEngine->GetWorld()->GetEditorPlayer();
-    AActor* PickedActor = GEngine->GetWorld()->GetSelectedActor();
+    AActor* PickedActor = nullptr; 
+    if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
+            PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)

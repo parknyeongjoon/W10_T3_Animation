@@ -79,41 +79,6 @@ void USceneComponent::AddScale(FVector _added)
 
 }
 
-// FVector USceneComponent::GetWorldRotation()
-// {
-// 	if (AttachParent)
-// 	{
-// 		return FVector(AttachParent->GetLocalRotation() + GetLocalRotation());
-// 	}
-// 	else
-// 		return GetLocalRotation();
-// }
-//
-// FVector USceneComponent::GetWorldScale()
-// {
-// 	if (AttachParent)
-// 	{
-// 		return FVector(AttachParent->GetWorldScale() * GetLocalScale());
-// 	}
-// 	else
-// 		return GetLocalScale();
-// }
-//
-// FVector USceneComponent::GetWorldLocation()
-// {
-// 	if (AttachParent)
-// 	{
-// 		return FVector(AttachParent->GetWorldLocation() + GetLocalLocation());
-// 	}
-// 	else
-// 		return GetLocalLocation();
-// }
-//
-// FVector USceneComponent::GetLocalRotation()
-// {
-// 	return JungleMath::QuaternionToEuler(QuatRotation);
-// }
-
 void USceneComponent::SetRotation(FVector _newRot)
 {
 	RelativeRotation = _newRot;

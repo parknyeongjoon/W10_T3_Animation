@@ -1,6 +1,7 @@
 #pragma once
 #include "FBaseRenderPass.h"
 #include "Container/Array.h"
+#include "Math/Vector4.h"
 
 class ULightComponentBase;
 class USkySphereComponent;
@@ -23,6 +24,7 @@ private:
     static void UpdateMatrixConstants(UStaticMeshComponent* InStaticMeshComponent, const FMatrix& InView, const FMatrix& InProjection);
     void UpdateFlagConstant();
     void UpdateLightConstants();
+    void UpdateContstantBufferActor(const FVector4 UUID, int32 isSelected);
     static void UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent);
     static void UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo);
 

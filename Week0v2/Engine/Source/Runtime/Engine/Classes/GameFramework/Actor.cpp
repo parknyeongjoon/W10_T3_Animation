@@ -214,7 +214,6 @@ UObject* AActor::Duplicate() const
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }
-
 void AActor::DuplicateSubObjects(const UObject* SourceObj)
 {
     UObject::DuplicateSubObjects(SourceObj);
@@ -226,25 +225,20 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
 
     for (UActorComponent* Component : Source->OwnedComponents)
     {
-        UActorComponent* DupComponent = static_cast<UActorComponent*>(Component->Duplicate());
-        if (!DupComponent)
-        {
-            // 복제 실패 시 건너뜁니다.
-            continue;
-        }
-        DupComponent->Owner = this;
-        OwnedComponents.Add(DupComponent);
-        if (DupComponent->IsA(USceneComponent::StaticClass())) 
-        {
-            RootComponent = Cast<USceneComponent>(DupComponent);
-        }
+        UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate());
+        dupComponent->Owner = this;
+        OwnedComponents.Add(dupComponent);
 
         /** Todo. UActorComponent를 상속 받는 컴포넌트는 오류가 발생 코드 로직 수정 필요
          *   임시로 IsA 검사 후 Root 설정
          */
+        if (dupComponent->IsA(USceneComponent::StaticClass())) 
+        {
+            RootComponent = Cast<USceneComponent>(dupComponent);
+        }
         if (const USceneComponent* OldScene = Cast<USceneComponent>(Component))
         {
-            if (USceneComponent* NewScene = Cast<USceneComponent>(DupComponent))
+            if (USceneComponent* NewScene = Cast<USceneComponent>(dupComponent))
             {
                 SceneCloneMap.Add(OldScene, NewScene);
             }
@@ -269,14 +263,12 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
     {
         if (USceneComponent** Found = SceneCloneMap.Find(Source->RootComponent))
         {
-            const USceneComponent* NewParent = Cast<USceneComponent>(*Found);
-            if (NewParent)
-                SetRootComponent(Cast<USceneComponent>(NewParent->Duplicate()));
+            SetRootComponent(*Found);
         }
     }
 
     // 컴포넌트 initialize
-    for (const auto Comp : OwnedComponents)
+    for (auto Comp : OwnedComponents)
     {
         Comp->InitializeComponent();
     }
