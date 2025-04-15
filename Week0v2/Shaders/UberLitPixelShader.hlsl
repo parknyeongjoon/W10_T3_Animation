@@ -74,6 +74,7 @@ cbuffer FSubUVConstant : register(b3)
 {
     float indexU;
     float indexV;
+    float2 padd;
 }
 
 cbuffer FCameraConstant : register(b4)
@@ -149,17 +150,18 @@ float3 CalculatePointLight(
     // 디퓨즈  
     float NdotL = max(dot(Normal, LightDir), 0.0);  
     float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
+    return (NdotL.xxx);
     
 #if LIGHTING_MODEL_LAMBERT
-    return Diffuse;
+    return Diffuse * Light.Intensity * Attenuation;
 #endif
     // 스페큘러  
     float3 HalfVec = normalize(LightDir + ViewDir);  
     float NdotH = max(dot(Normal, HalfVec), 0.0);  
-    float Specular = pow(NdotH, SpecularScalar * 64.0) * SpecularScalar;  
+    float Specular = pow(NdotH, SpecularScalar * 128.0) * SpecularScalar;
     float3 specularColor = Light.Color.rgb * Specular * SpecularColor;
 
-    return (Diffuse + specularColor) * Attenuation;  
+    return (Diffuse + specularColor) * Light.Intensity * Attenuation;  
 }  
 
 float3 CalculateSpotLight(
@@ -191,6 +193,9 @@ float3 CalculateSpotLight(
     float NdotL = max(dot(Normal, SpotDirection), 0.0);
     float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
 
+#if LIGHTING_MODEL_LAMBERT
+    return Diffuse * Light.Intensity * SpotAttenuation * DistanceAttenuation;
+#endif
     // 스페큘러 (Blinn-Phong)
     float3 HalfVec = normalize(SpotDirection + ViewDir);
     float NdotH = max(dot(Normal, HalfVec), 0.0);
