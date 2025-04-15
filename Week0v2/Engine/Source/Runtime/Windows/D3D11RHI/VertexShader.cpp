@@ -46,4 +46,6 @@ void FVertexShader::UpdateShader()
     FRenderResourceManager* RenderResourceManager = GEngine->renderer.GetResourceManager();
 
     RenderResourceManager->UpdateVertexShader(ShaderName.ToString(), ShaderMacro);
+    const std::filesystem::file_time_type CurrentLastWriteTime = std::filesystem::last_write_time(*FullPath);
+    LastWriteTime = CurrentLastWriteTime;
 }
