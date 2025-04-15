@@ -203,8 +203,7 @@ float3 CalculateSpotLight(
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
-    
-    float2 uvAdjusted = input.texcoord + float2(indexU, indexV);
+    float2 uvAdjusted = input.texcoord;
     
     // 기본 색상 추출  
     float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  

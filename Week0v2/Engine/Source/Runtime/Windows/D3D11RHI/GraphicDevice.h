@@ -89,7 +89,7 @@ public:
 
     void ExtractVertexShaderInfo(ID3DBlob* shaderBlob, TArray<FConstantBufferInfo>& OutCBInfos, ID3D11InputLayout*& OutInputLayout) const;
     static void ExtractPixelShaderInfo(ID3DBlob* shaderBlob, TArray<FConstantBufferInfo>& OutCBInfos);
-    static TArray<FConstantBufferInfo> ExtractConstantBufferNames(ID3D11ShaderReflection* InReflector, D3D11_SHADER_DESC InShaderDecs);
+    static TArray<FConstantBufferInfo> ExtractConstantBufferInfos(ID3D11ShaderReflection* InReflector, const D3D11_SHADER_DESC& InShaderDecs);
     ID3D11InputLayout* ExtractInputLayout(ID3DBlob* InShaderBlob, ID3D11ShaderReflection* InReflector, const D3D11_SHADER_DESC& InShaderDecs) const;
 };
 

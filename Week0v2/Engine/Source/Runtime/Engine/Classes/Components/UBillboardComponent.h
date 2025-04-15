@@ -7,7 +7,7 @@ struct FTexture;
 struct FBillboardComponentInfo : public FPrimitiveComponentInfo
 {
     DECLARE_ACTORCOMPONENT_INFO(FBillboardComponentInfo);
-    FWString TexturePath;
+    FWString TexturePath; 
 
     FBillboardComponentInfo()
         : FPrimitiveComponentInfo()

@@ -5,8 +5,8 @@ cbuffer FSubUVConstant : register(b1)
 {
     float indexU;
     float indexV;
+    float2 Pad;
 }
-
 
 struct PS_Input 
 {
