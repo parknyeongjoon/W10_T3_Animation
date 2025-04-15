@@ -16,6 +16,7 @@ struct FBillboardComponentInfo : public FPrimitiveComponentInfo
         InfoType = TEXT("FBillboardComponentInfo");
         ComponentType = TEXT("UBillboardComponent");
     }
+    
     virtual void Copy(FActorComponentInfo& Other) override
     {
         FPrimitiveComponentInfo::Copy(Other);
@@ -53,7 +54,7 @@ public:
     ) override;
 
     void SetTexture(FWString _fileName);
-    void SetUUIDParent(USceneComponent* _parent);
+    //void SetUUIDParent(USceneComponent* _parent);
     FMatrix CreateBillboardMatrix();
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
@@ -68,7 +69,7 @@ public:
     void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 protected:
-    USceneComponent* m_parent = nullptr;
+    //USceneComponent* m_parent = nullptr;
 
     bool CheckPickingOnNDC(const TArray<FVector>& checkQuad, float& hitDistance);
 
