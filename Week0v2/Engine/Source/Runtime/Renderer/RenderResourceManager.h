@@ -44,6 +44,9 @@ public:
     void UpdateConstantBuffer(ID3D11Buffer* InBuffer, const T* InData = nullptr);
 
     template<typename T>
+    void UpdateConstantBuffer(const FName& CBName, const T* InData = nullptr);
+
+    template<typename T>
     void UpdateDynamicVertexBuffer(ID3D11Buffer* InBuffer, T* vertices, const uint32 numVertices) const;
     
     template <typename T>
@@ -239,6 +242,19 @@ void FRenderResourceManager::UpdateConstantBuffer(ID3D11Buffer* InBuffer, const 
     }
     memcpy(sub.pData, InData, sizeof(T));
     GraphicDevice->DeviceContext->Unmap(InBuffer, 0);
+}
+
+template <typename T>
+void FRenderResourceManager::UpdateConstantBuffer(const FName& CBName, const T* InData)
+{
+    ID3D11Buffer* CB = GetConstantBuffer(CBName);
+    if (CB == nullptr)
+    {
+        UE_LOG(LogLevel::Error, TEXT("UpdateConstantBuffer 호출: 키 %s에 해당하는 buffer가 없습니다."), CBName);
+        return;
+    }
+    
+    UpdateConstantBuffer(CB, InData);
 }
 
 template <typename T>

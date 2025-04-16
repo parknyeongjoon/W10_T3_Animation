@@ -18,6 +18,13 @@ cbuffer FMaterialConstants : register(b0)
     uint bHasNormalTexture;
 }
 
+cbuffer FConstatntBufferActor : register(b1)
+{
+    float4 UUID; // 임시
+    uint IsSelectedActor;
+    float3 padding;
+}
+
 struct FDirectionalLight
 {
     float3 Direction;
@@ -51,7 +58,7 @@ struct FSpotLight
     float3 pad;
 };
 
-cbuffer FLightingConstants : register(b1)
+cbuffer FLightingConstants : register(b2)
 {
     uint NumDirectionalLights;
     uint NumPointLights;
@@ -63,21 +70,21 @@ cbuffer FLightingConstants : register(b1)
     FSpotLight SpotLights[8];
 };
 
-cbuffer FFlagConstants : register(b2)
+cbuffer FFlagConstants : register(b3)
 {
     uint IsLit;
     uint IsNormal;
     float2 flagPad0;
 }
 
-cbuffer FSubUVConstant : register(b3)
+cbuffer FSubUVConstant : register(b4)
 {
     float indexU;
     float indexV;
-    float2 padd;
+    float2 subUVpadding;
 }
 
-cbuffer FCameraConstant : register(b4)
+cbuffer FCameraConstant : register(b5)
 {
     matrix ViewMatrix;
     matrix ProjMatrix;
@@ -102,6 +109,7 @@ struct PS_INPUT
 struct PS_OUTPUT
 {
     float4 color : SV_Target0;
+    float4 UUID : SV_Target1;
 };
 
 float3 CalculateDirectionalLight(  
@@ -208,6 +216,7 @@ float3 CalculateSpotLight(
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
+    output.UUID = UUID;
     float2 uvAdjusted = input.texcoord;
     
     // 기본 색상 추출  
@@ -220,6 +229,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
     }
     
 #if LIGHTING_MODEL_GOURAUD
+    if (IsSelectedActor == 1)
+        input.color = input.color * 5;
+
     output.color = float4(baseColor.rgb * input.color.rgb, 1.0);
     return output;
 #endif
@@ -248,8 +260,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float3 ViewDir = normalize(CameraPos - input.worldPos); // CameraPos도 안 들어오고, ViewDir은 카메라의 Foward 아닌가요?
     
     //float3 TotalLight = MatAmbientColor; // 전역 앰비언트
-    // TODO : Lit이면 낮은 값 Unlit이면 float3(1.0f,1.0f,1.0f)면 됩니다. 
+    // TODO : Lit이면 낮은 값 Unlit이면 float3(1.0f,1.0f,1.0f)면 됩니다.
     float3 TotalLight = float3(0.01f,0.01f,0.01f); // 전역 앰비언트  
+    if (IsSelectedActor == 1)
+         TotalLight = TotalLight * 10.0f;
     TotalLight += EmissiveColor; // 자체 발광  
 
     // 방향광 처리  

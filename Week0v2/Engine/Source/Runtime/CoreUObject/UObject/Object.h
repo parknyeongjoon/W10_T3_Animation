@@ -28,7 +28,6 @@ public:
     UObject(const UObject& Other)
         : ClassPrivate(Other.ClassPrivate)
         , NamePrivate(Other.NamePrivate)
-        , UUID(Other.UUID)
         , InternalIndex(Other.InternalIndex)
     {
     }

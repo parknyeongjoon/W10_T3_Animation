@@ -49,10 +49,10 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
         MVPConstant.ViewProj = curEditorViewportClient->GetViewMatrix() * curEditorViewportClient->GetProjectionMatrix();
     }
 
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixBuffer")), &MVPConstant);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixBuffer"), &MVPConstant);
 
     const FGridParametersData GridParameters = PrimitveBatch.GetGridParameters();
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FGridParametersData")), &GridParameters);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FGridParametersData"), &GridParameters);
 
     UpdateBatchResources();
 
@@ -61,6 +61,7 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
     PrimitiveCounts.BoundingBoxCount = PrimitveBatch.GetBoundingBoxes().Num();
     PrimitiveCounts.SphereCount = PrimitveBatch.GetSpheres().Num();
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FPrimitiveCounts")), &PrimitiveCounts);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FPrimitiveCounts"), &PrimitiveCounts);
 
     const std::shared_ptr<FVBIBTopologyMapping> VBIBTopologyMappingInfo = Renderer.GetVBIBTopologyMapping(VBIBTopologyMappingName);
     VBIBTopologyMappingInfo->Bind();
@@ -84,53 +85,6 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView); // 렌더 타겟 설정
 
-    ALight* Light = Cast<ALight>(GEngine->GetWorld()->GetSelectedActor());
-    if (Light)
-    {
-        TArray<UActorComponent*> Comps = Light->GetComponents();
-        for (const auto& Comp : Comps)
-        {
-            if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Comp))
-            {
-                const FMatrix Model = JungleMath::CreateModelMatrix(SpotLight->GetComponentLocation(), SpotLight->GetComponentRotation(),
-                    SpotLight->GetComponentScale());
-                if (SpotLight->GetOuterConeAngle() > 0)
-                {
-                    UPrimitiveBatch::GetInstance().AddCone(
-                        SpotLight->GetComponentLocation(),
-                        tan(SpotLight->GetOuterConeAngle()) * 15.0f,
-                        15.0f,
-                        15,
-                        SpotLight->GetColor(),
-                        Model
-                    );
-                }
-                if (SpotLight->GetInnerConeAngle() > 0)
-                {
-                    UPrimitiveBatch::GetInstance().AddCone(
-                        SpotLight->GetComponentLocation(),
-                        tan(SpotLight->GetInnerConeAngle()) * 15.0f,
-                        15.0f,
-                        15,
-                        SpotLight->GetColor(),
-                        Model
-                    );
-                }
-            }
-            if (UPointLightComponent* PointLight = Cast< UPointLightComponent>(Comp))
-            {
-                if (PointLight->GetRadius() > 0)
-                {
-                    UPrimitiveBatch::GetInstance().AddSphere(
-                        PointLight->GetComponentLocation(),
-                        PointLight->GetRadius(),
-                        PointLight->GetColor()
-                    );
-                }
-            }
-        }
-    }
-
     ID3D11ShaderResourceView* FBoundingBoxSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("BoundingBox"));
     Graphics.DeviceContext->VSSetShaderResources(3, 1, &FBoundingBoxSRV);
     ID3D11ShaderResourceView* FConeSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Cone"));
@@ -139,6 +93,56 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     Graphics.DeviceContext->VSSetShaderResources(5, 1, &FOBBSRV);
     ID3D11ShaderResourceView* FSphereSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Sphere"));
     Graphics.DeviceContext->VSSetShaderResources(6, 1, &FSphereSRV);
+
+    for (AActor* actor :GEngine->GetWorld()->GetSelectedActors() )
+    {
+        ASpotLightActor* Light = Cast<ASpotLightActor>(actor);
+        if (Light)
+        {
+            TArray<UActorComponent*> Comps = Light->GetComponents();
+            for (const auto& Comp : Comps)
+            {
+                if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Comp))
+                {
+                    const FMatrix Model = JungleMath::CreateModelMatrix(SpotLight->GetComponentLocation(), SpotLight->GetComponentRotation(),
+                        SpotLight->GetComponentScale());
+                    if (SpotLight->GetOuterConeAngle() > 0) 
+                    {
+                        UPrimitiveBatch::GetInstance().AddCone(
+                            SpotLight->GetComponentLocation(),
+                            tan(SpotLight->GetOuterConeAngle()) * 15.0f,
+                            15.0f,
+                            15,
+                            SpotLight->GetColor(),
+                            Model
+                        );
+                    }
+                    if (SpotLight->GetInnerConeAngle() > 0)
+                    {
+                        UPrimitiveBatch::GetInstance().AddCone(
+                            SpotLight->GetComponentLocation(),
+                            tan(SpotLight->GetInnerConeAngle()) * 15.0f,
+                            15.0f,
+                            15,
+                            SpotLight->GetColor(),
+                            Model
+                        );
+                    }
+                }
+                if (UPointLightComponent* PointLight = Cast< UPointLightComponent>(Comp))
+                {
+                    if (PointLight->GetRadius() > 0)
+                    {
+                        UPrimitiveBatch::GetInstance().AddSphere(
+                            PointLight->GetComponentLocation(),
+                            PointLight->GetRadius(),
+                            PointLight->GetColor()
+                        );
+                    }
+                }
+            }
+        }
+    }
 }
 
 void FLineBatchRenderPass::UpdateBatchResources()

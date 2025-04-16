@@ -14,8 +14,11 @@
 #include "UObject/UObjectIterator.h"
 
 #include "EditorEngine.h"
+#include "PropertyEditor/PrimitiveDrawEditor.h"
+#include "UnrealEd/UnrealEd.h"
 
 
+class PrimitiveDrawEditor;
 using namespace DirectX;
 
 AEditorPlayer::AEditorPlayer()
@@ -27,11 +30,69 @@ void AEditorPlayer::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
     Input();
 }
+void AEditorPlayer::MultiSelectingStart()
+{
+    GetCursorPos(&multiSelectingStartPos);
+    bMultiSeleting = true;
+}
+
+void AEditorPlayer::MultiSelectingEnd()
+{
+    POINT multiSelectingEndPos;
+    GetCursorPos(&multiSelectingEndPos);
+    
+    long leftTopX = std::min(multiSelectingStartPos.x, multiSelectingEndPos.x);
+    long leftTopY = std::min(multiSelectingStartPos.y, multiSelectingEndPos.y);
+    long rightBottomX = std::max(multiSelectingStartPos.x, multiSelectingEndPos.x);
+    long rightBottomY =  std::max(multiSelectingStartPos.y, multiSelectingEndPos.y);
+
+    GEngine->GetWorld()->ClearSelectedActors();
+    
+    // TODO : 현재 UUID 가 높은 애들은 선택이 안됩니다.
+    for (long i = leftTopX; i <= rightBottomX; i +=10)
+    {
+        for (long j = leftTopY ; j <= rightBottomY; j +=10)
+        {
+            uint32 UUID = GetEngine()->graphicDevice.GetPixelUUID(POINT(i,j));
+             for ( USceneComponent* obj : TObjectRange<USceneComponent>())
+             {
+                 if (obj->GetUUID() != UUID) continue;
+                 UE_LOG(LogLevel::Display, *obj->GetOwner()->GetName());
+                 GEngine->GetWorld()->AddSelectedActor(obj->GetOwner());
+             }
+        }
+    }
+
+    bMultiSeleting = false;
+}
+
+void AEditorPlayer::MakeMulitRect()
+{
+    UE_LOG(LogLevel::Error, "MakeRecting");
+    POINT multiSelectingEndPos;
+    GetCursorPos(&multiSelectingEndPos);
+    ImVec2 topLeft(std::min(multiSelectingStartPos.x, multiSelectingEndPos.x), std::min(multiSelectingStartPos.y, multiSelectingEndPos.y));
+    ImVec2 bottomRight(std::max(multiSelectingStartPos.x, multiSelectingEndPos.x),std::max(multiSelectingStartPos.y, multiSelectingEndPos.y));
+    ImU32 rectColor = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    float thickness = 2.0f;
+    // ImGui::GetForegroundDrawList()->AddRect(topLeft, bottomRight, rectColor, 0.0f, 0, thickness);
+    static_cast<PrimitiveDrawEditor*>(GEngine->GetUnrealEditor()->GetEditorPanel("PrimitiveDrawEditor").get())->DrawRectInfo.Add(
+        FDrawRectInfo(topLeft,bottomRight,rectColor,0.0f,0,thickness));
+}
 
 void AEditorPlayer::Input()
 {
     ImGuiIO& io = ImGui::GetIO();
     if (io.WantCaptureMouse) return;
+    if (GetAsyncKeyState(VK_LSHIFT) & 0x8000)
+    {
+        if (!bLShiftDown)
+            bLShiftDown = true;
+    }
+    else
+    {
+        bLShiftDown = false;
+    }
     if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
     {
         if (!bLeftMouseDown)
@@ -40,16 +101,18 @@ void AEditorPlayer::Input()
 
             POINT mousePos;
             GetCursorPos(&mousePos);
-            GetCursorPos(&m_LastMousePos);
-
-            //uint32 UUID = GetEngine()->graphicDevice.GetPixelUUID(mousePos);
-            // TArray<UObject*> objectArr = GetWorld()->GetObjectArr();
-            // for ( const auto obj : TObjectRange<USceneComponent>())
-            // {
-            //     if (obj->GetUUID() != UUID) continue;
+            GetCursorPos(&lastMousePos);
+            if ( bLAltDown && bLCtrlDown )
+            {
+                MultiSelectingStart();
+            }
+            // uint32 UUID = GetEngine()->graphicDevice.GetPixelUUID(mousePos);
+            //  for ( const auto obj : TObjectRange<USceneComponent>())
+            //  {
+            //      if (obj->GetUUID() != UUID) continue;
             //
-            //     UE_LOG(LogLevel::Display, *obj->GetName());
-            // }
+            //      UE_LOG(LogLevel::Display, *obj->GetName());
+            //  }
             ScreenToClient(GetEngine()->hWnd, &mousePos);
 
             FVector pickPosition;
@@ -61,6 +124,10 @@ void AEditorPlayer::Input()
         }
         else
         {
+            if (bMultiSeleting)
+            {
+                MakeMulitRect();
+            }
             PickedObjControl();
         }
     }
@@ -68,8 +135,14 @@ void AEditorPlayer::Input()
     {
         if (bLeftMouseDown)
         {
-            bLeftMouseDown = false; // ���콺 ������ ��ư�� ���� ���� �ʱ�ȭ
-            GetWorld()->SetPickingGizmo(nullptr);
+            bLeftMouseDown = false;
+            bAlreadyDup = false;
+            if (bMultiSeleting)
+            {
+                MultiSelectingEnd();
+            }
+            else
+                GetWorld()->SetPickingGizmo(nullptr);
         }
     }
     if (GetAsyncKeyState(VK_SPACE) & 0x8000)
@@ -97,7 +170,6 @@ void AEditorPlayer::Input()
     else
     {
         bRightMouseDown = false;
-
         if (GetAsyncKeyState('Q') & 0x8000)
         {
             //GetWorld()->SetPickingObj(nullptr);
@@ -115,22 +187,58 @@ void AEditorPlayer::Input()
             cMode = CM_SCALE;
         }
     }
-
     if (GetAsyncKeyState(VK_DELETE) & 0x8000)
     {
-        UWorld* World = GetWorld();
-        if (AActor* PickedActor = World->GetSelectedActor())
+        for (AActor* actor : GEngine->GetWorld()->GetSelectedActors())
         {
-            World->DestroyActor(PickedActor);
-            World->SetPickedActor(nullptr);
+            actor->Destroy();
+        }
+        GEngine->GetWorld()->ClearSelectedActors();
+    }
+    if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
+    {
+        if (!bLCtrlDown)
+        {
+            bLCtrlDown =true;
         }
     }
+    else
+    {
+        bLCtrlDown= false;
+    }
+    if (GetAsyncKeyState('D') & 0x8000)
+    {
+        if (!bDkeyDown)
+        {
+            bDkeyDown = true;
+            if (bLCtrlDown)
+            {
+                GetEngine()->GetWorld()->DuplicateSeletedActors();
+            }
+        }
+    }
+    else
+    {
+        bDkeyDown = false;
+    }
+    if (GetAsyncKeyState(VK_LMENU) & 0x8000)
+    {
+        if (!bLAltDown)
+        {
+            bLAltDown = true;
+        }
+    }
+    else
+    {
+        bLAltDown =false;
+    }
+    
 }
 
 bool AEditorPlayer::PickGizmo(FVector& pickPosition)
 {
     bool isPickedGizmo = false;
-    if (GetWorld()->GetSelectedActor())
+    if (!GetWorld()->GetSelectedActors().IsEmpty())
     {
         if (cMode == CM_TRANSLATION)
         {
@@ -221,7 +329,8 @@ bool AEditorPlayer::PickGizmo(FVector& pickPosition)
 void AEditorPlayer::PickActor(const FVector& pickPosition)
 {
     if (!(ShowFlags::GetInstance().currentFlags & EEngineShowFlags::SF_Primitives)) return;
-
+    if (!bLShiftDown)
+        GetWorld()->ClearSelectedActors();
     const UActorComponent* Possible = nullptr;
     int maxIntersect = 0;
     float minDistance = FLT_MAX;
@@ -259,7 +368,7 @@ void AEditorPlayer::PickActor(const FVector& pickPosition)
     }
     if (Possible)
     {
-        GetWorld()->SetPickedActor(Possible->GetOwner());
+        GetWorld()->AddSelectedActor(Possible->GetOwner());
     }
 }
 
@@ -349,34 +458,43 @@ int AEditorPlayer::RayIntersectsObject(const FVector& pickPosition, USceneCompon
 
 void AEditorPlayer::PickedObjControl()
 {
-    if (GetWorld()->GetSelectedActor() && GetWorld()->GetPickingGizmo())
+    
+    if (GetWorld()->GetPickingGizmo())
     {
         POINT currentMousePos;
         GetCursorPos(&currentMousePos);
-        int32 deltaX = currentMousePos.x - m_LastMousePos.x;
-        int32 deltaY = currentMousePos.y - m_LastMousePos.y;
+        int32 deltaX = currentMousePos.x - lastMousePos.x;
+        int32 deltaY = currentMousePos.y - lastMousePos.y;
 
         // USceneComponent* pObj = GetWorld()->GetPickingObj();
-        AActor* PickedActor = GetWorld()->GetSelectedActor();
-        UGizmoBaseComponent* Gizmo = static_cast<UGizmoBaseComponent*>(GetWorld()->GetPickingGizmo());
-        switch (cMode)
+        //AActor* PickedActor = GetWorld()->GetSelectedActors();
+        for (auto pickedActor : GetWorld()->GetSelectedActors())
         {
-        case CM_TRANSLATION:
-            ControlTranslation(PickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
-            break;
-        case CM_SCALE:
-            ControlScale(PickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
-
-            break;
-        case CM_ROTATION:
-            ControlRotation(PickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
-            break;
-        default:
-            break;
+            if (pickedActor== nullptr)
+                continue;
+            UGizmoBaseComponent* Gizmo = static_cast<UGizmoBaseComponent*>(GetWorld()->GetPickingGizmo());
+            switch (cMode)
+            {
+            case CM_TRANSLATION:
+                ControlTranslation(pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
+                break;
+            case CM_SCALE:
+                ControlScale(pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
+                break;
+            case CM_ROTATION:
+                ControlRotation(pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
+                break;
+            default:
+                break;
+            }
         }
-        m_LastMousePos = currentMousePos;
+        lastMousePos = currentMousePos;
     }
+        
 }
+
+
+
 
 void AEditorPlayer::ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY)
 {
@@ -388,6 +506,11 @@ void AEditorPlayer::ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* 
 
     FQuat rotationDelta;
 
+    if (bLAltDown && !bAlreadyDup)
+    {
+        GetWorld()->DuplicateSeletedActorsOnLocation();
+        bAlreadyDup = true;
+    }
     if (Gizmo->GetGizmoType() == UGizmoBaseComponent::CircleX)
     {
         float rotationAmount = (cameraUp.z >= 0 ? -1.0f : 1.0f) * deltaY * 0.01f;
@@ -429,7 +552,12 @@ void AEditorPlayer::ControlTranslation(USceneComponent* pObj, UGizmoBaseComponen
         ActiveViewport->ViewTransformPerspective.GetUpVector() : ActiveViewport->ViewTransformOrthographic.GetUpVector();
     
     FVector WorldMoveDirection = (CamearRight * DeltaX + CameraUp * -DeltaY) * 0.1f;
-    
+
+    if (bLAltDown && !bAlreadyDup)
+    {
+        GetWorld()->DuplicateSeletedActorsOnLocation();
+        bAlreadyDup = true;
+    }
     if (cdMode == CDM_LOCAL)
     {
         if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)
@@ -450,7 +578,7 @@ void AEditorPlayer::ControlTranslation(USceneComponent* pObj, UGizmoBaseComponen
     }
     else if (cdMode == CDM_WORLD)
     {
-        float distance = (GEngine->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetLocation() - pObj->GetLocalLocation()).Magnitude();
+        float distance = (GEngine->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetLocation() - (*GEngine->GetWorld()->GetSelectedActors().begin())->GetActorLocation()).Magnitude();
         distance/=100.0f;
         // 월드 좌표계에서 카메라 방향을 고려한 이동
         if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)

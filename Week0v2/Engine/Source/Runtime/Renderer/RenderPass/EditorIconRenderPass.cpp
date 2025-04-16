@@ -84,7 +84,7 @@ void FEditorIconRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     SceneConstants.CameraPos = curEditorViewportClient->ViewTransformPerspective.GetLocation();
     SceneConstants.CameraLookAt = curEditorViewportClient->ViewTransformPerspective.GetLookAt();
 
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FSceneConstant")), &SceneConstants);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FSceneConstant"), &SceneConstants);
     
     for (const UBillboardComponent* item : BillboardComponents)
     {
@@ -92,7 +92,7 @@ void FEditorIconRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         DebugConstant.IconPosition = item->GetComponentLocation();
         DebugConstant.IconScale = 1;
 
-        renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FDebugIconConstant")), &DebugConstant);
+        renderResourceManager->UpdateConstantBuffer(TEXT("FDebugIconConstant"), &DebugConstant);
 
         Graphics.DeviceContext->PSSetShaderResources(0, 1, &item->Texture->TextureSRV);
         

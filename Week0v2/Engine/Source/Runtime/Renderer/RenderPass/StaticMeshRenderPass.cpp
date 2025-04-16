@@ -64,7 +64,7 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
     // RTVs 배열의 유효성을 확인합니다.
     if (Graphics.RTVs[0] != nullptr)
     {
-        Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView); // 렌더 타겟 설정
+        Graphics.DeviceContext->OMSetRenderTargets(2, Graphics.RTVs, Graphics.DepthStencilView); // 렌더 타겟 설정
     }
     else
     {
@@ -94,6 +94,8 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         Proj = curEditorViewportClient->GetProjectionMatrix();
     }
 
+
+
     UpdateCameraConstant(InViewportClient);
     
     for (UStaticMeshComponent* staticMeshComp : StaticMesheComponents)
@@ -102,16 +104,21 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
                                                     staticMeshComp->GetComponentScale());
         
         UpdateMatrixConstants(staticMeshComp, View, Proj);
-
+        FVector4 UUIDColor = staticMeshComp->EncodeUUID() / 255.0f ;
+        uint32 isSelected = 0;
+        if (GEngine->GetWorld()->GetSelectedActors().Contains(staticMeshComp->GetOwner()))
+        {
+            isSelected = 1;
+        }
         // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
-
+        UpdateContstantBufferActor(UUIDColor , isSelected);
         UpdateLightConstants();
 
         UpdateFlagConstant();
         
         if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
         {
-            if (GEngine->GetWorld()->GetSelectedActor() == staticMeshComp->GetOwner())
+            if ( !GEngine->GetWorld()->GetSelectedActors().IsEmpty() && *GEngine->GetWorld()->GetSelectedActors().begin() == staticMeshComp->GetOwner())
             {
                 UPrimitiveBatch::GetInstance().AddAABB(
                     staticMeshComp->GetBoundingBox(),
@@ -163,7 +170,7 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
     MatrixConstants.Model = Model;
     MatrixConstants.ViewProj = InView * InProjection;
     MatrixConstants.MInverseTranspose = NormalMatrix;
-    if (InStaticMeshComponent->GetWorld()->GetSelectedActor() == InStaticMeshComponent->GetOwner())
+    if (InStaticMeshComponent->GetWorld()->GetSelectedActors().Contains(InStaticMeshComponent->GetOwner()))
     {
         MatrixConstants.isSelected = true;
     }
@@ -171,7 +178,7 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
     {
         MatrixConstants.isSelected = false;
     }
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixConstants")), &MatrixConstants);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixConstants"), &MatrixConstants);
 }
 
 void FStaticMeshRenderPass::UpdateFlagConstant()
@@ -184,7 +191,7 @@ void FStaticMeshRenderPass::UpdateFlagConstant()
 
     FlagConstant.IsNormal = GEngine->renderer.bIsNormal;
 
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FFlagConstants")), &FlagConstant);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FFlagConstants"), &FlagConstant);
 }
 
 void FStaticMeshRenderPass::UpdateLightConstants()
@@ -238,7 +245,19 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     LightConstant.NumDirectionalLights = DirectionalLightCount;
     LightConstant.NumSpotLights = SpotLightCount;
     
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FLightingConstants")), &LightConstant);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FLightingConstants"), &LightConstant);
+}
+
+void FStaticMeshRenderPass::UpdateContstantBufferActor(const FVector4 UUID, int32 isSelected)
+{
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    
+    FConstatntBufferActor ConstatntBufferActor;
+
+    ConstatntBufferActor.UUID = UUID;
+    ConstatntBufferActor.IsSelectedActor = isSelected;
+    
+    renderResourceManager->UpdateConstantBuffer(TEXT("FConstatntBufferActor"), &ConstatntBufferActor);
 }
 
 void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent)
@@ -258,7 +277,7 @@ void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComp
         UVBuffer.indexV = 0;
     }
     
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FSubUVConstant")), &UVBuffer);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FSubUVConstant"), &UVBuffer);
 }
 
 void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)

@@ -82,11 +82,6 @@ protected:
 
     FBoundingBox AABB;
 public:
-    // virtual FVector GetWorldRotation();
-    // FVector GetWorldScale();
-    // FVector GetWorldLocation();
-    // FVector GetLocalRotation();
-    // FQuat GetQuat() const { return QuatRotation; }
 
 #define region
     FVector GetRelativeLocation() const { return RelativeLocation; }
@@ -133,4 +128,8 @@ public:
     virtual bool MoveComponent(const FVector& Delta) { return false; }
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
+
+private:
+    class UTextUUID* uuidText = nullptr;
+public:
 };
