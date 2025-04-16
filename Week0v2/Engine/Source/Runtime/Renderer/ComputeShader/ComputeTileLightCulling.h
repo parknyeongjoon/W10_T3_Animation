@@ -19,8 +19,10 @@ public:
     void AddRenderObjectsToRenderPass(UWorld* InWorld);
     void Dispatch(std::shared_ptr<FViewportClient> InViewportClient);
     void UpdateLightConstants();
-    // void UpdateStructuredBuffer();
 
+    inline static int XTileCount = 16;
+    inline static int YTileCount = 16;
+    
 private:
     void UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient);
 

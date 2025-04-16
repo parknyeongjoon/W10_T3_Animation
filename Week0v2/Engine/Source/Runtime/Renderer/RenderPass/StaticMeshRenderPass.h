@@ -20,6 +20,8 @@ public:
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void UpdateComputeResource();
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
+    void UpdateComputeConstants(std::shared_ptr<FViewportClient> InViewportClient);
+
 private:
     static void UpdateMatrixConstants(UStaticMeshComponent* InStaticMeshComponent, const FMatrix& InView, const FMatrix& InProjection);
     void UpdateFlagConstant();

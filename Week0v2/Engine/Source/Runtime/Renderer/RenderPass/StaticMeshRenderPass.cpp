@@ -18,6 +18,9 @@
 #include "UObject/UObjectIterator.h"
 #include <Components/SpotLightComponent.h>
 
+#include "UnrealClient.h"
+#include "Renderer/ComputeShader/ComputeTileLightCulling.h"
+
 extern UEditorEngine* GEngine;
 
 void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
@@ -86,8 +89,10 @@ void FStaticMeshRenderPass::UpdateComputeResource()
     FRenderResourceManager* renderResourceManager = Renderer.GetResourceManager(); 
 
     ID3D11ShaderResourceView* TileCullingSRV = renderResourceManager->GetStructuredBufferSRV("TileLightCulling");
+
+    Graphics.DeviceContext->CSSetShader(nullptr, nullptr, 0);
     
-    Graphics.DeviceContext->PSSetShaderResources(0, 5, &TileCullingSRV);
+    Graphics.DeviceContext->PSSetShaderResources(2, 1, &TileCullingSRV);
 }
 
 void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InViewportClient)
@@ -117,11 +122,13 @@ void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InVi
         
         UpdateMatrixConstants(staticMeshComp, View, Proj);
 
-        // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
-
         UpdateLightConstants();
 
         UpdateFlagConstant();
+
+        
+        
+        UpdateComputeConstants(InViewportClient);
         
         if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
         {
@@ -163,6 +170,35 @@ void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InVi
             Graphics.DeviceContext->DrawIndexed(indexCount, startIndex, 0);
         }
     } 
+}
+
+void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
+{
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    // MVP Update
+    FComputeConstants ComputeConstants;
+    
+    FEditorViewportClient* ViewPort = dynamic_cast<FEditorViewportClient*>(InViewportClient.get());
+    
+    FMatrix InvView = FMatrix::Identity;
+    FMatrix InvProj = FMatrix::Identity;
+    std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
+    if (curEditorViewportClient != nullptr)
+    {
+        InvView = FMatrix::Inverse(curEditorViewportClient->GetViewMatrix());
+        InvProj = FMatrix::Inverse(curEditorViewportClient->GetProjectionMatrix());
+    }
+    
+    ComputeConstants.screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;
+    ComputeConstants.screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;
+    ComputeConstants.InverseProj = InvProj;
+    ComputeConstants.InverseView = InvView;
+    ComputeConstants.tileCountX = FComputeTileLightCulling::XTileCount;
+    ComputeConstants.tileCountY = FComputeTileLightCulling::YTileCount;
+
+    ID3D11Buffer* ComputeConstantBuffer = renderResourceManager->GetConstantBuffer(TEXT("FComputeConstants"));
+
+    renderResourceManager->UpdateConstantBuffer(ComputeConstantBuffer, &ComputeConstants);
 }
 
 void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStaticMeshComponent, const FMatrix& InView, const FMatrix& InProjection)

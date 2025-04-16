@@ -14,6 +14,7 @@
 #define _TCHAR_DEFINED
 #include <d3d11.h>
 
+#include "Math/Matrix.h"
 #include "UserInterface/Console.h"
 #include "Serialization/Archive.h"
 
@@ -414,8 +415,8 @@ struct FComputeConstants{
     FMatrix InverseProj;
     float screenWidth;
     float screenHeight;
-    float Pad;
-    float Pad2;
+    int tileCountX;
+    int tileCountY;
 };
 struct FSpotLight
 {

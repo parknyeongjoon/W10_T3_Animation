@@ -19,30 +19,43 @@ struct FPointLight
     float2 pad;
 };
 
+struct FSpotLight
+{
+    float3 Position;
+    float Intensity;
+    
+    float4 Color;
+    
+    float3 Direction;
+    float InnerAngle;
+    
+    float OuterAngle;
+    float3 pad;
+};
+
 cbuffer FComputeConstants : register(b0){
     float4x4 InverseView;
     float4x4 InverseProj;
     float screenWidth;
     float screenHeight;
-    float2 Pad;
+    int tileCountX;
+    int tileCountY;
 }
 
 cbuffer FLightingConstants : register(b1)
 {
     uint NumDirectionalLights;
     uint NumPointLights;
-    float2 pad;
+    uint NumSpotLights;
+    float pad;
 
     FDirectionalLight DirLights[4];
     FPointLight PointLights[16];
+    FSpotLight SpotLights[8];
 };
 
 // 출력 버퍼: 타일별 영향받는 광원 인덱스 리스트
-RWStructuredBuffer<uint> TileLightIndices : register(u2);
-
-// 타일 크기 설정
-static const uint TILE_SIZE_X = 16;
-static const uint TILE_SIZE_Y = 16;
+RWStructuredBuffer<uint> TileLightIndices : register(u0);
 
 float3 ReconstructWorldPos(float2 UV, float Depth)
 {
@@ -57,18 +70,25 @@ float3 ReconstructWorldPos(float2 UV, float Depth)
     return WorldPos.xyz;
 }
 
+
 // 쓰레드 그룹 크기 설정
-[numthreads(TILE_SIZE_X, TILE_SIZE_Y, 1)]
+[numthreads(1, 1, 1)]
 void mainCS (uint3 tid : SV_DispatchThreadID, uint3 gid : SV_GroupID) {
     // 타일 ID 계산
-    uint tileIndex = gid.y * TILE_SIZE_X + gid.x;
+    uint tileIndex = gid.y * tileCountX + gid.x;
 
+    //tileSize는 16 index는 올바르게 들어감
+
+    float tileSizeX = screenWidth / tileCountX;
+    float tileSizeY = screenHeight / tileCountY;
+
+    float2 tileSize = float2(tileSizeX, tileSizeY);
+    
     // 타일의 화면 좌표 범위 계산
-    float2 tileMin = float2(gid.x * TILE_SIZE_X, gid.y * TILE_SIZE_Y);
-    float2 tileMax = tileMin + float2(TILE_SIZE_X, TILE_SIZE_Y);
+    float2 tileMin = float2(gid.x * tileSizeX, gid.y * tileSizeY);
+    float2 tileMax = tileMin + tileSize;
 
-    float2 screenSize = float2(screenWidth, screenHeight);
-
+    float2 screenSize = float2(screenWidth, screenHeight); 
     
     // 타일 경계 박스 → 월드/뷰 공간 변환 (예: 역투영)
     float3 tileMinWorld = ReconstructWorldPos(tileMin / screenSize, 0); //각 타일의 최소위치 구하기, depth는 z를 결졍하기에 가장 가까운 0
@@ -80,8 +100,11 @@ void mainCS (uint3 tid : SV_DispatchThreadID, uint3 gid : SV_GroupID) {
 
     // 광원 컬링
     uint lightCount = 0;
-    uint totalLightCount = NumPointLights; //지금은 PointLight만 하는중
-    for (uint i = 0; i < totalLightCount; ++i) {
+
+    int MAX_POINT_LIGHTS = 16;
+    
+    uint totalLightCount = MAX_POINT_LIGHTS; //지금은 PointLight만 하는중
+    for (uint i = 0; i < MAX_POINT_LIGHTS; ++i) { //라이트 돌면서
         uint tileOffset = tileIndex * totalLightCount;
         TileLightIndices[tileOffset + i] = 0xFFFFFFFF; //사용하지 않으면 엄청 큰 수로 초기화.
         

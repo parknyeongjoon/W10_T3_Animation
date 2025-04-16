@@ -25,6 +25,8 @@ public:
     
     template <typename T>
     ID3D11Buffer* CreateStructuredBuffer(uint32 numElements) const;
+    template <class T>
+    ID3D11Buffer* CreateUAVStructuredBuffer(uint32 numElements) const;
 
     template<typename T>
     ID3D11Buffer* CreateStaticVertexBuffer(const TArray<T>& vertices) const;
@@ -162,8 +164,27 @@ ID3D11Buffer* FRenderResourceManager::CreateStructuredBuffer(const uint32 numEle
     D3D11_BUFFER_DESC bufferDesc = {};
     bufferDesc.Usage = D3D11_USAGE_DYNAMIC; // CPU가 데이터를 업데이트할 수 있도록 설정
     bufferDesc.ByteWidth = sizeof(T) * numElements;
-    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    bufferDesc.StructureByteStride = sizeof(T);
+
+    ID3D11Buffer* buffer = nullptr;
+    const HRESULT hr = GraphicDevice->Device->CreateBuffer(&bufferDesc, nullptr, &buffer);
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Warning, "Structured Buffer Creation failed");
+        return nullptr;
+    }
+    return buffer;
+}
+
+template <typename T>
+ID3D11Buffer* FRenderResourceManager::CreateUAVStructuredBuffer(const uint32 numElements) const
+{
+    D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.ByteWidth = sizeof(T) * numElements;
+    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
     bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
     bufferDesc.StructureByteStride = sizeof(T);
 

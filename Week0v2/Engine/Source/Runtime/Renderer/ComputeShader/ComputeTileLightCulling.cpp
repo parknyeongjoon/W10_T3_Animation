@@ -37,35 +37,38 @@ void FComputeTileLightCulling::Dispatch(const std::shared_ptr<FViewportClient> I
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
     FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
-    if (PreviousLightCount != LightComponents.Num())
+    ID3D11UnorderedAccessView* TileCullingUAV = renderResourceManager->GetStructuredBufferUAV("TileLightCulling");
+    
+    if (TileCullingUAV == nullptr)
     {
-        PreviousLightCount = LightComponents.Num();
-        
-        //라이트 수 변경될때만 실행
         ID3D11Buffer* SB = nullptr;
         ID3D11ShaderResourceView* SBSRV = nullptr;
         ID3D11UnorderedAccessView* SBUAV = nullptr;
 
-        SB = renderResourceManager->CreateStructuredBuffer<UINT>(LightComponents.Num());
-        SBSRV = renderResourceManager->CreateBufferSRV(SB, LightComponents.Num());
-        SBUAV = renderResourceManager->CreateBufferUAV(SB, LightComponents.Num());
+        int MaxPointLightCount = 16;
+        int UAVElementCount = MaxPointLightCount * XTileCount * YTileCount;
+        
+        SB = renderResourceManager->CreateUAVStructuredBuffer<UINT>(UAVElementCount);
+        SBSRV = renderResourceManager->CreateBufferSRV(SB, UAVElementCount);
+        SBUAV = renderResourceManager->CreateBufferUAV(SB, UAVElementCount);
 
         renderResourceManager->AddOrSetSRVStructuredBuffer(TEXT("TileLightCulling"), SB);
         renderResourceManager->AddOrSetSRVStructuredBufferSRV(TEXT("TileLightCulling"), SBSRV);
         renderResourceManager->AddOrSetUAVStructuredBuffer(TEXT("TileLightCulling"), SB);
         renderResourceManager->AddOrSetUAVStructuredBufferUAV(TEXT("TileLightCulling"), SBUAV);
+
+        TileCullingUAV = SBUAV;
     }
-    
-    ID3D11UnorderedAccessView* TileCullingUAV = renderResourceManager->GetStructuredBufferUAV("TileLightCulling");
 
     Graphics.DeviceContext->CSSetShader(renderResourceManager->GetComputeShader("TileLightCulling"), nullptr, 0);
-    Graphics.DeviceContext->CSSetUnorderedAccessViews(2, 1, &TileCullingUAV, nullptr);
+    Graphics.DeviceContext->CSSetUnorderedAccessViews(0, 1, &TileCullingUAV, nullptr);
 
     UpdateLightConstants();
 
     UpdateComputeConstants(InViewportClient);
-    
-    Graphics.DeviceContext->Dispatch(16, 16, 1);
+
+    //그룹 나누는 작업
+    Graphics.DeviceContext->Dispatch(XTileCount, YTileCount, 1);
     
     //해제
     ID3D11UnorderedAccessView* nullUAV[1] = { nullptr };
@@ -75,7 +78,8 @@ void FComputeTileLightCulling::Dispatch(const std::shared_ptr<FViewportClient> I
 void FComputeTileLightCulling::UpdateLightConstants()
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
-
+    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    
     FLightingConstants LightConstant;
     uint32 DirectionalLightCount = 0;
     uint32 PointLightCount = 0;
@@ -108,13 +112,17 @@ void FComputeTileLightCulling::UpdateLightConstants()
 
     LightConstant.NumPointLights = PointLightCount;
     LightConstant.NumDirectionalLights = DirectionalLightCount;
+
+    ID3D11Buffer* LightConstantBuffer = renderResourceManager->GetConstantBuffer(TEXT("FLightingConstants"));
     
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FLightingConstants")), &LightConstant);
+    Graphics.DeviceContext->CSSetConstantBuffers(1, 1, &LightConstantBuffer);
+    renderResourceManager->UpdateConstantBuffer(LightConstantBuffer, &LightConstant);
 }
 
 void FComputeTileLightCulling::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
     FEditorViewportClient* ViewPort = dynamic_cast<FEditorViewportClient*>(InViewportClient.get());
     
@@ -127,12 +135,17 @@ void FComputeTileLightCulling::UpdateComputeConstants(const std::shared_ptr<FVie
         InvProj = FMatrix::Inverse(curEditorViewportClient->GetProjectionMatrix());
     }
     
-    FComputeConstants MatrixConstants;
+    FComputeConstants ComputeConstants;
     
-    MatrixConstants.screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;
-    MatrixConstants.screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;
-    MatrixConstants.InverseProj = InvProj;
-    MatrixConstants.InverseView = InvView;
+    ComputeConstants.screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;
+    ComputeConstants.screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;
+    ComputeConstants.InverseProj = InvProj;
+    ComputeConstants.InverseView = InvView;
+    ComputeConstants.tileCountX = XTileCount;
+    ComputeConstants.tileCountY = YTileCount;
+
+    ID3D11Buffer* ComputeConstantBuffer = renderResourceManager->GetConstantBuffer(TEXT("FComputeConstants"));
     
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixConstants")), &MatrixConstants);
+    Graphics.DeviceContext->CSSetConstantBuffers(0, 1, &ComputeConstantBuffer);
+    renderResourceManager->UpdateConstantBuffer(ComputeConstantBuffer, &ComputeConstants);
 }

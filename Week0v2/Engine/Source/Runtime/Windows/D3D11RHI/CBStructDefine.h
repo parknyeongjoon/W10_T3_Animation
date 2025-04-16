@@ -71,6 +71,20 @@ struct alignas(16) FPrimitiveCounts
     int pad1; // offset: 12, size: 4
 };
 
+struct alignas(16) FSubUVConstant
+{
+    float indexU; // offset: 0, size: 4
+    float indexV; // offset: 4, size: 4
+    FVector2D Pad; // offset: 8, size: 8
+};
+
+struct alignas(16) FConstants
+{
+    FMatrix MVP; // offset: 0, size: 64
+    float Flag; // offset: 64, size: 4
+    uint8 pad0[12]; // Padding to end of buffer
+};
+
 struct alignas(16) FMaterialConstants
 {
     FVector DiffuseColor; // offset: 0, size: 12
@@ -87,10 +101,10 @@ struct alignas(16) FLightingConstants
 {
     uint32 NumDirectionalLights; // offset: 0, size: 4
     uint32 NumPointLights; // offset: 4, size: 4
-    uint32 NumSpotLights;
-    float pad; // offset: 8, size: 8
-    FDirectionalLight DirLights[4]; // offset: 16, size: 128
-    FPointLight PointLights[16]; // offset: 144, size: 768
+    uint32 NumSpotLights; // offset: 8, size: 4
+    float pad; // offset: 12, size: 4
+    FDirectionalLight DirLights[4];
+    FPointLight PointLights[16];
     FSpotLight SpotLights[8];
 };
 
@@ -100,28 +114,13 @@ struct alignas(16) FFlagConstants
     FVector flagPad0; // offset: 4, size: 12
 };
 
-struct alignas(16) FSubUVConstant
-{
-    float indexU; // offset: 0, size: 4
-    float indexV; // offset: 4, size: 4
-    uint8 pad0[8]; // Padding to end of buffer
-};
-
 struct alignas(16) FMatrixConstants
 {
     FMatrix Model; // offset: 0, size: 64
     FMatrix ViewProj; // offset: 64, size: 64
     FMatrix MInverseTranspose; // offset: 128, size: 64
     bool isSelected; // offset: 192, size: 4
-    uint8 pad0[12]; // Padding to end of buffer
-};
-
-struct alignas(16) FConstants
-{
-    FMatrix Model; // offset: 0, size: 64
-    FMatrix ViewProj; // offset: 64, size: 64
-    float Flag; // offset: 128, size: 4
-    uint8 pad0[12]; // Padding to end of buffer
+    FVector pad0; // offset: 196, size: 12
 };
 
 enum class EShaderConstantBuffer
