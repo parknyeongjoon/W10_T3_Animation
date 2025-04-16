@@ -4,19 +4,28 @@
 #include <Components/QuadTexture.h>
 #include <Components/HeightFogComponent.h>
 #include <UObject/UObjectIterator.h>
+#include <D3D11RHI/CBStructDefine.h>
+#include "UnrealEd/EditorViewportClient.h"
 
 FFogRenderPass::FFogRenderPass(const FName& InShaderName)
     :FBaseRenderPass(InShaderName)
 {
-    ID3D11Buffer* VB = UEditorEngine::renderer.GetResourceManager()->CreateImmutableVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
-    UEditorEngine::renderer.GetResourceManager()->AddOrSetVertexBuffer(TEXT("QuadVB"), VB);
-    UEditorEngine::renderer.MappingVBTopology(TEXT("Quad"), TEXT("QuadVB"), sizeof(FVertexTexture), 4);
+    if (FogCameraConstantBuffer)
+        return;
+    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    D3D11_BUFFER_DESC cbDesc = {};
+    cbDesc.ByteWidth = sizeof(FFogCameraConstant);
+    cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    cbDesc.MiscFlags = 0;
+    cbDesc.StructureByteStride = 0;
 
-    ID3D11Buffer* IB = UEditorEngine::renderer.GetResourceManager()->CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices) / sizeof(uint32));
-    UEditorEngine::renderer.GetResourceManager()->AddOrSetIndexBuffer(TEXT("QuadIB"), IB);
-    UEditorEngine::renderer.MappingIB(TEXT("Quad"), TEXT("QuadIB"), sizeof(quadTextureInices) / sizeof(uint32));
-
-    VBIBTopologyMappingName = TEXT("Quad");
+    HRESULT hr = Graphics.Device->CreateBuffer(&cbDesc, nullptr, &FogCameraConstantBuffer);
+    if (FAILED(hr))
+    {
+        // 에러 처리
+    }
 }
 
 void FFogRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
@@ -31,6 +40,7 @@ void FFogRenderPass::PrePrepare()
         if (iter->GetWorld() == GEngine->GetWorld())
         {
             Graphics.SwitchRTV();
+            bRender = true;
             return;
         }
     }
@@ -38,21 +48,77 @@ void FFogRenderPass::PrePrepare()
 
 void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
 {
-    FBaseRenderPass::Prepare(InViewportClient);
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    if (bRender)
+    {
+        FBaseRenderPass::Prepare(InViewportClient);
+        const FRenderer& Renderer = GEngine->renderer;
+        FGraphicsDevice& Graphics = GEngine->graphicDevice;
+        Graphics.ReturnRTV();
+
+        Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.FrameBufferRTV, nullptr);
+        Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
+
+        Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+        Graphics.DeviceContext->CopyResource(Graphics.DepthCopyTexture, Graphics.DepthStencilBuffer);
+
+        ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Linear);
+        Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
+        Graphics.DeviceContext->PSSetShaderResources(0, 1, &Graphics.DepthCopySRV);
+        Graphics.DeviceContext->PSSetShaderResources(1, 1, &Graphics.SceneColorSRV);
+    }
 }
 
 void FFogRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
 {
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    if (bRender)
+    {
+        FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
-    Graphics.ReturnRTV();
+        UpdateCameraConstant(InViewportClient);
+        UpdateScreenConstant(InViewportClient);
+        UpdateFogConstant(InViewportClient);
+
+        Graphics.DeviceContext->Draw(4, 0);
+
+        bRender = false;
+    }
 }
 
 void FFogRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewportClient> InViewportClient)
 {
+    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
+
+    FFogCameraConstant CameraConstants;
+    CameraConstants.InvProjMatrix = FMatrix::Inverse(curEditorViewportClient->GetProjectionMatrix());
+    CameraConstants.InvViewMatrix = FMatrix::Inverse(curEditorViewportClient->GetViewMatrix());
+    CameraConstants.CameraForward = curEditorViewportClient->ViewTransformPerspective.GetForwardVector();
+    CameraConstants.CameraPos = curEditorViewportClient->ViewTransformPerspective.GetLocation();
+    CameraConstants.NearPlane = curEditorViewportClient->GetNearClip();
+    CameraConstants.FarPlane = curEditorViewportClient->GetFarClip();
+
+    renderResourceManager->UpdateConstantBuffer(FogCameraConstantBuffer, &CameraConstants);
+
+    Graphics.DeviceContext->PSSetConstantBuffers(0, 1, &FogCameraConstantBuffer);
 }
 
 void FFogRenderPass::UpdateScreenConstant(std::shared_ptr<FViewportClient> InViewportClient)
 {
+    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
+
+    FViewportInfo ScreenConstans;
+    float Width = Graphics.screenWidth;
+    float Height = Graphics.screenHeight;
+    ScreenConstans.ViewportSize = { curEditorViewportClient->GetD3DViewport().Width / Width, curEditorViewportClient->GetD3DViewport().Height / Height };
+    ScreenConstans.ViewportOffset = { curEditorViewportClient->GetD3DViewport().TopLeftX / Width, curEditorViewportClient->GetD3DViewport().TopLeftY / Height };
+
+    renderResourceManager->UpdateConstantBuffer(TEXT("FViewportInfo"), &ScreenConstans);
+}
+
+void FFogRenderPass::UpdateFogConstant(const std::shared_ptr<FViewportClient> InViewportClient)
+{
+
 }

@@ -31,7 +31,6 @@ void FDebugDepthRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportC
 
 void FDebugDepthRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
 {
-    const FRenderer& Renderer = GEngine->renderer;
     const FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
     UpdateCameraConstant(InViewportClient);

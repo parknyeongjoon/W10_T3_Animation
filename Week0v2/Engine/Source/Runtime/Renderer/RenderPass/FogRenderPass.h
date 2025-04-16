@@ -16,7 +16,9 @@ public:
 private:
     void UpdateCameraConstant(const std::shared_ptr<FViewportClient> InViewportClient);
     void UpdateScreenConstant(std::shared_ptr<FViewportClient> InViewportClient);
+    void UpdateFogConstant(const std::shared_ptr<FViewportClient> InViewportClient);
 
 private:
-    FName VBIBTopologyMappingName;
+    bool bRender = false;
+    ID3D11Buffer* FogCameraConstantBuffer = nullptr;
 };

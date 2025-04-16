@@ -1,9 +1,7 @@
-cbuffer FCameraConstant : register(b0)
+cbuffer FFogCameraConstant : register(b0)
 {
-    matrix ViewMatrix;
-    matrix ProjMatrix;
-    matrix InvViewMatrix;
     matrix InvProjMatrix;
+    matrix InvViewMatrix;
     
     float3 CameraPos;
     float NearPlane;
@@ -17,7 +15,7 @@ cbuffer FViewportInfo : register(b1)
     float2 ViewportOffset;
 }
 
-cbuffer FFogParams : register(b6)
+cbuffer FFogParams : register(b2)
 {
     float FogDensity;
     float HeightFogStart;
@@ -40,8 +38,8 @@ cbuffer FFogParams : register(b6)
     int IsExponential;
 }
 
-Texture2D SceneTexture : register(t5);
 Texture2D DepthTexture : register(t0);
+Texture2D SceneTexture : register(t1);
 SamplerState SamplerLinear : register(s0);
 
 // Screen space to World space
@@ -69,6 +67,7 @@ float4 mainPS(VS_OUT input) : SV_TARGET
 {
     float2 viewportUV = input.uv * ViewportSize + ViewportOffset;
     float4 sceneColor = SceneTexture.Sample(SamplerLinear, viewportUV);
+    return sceneColor;
     float depth = DepthTexture.Sample(SamplerLinear, viewportUV).r;
     
     float linearDepth = (NearPlane * FarPlane) / (FarPlane - depth * (FarPlane - NearPlane));

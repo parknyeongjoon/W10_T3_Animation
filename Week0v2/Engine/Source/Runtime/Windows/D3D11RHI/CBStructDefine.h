@@ -6,6 +6,17 @@
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
 
+struct alignas(16) FFogCameraConstant
+{
+    FMatrix InvProjMatrix;
+    FMatrix InvViewMatrix;
+
+    FVector CameraPos;
+    float NearPlane;
+    FVector CameraForward;
+    float FarPlane;
+};
+
 // NOTE: Generated code - do not modify manually.
 struct alignas(16) FMeshConstant
 {

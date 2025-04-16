@@ -34,7 +34,7 @@ float4 mainPS(VS_OUT input) : SV_Target
 //    float linearDepth = (0.1 * 1000) / (1000 - depth * (1000 - 0.1));
     float linearDepth = (NearPlane * FarPlane) / (FarPlane - depth * (FarPlane - NearPlane));
     
-    float normalized = saturate((linearDepth - 0.1) / (1000 - 0.1));
+    float normalized = saturate((linearDepth - NearPlane) / (FarPlane - NearPlane));
 
     return float4(normalized, normalized, normalized, 1.0);
 }
