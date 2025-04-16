@@ -83,7 +83,7 @@ struct alignas(16) FFogParams
     float FogBaseHeight;
     float HeightFallOff;
     int bIsHeightFog;
-    float ScatteringIntensity; // 추가: 빛 산란 강도 [4]
+    float FogMaxOpacity; // MaxOpacity 추가
     float LightShaftDensity; // 추가: 광선 밀도 [4]
 };
 

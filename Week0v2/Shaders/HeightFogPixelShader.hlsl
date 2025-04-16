@@ -25,7 +25,7 @@ cbuffer FFogParams : register(b2)
     float FogBaseHeight;
     float HeightFallOff;
     int bIsHeightFog;
-    float ScatteringIntensity; // 추가: 빛 산란 강도 [4]
+    float FogMaxOpacity; // MaxOpacity 추가
     float LightShaftDensity; // 추가: 광선 밀도 [4]
 }
 
@@ -82,13 +82,13 @@ float4 mainPS(VS_OUT input) : SV_TARGET
         fogFactor = fogFactor * heightFactor; //factor가 클수록 fogcolor에 가까워짐
     }
     
-    float FinalFogFactor = saturate(fogFactor * FogDensity);
+    float FinalFogFactor = min(saturate(fogFactor * FogDensity), FogMaxOpacity);
 
     float3 FinalColor = lerp(sceneColor.rgb, FogColor, FinalFogFactor);
     
     if (depth == 1) //배경(오브젝트가 아닐때)
     {
-        FinalColor = lerp(sceneColor.rgb, FogColor, 1.0);
+        FinalColor = lerp(sceneColor.rgb, FogColor, min(FogDensity, FogMaxOpacity));
     }
 
     return float4(FinalColor, 1.0);

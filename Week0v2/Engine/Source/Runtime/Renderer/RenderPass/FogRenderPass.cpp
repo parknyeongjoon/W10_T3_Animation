@@ -133,7 +133,7 @@ void FFogRenderPass::UpdateFogConstant(const std::shared_ptr<FViewportClient> In
     FogParams.FogBaseHeight = FogComp->GetFogBaseHeight();
     FogParams.HeightFallOff = FogComp->GetHeightFallOff();
     FogParams.bIsHeightFog = FogComp->IsHeightFog();
-    FogParams.ScatteringIntensity = FogComp->GetScatteringIntensity();
+    FogParams.FogMaxOpacity = FogComp->GetMaxOpacity();
     FogParams.LightShaftDensity = FogComp->GetLightShaftDensity();
 
     renderResourceManager->UpdateConstantBuffer(TEXT("FFogParams"), &FogParams);

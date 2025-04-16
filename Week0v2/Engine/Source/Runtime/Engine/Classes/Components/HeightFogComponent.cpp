@@ -9,7 +9,7 @@ UHeightFogComponent::UHeightFogComponent()
     , FogBaseHeight(5.0f)
     , HeightFallOff(0.02f)
     , bIsHeightFog(true)
-    , ScatteringIntensity(1.0f)
+    , MaxOpacity(1.0f)
     , LightShaftDensity(1.0f)
 {
 }
@@ -23,7 +23,7 @@ UHeightFogComponent::UHeightFogComponent(const UHeightFogComponent& Other)
     , FogBaseHeight(Other.GetFogBaseHeight())
     , HeightFallOff(Other.GetHeightFallOff())
     , bIsHeightFog(Other.IsHeightFog())
-    , ScatteringIntensity(Other.GetScatteringIntensity())
+    , MaxOpacity(Other.GetMaxOpacity())
     , LightShaftDensity(Other.GetLightShaftDensity())
 {
 }
@@ -35,7 +35,7 @@ void UHeightFogComponent::SetFogEnd(float InEnd) { FogEnd = InEnd; }
 void UHeightFogComponent::SetFogBaseHeight(float InHeight) { FogBaseHeight = InHeight; }
 void UHeightFogComponent::SetHeightFallOff(float InFalloff) { HeightFallOff = InFalloff; }
 void UHeightFogComponent::SetHeightFog(bool bEnabled) { bIsHeightFog = bEnabled; }
-void UHeightFogComponent::SetScatteringIntensity(float InIntensity) { ScatteringIntensity = InIntensity; }
+void UHeightFogComponent::SetMaxOpacity(float InMaxOpacity) { MaxOpacity = InMaxOpacity; }
 void UHeightFogComponent::SetLightShaftDensity(float InDensity) { LightShaftDensity = InDensity; }
 
 void UHeightFogComponent::LoadAndConstruct(const FActorComponentInfo& Info)
@@ -49,7 +49,7 @@ void UHeightFogComponent::LoadAndConstruct(const FActorComponentInfo& Info)
     FogBaseHeight = HeightFogInfo.FogBaseHeight;
     HeightFallOff = HeightFogInfo.HeightFallOff;
     bIsHeightFog = HeightFogInfo.bIsHeightFog;
-    ScatteringIntensity = HeightFogInfo.ScatteringIntensity;
+    MaxOpacity = HeightFogInfo.MaxOpacity;
     LightShaftDensity = HeightFogInfo.LightShaftDensity;
 }
 
@@ -64,7 +64,7 @@ std::shared_ptr<FActorComponentInfo> UHeightFogComponent::GetActorComponentInfo(
     Info->FogBaseHeight = FogBaseHeight;
     Info->HeightFallOff = HeightFallOff;
     Info->bIsHeightFog = bIsHeightFog;
-    Info->ScatteringIntensity = ScatteringIntensity;
+    Info->MaxOpacity = MaxOpacity;
     Info->LightShaftDensity = LightShaftDensity;
     return Info;
 

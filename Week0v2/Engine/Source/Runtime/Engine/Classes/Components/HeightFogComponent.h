@@ -14,7 +14,7 @@ struct FHeightFogComponentInfo : public FPrimitiveComponentInfo
     float FogBaseHeight;
     float HeightFallOff;
     bool bIsHeightFog;
-    float ScatteringIntensity; // 추가: 빛 산란 강도 [4]
+    float MaxOpacity; // MaxOpacity 추가
     float LightShaftDensity; // 추가: 광선 밀도 [4]
 
     FHeightFogComponentInfo()
@@ -26,7 +26,7 @@ struct FHeightFogComponentInfo : public FPrimitiveComponentInfo
         , FogBaseHeight(5.0f)
         , HeightFallOff(0.02f)
         , bIsHeightFog(true)
-        , ScatteringIntensity(1.0f)
+        , MaxOpacity(1.0f)
         , LightShaftDensity(1.0f)
     {
         InfoType = TEXT("FHeightFogComponentInfo");
@@ -44,7 +44,7 @@ struct FHeightFogComponentInfo : public FPrimitiveComponentInfo
         HeightFogInfo.FogBaseHeight = FogBaseHeight;
         HeightFogInfo.HeightFallOff = HeightFallOff;
         HeightFogInfo.bIsHeightFog = bIsHeightFog;
-        HeightFogInfo.ScatteringIntensity = ScatteringIntensity;
+        HeightFogInfo.MaxOpacity = MaxOpacity;
         HeightFogInfo.LightShaftDensity = LightShaftDensity;
     }
 
@@ -53,7 +53,7 @@ struct FHeightFogComponentInfo : public FPrimitiveComponentInfo
         FPrimitiveComponentInfo::Serialize(ar);
         ar << FogColor << FogDensity << FogStart << FogEnd
             << FogBaseHeight << HeightFallOff << bIsHeightFog
-            << ScatteringIntensity << LightShaftDensity;
+            << MaxOpacity << LightShaftDensity;
     }
 
     virtual void Deserialize(FArchive& ar) override
@@ -61,7 +61,7 @@ struct FHeightFogComponentInfo : public FPrimitiveComponentInfo
         FPrimitiveComponentInfo::Deserialize(ar);
         ar >> FogColor >> FogDensity >> FogStart >> FogEnd
             >> FogBaseHeight >> HeightFallOff >> bIsHeightFog
-            >> ScatteringIntensity >> LightShaftDensity;
+            >> MaxOpacity >> LightShaftDensity;
     }
 };
 class UHeightFogComponent : public UPrimitiveComponent
@@ -79,7 +79,7 @@ public:
     float GetFogBaseHeight() const { return FogBaseHeight; }
     float GetHeightFallOff() const { return HeightFallOff; }
     bool IsHeightFog() const { return bIsHeightFog; }
-    float GetScatteringIntensity() const { return ScatteringIntensity; }
+    float GetMaxOpacity() const { return MaxOpacity; }
     float GetLightShaftDensity() const { return LightShaftDensity; }
 
     void SetFogColor(const FVector& InColor);
@@ -89,7 +89,7 @@ public:
     void SetFogBaseHeight(float InHeight);
     void SetHeightFallOff(float InFalloff);
     void SetHeightFog(bool bEnabled);
-    void SetScatteringIntensity(float InIntensity);
+    void SetMaxOpacity(float InMaxOpacity);
     void SetLightShaftDensity(float InDensity);
 
 public:
@@ -104,7 +104,7 @@ private:
     float FogBaseHeight;
     float HeightFallOff;
     bool bIsHeightFog;
-    float ScatteringIntensity; // 추가: 빛 산란 강도 [4]
+    float MaxOpacity; // MaxOpacity 추가
     float LightShaftDensity; // 추가: 광선 밀도 [4]
 };
 
