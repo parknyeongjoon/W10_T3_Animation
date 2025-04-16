@@ -18,12 +18,12 @@ extern UEditorEngine* GEngine;
 
 void FGizmoRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
+    GizmoComponents.Empty();
+    
     if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
     {
         return;
     }
-    
-    GizmoComponents.Empty();
     
     if (InWorld->WorldType == EWorldType::Editor)
     {

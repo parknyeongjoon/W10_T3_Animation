@@ -16,6 +16,7 @@ FEditorIconRenderPass::~FEditorIconRenderPass()
 
 void FEditorIconRenderPass::AddRenderObjectsToRenderPass(UWorld* InLevel)
 {
+    BillboardComponents.Empty();
     if (InLevel->WorldType != EWorldType::Editor)
     {
         return;
