@@ -135,7 +135,7 @@ float3 CalculatePointLight(
     float3 Albedo)  
 {  
     // 광원 거리/방향  
-    float3 LightDir = Light.Position - WorldPos;  
+    float3 LightDir = Light.Position - WorldPos;
     float Distance = length(LightDir);  
     LightDir = normalize(LightDir);  
 
@@ -150,7 +150,7 @@ float3 CalculatePointLight(
     float NdotL = max(dot(Normal, LightDir), 0.0);
     float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
     //return float3(abs(LightDir));
-    return float3(NdotL.xxx);
+    //return float3(NdotL.xxx);
 
 #if LIGHTING_MODEL_LAMBERT
     return Diffuse * Light.Intensity * Attenuation;
@@ -224,8 +224,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     return output;
 #endif
     float4 normalTex = ((NormalTexture.Sample(linearSampler, uvAdjusted)- 0.5) * 2);
-    input.normal = input.normal - 0.5;
-    
+
     float3 Normal = input.normal;
     
     if (bHasNormalTexture)
@@ -246,7 +245,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
         return output;
     }
     
-    float3 ViewDir = normalize(CameraPos - input.worldPos);
+    float3 ViewDir = normalize(CameraPos - input.worldPos); // CameraPos도 안 들어오고, ViewDir은 카메라의 Foward 아닌가요?
     
     //float3 TotalLight = MatAmbientColor; // 전역 앰비언트
     // TODO : Lit이면 낮은 값 Unlit이면 float3(1.0f,1.0f,1.0f)면 됩니다. 

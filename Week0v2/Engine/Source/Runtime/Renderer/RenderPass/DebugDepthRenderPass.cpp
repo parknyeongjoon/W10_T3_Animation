@@ -35,7 +35,7 @@ void FDebugDepthRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportC
     const FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
     UpdateCameraConstant(InViewportClient);
-    UpdateScreenConstat(InViewportClient);
+    UpdateScreenConstant(InViewportClient);
 
     Graphics.DeviceContext->Draw(4, 0);
 }
@@ -58,7 +58,7 @@ void FDebugDepthRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewport
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FCameraConstant")), &CameraConstants);
 }
 
-void FDebugDepthRenderPass::UpdateScreenConstat(const std::shared_ptr<FViewportClient> InViewportClient)
+void FDebugDepthRenderPass::UpdateScreenConstant(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     const FGraphicsDevice& Graphics = GEngine->graphicDevice;
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();

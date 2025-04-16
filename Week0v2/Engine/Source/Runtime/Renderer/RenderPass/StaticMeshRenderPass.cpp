@@ -93,6 +93,8 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         View = curEditorViewportClient->GetViewMatrix();
         Proj = curEditorViewportClient->GetProjectionMatrix();
     }
+
+    UpdateCameraConstant(InViewportClient);
     
     for (UStaticMeshComponent* staticMeshComp : StaticMesheComponents)
     {
@@ -298,4 +300,22 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
         Graphics.DeviceContext->PSSetShaderResources(0, 1, nullSRV);
     }
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMaterialConstants")), &MaterialConstants);
+}
+
+void FStaticMeshRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewportClient>& InViewportClient)
+{
+    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    const std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
+
+    FCameraConstant CameraConstants;
+    CameraConstants.CameraForward = FVector::ZeroVector;
+    CameraConstants.CameraPos = curEditorViewportClient->ViewTransformPerspective.GetLocation();
+    CameraConstants.ViewProjMatrix = FMatrix::Identity;
+    CameraConstants.ProjMatrix = FMatrix::Identity;
+    CameraConstants.ViewMatrix = FMatrix::Identity;
+    CameraConstants.NearPlane = curEditorViewportClient->GetNearClip();
+    CameraConstants.FarPlane = curEditorViewportClient->GetFarClip();
+
+    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FCameraConstant")), &CameraConstants);
 }
