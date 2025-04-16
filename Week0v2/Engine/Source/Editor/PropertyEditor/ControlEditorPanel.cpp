@@ -401,7 +401,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 }
                 case OBJ_FOG:
                 {
-                    SpawnedActor = World->SpawnActor<AExponentialHeightFog>();
+                    SpawnedActor = World->SpawnActor<AExponentialHeightFogActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_FOG"));
                     break;
                 }

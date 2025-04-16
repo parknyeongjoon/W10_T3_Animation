@@ -2,13 +2,13 @@
 #include "GameFramework/Actor.h"
 #include <Components/HeightFogComponent.h>
 
-class AExponentialHeightFog : public AActor
+class AExponentialHeightFogActor : public AActor
 {
-    DECLARE_CLASS(AExponentialHeightFog, AActor)
+    DECLARE_CLASS(AExponentialHeightFogActor, AActor)
 public:
-    AExponentialHeightFog();
-    AExponentialHeightFog(const AExponentialHeightFog& Other);
-    virtual ~AExponentialHeightFog() override;
+    AExponentialHeightFogActor();
+    AExponentialHeightFogActor(const AExponentialHeightFogActor& Other);
+    virtual ~AExponentialHeightFogActor() override;
     void BeginPlay() override; 
     void Tick(float DeltaTime) override;
     void Destroyed() override;

@@ -1,6 +1,7 @@
 #pragma once
 #include "FBaseRenderPass.h"
 #include "Windows/D3D11RHI/GraphicDevice.h"
+#include <Components/HeightFogComponent.h>
 
 class FFogRenderPass : public FBaseRenderPass
 {
@@ -12,6 +13,7 @@ public:
     void PrePrepare();
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
+    bool ShouldRender() { return bRender; }
 
 private:
     void UpdateCameraConstant(const std::shared_ptr<FViewportClient> InViewportClient);
@@ -21,4 +23,5 @@ private:
 private:
     bool bRender = false;
     ID3D11Buffer* FogCameraConstantBuffer = nullptr;
+    UHeightFogComponent* FogComp = nullptr;
 };

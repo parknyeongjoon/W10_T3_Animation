@@ -5,6 +5,7 @@
 #include "Math/Matrix.h"
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
+#include "Math/Color.h"
 
 struct alignas(16) FFogCameraConstant
 {
@@ -79,11 +80,11 @@ struct alignas(16) FFogParams
     float HeightFogEnd; // offset: 8, size: 4
     float MaxOpacity; // offset: 12, size: 4
     float DistanceFogNear; // offset: 16, size: 4
-    float DistanceFotFar; // offset: 20, size: 4
+    float DistanceFogFar; // offset: 20, size: 4
     float pad1; // offset: 24, size: 4
     float pad2; // offset: 28, size: 4
-    FVector4 InscatteringColor; // offset: 32, size: 16
-    FVector4 DirectionalInscatteringColor; // offset: 48, size: 16
+    FLinearColor InscatteringColor; // offset: 32, size: 16
+    FLinearColor DirectionalInscatteringColor; // offset: 48, size: 16
     FVector DirectionalLightDirection; // offset: 64, size: 12
     float DirectionalInscatteringExponent; // offset: 76, size: 4
     float DirectionalInscatteringStartDistance; // offset: 80, size: 4

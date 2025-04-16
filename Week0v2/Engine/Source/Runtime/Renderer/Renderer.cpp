@@ -631,7 +631,12 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     SetViewMode(ActiveViewport->GetViewMode());
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
 
-    FogRenderPass->PrePrepare();
+    if (ActiveViewport->GetViewMode() != EViewModeIndex::VMI_Wireframe
+        && ActiveViewport->GetViewMode() != EViewModeIndex::VMI_Normal
+        && ActiveViewport->GetViewMode() != EViewModeIndex::VMI_Depth)
+    {
+        FogRenderPass->PrePrepare(); //fog 렌더 여부 결정 및 준비
+    }
 
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
     {
@@ -642,8 +647,11 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     LineBatchRenderPass->Prepare(ActiveViewport);
     LineBatchRenderPass->Execute(ActiveViewport);
 
-    FogRenderPass->Prepare(ActiveViewport);
-    FogRenderPass->Execute(ActiveViewport);
+    if (FogRenderPass->ShouldRender())
+    {
+        FogRenderPass->Prepare(ActiveViewport);
+        FogRenderPass->Execute(ActiveViewport);
+    }
 
     if (ActiveViewport->GetViewMode() == EViewModeIndex::VMI_Depth)
     {

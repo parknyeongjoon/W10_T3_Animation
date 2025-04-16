@@ -2,7 +2,6 @@
 #include <Define.h>
 #include <EditorEngine.h>
 #include <Components/QuadTexture.h>
-#include <Components/HeightFogComponent.h>
 #include <UObject/UObjectIterator.h>
 #include <D3D11RHI/CBStructDefine.h>
 #include "UnrealEd/EditorViewportClient.h"
@@ -39,6 +38,7 @@ void FFogRenderPass::PrePrepare()
     {
         if (iter->GetWorld() == GEngine->GetWorld())
         {
+            FogComp = iter;
             Graphics.SwitchRTV();
             bRender = true;
             return;
@@ -120,5 +120,22 @@ void FFogRenderPass::UpdateScreenConstant(std::shared_ptr<FViewportClient> InVie
 
 void FFogRenderPass::UpdateFogConstant(const std::shared_ptr<FViewportClient> InViewportClient)
 {
+    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
 
+    FFogParams FogParams;
+    FogParams.FogDensity = FogComp->FogDensity;
+    FogParams.HeightFogStart = FogComp->HeightFogStart;
+    FogParams.HeightFogEnd = FogComp->HeightFogEnd;
+    FogParams.MaxOpacity = FogComp->FogMaxOpacity;
+    FogParams.DistanceFogNear = FogComp->DistanceFogNear;
+    FogParams.DistanceFogFar = FogComp->DistanceFogFar;
+    FogParams.InscatteringColor = FogComp->FogInscatteringColor;
+    FogParams.DirectionalInscatteringColor = FogComp->DirectionalInscatteringColor;
+    FogParams.DirectionalLightDirection = FogComp->DirectionalLightDirection;
+    FogParams.DirectionalInscatteringExponent = FogComp->DirectionalInscatteringExponent;
+    FogParams.DirectionalInscatteringStartDistance = FogComp->DirectionalInscatteringStartDistance;
+    FogParams.IsExponential = FogComp->bIsExponential;
+
+    renderResourceManager->UpdateConstantBuffer(TEXT("FFogParams"), &FogParams);
 }

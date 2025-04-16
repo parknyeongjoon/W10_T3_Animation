@@ -12,8 +12,8 @@ UHeightFogComponent::UHeightFogComponent()
     DistanceFogFar = 100.0f;
     FogMaxOpacity = 0.8f;
 
-    FogInscatteringColor = FLinearColor(1.0f, 0.0f, 0.0f);
-    DirectionalInscatteringColor = FLinearColor(1.0f, 0.0f, 0.0f);
+    FogInscatteringColor = FLinearColor(1.0f, 1.0f, 1.0f);
+    DirectionalInscatteringColor = FLinearColor(1.0f, 1.0f, 1.0f);
     DirectionalLightDirection = FVector(0.0f, 0.0f, -1.0f);
     DirectionalInscatteringExponent = 1.0f;
     DirectionalInscatteringStartDistance = 100.0f;

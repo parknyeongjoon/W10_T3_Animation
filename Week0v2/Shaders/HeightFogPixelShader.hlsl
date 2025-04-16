@@ -23,7 +23,7 @@ cbuffer FFogParams : register(b2)
     float MaxOpacity;
 
     float DistanceFogNear;
-    float DistanceFotFar;
+    float DistanceFogFar;
     float pad1, pad2;
     
     float4 InscatteringColor;
@@ -67,11 +67,10 @@ float4 mainPS(VS_OUT input) : SV_TARGET
 {
     float2 viewportUV = input.uv * ViewportSize + ViewportOffset;
     float4 sceneColor = SceneTexture.Sample(SamplerLinear, viewportUV);
-    return sceneColor;
     float depth = DepthTexture.Sample(SamplerLinear, viewportUV).r;
     
     float linearDepth = (NearPlane * FarPlane) / (FarPlane - depth * (FarPlane - NearPlane));
-    float normalized = saturate((linearDepth - DistanceFogNear) / (DistanceFotFar - DistanceFogNear));
+    float normalized = saturate((linearDepth - DistanceFogNear) / (DistanceFogFar - DistanceFogNear));
     float3 worldPosition = ReconstructWorldPosition(input.uv, depth);
     
     // 높이 기반 안개 계산

@@ -1,72 +1,72 @@
 #include "ExponentialHeightFog.h"
 
-AExponentialHeightFog::AExponentialHeightFog()
+AExponentialHeightFogActor::AExponentialHeightFogActor()
     :Super()
 {
     FogComponent = AddComponent<UHeightFogComponent>();
 }
 
-AExponentialHeightFog::AExponentialHeightFog(const AExponentialHeightFog& Other)
+AExponentialHeightFogActor::AExponentialHeightFogActor(const AExponentialHeightFogActor& Other)
     :Super(Other)
 {
 }
 
-AExponentialHeightFog::~AExponentialHeightFog()
+AExponentialHeightFogActor::~AExponentialHeightFogActor()
 {
 }
 
-void AExponentialHeightFog::BeginPlay()
+void AExponentialHeightFogActor::BeginPlay()
 {
     Super::BeginPlay();
 }
 
-void AExponentialHeightFog::Tick(float DeltaTime)
+void AExponentialHeightFogActor::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 }
 
-void AExponentialHeightFog::Destroyed()
+void AExponentialHeightFogActor::Destroyed()
 {
     Super::Destroyed();
 }
 
-void AExponentialHeightFog::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void AExponentialHeightFogActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     Super::EndPlay(EndPlayReason);
 }
 
-bool AExponentialHeightFog::Destroy()
+bool AExponentialHeightFogActor::Destroy()
 {
     return Super::Destroy();
 }
 
-UObject* AExponentialHeightFog::Duplicate() const
+UObject* AExponentialHeightFogActor::Duplicate() const
 {
-    AExponentialHeightFog* NewActor = FObjectFactory::ConstructObjectFrom<AExponentialHeightFog>(this);
+    AExponentialHeightFogActor* NewActor = FObjectFactory::ConstructObjectFrom<AExponentialHeightFogActor>(this);
     NewActor->DuplicateSubObjects(this);
     NewActor->PostDuplicate();
     return NewActor;
 }
 
-void AExponentialHeightFog::DuplicateSubObjects(const UObject* Source)
+void AExponentialHeightFogActor::DuplicateSubObjects(const UObject* Source)
 {
     Super::DuplicateSubObjects(Source);
-    const AExponentialHeightFog* SourceHeightFogActor = FObjectFactory::ConstructObjectFrom<AExponentialHeightFog>(this);
+    const AExponentialHeightFogActor* SourceHeightFogActor = FObjectFactory::ConstructObjectFrom<AExponentialHeightFogActor>(this);
     if (SourceHeightFogActor == nullptr) return;
     FogComponent = Cast<UHeightFogComponent>(SourceHeightFogActor->FogComponent);
 }
 
-void AExponentialHeightFog::PostDuplicate()
+void AExponentialHeightFogActor::PostDuplicate()
 {
     Super::PostDuplicate();
 }
 
-void AExponentialHeightFog::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
+void AExponentialHeightFogActor::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
 {
     Super::LoadAndConstruct(InfoArray);
 }
 
-FActorInfo AExponentialHeightFog::GetActorInfo()
+FActorInfo AExponentialHeightFogActor::GetActorInfo()
 {
     return Super::GetActorInfo();
 }
