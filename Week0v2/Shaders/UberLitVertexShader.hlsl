@@ -211,7 +211,7 @@ PS_INPUT mainVS(VS_INPUT input)
     output.color = input.color;
     output.texcoord = input.texcoord;
     
-    float3 normal = normalize(mul(float4(input.normal, 0), MInverseTranspose));
+    float3 normal = mul(float4(input.normal, 0), MInverseTranspose);
     
 #if LIGHTING_MODEL_GOURAUD
     float3 viewDir = normalize(CameraPos - worldPos.xyz);
