@@ -2,6 +2,7 @@
 #include "Container/Array.h"
 #include "Renderer/RenderPass/FBaseRenderPass.h"
 #include "D3D11RHI/GraphicDevice.h"
+#include "Math/Vector.h"
 
 class ULightComponentBase;
 class USkySphereComponent;
@@ -12,20 +13,17 @@ class UStaticMeshComponent;
 class FComputeTileLightCulling
 {
 public:
-    explicit FComputeTileLightCulling(const FName& InShaderName)
-    {}
+    explicit FComputeTileLightCulling(const FName& InShaderName);
 
     virtual ~FComputeTileLightCulling() {}
     void AddRenderObjectsToRenderPass(UWorld* InWorld);
+    void OnResize(int screenWidth, int screenHeight);
     void Dispatch(std::shared_ptr<FViewportClient> InViewportClient);
     void UpdateLightConstants();
-
-    inline static int XTileCount = 16;
-    inline static int YTileCount = 16;
     
 private:
-    void UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient);
+    void UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient, int NumTileX, int NumTileY);
 
-    int PreviousLightCount = 0;
+    FVector2D PreviousTileCount;
     TArray<ULightComponentBase*> LightComponents;
 };

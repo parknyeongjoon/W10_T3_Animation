@@ -8,12 +8,35 @@
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/VBIBTopologyMapping.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
 
 extern UEditorEngine* GEngine;
+
+FComputeTileLightCulling::FComputeTileLightCulling(const FName& InShaderName)
+{
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    
+    ID3D11Buffer* SB = nullptr;
+    ID3D11ShaderResourceView* SBSRV = nullptr;
+    ID3D11UnorderedAccessView* SBUAV = nullptr;
+
+    ID3D11UnorderedAccessView* TileCullingUAV = renderResourceManager->GetStructuredBufferUAV("TileLightCulling");
+    if (TileCullingUAV == nullptr)
+    {
+        SB = renderResourceManager->CreateUAVStructuredBuffer<UINT>(1);
+        SBSRV = renderResourceManager->CreateBufferSRV(SB, 1);
+        SBUAV = renderResourceManager->CreateBufferUAV(SB, 1);  
+
+        renderResourceManager->AddOrSetUAVStructuredBuffer(TEXT("TileLightCulling"), SB);
+        renderResourceManager->AddOrSetSRVStructuredBufferSRV(TEXT("TileLightCulling"), SBSRV);
+        renderResourceManager->AddOrSetUAVStructuredBufferUAV(TEXT("TileLightCulling"), SBUAV);
+    }
+}
 
 void FComputeTileLightCulling::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
@@ -38,24 +61,39 @@ void FComputeTileLightCulling::Dispatch(const std::shared_ptr<FViewportClient> I
     FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
     ID3D11UnorderedAccessView* TileCullingUAV = renderResourceManager->GetStructuredBufferUAV("TileLightCulling");
+        
+    FEditorViewportClient* ViewPort = dynamic_cast<FEditorViewportClient*>(InViewportClient.get());
     
-    if (TileCullingUAV == nullptr)
+    int screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;  // 화면 가로 픽셀 수
+    int screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;  // 화면 세로 픽셀 수
+    
+    // 타일 크기 (예: 16x16 픽셀)
+    const int TILE_SIZE_X = 16;
+    const int TILE_SIZE_Y = 16;
+
+    // 타일 개수 계산
+    int numTilesX = (screenWidth + TILE_SIZE_X - 1) / TILE_SIZE_X; // 1024/16=64
+    int numTilesY = (screenHeight + TILE_SIZE_Y - 1) / TILE_SIZE_Y; // 768/16=48
+    
+    if (PreviousTileCount.x != numTilesX || PreviousTileCount.y != numTilesY)
     {
         ID3D11Buffer* SB = nullptr;
         ID3D11ShaderResourceView* SBSRV = nullptr;
         ID3D11UnorderedAccessView* SBUAV = nullptr;
 
+        PreviousTileCount.x = numTilesX;
+        PreviousTileCount.y = numTilesY;
+        
         int MaxPointLightCount = 16;
-        int UAVElementCount = MaxPointLightCount * XTileCount * YTileCount;
+        int UAVElementCount = MaxPointLightCount * numTilesX * numTilesY;
         
         SB = renderResourceManager->CreateUAVStructuredBuffer<UINT>(UAVElementCount);
         SBSRV = renderResourceManager->CreateBufferSRV(SB, UAVElementCount);
-        SBUAV = renderResourceManager->CreateBufferUAV(SB, UAVElementCount);
+        SBUAV = renderResourceManager->CreateBufferUAV(SB, UAVElementCount);  
 
-        renderResourceManager->AddOrSetSRVStructuredBuffer(TEXT("TileLightCulling"), SB);
         renderResourceManager->AddOrSetSRVStructuredBufferSRV(TEXT("TileLightCulling"), SBSRV);
-        renderResourceManager->AddOrSetUAVStructuredBuffer(TEXT("TileLightCulling"), SB);
         renderResourceManager->AddOrSetUAVStructuredBufferUAV(TEXT("TileLightCulling"), SBUAV);
+        renderResourceManager->AddOrSetUAVStructuredBuffer(TEXT("TileLightCulling"), SB);
 
         TileCullingUAV = SBUAV;
     }
@@ -65,10 +103,10 @@ void FComputeTileLightCulling::Dispatch(const std::shared_ptr<FViewportClient> I
 
     UpdateLightConstants();
 
-    UpdateComputeConstants(InViewportClient);
+    UpdateComputeConstants(InViewportClient, numTilesX, numTilesY);
 
-    //그룹 나누는 작업
-    Graphics.DeviceContext->Dispatch(XTileCount, YTileCount, 1);
+    // 전체화면을 타일크기로 나눈 타일 단위로 각각의 워크그룹이 처리한다. 즉 16x16픽셀의 한 타일을 쓰레드로 관리
+    Graphics.DeviceContext->Dispatch(numTilesX, numTilesY, 1);
     
     //해제
     ID3D11UnorderedAccessView* nullUAV[1] = { nullptr };
@@ -119,7 +157,7 @@ void FComputeTileLightCulling::UpdateLightConstants()
     renderResourceManager->UpdateConstantBuffer(LightConstantBuffer, &LightConstant);
 }
 
-void FComputeTileLightCulling::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
+void FComputeTileLightCulling::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient, int NumTileX, int NumTileY)
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
     FGraphicsDevice& Graphics = GEngine->graphicDevice;
@@ -141,8 +179,8 @@ void FComputeTileLightCulling::UpdateComputeConstants(const std::shared_ptr<FVie
     ComputeConstants.screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;
     ComputeConstants.InverseProj = InvProj;
     ComputeConstants.InverseView = InvView;
-    ComputeConstants.tileCountX = XTileCount;
-    ComputeConstants.tileCountY = YTileCount;
+    ComputeConstants.tileCountX = NumTileX;
+    ComputeConstants.tileCountY = NumTileY;
 
     ID3D11Buffer* ComputeConstantBuffer = renderResourceManager->GetConstantBuffer(TEXT("FComputeConstants"));
     

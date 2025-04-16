@@ -1,5 +1,7 @@
 #pragma kernel TileCulling
 
+#define MAX_POINTLIGHT_COUNT 16
+
 struct FDirectionalLight
 {
     float3 Direction;
@@ -34,12 +36,12 @@ struct FSpotLight
 };
 
 cbuffer FComputeConstants : register(b0){
-    row_major float4x4 InverseView;
-    row_major float4x4 InverseProj;
+    row_major matrix InverseView;
+    row_major matrix InverseProj;
     float screenWidth;
     float screenHeight;
-    int tileCountX;
-    int tileCountY;
+    int numTilesX;
+    int numTilesY;
 }
 
 cbuffer FLightingConstants : register(b1)
@@ -57,64 +59,101 @@ cbuffer FLightingConstants : register(b1)
 // 출력 버퍼: 타일별 영향받는 광원 인덱스 리스트
 RWStructuredBuffer<uint> TileLightIndices : register(u0);
 
-float3 ReconstructWorldPos(float2 UV, float Depth)
+
+bool IntersectRaySphere(float3 rayOrigin, float3 rayDir, float3 sphereCenter, float radius)
 {
-    float4 NDC;
-    NDC.xy = UV * 2.0 - 1.0; // [0,1] → [-1,1]
-    NDC.y *= -1;
-    NDC.z = Depth;
-    NDC.w = 1.0;
-    float4 WorldPos = mul(NDC, InverseProj);
-    WorldPos /= WorldPos.w;
-    WorldPos = mul(WorldPos, InverseView);
-    return WorldPos.xyz;
+    float3 OriginToCenter = sphereCenter - rayOrigin;
+    
+    if (dot(OriginToCenter, OriginToCenter) < radius * radius)
+    {
+        return true;
+    }
+    
+    if (dot(rayDir, OriginToCenter) < 0)
+    {
+        return false;
+    }
+    
+    float3 oc = rayOrigin - sphereCenter;
+    float a = dot(rayDir, rayDir);
+    float b = 2.0 * dot(oc, rayDir);
+    float c = dot(oc, oc) - radius * radius;
+
+    float discriminant = b * b - 4.0 * a * c;
+    return discriminant >= 0.0;
 }
 
+// 타일 크기 설정
+static const uint TILE_SIZE_X = 16;
+static const uint TILE_SIZE_Y = 16;
 
 // 쓰레드 그룹 크기 설정
-[numthreads(1, 1, 1)]
+[numthreads(TILE_SIZE_X, TILE_SIZE_Y, 1)]
 void mainCS (uint3 tid : SV_DispatchThreadID, uint3 gid : SV_GroupID) {
     // 타일 ID 계산
-    uint tileIndex = gid.y * tileCountX + gid.x;
+    uint tileIndex = gid.y * numTilesX + gid.x;
+    float2 tileMin = float2(gid.x * TILE_SIZE_X, gid.y * TILE_SIZE_Y);
+    float2 tileMax = tileMin + float2(TILE_SIZE_X, TILE_SIZE_Y);
+    float2 screenSize = float2(screenWidth, screenHeight);
 
-    //tileSize는 16 index는 올바르게 들어감
+    // 1. 타일 NDC 코너 계산
+    float2 tileCorners[4];
+    tileCorners[0] = tileMin;
+    tileCorners[1] = float2(tileMax.x, tileMin.y);
+    tileCorners[2] = float2(tileMin.x, tileMax.y);
+    tileCorners[3] = tileMax;
 
-    float tileSizeX = screenWidth / tileCountX;
-    float tileSizeY = screenHeight / tileCountY;
-
-    float2 tileSize = float2(tileSizeX, tileSizeY);
+    float3 rayOrigin[4];
+    float3 rayDir[4];
     
-    // 타일의 화면 좌표 범위 계산
-    float2 tileMin = float2(gid.x * tileSizeX, gid.y * tileSizeY);
-    float2 tileMax = tileMin + tileSize;
+    for (int c = 0; c < 4; ++c)
+    {
+        float2 uv = tileCorners[c] / screenSize;
+        float2 ndc = uv * 2.0 - 1.0;
+        ndc.y *= -1.0;
 
-    float2 screenSize = float2(screenWidth, screenHeight); 
-    
-    // 타일 경계 박스 → 월드/뷰 공간 변환 (예: 역투영)
-    float3 tileMinWorld = ReconstructWorldPos(tileMin / screenSize, 0); //각 타일의 최소위치 구하기, depth는 z를 결졍하기에 가장 가까운 0
-    float3 tileMaxWorld = ReconstructWorldPos(tileMax / screenSize, 1); //각 타일의 최대위치 구하기, depth는 z를 결졍하기에 가장 먼 1
+        // Near/Far
+        float4 ndcNear = float4(ndc, 0, 1);
+        float4 ndcFar = float4(ndc, 1, 1);
 
-    // 타일 AABB (축 정렬 경계 박스) 생성
-    float3 tileAABBMin = min(tileMinWorld, tileMaxWorld);
-    float3 tileAABBMax = max(tileMinWorld, tileMaxWorld);
+        float4 viewNear = mul(ndcNear, InverseProj);
+        float4 viewFar = mul(ndcFar, InverseProj);
+        viewNear /= viewNear.w;
+        viewFar /= viewFar.w;
 
-    // 광원 컬링
+        float4 worldNear = mul(viewNear, InverseView);
+        float4 worldFar = mul(viewFar, InverseView);
+
+        rayOrigin[c] = worldNear.xyz;
+        rayDir[c] = normalize(worldFar.xyz - worldNear.xyz);
+    }
+    // 타일별 광원 충돌 체크 (코너 4개에서 정면 레이)
+    uint tileOffset = tileIndex * MAX_POINTLIGHT_COUNT;
     uint lightCount = 0;
 
-    int MAX_POINT_LIGHTS = 16;
+    [unroll]
+    for (uint k = 0; k < MAX_POINTLIGHT_COUNT; ++k)
+    {
+        TileLightIndices[tileOffset + k] = 0xFFFFFFFF;
+    }
     
-    uint totalLightCount = MAX_POINT_LIGHTS; //지금은 PointLight만 하는중
-    for (uint i = 0; i < MAX_POINT_LIGHTS; ++i) { //라이트 돌면서
-        uint tileOffset = tileIndex * totalLightCount;
-        TileLightIndices[tileOffset + i] = 0xFFFFFFFF; //사용하지 않으면 엄청 큰 수로 초기화.
-        
-        // 포인트 광원과 타일 AABB의 최소 거리 계산
-        float3 closestPoint = clamp(PointLights[i].Position, tileAABBMin, tileAABBMax);
-        float dist = distance(closestPoint, PointLights[i].Position);
+    for (uint i = 0; i < NumPointLights; ++i)
+    {
+        bool anyHit = false;
 
-        if (dist <= PointLights[i].Radius) {
-            uint listIndex = tileOffset + lightCount++; //TileLightIndices가 공유자원이고 각자 타일별로 쓸 수 있는 구역을 정해둬서 동시 접근이 안이뤄지게 한듯
-            TileLightIndices[listIndex] = i;
+        for (int c=0;c<4;c++)
+        {
+            if (IntersectRaySphere(rayOrigin[c], rayDir[c], PointLights[i].Position, PointLights[i].Radius))
+            {
+                anyHit = true;
+                break;
+            }
+        }
+        
+        if (anyHit)
+        {
+            TileLightIndices[tileOffset + lightCount] = i;
+            ++lightCount;
         }
     }
 }

@@ -125,8 +125,6 @@ void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InVi
         UpdateLightConstants();
 
         UpdateFlagConstant();
-
-        
         
         UpdateComputeConstants(InViewportClient);
         
@@ -169,7 +167,10 @@ void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InVi
             const uint64 indexCount = renderData->MaterialSubsets[subMeshIndex].IndexCount;
             Graphics.DeviceContext->DrawIndexed(indexCount, startIndex, 0);
         }
-    } 
+    }
+
+    ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+    Graphics.DeviceContext->PSSetShaderResources(2, 1, nullSRV); //쓰고 해제 나중에 이쁘게 뺴기
 }
 
 void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
@@ -179,6 +180,17 @@ void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewpo
     FComputeConstants ComputeConstants;
     
     FEditorViewportClient* ViewPort = dynamic_cast<FEditorViewportClient*>(InViewportClient.get());
+    
+    int screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;  // 화면 가로 픽셀 수
+    int screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;  // 화면 세로 픽셀 수
+
+    // 타일 크기 (예: 16x16 픽셀)
+    const int TILE_SIZE_X = 16;
+    const int TILE_SIZE_Y = 16;
+
+    // 타일 개수 계산
+    int numTilesX = (screenWidth + TILE_SIZE_X - 1) / TILE_SIZE_X; // 1024/16=64
+    int numTilesY = (screenHeight + TILE_SIZE_Y - 1) / TILE_SIZE_Y; // 768/16=48
     
     FMatrix InvView = FMatrix::Identity;
     FMatrix InvProj = FMatrix::Identity;
@@ -193,8 +205,8 @@ void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewpo
     ComputeConstants.screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;
     ComputeConstants.InverseProj = InvProj;
     ComputeConstants.InverseView = InvView;
-    ComputeConstants.tileCountX = FComputeTileLightCulling::XTileCount;
-    ComputeConstants.tileCountY = FComputeTileLightCulling::YTileCount;
+    ComputeConstants.tileCountX = numTilesX;
+    ComputeConstants.tileCountY = numTilesY;
 
     ID3D11Buffer* ComputeConstantBuffer = renderResourceManager->GetConstantBuffer(TEXT("FComputeConstants"));
 
@@ -283,9 +295,8 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     }
 
     LightConstant.NumPointLights = PointLightCount;
-    LightConstant.NumDirectionalLights = DirectionalLightCount;
     LightConstant.NumSpotLights = SpotLightCount;
-    
+    LightConstant.NumDirectionalLights = DirectionalLightCount;
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FLightingConstants")), &LightConstant);
 }
 

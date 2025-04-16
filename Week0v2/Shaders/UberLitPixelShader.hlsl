@@ -1,11 +1,10 @@
 #include "ShaderHeaders/GSamplers.hlsli"
 
-#define NUM_POINT_LIGHT 4
-#define NUM_SPOT_LIGHT 4
-
 Texture2D Texture : register(t0);
 Texture2D NormalTexture : register(t1);
 StructuredBuffer<uint> TileLightIndices : register(t2);
+
+#define MAX_POINTLIGHT_COUNT 16
 
 cbuffer FMaterialConstants : register(b0)
 {
@@ -79,9 +78,9 @@ cbuffer FSubUVConstant : register(b3)
 
 cbuffer FCameraConstant : register(b4)
 {
-    matrix ViewMatrix;
-    matrix ProjMatrix;
-    matrix ViewProjMatrix;
+    row_major matrix ViewMatrix;
+    row_major matrix ProjMatrix;
+    row_major matrix ViewProjMatrix;
     
     float3 CameraPos;
     float NearPlane;
@@ -90,12 +89,12 @@ cbuffer FCameraConstant : register(b4)
 };
 
 cbuffer FComputeConstants : register(b5){
-    float4x4 InverseView;
-    float4x4 InverseProj;
+    row_major matrix InverseView;
+    row_major matrix InverseProj;
     float screenWidth;
     float screenHeight;
-    int tileCountX;
-    int tileCountY;
+    int numTilesX;
+    int numTilesY;
 }
 
 struct PS_INPUT
@@ -210,12 +209,16 @@ float3 CalculateSpotLight(
     return (Diffuse + specularColor) * Light.Intensity * SpotAttenuation * DistanceAttenuation;
 }
 
-float2 CalculateUVWithNDCPosition(float4 Position)
+float2 CalculateUVWithClipPosition(float4 Position)
 {
     float3 NDC = Position.xyz / Position.w;
     NDC.y *= -1;
     return ((NDC + 1) / 2).xy;
 }
+
+// 타일 크기 설정
+static const uint TILE_SIZE_X = 16;
+static const uint TILE_SIZE_Y = 16;
 
 PS_OUTPUT mainPS(PS_INPUT input)
 {
@@ -230,16 +233,19 @@ PS_OUTPUT mainPS(PS_INPUT input)
     return output;
 #endif
     float4 normalTex = ((NormalTexture.Sample(linearSampler, uvAdjusted)- 0.5) * 2);
-    
-    uint totalLightCount = NumPointLights; //지금은 PointLight만 하는중
 
-    float tileSizeX = screenWidth / tileCountX;
-    float tileSizeY = screenHeight / tileCountY;
-    float2 tileSize = float2(tileSizeX, tileSizeY);
+    float2 tileSize = float2(TILE_SIZE_X, TILE_SIZE_Y);
     
-    float2 uv = CalculateUVWithNDCPosition(input.position);
-    uint2 uvToTile = clamp(uint2(uv.xy * tileSize), uint2(0,0), uint2(tileSize - 1));
-    int tileIndex = uvToTile.y * tileSizeX + uvToTile.x;
+    // 1. NDC(-1~1) → 스크린 픽셀 좌표 변환
+    // float2 screenPos = (0.5 * ((input.position.xy / input.position.w) + 1.0)) * float2(screenWidth, screenHeight);
+    float2 UVPos = CalculateUVWithClipPosition(input.position);
+    float2 tileCoord = UVPos * tileSize;
+    int tileIndex = tileCoord.y * numTilesX + tileCoord.x;
+    
+    // float2 uv = CalculateUVWithNDCPosition(input.position);
+    // uint2 uvToTile = clamp(uint2(uv.xy * tileSize), uint2(0,0), uint2(tileSize - 1));
+    // int tileIndex = uvToTile.y * TILE_SIZE_X + uvToTile.x;
+    
     
     if(!IsLit)
     {
@@ -273,7 +279,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // 점광 처리  
     for(uint j=0; j<NumPointLights; ++j)
     {
-        uint listIndex = tileIndex * tileCountX + j; //여기 포문 들어가서 해야할듯
+        uint listIndex = tileIndex * MAX_POINTLIGHT_COUNT + j;
         uint lightIndex = TileLightIndices[listIndex];
         if (lightIndex == 0xFFFFFFFF)
         {
@@ -281,8 +287,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
         }
         
         TotalLight += CalculatePointLight(PointLights[lightIndex], input.worldPos, Normal, ViewDir, baseColor.rgb);
-        // output.color = float4(1,1,1,1);
-        // return output;
     }
     
     for (uint k = 0; k < NumSpotLights; ++k)
