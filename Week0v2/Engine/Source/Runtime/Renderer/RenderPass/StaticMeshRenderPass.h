@@ -1,13 +1,16 @@
 #pragma once
+#include "Define.h"
 #include "FBaseRenderPass.h"
 #include "Container/Array.h"
 #include "Math/Vector4.h"
 
+class USpotLightComponent;
 class ULightComponentBase;
 class USkySphereComponent;
 struct FObjMaterialInfo;
 struct FMatrix;
 class UStaticMeshComponent;
+
 
 class FStaticMeshRenderPass : public FBaseRenderPass
 {
@@ -29,7 +32,9 @@ private:
     static void UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo);
     void UpdateCameraConstant(const std::shared_ptr<FViewportClient>& InViewportClient);
 
-
+    bool IsLightInFrustum(ULightComponentBase* LightComponent, const FFrustum& CameraFrustum) const;
+    bool IsSpotLightInFrustum(USpotLightComponent* SpotLightComp, const FFrustum& CameraFrustum) const;
+private:        
     TArray<ULightComponentBase*> LightComponents;
     TArray<UStaticMeshComponent*> StaticMesheComponents;
 };
