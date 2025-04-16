@@ -96,7 +96,7 @@ cbuffer FCameraConstant : register(b5)
     float FarPlane;
 };
 
-cbuffer FComputeConstants : register(b5){
+cbuffer FComputeConstants : register(b6){
     row_major matrix InverseView;
     row_major matrix InverseProj;
     float screenWidth;

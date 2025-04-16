@@ -221,12 +221,12 @@ void FLineBatchRenderPass::UpdateBatchResources()
             ID3D11ShaderResourceView* SBSRV = nullptr;
             SB = renderResourceManager->CreateStructuredBuffer<FSphere>(static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedSphereCapacity()));
             SBSRV = renderResourceManager->CreateBufferSRV(SB, static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedSphereCapacity()));
-
-            renderResourceManager->AddOrSetStructuredBuffer(TEXT("Sphere"), SB);
-            renderResourceManager->AddOrSetStructuredBufferSRV(TEXT("Sphere"), SBSRV);
+            
+            renderResourceManager->AddOrSetSRVStructuredBuffer(TEXT("Sphere"), SB);
+            renderResourceManager->AddOrSetSRVStructuredBufferSRV(TEXT("Sphere"), SBSRV);
         }
 
-        ID3D11Buffer* SB = renderResourceManager->GetStructuredBuffer(TEXT("Sphere"));
+        ID3D11Buffer* SB = renderResourceManager->GetSRVStructuredBuffer(TEXT("Sphere"));
         ID3D11ShaderResourceView* SBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Sphere"));
         if (SB != nullptr && SBSRV != nullptr)
         {
@@ -244,11 +244,11 @@ void FLineBatchRenderPass::UpdateBatchResources()
             SB = renderResourceManager->CreateStructuredBuffer<FLine>(static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedLineCapacity()));
             SBSRV = renderResourceManager->CreateBufferSRV(SB, static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedLineCapacity()));
 
-            renderResourceManager->AddOrSetStructuredBuffer(TEXT("Line"), SB);
-            renderResourceManager->AddOrSetStructuredBufferSRV(TEXT("Line"), SBSRV);
+            renderResourceManager->AddOrSetSRVStructuredBuffer(TEXT("Line"), SB);
+            renderResourceManager->AddOrSetSRVStructuredBufferSRV(TEXT("Line"), SBSRV);
         }
 
-        ID3D11Buffer* SB = renderResourceManager->GetStructuredBuffer(TEXT("Line"));
+        ID3D11Buffer* SB = renderResourceManager->GetSRVStructuredBuffer(TEXT("Line"));
         ID3D11ShaderResourceView* SBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Line"));
         if (SB != nullptr && SBSRV != nullptr)
         {
