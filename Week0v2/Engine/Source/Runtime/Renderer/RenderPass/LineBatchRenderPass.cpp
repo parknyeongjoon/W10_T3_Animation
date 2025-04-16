@@ -60,7 +60,6 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
     PrimitiveCounts.ConeCount = PrimitveBatch.GetCones().Num();
     PrimitiveCounts.BoundingBoxCount = PrimitveBatch.GetBoundingBoxes().Num();
     PrimitiveCounts.SphereCount = PrimitveBatch.GetSpheres().Num();
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FPrimitiveCounts")), &PrimitiveCounts);
     renderResourceManager->UpdateConstantBuffer(TEXT("FPrimitiveCounts"), &PrimitiveCounts);
 
     const std::shared_ptr<FVBIBTopologyMapping> VBIBTopologyMappingInfo = Renderer.GetVBIBTopologyMapping(VBIBTopologyMappingName);
