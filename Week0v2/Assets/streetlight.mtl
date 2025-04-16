@@ -1,0 +1,23 @@
+# Blender 4.3.2 MTL File: 'None'
+# www.blender.org
+
+newmtl Glass
+Ns 28.621662
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 6.200000 5.615544 0.313688
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl metal.001
+Ns 32.000008
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:/metal.001_baseColor.jpeg
+map_Bump -bm 1.000000 C:/metal.001_normal.jpeg

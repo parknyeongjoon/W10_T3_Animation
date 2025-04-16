@@ -10,7 +10,11 @@ FVertexShader::FVertexShader(const FName InShaderName, const FString& InFullPath
     FullPath = InFullPath;
     VS = InVs;
     ShaderBlob = InShaderBlob;
-    ShaderMacro = InShaderMacro;
+    if (InShaderMacro != nullptr)
+        ShaderMacro = InShaderMacro;
+    else
+        ShaderMacro = nullptr;
+    
     LastWriteTime = InWriteTime;
 }
 
@@ -45,7 +49,11 @@ void FVertexShader::UpdateShader()
     FRenderer Renderer = GEngine->renderer;
     FRenderResourceManager* RenderResourceManager = GEngine->renderer.GetResourceManager();
 
-    RenderResourceManager->UpdateVertexShader(ShaderName.ToString(), ShaderMacro);
+    if (ShaderMacro != nullptr)
+        RenderResourceManager->UpdateVertexShader(ShaderName.ToString(), FullPath, ShaderMacro);
+    else
+        RenderResourceManager->UpdateVertexShader(ShaderName.ToString(), FullPath, nullptr);
+    
     const std::filesystem::file_time_type CurrentLastWriteTime = std::filesystem::last_write_time(*FullPath);
     LastWriteTime = CurrentLastWriteTime;
 }

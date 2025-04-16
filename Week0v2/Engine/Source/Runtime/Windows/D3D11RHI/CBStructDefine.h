@@ -5,19 +5,66 @@
 #include "Math/Matrix.h"
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
+#include "Math/Color.h"
+
+struct alignas(16) FFogCameraConstant
+{
+    FMatrix InvProjMatrix;
+    FMatrix InvViewMatrix;
+
+    FVector CameraPos;
+    float NearPlane;
+    FVector CameraForward;
+    float FarPlane;
+};
 
 // NOTE: Generated code - do not modify manually.
+struct alignas(16) FMeshConstant
+{
+    FMatrix ModelMatrix;
+    FMatrix ModelInvTransMatrix;
+    FVector DiffuseColor;
+    float TransparencyScalar;
+    FVector AmbientColor;
+    float DensityScalar;
+    FVector SpecularColor;
+    float SpecularScalar;
+    FVector EmmisiveColor;
+    float MaterialPad0;
+    uint32 IsSelectedMesh;
+};
+
+struct alignas(16) FSceneConstant
+{
+    FMatrix ViewMatrix;
+    FMatrix ProjMatrix;
+    alignas(16) FVector CameraPos;
+    alignas(16) FVector CameraLookAt;
+};
+
+struct alignas(16) FDebugIconConstant
+{
+    FVector IconPosition;
+    float IconScale;
+};
+
+struct alignas(16) FDebugArrowConstant
+{
+    FVector ArrowPosition;
+    float ArrowScaleXYZ;
+    FVector ArrowDirection;
+    float ArrowScaleZ;
+};
 
 struct alignas(16) FCameraConstant
 {
     FMatrix ViewMatrix; // offset: 0, size: 64
     FMatrix ProjMatrix; // offset: 64, size: 64
-    FMatrix InvViewMatrix; // offset: 128, size: 64
-    FMatrix InvProjMatrix; // offset: 192, size: 64
-    FVector CameraPos; // offset: 256, size: 12
-    float NearPlane; // offset: 268, size: 4
-    FVector CameraForward; // offset: 272, size: 12
-    float FarPlane; // offset: 284, size: 4
+    FMatrix ViewProjMatrix; // offset: 128, size: 64
+    FVector CameraPos; // offset: 192, size: 12
+    float NearPlane; // offset: 204, size: 4
+    FVector CameraForward; // offset: 208, size: 12
+    float FarPlane; // offset: 220, size: 4
 };
 
 struct alignas(16) FViewportInfo
@@ -28,24 +75,16 @@ struct alignas(16) FViewportInfo
 
 struct alignas(16) FFogParams
 {
-    float FogDensity; // offset: 0, size: 4
-    float HeightFogStart; // offset: 4, size: 4
-    float HeightFogEnd; // offset: 8, size: 4
-    float MaxOpacity; // offset: 12, size: 4
-    float DistanceFogNear; // offset: 16, size: 4
-    float DistanceFotFar; // offset: 20, size: 4
-    float pad1; // offset: 24, size: 4
-    float pad2; // offset: 28, size: 4
-    FVector4 InscatteringColor; // offset: 32, size: 16
-    FVector4 DirectionalInscatteringColor; // offset: 48, size: 16
-    FVector DirectionalLightDirection; // offset: 64, size: 12
-    float DirectionalInscatteringExponent; // offset: 76, size: 4
-    float DirectionalInscatteringStartDistance; // offset: 80, size: 4
-    float pad3; // offset: 84, size: 4
-    float pad4; // offset: 88, size: 4
-    float pad5; // offset: 92, size: 4
-    int IsExponential; // offset: 96, size: 4
-    uint8 pad0[12]; // Padding to end of buffer
+    FVector FogColor;
+    float FogDensity;
+    float FogStart;
+    float FogEnd;
+    float FogZPosition;
+    float FogBaseHeight;
+    float HeightFallOff;
+    int bIsHeightFog;
+    float FogMaxOpacity; // MaxOpacity 추가
+    float LightShaftDensity; // 추가: 광선 밀도 [4]
 };
 
 struct alignas(16) FMatrixBuffer
@@ -66,9 +105,9 @@ struct alignas(16) FGridParametersData
 struct alignas(16) FPrimitiveCounts
 {
     int BoundingBoxCount; // offset: 0, size: 4
-    int pad; // offset: 4, size: 4
+    int SphereCount; // offset: 4, size: 4
     int ConeCount; // offset: 8, size: 4
-    int pad1; // offset: 12, size: 4
+    int LineCount; // offset: 12, size: 4
 };
 
 struct alignas(16) FSubUVConstant
@@ -94,15 +133,15 @@ struct alignas(16) FMaterialConstants
     FVector SpecularColor; // offset: 32, size: 12
     float SpecularScalar; // offset: 44, size: 4
     FVector EmissiveColor; // offset: 48, size: 12
-    float MaterialPad0; // offset: 60, size: 4
+    uint32 bHasNormalTexture; // offset: 60, size: 4
 };
 
 struct alignas(16) FLightingConstants
 {
     uint32 NumDirectionalLights; // offset: 0, size: 4
     uint32 NumPointLights; // offset: 4, size: 4
-    uint32 NumSpotLights; // offset: 8, size: 4
-    float pad; // offset: 12, size: 4
+    uint32 NumSpotLights;
+    float pad; // offset: 8, size: 8
     FDirectionalLight DirLights[4];
     FPointLight PointLights[16];
     FSpotLight SpotLights[8];
@@ -110,8 +149,9 @@ struct alignas(16) FLightingConstants
 
 struct alignas(16) FFlagConstants
 {
-    bool IsLit; // offset: 0, size: 4
-    FVector flagPad0; // offset: 4, size: 12
+    uint32 IsLit; // offset: 0, size: 4
+    uint32 IsNormal;
+    FVector2D flagPad0; // offset: 4, size: 12
 };
 
 struct alignas(16) FMatrixConstants
@@ -123,20 +163,28 @@ struct alignas(16) FMatrixConstants
     FVector pad0; // offset: 196, size: 12
 };
 
+struct alignas(16) FConstatntBufferActor
+{
+    FVector4 UUID; // offset: 0, size: 16
+    uint32 IsSelectedActor; // offset: 16, size: 4
+    FVector padding; // offset: 20, size: 12
+};
+
 enum class EShaderConstantBuffer
 {
     FCameraConstant = 0,
     FConstants = 1,
-    FFlagConstants = 2,
-    FFogParams = 3,
-    FGridParametersData = 4,
-    FLightingConstants = 5,
-    FMaterialConstants = 6,
-    FMatrixBuffer = 7,
-    FMatrixConstants = 8,
-    FPrimitiveCounts = 9,
-    FSubUVConstant = 10,
-    FViewportInfo = 11,
+    FConstatntBufferActor = 2,
+    FFlagConstants = 3,
+    FFogParams = 4,
+    FGridParametersData = 5,
+    FLightingConstants = 6,
+    FMaterialConstants = 7,
+    FMatrixBuffer = 8,
+    FMatrixConstants = 9,
+    FPrimitiveCounts = 10,
+    FSubUVConstant = 11,
+    FViewportInfo = 12,
     EShaderConstantBuffer_MAX
 };
 
@@ -146,6 +194,7 @@ inline const TCHAR* EShaderConstantBufferToString(EShaderConstantBuffer e)
     {
     case EShaderConstantBuffer::FCameraConstant: return TEXT("FCameraConstant");
     case EShaderConstantBuffer::FConstants: return TEXT("FConstants");
+    case EShaderConstantBuffer::FConstatntBufferActor: return TEXT("FConstatntBufferActor");
     case EShaderConstantBuffer::FFlagConstants: return TEXT("FFlagConstants");
     case EShaderConstantBuffer::FFogParams: return TEXT("FFogParams");
     case EShaderConstantBuffer::FGridParametersData: return TEXT("FGridParametersData");
@@ -165,6 +214,7 @@ inline EShaderConstantBuffer EShaderConstantBufferFromString(const TCHAR* str)
 #if USE_WIDECHAR
     if(std::wcscmp(str, TEXT("FCameraConstant")) == 0) return EShaderConstantBuffer::FCameraConstant;
     if(std::wcscmp(str, TEXT("FConstants")) == 0) return EShaderConstantBuffer::FConstants;
+    if(std::wcscmp(str, TEXT("FConstatntBufferActor")) == 0) return EShaderConstantBuffer::FConstatntBufferActor;
     if(std::wcscmp(str, TEXT("FFlagConstants")) == 0) return EShaderConstantBuffer::FFlagConstants;
     if(std::wcscmp(str, TEXT("FFogParams")) == 0) return EShaderConstantBuffer::FFogParams;
     if(std::wcscmp(str, TEXT("FGridParametersData")) == 0) return EShaderConstantBuffer::FGridParametersData;
@@ -178,6 +228,7 @@ inline EShaderConstantBuffer EShaderConstantBufferFromString(const TCHAR* str)
 #else
     if(std::strcmp(str, "FCameraConstant") == 0) return EShaderConstantBuffer::FCameraConstant;
     if(std::strcmp(str, "FConstants") == 0) return EShaderConstantBuffer::FConstants;
+    if(std::strcmp(str, "FConstatntBufferActor") == 0) return EShaderConstantBuffer::FConstatntBufferActor;
     if(std::strcmp(str, "FFlagConstants") == 0) return EShaderConstantBuffer::FFlagConstants;
     if(std::strcmp(str, "FFogParams") == 0) return EShaderConstantBuffer::FFogParams;
     if(std::strcmp(str, "FGridParametersData") == 0) return EShaderConstantBuffer::FGridParametersData;

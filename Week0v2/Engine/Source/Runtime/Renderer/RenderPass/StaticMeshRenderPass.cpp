@@ -21,25 +21,12 @@
 #include "UnrealClient.h"
 #include "Renderer/ComputeShader/ComputeTileLightCulling.h"
 
+#include "LevelEditor/SLevelEditor.h"
+
 extern UEditorEngine* GEngine;
 
 void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
-    StaticMesheComponents.Empty();
-
-    LightComponents.Empty();
-    
-    if (InWorld->WorldType == EWorldType::Editor)
-    {
-        for (const auto iter : TObjectRange<USceneComponent>())
-        {
-            if (ULightComponentBase* pGizmoComp = Cast<ULightComponentBase>(iter))
-            {
-                LightComponents.Add(pGizmoComp);
-            }
-        }
-    }
-    
     for (const AActor* actor : InWorld->GetActors())
     {
         for (const UActorComponent* actorComp : actor->GetComponents())
@@ -48,6 +35,11 @@ void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
             {
                 if (!Cast<UGizmoBaseComponent>(actorComp))
                     StaticMesheComponents.Add(pStaticMeshComp);
+            }
+            
+            if (ULightComponentBase* pGizmoComp = Cast<ULightComponentBase>(actorComp))
+            {
+                LightComponents.Add(pGizmoComp);
             }
         }
     }
@@ -67,7 +59,7 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
     // RTVs 배열의 유효성을 확인합니다.
     if (Graphics.RTVs[0] != nullptr)
     {
-        Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView); // 렌더 타겟 설정
+        Graphics.DeviceContext->OMSetRenderTargets(2, Graphics.RTVs, Graphics.DepthStencilView); // 렌더 타겟 설정
     }
     else
     {
@@ -115,12 +107,22 @@ void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InVi
     // 지금 딸깍이에서 structuredBuffer도 처리해줘서 그 타이밍보고 나중에 다시 PSSetShaderResources를 해줘야함
     UpdateComputeResource();
     
+    UpdateCameraConstant(InViewportClient);
+    
     for (UStaticMeshComponent* staticMeshComp : StaticMesheComponents)
     {
         const FMatrix Model = JungleMath::CreateModelMatrix(staticMeshComp->GetComponentLocation(), staticMeshComp->GetComponentRotation(),
                                                     staticMeshComp->GetComponentScale());
         
         UpdateMatrixConstants(staticMeshComp, View, Proj);
+        FVector4 UUIDColor = staticMeshComp->EncodeUUID() / 255.0f ;
+        uint32 isSelected = 0;
+        if (GEngine->GetWorld()->GetSelectedActors().Contains(staticMeshComp->GetOwner()))
+        {
+            isSelected = 1;
+        }
+        // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
+        UpdateContstantBufferActor(UUIDColor , isSelected);
 
         UpdateLightConstants();
 
@@ -130,7 +132,7 @@ void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InVi
         
         if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
         {
-            if (GEngine->GetWorld()->GetSelectedActor() == staticMeshComp->GetOwner())
+            if ( !GEngine->GetWorld()->GetSelectedActors().IsEmpty() && *GEngine->GetWorld()->GetSelectedActors().begin() == staticMeshComp->GetOwner())
             {
                 UPrimitiveBatch::GetInstance().AddAABB(
                     staticMeshComp->GetBoundingBox(),
@@ -213,6 +215,12 @@ void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewpo
     renderResourceManager->UpdateConstantBuffer(ComputeConstantBuffer, &ComputeConstants);
 }
 
+void FStaticMeshRenderPass::ClearRenderObjects()
+{
+    StaticMesheComponents.Empty();
+    LightComponents.Empty();
+}
+
 void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStaticMeshComponent, const FMatrix& InView, const FMatrix& InProjection)
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
@@ -225,7 +233,7 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
     MatrixConstants.Model = Model;
     MatrixConstants.ViewProj = InView * InProjection;
     MatrixConstants.MInverseTranspose = NormalMatrix;
-    if (InStaticMeshComponent->GetWorld()->GetSelectedActor() == InStaticMeshComponent->GetOwner())
+    if (InStaticMeshComponent->GetWorld()->GetSelectedActors().Contains(InStaticMeshComponent->GetOwner()))
     {
         MatrixConstants.isSelected = true;
     }
@@ -233,7 +241,7 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
     {
         MatrixConstants.isSelected = false;
     }
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixConstants")), &MatrixConstants);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixConstants"), &MatrixConstants);
 }
 
 void FStaticMeshRenderPass::UpdateFlagConstant()
@@ -244,7 +252,9 @@ void FStaticMeshRenderPass::UpdateFlagConstant()
 
     FlagConstant.IsLit = GEngine->renderer.bIsLit;
 
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FFlagConstants")), &FlagConstant);
+    FlagConstant.IsNormal = GEngine->renderer.bIsNormal;
+
+    renderResourceManager->UpdateConstantBuffer(TEXT("FFlagConstants"), &FlagConstant);
 }
 
 void FStaticMeshRenderPass::UpdateLightConstants()
@@ -256,9 +266,17 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     uint32 PointLightCount = 0;
     uint32 SpotLightCount = 0;
 
+    FMatrix View = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
+    FMatrix Projection = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
+    FFrustum CameraFrustum = FFrustum::ExtractFrustum(View*Projection);
+
     for (ULightComponentBase* Comp : LightComponents)
     {
-        UPointLightComponent* PointLightComp = dynamic_cast<UPointLightComponent*>(Comp);
+        if (!IsLightInFrustum(Comp, CameraFrustum))
+        {
+            continue;
+        }
+        UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(Comp);
 
         if (PointLightComp)
         {
@@ -271,7 +289,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             continue;
         }
 
-        UDirectionalLightComponent* DirectionalLightComp = dynamic_cast<UDirectionalLightComponent*>(Comp);
+        UDirectionalLightComponent* DirectionalLightComp = Cast<UDirectionalLightComponent>(Comp);
         if (DirectionalLightComp)
         {
             USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(DirectionalLightComp);
@@ -293,11 +311,24 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             continue;
         }
     }
-
+    //UE_LOG(LogLevel::Error, "Point : %d, Spot : %d Dir : %d", PointLightCount, SpotLightCount, DirectionalLightCount);
     LightConstant.NumPointLights = PointLightCount;
     LightConstant.NumSpotLights = SpotLightCount;
     LightConstant.NumDirectionalLights = DirectionalLightCount;
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FLightingConstants")), &LightConstant);
+    
+    renderResourceManager->UpdateConstantBuffer(TEXT("FLightingConstants"), &LightConstant);
+}
+
+void FStaticMeshRenderPass::UpdateContstantBufferActor(const FVector4 UUID, int32 isSelected)
+{
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    
+    FConstatntBufferActor ConstatntBufferActor;
+
+    ConstatntBufferActor.UUID = UUID;
+    ConstatntBufferActor.IsSelectedActor = isSelected;
+    
+    renderResourceManager->UpdateConstantBuffer(TEXT("FConstatntBufferActor"), &ConstatntBufferActor);
 }
 
 void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent)
@@ -317,7 +348,7 @@ void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComp
         UVBuffer.indexV = 0;
     }
     
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FSubUVConstant")), &UVBuffer);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FSubUVConstant"), &UVBuffer);
 }
 
 void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
@@ -334,7 +365,7 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
     MaterialConstants.SpecularScalar = MaterialInfo.SpecularScalar;
     MaterialConstants.EmissiveColor = MaterialInfo.Emissive;
     //normalScale값 있는데 parse만 하고 constant로 넘기고 있진 않음
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMaterialConstants")), &MaterialConstants);
+    MaterialConstants.bHasNormalTexture = false;
     
     if (MaterialInfo.bHasTexture == true)
     {
@@ -347,6 +378,7 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
         if (NormalTexture)
         {
             Graphics.DeviceContext->PSSetShaderResources(1, 1, &NormalTexture->TextureSRV);
+            MaterialConstants.bHasNormalTexture = true;
         }
         
         ID3D11SamplerState* linearSampler = renderResourceManager->GetSamplerState(ESamplerType::Linear);
@@ -357,4 +389,112 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
         ID3D11ShaderResourceView* nullSRV[1] = {nullptr};
         Graphics.DeviceContext->PSSetShaderResources(0, 1, nullSRV);
     }
+    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMaterialConstants")), &MaterialConstants);
+}
+
+void FStaticMeshRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewportClient>& InViewportClient)
+{
+    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    const std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
+
+    FCameraConstant CameraConstants;
+    CameraConstants.CameraForward = FVector::ZeroVector;
+    CameraConstants.CameraPos = curEditorViewportClient->ViewTransformPerspective.GetLocation();
+    CameraConstants.ViewProjMatrix = FMatrix::Identity;
+    CameraConstants.ProjMatrix = FMatrix::Identity;
+    CameraConstants.ViewMatrix = FMatrix::Identity;
+    CameraConstants.NearPlane = curEditorViewportClient->GetNearClip();
+    CameraConstants.FarPlane = curEditorViewportClient->GetFarClip();
+
+    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FCameraConstant")), &CameraConstants);
+}
+
+bool FStaticMeshRenderPass::IsLightInFrustum(ULightComponentBase* LightComponent, const FFrustum& CameraFrustum) const
+{
+    // if (dynamic_cast<UDirectionalLightComponent*>(LightComponent) && !dynamic_cast<USpotLightComponent>(LightComponent))
+    // {
+    //     return true;
+    // }
+
+    // 포인트 라이트 : 구 형태 판단
+    if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComponent))
+    {
+        FVector LightCenter = PointLightComp->GetComponentLocation();
+        float Radius = PointLightComp->GetRadius();
+        return CameraFrustum.IntersectsSphere(LightCenter, Radius);
+    }
+
+    // 스팟 라이트의 경우, 보통 구 또는 원뿔의 바운딩 볼륨을 사용합니다.
+    if (USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(LightComponent))
+    {
+        // FVector LightCenter = SpotLightComp->GetComponentLocation();
+        // // 스팟 라이트의 영향을 대략적으로 표현하는 반지름 (필요 시 실제 cone 계산으로 대체)
+        // float ApproxRadius = SpotLightComp->GetOuterConeAngle(); // 예시: cone 각도를 사용 (단위 및 스케일은 조정 필요)
+        // return CameraFrustum.IntersectsSphere(LightCenter, ApproxRadius);
+        return IsSpotLightInFrustum(SpotLightComp, CameraFrustum);
+    }
+    
+    // 그 외의 경우, 보수적으로 true로 반환
+    return true;
+}
+
+bool FStaticMeshRenderPass::IsSpotLightInFrustum(USpotLightComponent* SpotLightComp, const FFrustum& CameraFrustum) const
+{
+    // 스팟 라이트의 Apex(위치)
+    FVector Apex = SpotLightComp->GetComponentLocation();
+
+    // 스팟 라이트의 방향: 스팟 라이트의 오너의 전방벡터를 사용 (정규화된 값)
+    FVector Dir = SpotLightComp->GetOwner()->GetActorForwardVector().Normalize();
+
+    // 스팟 라이트의 범위 (거리) - 일반적으로 Attenuation Radius 또는 Range를 사용
+    float Range = 50;
+
+    // 스팟 라이트의 외부 콘 각도 (단위: 도)를 라디안으로 변환
+    float OuterAngleRad = SpotLightComp->GetOuterConeAngle();
+
+    // 원뿔의 베이스(밑면) 중심과 반지름 계산
+    FVector BaseCenter = Apex + Dir * Range;
+    float BaseRadius = Range * FMath::Tan(OuterAngleRad);
+
+    // 1. Apex(꼭짓점)가 프러스텀 내부에 있으면 전체 원뿔도 영향을 줄 가능성이 높으므로 true
+    if (CameraFrustum.IntersectsPoint(Apex))
+    {
+        return true;
+    }
+
+    // 2. 베이스 중심이 프러스텀 내부에 있으면 true
+    if (CameraFrustum.IntersectsPoint(BaseCenter))
+    {
+        return true;
+    }
+
+    // 3. 베이스 원의 둘레를 여러 샘플링하여 프러스텀 내부 포함 여부 검사
+    //    (정확도를 높이기 위해 샘플 수를 늘릴 수 있습니다)
+    const int SampleCount = 8;  // 예제에서는 8개의 점으로 샘플링
+    // 원뿔 베이스의 평면에 대한 임의의 좌표계를 생성
+    FVector Right = Dir.Cross(FVector(0, 1, 0));
+    if (Right.IsNearlyZero())  // 만약 Dir이 (0,1,0)와 평행하면 다른 벡터로 교차
+    {
+        Right = Dir.Cross(FVector(1, 0, 0));
+    }
+    Right.Normalize();
+    FVector Up = Dir.Cross(Right).Normalize();
+
+    for (int i = 0; i < SampleCount; ++i)
+    {
+        float Angle = (2.f * PI * i) / SampleCount;
+        // 베이스 원의 둘레 상의 샘플 포인트 계산
+        FVector Offset = (Right * FMath::Cos(Angle) + Up * FMath::Sin(Angle)) * BaseRadius;
+        FVector SamplePoint = BaseCenter + Offset;
+
+        // 샘플 포인트가 프러스텀 내부에 있으면 스팟 라이트 영향 영역이 프러스텀에 일부 포함된 것으로 판단
+        if (CameraFrustum.IntersectsPoint(SamplePoint))
+        {
+            return true;
+        }
+    }
+    
+    // 모든 검사에서 프러스텀 내부에 포함된 점이 없으면 false
+    return false;
 }

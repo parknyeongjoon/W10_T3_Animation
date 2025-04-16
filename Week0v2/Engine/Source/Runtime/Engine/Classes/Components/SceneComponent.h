@@ -133,4 +133,8 @@ public:
     virtual bool MoveComponent(const FVector& Delta) { return false; }
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
+
+private:
+    class UTextUUID* uuidText = nullptr;
+public:
 };

@@ -7,8 +7,11 @@
 #include "EngineBaseTypes.h"
 #include "Define.h"
 #include "RenderResourceManager.h"
+#include "RenderPass/DebugDepthRenderPass.h"
+#include "RenderPass/FogRenderPass.h"
 
 class FComputeTileLightCulling;
+class FEditorIconRenderPass;
 class FGizmoRenderPass;
 class FLineBatchRenderPass;
 class FStaticMeshRenderPass;
@@ -39,8 +42,15 @@ public:
     std::shared_ptr<FVBIBTopologyMapping> GetVBIBTopologyMapping(const FName InName) {return VBIBTopologyMappings[InName];}
 
     bool bIsLit = true;
+    bool bIsNormal = false;
+    bool bIsDepth = false;
 public:
     void Initialize(FGraphicsDevice* graphics);
+
+    static D3D_SHADER_MACRO GouradDefines[];
+    static D3D_SHADER_MACRO LambertDefines[];
+    static D3D_SHADER_MACRO EditorGizmoDefines[];
+    static D3D_SHADER_MACRO EditorIconDefines[];
     
     //Release
     void Release();
@@ -49,14 +59,11 @@ public:
 
 public:
     //Render Pass Demo
+    
     void AddRenderObjectsToRenderPass(UWorld* InWorld) const;
     void Render(UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
-    //void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    void ClearRenderObjects() const;
 
-    // post process
-    //void RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
-    //void RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveViewport);
-    //void RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
 public:
     void PrepareShader(FName InShaderName);
     void BindConstantBuffers(FName InShaderName);
@@ -77,11 +84,18 @@ public:
 private:
     FRenderResourceManager* RenderResourceManager = nullptr;
 
-    std::shared_ptr<FStaticMeshRenderPass> StaticMeshRenderPass;
+    std::shared_ptr<FStaticMeshRenderPass> GoroudRenderPass;
+    std::shared_ptr<FStaticMeshRenderPass> LambertRenderPass;
+    std::shared_ptr<FStaticMeshRenderPass> PhongRenderPass;
     std::shared_ptr<FLineBatchRenderPass> LineBatchRenderPass;
     std::shared_ptr<FGizmoRenderPass> GizmoRenderPass;
     std::shared_ptr<FComputeTileLightCulling> ComputeTileLightCulling;
     
+    std::shared_ptr<FDebugDepthRenderPass> DebugDepthRenderPass;
+    std::shared_ptr<FEditorIconRenderPass> EditorIconRenderPass;
+    std::shared_ptr<FFogRenderPass> FogRenderPass;
+
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
+    EViewModeIndex CurrentViewMode = VMI_Lit_Goroud;
 };
 

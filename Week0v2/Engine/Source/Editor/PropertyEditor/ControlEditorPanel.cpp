@@ -21,6 +21,8 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "Components/SpotLightComponent.h"
 #include "Actors/SpotLightActor.h"
+#include <Actors/ExponentialHeightFog.h>
+#include <UObject/UObjectIterator.h>
 void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
 {
     activeLevelEditor = levelEditor;
@@ -69,6 +71,10 @@ void ControlEditorPanel::Render()
 
     ImGui::SameLine();
 
+    CreateShaderHotReloadButton(IconSize);
+
+    ImGui::SameLine();
+    
     ImVec2 PIEIconSize = ImVec2(IconSize.x + 8, IconSize.y);
     ImGui::PushFont(IconFont);
     CreatePIEButton(PIEIconSize);
@@ -239,7 +245,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         if (ImGui::DragFloat("##Fov", FOV, 0.1f, 30.0f, 120.0f, "%.1f"))
         {
             //GEngineLoop.GetWorld()->GetCamera()->SetFOV(FOV);
-
         }
         ImGui::Spacing();
 
@@ -398,12 +403,22 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     Text->SetText(L"안녕하세요 Jungle 1");
                     break;
                 }
-                // case OBJ_FOG:
-                // {
-                //     SpawnedActor = World->SpawnActor<AExponentialHeightFog>();
-                //     SpawnedActor->SetActorLabel(TEXT("OBJ_FOG"));
-                //     break;
-                // }
+                case OBJ_FOG:
+                {
+                    for (const auto& actor : TObjectRange<AExponentialHeightFogActor>())
+                    {
+                        if (actor)
+                        {
+                            actor->Destroy();
+                            TSet<AActor*> Actors = GEngine->GetWorld()->GetSelectedActors();
+                            if(Actors.Contains(actor))
+                                GEngine->GetWorld()->ClearSelectedActors();
+                        }
+                    }
+                    SpawnedActor = World->SpawnActor<AExponentialHeightFogActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_FOG"));
+                    break;
+                }
                 case OBJ_CAR:
                 {
                     AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
@@ -418,7 +433,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
 
                 if (SpawnedActor)
                 {
-                    World->SetPickedActor(SpawnedActor);
+                    World->SetSelectedActor(SpawnedActor);
                 }
             }
         }
@@ -460,8 +475,8 @@ void ControlEditorPanel::CreateFlagButton() const
 
     ImGui::SameLine();
 
-    const char* ViewModeNames[] = { "Lit", "Unlit", "Wireframe", "Depth" };
-    FString SelectLightControl = ViewModeNames[(int)ActiveViewport->GetViewMode()];
+    const char* ViewModeNames[] = { "Goroud_Lit", "Lambert_Lit", "Phong_Lit", "Unlit", "Wireframe", "Depth", "Normal"};
+    FString SelectLightControl = ViewModeNames[static_cast<uint32>(ActiveViewport->GetViewMode())];
     ImVec2 LightTextSize = ImGui::CalcTextSize(GetData(SelectLightControl));
 
     if (ImGui::Button(GetData(SelectLightControl), ImVec2(30 + LightTextSize.x, 32)))
@@ -473,11 +488,11 @@ void ControlEditorPanel::CreateFlagButton() const
     {
         for (int i = 0; i < IM_ARRAYSIZE(ViewModeNames); i++)
         {
-            bool bIsSelected = ((int)ActiveViewport->GetViewMode() == i);
+            const bool bIsSelected = (static_cast<uint32>(ActiveViewport->GetViewMode()) == i);
             if (ImGui::Selectable(ViewModeNames[i], bIsSelected))
             {
-                ActiveViewport->SetViewMode((EViewModeIndex)i);
-                UEditorEngine::renderer.SetViewMode(ActiveViewport->GetViewMode());
+                ActiveViewport->SetViewMode(static_cast<EViewModeIndex>(i));
+                //UEditorEngine::renderer.SetViewMode(ActiveViewport->GetViewMode());
             }
 
             if (bIsSelected)
@@ -515,6 +530,16 @@ void ControlEditorPanel::CreateFlagButton() const
         }
         ActiveViewport->SetShowFlag(ConvertSelectionToFlags(selected));
         ImGui::EndPopup();
+    }
+}
+
+void ControlEditorPanel::CreateShaderHotReloadButton(const ImVec2 ButtonSize) const
+{
+    ID3D11ShaderResourceView* IconTextureSRV = GEngine->resourceMgr.GetTexture(L"Assets/Texture/HotReload.png")->TextureSRV;
+    const ImTextureID textureID = reinterpret_cast<ImTextureID>(IconTextureSRV); // 실제 사용되는 텍스처 SRV
+    if (ImGui::ImageButton("btn1", textureID, ButtonSize))
+    {
+        GEngine->renderer.GetResourceManager()->HotReloadShaders();
     }
 }
 

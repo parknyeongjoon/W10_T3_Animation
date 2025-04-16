@@ -19,9 +19,10 @@ public:
     void AddRenderObjectsToRenderPass(UWorld* InWorld) override;
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
+    void ClearRenderObjects() override;
 private:
     static void UpdateMatrixConstants(UGizmoBaseComponent* InGizmoComponent, const FMatrix& InView, const FMatrix& InProjection);
     static void UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo);
-    
+private:
     TArray<UGizmoBaseComponent*> GizmoComponents;
 };

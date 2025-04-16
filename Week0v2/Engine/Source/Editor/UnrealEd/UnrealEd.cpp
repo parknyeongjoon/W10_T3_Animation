@@ -3,6 +3,7 @@
 
 #include "PropertyEditor/ControlEditorPanel.h"
 #include "PropertyEditor/OutlinerEditorPanel.h"
+#include "PropertyEditor/PrimitiveDrawEditor.h"
 #include "PropertyEditor/PropertyEditorPanel.h"
 
 void UnrealEd::Initialize(SLevelEditor* leveleditor)
@@ -16,6 +17,9 @@ void UnrealEd::Initialize(SLevelEditor* leveleditor)
     
     auto PropertyPanel = std::make_shared<PropertyEditorPanel>();
     Panels["PropertyPanel"] = PropertyPanel;
+
+    auto PrimitiveDrawer = std::make_shared<PrimitiveDrawEditor>();
+    Panels["PrimitiveDrawEditor"] = PrimitiveDrawer;
 }
 
 void UnrealEd::Render() const

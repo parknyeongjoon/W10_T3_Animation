@@ -9,6 +9,7 @@
 #include "Engine/World.h"
 #include <Components/SpotLightComponent.h>
 #include <Math/JungleMath.h>
+#include <Components/PointLightComponent.h>
 
 extern UEditorEngine* GEngine;
 
@@ -48,23 +49,26 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
         MVPConstant.ViewProj = curEditorViewportClient->GetViewMatrix() * curEditorViewportClient->GetProjectionMatrix();
     }
 
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixBuffer")), &MVPConstant);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixBuffer"), &MVPConstant);
 
     const FGridParametersData GridParameters = PrimitveBatch.GetGridParameters();
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FGridParametersData")), &GridParameters);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FGridParametersData"), &GridParameters);
 
     UpdateBatchResources();
 
     FPrimitiveCounts PrimitiveCounts;
     PrimitiveCounts.ConeCount = PrimitveBatch.GetCones().Num();
     PrimitiveCounts.BoundingBoxCount = PrimitveBatch.GetBoundingBoxes().Num();
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FPrimitiveCounts")), &PrimitiveCounts);
+    PrimitiveCounts.SphereCount = PrimitveBatch.GetSpheres().Num();
+    PrimitiveCounts.LineCount = PrimitveBatch.GetLines().Num();
+    renderResourceManager->UpdateConstantBuffer(TEXT("FPrimitiveCounts"), &PrimitiveCounts);
 
     const std::shared_ptr<FVBIBTopologyMapping> VBIBTopologyMappingInfo = Renderer.GetVBIBTopologyMapping(VBIBTopologyMappingName);
     VBIBTopologyMappingInfo->Bind();
 
     const uint32 vertexCountPerInstance = 2;
-    const uint32 instanceCount = GridParameters.GridCount + 3 + (PrimitveBatch.GetBoundingBoxes().Num() * 12) + (PrimitveBatch.GetCones().Num() * (2 * PrimitveBatch.GetConeSegmentCount()) + (12 * PrimitveBatch.GetOrientedBoundingBoxes().Num()));
+    const uint32 instanceCount = GridParameters.GridCount + 3 + (PrimitveBatch.GetBoundingBoxes().Num() * 12) + (PrimitveBatch.GetCones().Num() * (2 * PrimitveBatch.GetConeSegmentCount())
+        + (PrimitveBatch.GetSpheres().Num() * 3 * 32) + (PrimitveBatch.GetLines().Num() * 2) + (12 * PrimitveBatch.GetOrientedBoundingBoxes().Num()));
     Graphics.DeviceContext->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
 
     PrimitveBatch.ClearBatchPrimitives();
@@ -82,48 +86,78 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView); // 렌더 타겟 설정
 
+    for (AActor* actor :GEngine->GetWorld()->GetSelectedActors() )    
+    {
+        ALight* Light = Cast<ALight>(actor);
+        if (Light)
+        {
+            TArray<UActorComponent*> Comps = Light->GetComponents();
+            for (const auto& Comp : Comps)
+            {
+                if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Comp))
+                {
+                    const FMatrix Model = JungleMath::CreateModelMatrix(SpotLight->GetComponentLocation(), SpotLight->GetComponentRotation(),
+                        SpotLight->GetComponentScale());
+                    if (SpotLight->GetOuterConeAngle() > 0) 
+                    {
+                        UPrimitiveBatch::GetInstance().AddCone(
+                            SpotLight->GetComponentLocation(),
+                            tan(SpotLight->GetOuterConeAngle()) * 15.0f,
+                            15.0f,
+                            15,
+                            SpotLight->GetColor(),
+                            Model
+                        );
+                    }
+                    if (SpotLight->GetInnerConeAngle() > 0)
+                    {
+                        UPrimitiveBatch::GetInstance().AddCone(
+                            SpotLight->GetComponentLocation(),
+                            tan(SpotLight->GetInnerConeAngle()) * 15.0f,
+                            15.0f,
+                            15,
+                            SpotLight->GetColor(),
+                            Model
+                        );
+                    }
+                }
+                else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Comp))
+                {
+                    FVector Right = DirectionalLight->GetOwner()->GetActorRightVector();
+                    for (int i = 0; i < 4; ++i)
+                    {
+                        UPrimitiveBatch::GetInstance().AddLine(
+                            DirectionalLight->GetComponentLocation() + Right * (-1.5f + i),
+                            DirectionalLight->GetOwner()->GetActorForwardVector(),
+                            15.0f,
+                            DirectionalLight->GetColor()
+                        );
+                    }
+                }
+                if (UPointLightComponent* PointLight = Cast< UPointLightComponent>(Comp))
+                {
+                    if (PointLight->GetRadius() > 0)
+                    {
+                        UPrimitiveBatch::GetInstance().AddSphere(
+                            PointLight->GetComponentLocation(),
+                            PointLight->GetRadius(),
+                            PointLight->GetColor()
+                        );
+                    }
+                }
+            }
+        }
+    }
     ID3D11ShaderResourceView* FBoundingBoxSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("BoundingBox"));
     Graphics.DeviceContext->VSSetShaderResources(3, 1, &FBoundingBoxSRV);
     ID3D11ShaderResourceView* FConeSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Cone"));
     Graphics.DeviceContext->VSSetShaderResources(4, 1, &FConeSRV);
     ID3D11ShaderResourceView* FOBBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("OBB"));
     Graphics.DeviceContext->VSSetShaderResources(5, 1, &FOBBSRV);
-
-    ASpotLightActor* Light = Cast<ASpotLightActor>(GEngine->GetWorld()->GetSelectedActor());
-    if (Light)
-    {
-        TArray<UActorComponent*> Comps = Light->GetComponents();
-        for (const auto& Comp : Comps)
-        {
-            if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Comp))
-            {
-                const FMatrix Model = JungleMath::CreateModelMatrix(SpotLight->GetComponentLocation(), SpotLight->GetComponentRotation(),
-                    SpotLight->GetComponentScale());
-                if (SpotLight->GetOuterConeAngle() > 0) 
-                {
-                    UPrimitiveBatch::GetInstance().AddCone(
-                        SpotLight->GetComponentLocation(),
-                        tan(SpotLight->GetOuterConeAngle()) * 15.0f,
-                        15.0f,
-                        15,
-                        SpotLight->GetColor(),
-                        Model
-                    );
-                }
-                if (SpotLight->GetInnerConeAngle() > 0)
-                {
-                    UPrimitiveBatch::GetInstance().AddCone(
-                        SpotLight->GetComponentLocation(),
-                        tan(SpotLight->GetInnerConeAngle()) * 15.0f,
-                        15.0f,
-                        15,
-                        SpotLight->GetColor(),
-                        Model
-                    );
-                }
-            }
-        }
-    }
+    ID3D11ShaderResourceView* FSphereSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Sphere"));
+    Graphics.DeviceContext->VSSetShaderResources(6, 1, &FSphereSRV);
+    ID3D11ShaderResourceView* FLineSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Line"));
+    Graphics.DeviceContext->VSSetShaderResources(7, 1, &FLineSRV);
 }
 
 void FLineBatchRenderPass::UpdateBatchResources()
@@ -175,6 +209,50 @@ void FLineBatchRenderPass::UpdateBatchResources()
         if (SB != nullptr && SBSRV != nullptr)
         {
             renderResourceManager->UpdateStructuredBuffer(SB, UPrimitiveBatch::GetInstance().GetCones());
+        }
+    }
+
+    {
+        if (UPrimitiveBatch::GetInstance().GetSpheres().Num() > UPrimitiveBatch::GetInstance().GetAllocatedSphereCapacity())
+        {
+            UPrimitiveBatch::GetInstance().SetAllocatedSphereCapacity(UPrimitiveBatch::GetInstance().GetSpheres().Num());
+
+            ID3D11Buffer* SB = nullptr;
+            ID3D11ShaderResourceView* SBSRV = nullptr;
+            SB = renderResourceManager->CreateStructuredBuffer<FSphere>(static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedSphereCapacity()));
+            SBSRV = renderResourceManager->CreateBufferSRV(SB, static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedSphereCapacity()));
+
+            renderResourceManager->AddOrSetStructuredBuffer(TEXT("Sphere"), SB);
+            renderResourceManager->AddOrSetStructuredBufferSRV(TEXT("Sphere"), SBSRV);
+        }
+
+        ID3D11Buffer* SB = renderResourceManager->GetStructuredBuffer(TEXT("Sphere"));
+        ID3D11ShaderResourceView* SBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Sphere"));
+        if (SB != nullptr && SBSRV != nullptr)
+        {
+            renderResourceManager->UpdateStructuredBuffer(SB, UPrimitiveBatch::GetInstance().GetSpheres());
+        }
+    }
+
+    {
+        if (UPrimitiveBatch::GetInstance().GetLines().Num() > UPrimitiveBatch::GetInstance().GetAllocatedLineCapacity())
+        {
+            UPrimitiveBatch::GetInstance().SetAllocatedLineCapacity(UPrimitiveBatch::GetInstance().GetLines().Num());
+
+            ID3D11Buffer* SB = nullptr;
+            ID3D11ShaderResourceView* SBSRV = nullptr;
+            SB = renderResourceManager->CreateStructuredBuffer<FLine>(static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedLineCapacity()));
+            SBSRV = renderResourceManager->CreateBufferSRV(SB, static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedLineCapacity()));
+
+            renderResourceManager->AddOrSetStructuredBuffer(TEXT("Line"), SB);
+            renderResourceManager->AddOrSetStructuredBufferSRV(TEXT("Line"), SBSRV);
+        }
+
+        ID3D11Buffer* SB = renderResourceManager->GetStructuredBuffer(TEXT("Line"));
+        ID3D11ShaderResourceView* SBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Line"));
+        if (SB != nullptr && SBSRV != nullptr)
+        {
+            renderResourceManager->UpdateStructuredBuffer(SB, UPrimitiveBatch::GetInstance().GetLines());
         }
     }
 

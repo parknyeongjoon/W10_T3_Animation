@@ -15,7 +15,14 @@ cbuffer FMaterialConstants : register(b0)
     float3 SpecularColor;
     float SpecularScalar;
     float3 EmissiveColor;
-    float MaterialPad0;
+    uint bHasNormalTexture;
+}
+
+cbuffer FConstatntBufferActor : register(b1)
+{
+    float4 UUID; // 임시
+    uint IsSelectedActor;
+    float3 padding;
 }
 
 struct FDirectionalLight
@@ -51,7 +58,7 @@ struct FSpotLight
     float3 pad;
 };
 
-cbuffer FLightingConstants : register(b1)
+cbuffer FLightingConstants : register(b2)
 {
     uint NumDirectionalLights;
     uint NumPointLights;
@@ -63,20 +70,21 @@ cbuffer FLightingConstants : register(b1)
     FSpotLight SpotLights[8];
 };
 
-cbuffer FFlagConstants : register(b2)
+cbuffer FFlagConstants : register(b3)
 {
-    bool IsLit;
-    float3 flagPad0;
+    uint IsLit;
+    uint IsNormal;
+    float2 flagPad0;
 }
 
-cbuffer FSubUVConstant : register(b3)
+cbuffer FSubUVConstant : register(b4)
 {
     float indexU;
     float indexV;
-    float2 Paddd;
+    float2 subUVpadding;
 }
 
-cbuffer FCameraConstant : register(b4)
+cbuffer FCameraConstant : register(b5)
 {
     row_major matrix ViewMatrix;
     row_major matrix ProjMatrix;
@@ -104,13 +112,13 @@ struct PS_INPUT
     float4 color : COLOR; // 전달할 색상
     float2 texcoord : TEXCOORD0;
     float3 normal : TEXCOORD1;
-    int bHasTex : TEXCOORD2;
     float3x3 TBN: TEXCOORD3;
 };
 
 struct PS_OUTPUT
 {
     float4 color : SV_Target0;
+    float4 UUID : SV_Target1;
 };
 
 float3 CalculateDirectionalLight(  
@@ -144,7 +152,7 @@ float3 CalculatePointLight(
     float3 Albedo)  
 {  
     // 광원 거리/방향  
-    float3 LightDir = Light.Position - WorldPos;  
+    float3 LightDir = Light.Position - WorldPos;
     float Distance = length(LightDir);  
     LightDir = normalize(LightDir);  
 
@@ -156,19 +164,21 @@ float3 CalculatePointLight(
     Attenuation *= 1.0 - smoothstep(0.0, Light.Radius, Distance);  
 
     // 디퓨즈  
-    float NdotL = max(dot(Normal, LightDir), 0.0);  
+    float NdotL = max(dot(Normal, LightDir), 0.0);
     float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
-    
+    //return float3(abs(LightDir));
+    //return float3(NdotL.xxx);
+
 #if LIGHTING_MODEL_LAMBERT
-    return Diffuse;
+    return Diffuse * Light.Intensity * Attenuation;
 #endif
     // 스페큘러  
     float3 HalfVec = normalize(LightDir + ViewDir);  
     float NdotH = max(dot(Normal, HalfVec), 0.0);  
-    float Specular = pow(NdotH, SpecularScalar * 64.0) * SpecularScalar;  
+    float Specular = pow(NdotH, SpecularScalar * 128.0) * SpecularScalar;
     float3 specularColor = Light.Color.rgb * Specular * SpecularColor;
 
-    return (Diffuse + specularColor) * Attenuation;  
+    return (Diffuse + specularColor) * Light.Intensity * Attenuation;  
 }  
 
 float3 CalculateSpotLight(
@@ -200,6 +210,9 @@ float3 CalculateSpotLight(
     float NdotL = max(dot(Normal, SpotDirection), 0.0);
     float3 Diffuse = Light.Color.rgb * Albedo * NdotL;
 
+#if LIGHTING_MODEL_LAMBERT
+    return Diffuse * Light.Intensity * SpotAttenuation * DistanceAttenuation;
+#endif
     // 스페큘러 (Blinn-Phong)
     float3 HalfVec = normalize(SpotDirection + ViewDir);
     float NdotH = max(dot(Normal, HalfVec), 0.0);
@@ -209,13 +222,6 @@ float3 CalculateSpotLight(
     return (Diffuse + specularColor) * Light.Intensity * SpotAttenuation * DistanceAttenuation;
 }
 
-float2 CalculateUVWithClipPosition(float4 Position)
-{
-    float3 NDC = Position.xyz / Position.w;
-    NDC.y *= -1;
-    return ((NDC + 1) / 2).xy;
-}
-
 // 타일 크기 설정
 static const uint TILE_SIZE_X = 16;
 static const uint TILE_SIZE_Y = 16;
@@ -223,12 +229,22 @@ static const uint TILE_SIZE_Y = 16;
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
+    output.UUID = UUID;
     float2 uvAdjusted = input.texcoord;
     
     // 기본 색상 추출  
     float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
 
+    if (!IsLit && !IsNormal)
+    {
+        output.color = float4(baseColor.rgb, 1.0);
+        return output;
+    }
+    
 #if LIGHTING_MODEL_GOURAUD
+    if (IsSelectedActor == 1)
+        input.color = input.color * 5;
+
     output.color = float4(baseColor.rgb * input.color.rgb, 1.0);
     return output;
 #endif
@@ -248,7 +264,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     float3 Normal = input.normal;
     
-    if (input.bHasTex)
+    if (bHasNormalTexture)
     {
         Normal = normalize(mul(normalTex.rgb, input.TBN));
 
@@ -258,14 +274,24 @@ PS_OUTPUT mainPS(PS_INPUT input)
         }        
     }
     
-    float3 ViewDir = normalize(CameraPos - input.worldPos);
+    if (IsNormal)
+    {
+        //Normal = input.normal;
+        Normal = Normal * 0.5 + 0.5;
+        output.color = float4(Normal.rgb, 1.0);
+        return output;
+    }
+    
+    float3 ViewDir = normalize(CameraPos - input.worldPos); // CameraPos도 안 들어오고, ViewDir은 카메라의 Foward 아닌가요?
     
     //float3 TotalLight = MatAmbientColor; // 전역 앰비언트
-    // TODO : Lit이면 낮은 값 Unlit이면 float3(1.0f,1.0f,1.0f)면 됩니다. 
+    // TODO : Lit이면 낮은 값 Unlit이면 float3(1.0f,1.0f,1.0f)면 됩니다.
     float3 TotalLight = float3(0.01f,0.01f,0.01f); // 전역 앰비언트  
+    if (IsSelectedActor == 1)
+         TotalLight = TotalLight * 10.0f;
     TotalLight += EmissiveColor; // 자체 발광  
 
-    // 방향광 처리  
+    // 방향광 처리  s
     for(uint i=0; i<NumDirectionalLights; ++i)  
         TotalLight += CalculateDirectionalLight(DirLights[i], Normal, ViewDir, baseColor.rgb);  
 
@@ -283,9 +309,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
     }
     
     for (uint k = 0; k < NumSpotLights; ++k)
-        TotalLight += CalculateSpotLight(SpotLights[k], input.worldPos, Normal, ViewDir, baseColor.rgb);
+        TotalLight += CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
     
     // 최종 색상 
-    output.color = float4(TotalLight*baseColor.rgb, baseColor.a * TransparencyScalar);
+    output.color = float4(TotalLight * baseColor.rgb, baseColor.a * TransparencyScalar);
     return output;  
 }

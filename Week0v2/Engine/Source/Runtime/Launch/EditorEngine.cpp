@@ -12,6 +12,7 @@
 #include "UnrealEd/SceneMgr.h"
 #include "UObject/UObjectIterator.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
+#include "BaseGizmos/TransformGizmo.h"
 
 class ULevel;
 
@@ -89,11 +90,7 @@ void UEditorEngine::Render()
         renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
     }
     ResizeGizmo();
-
-    if (GetAsyncKeyState('P') & 0x8000)
-    {
-        renderer.GetResourceManager()->HotReloadShaders();
-    }
+    renderer.ClearRenderObjects();
 }
 
 void UEditorEngine::Tick(float deltaSeconds)
@@ -104,17 +101,16 @@ void UEditorEngine::Tick(float deltaSeconds)
     // GWorld->Tick(LEVELTICK_All, deltaSeconds);
     LevelEditor->Tick(deltaSeconds);
     Render();
+    
     UIMgr->BeginFrame();
     UnrealEditor->Render();
-
+    
     Console::GetInstance().Draw();
-
+    
     UIMgr->EndFrame();
 
     // Pending 처리된 오브젝트 제거
-
-    // TODO : 이거 잘 안되는 것 이유 파악 
-    // GUObjectArray.ProcessPendingDestroyObjects();
+    GUObjectArray.ProcessPendingDestroyObjects();
 
     graphicDevice.SwapBuffer();
 }
@@ -151,11 +147,10 @@ void UEditorEngine::Input()
 void UEditorEngine::PreparePIE()
 {
     // 1. World 복제
-    worldContexts[1].thisCurrentWorld = Cast<UWorld>(GWorld->Duplicate());
+    worldContexts[1].thisCurrentWorld = Cast<UWorld>(worldContexts[0].thisCurrentWorld->Duplicate());
     GWorld = worldContexts[1].thisCurrentWorld;
     GWorld->WorldType = EWorldType::PIE;
     levelType = LEVELTICK_All;
-    
 }
 
 void UEditorEngine::StartPIE()
@@ -192,12 +187,12 @@ void UEditorEngine::StopPIE()
     }
     GUObjectArray.MarkRemoveObject(worldContexts[1].World()->GetLevel());
     worldContexts[1].World()->GetEditorPlayer()->Destroy();
-    GUObjectArray.MarkRemoveObject( worldContexts[1].World()->GetWorld());
+    worldContexts[1].World()->LocalGizmo->Destroy();
+    GUObjectArray.MarkRemoveObject( worldContexts[1].World());
     worldContexts[1].thisCurrentWorld = nullptr; 
     
     // GWorld->WorldType = EWorldType::Editor;
     levelType = LEVELTICK_ViewportsOnly;
-
 }
 
 void UEditorEngine::Exit()
@@ -216,8 +211,11 @@ void UEditorEngine::ResizeGizmo()
 {
     for (auto GizmoComp : TObjectRange<UGizmoBaseComponent>())
     {
-        if (AActor* PickedActor = GWorld->GetSelectedActor())
+        if (!GWorld->GetSelectedActors().IsEmpty())
         {
+            AActor* PickedActor = *GWorld->GetSelectedActors().begin();
+            if (PickedActor == nullptr)
+                break;
             std::shared_ptr<FEditorViewportClient> activeViewport = GetLevelEditor()->GetActiveViewportClient();
             if (activeViewport->IsPerspective())
             {

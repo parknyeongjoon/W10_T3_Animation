@@ -18,7 +18,10 @@ extern UEditorEngine* GEngine;
 
 void FGizmoRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
-    GizmoComponents.Empty();
+    if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
+    {
+        return;
+    }
     
     if (InWorld->WorldType == EWorldType::Editor)
     {
@@ -128,6 +131,11 @@ void FGizmoRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewport
     }
 }
 
+void FGizmoRenderPass::ClearRenderObjects()
+{
+    GizmoComponents.Empty();
+}
+
 void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoComponent, const FMatrix& InView, const FMatrix& InProjection)
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
@@ -140,7 +148,7 @@ void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoCompone
     MatrixConstants.Model = Model;
     MatrixConstants.ViewProj = InView * InProjection;
     MatrixConstants.MInverseTranspose = NormalMatrix;
-    if (InGizmoComponent->GetWorld()->GetSelectedActor() == InGizmoComponent->GetOwner())
+    if (!InGizmoComponent->GetWorld()->GetSelectedActors().IsEmpty() &&*InGizmoComponent->GetWorld()->GetSelectedActors().begin() == InGizmoComponent->GetOwner())
     {
         MatrixConstants.isSelected = true;
     }
@@ -148,7 +156,7 @@ void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoCompone
     {
         MatrixConstants.isSelected = false;
     }
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixConstants")), &MatrixConstants);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixConstants"), &MatrixConstants);
 }
 
 void FGizmoRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
@@ -164,7 +172,7 @@ void FGizmoRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialI
     MaterialConstants.SpecularColor = MaterialInfo.Specular;
     MaterialConstants.SpecularScalar = MaterialInfo.SpecularScalar;
     MaterialConstants.EmissiveColor = MaterialInfo.Emissive;
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMaterialConstants")), &MaterialConstants);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMaterialConstants"), &MaterialConstants);
     
     if (MaterialInfo.bHasTexture == true)
     {

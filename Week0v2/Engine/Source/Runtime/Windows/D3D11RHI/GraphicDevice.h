@@ -13,6 +13,7 @@
 #include "Container/Array.h"
 #include "Container/String.h"
 
+struct FVector4;
 enum class EShaderStage;
 
 struct FConstantBufferInfo
@@ -44,7 +45,11 @@ public:
     ID3D11DepthStencilView* DepthStencilView = nullptr;  // 깊이/스텐실 뷰
     ID3D11Texture2D* DepthCopyTexture;
     ID3D11ShaderResourceView* DepthCopySRV;
+
+    //Fog 처리용 변수
     ID3D11ShaderResourceView* SceneColorSRV = nullptr;
+    ID3D11Texture2D* SceneColorBuffer = nullptr;
+    ID3D11RenderTargetView* SceneColorRTV = nullptr;
     
     FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear) 할 때 사용할 색상(RGBA)
 
@@ -57,8 +62,12 @@ public:
     void CreateDepthCopyTexture();
     void ReleaseDeviceAndSwapChain();
     void CreateFrameBuffer();
+    void CreateSceneColorResources();
+    void SwitchRTV();
+    void ReturnRTV();
     void ReleaseFrameBuffer();
     void ReleaseDepthStencilResources();
+    void ReleaseSceneColorResources();
     void Release();
     void SwapBuffer();
     void Prepare();
@@ -71,14 +80,8 @@ public:
     // void ChangeDepthStencilState(ID3D11DepthStencilState* newDetptStencil) const;
     ID3D11ShaderResourceView* GetCopiedShaderResourceView() const;
 
-    // Members for Fog
-    ID3D11Texture2D* SceneColorTexture = nullptr;
-    ID3D11RenderTargetView* SceneColorRTV = nullptr;
-    ID3D11Texture2D* RenderTargetTexture = nullptr;
-    void CreateSceneColorResources();
-
-    // uint32 GetPixelUUID(POINT pt);
-    // uint32 DecodeUUIDColor(FVector4 UUIDColor);
+    uint32 GetPixelUUID(POINT pt);
+    uint32 DecodeUUIDColor(FVector4 UUIDColor);
 private:
     //ID3D11RasterizerState* CurrentRasterizer = nullptr;
 public:

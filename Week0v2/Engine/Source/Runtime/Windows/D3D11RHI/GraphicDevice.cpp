@@ -10,6 +10,7 @@ void FGraphicsDevice::Initialize(const HWND hWindow)
     CreateDeviceAndSwapChain(hWindow);
     CreateFrameBuffer();
     CreateDepthStencilBuffer(hWindow);
+    CreateSceneColorResources();
 
     //CreateDepthStencilState();
     //CreateDepthStencilSRV();
@@ -212,6 +213,60 @@ void FGraphicsDevice::CreateFrameBuffer()
     RTVs[1] = UUIDFrameBufferRTV;
 }
 
+void FGraphicsDevice::CreateSceneColorResources()
+{
+    D3D11_TEXTURE2D_DESC textureDesc = {};
+    textureDesc.Width = screenWidth;
+    textureDesc.Height = screenHeight;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.Usage = D3D11_USAGE_DEFAULT;
+    textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+    HRESULT hr = Device->CreateTexture2D(&textureDesc, nullptr, &SceneColorBuffer);
+    if (FAILED(hr))
+    {
+        assert(TEXT("SceneColorBuffer creation failed"));
+        return;
+    }
+
+    D3D11_RENDER_TARGET_VIEW_DESC SceneColorRTVDesc = {};
+    SceneColorRTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;      // 색상 포맷
+    SceneColorRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
+
+    hr = Device->CreateRenderTargetView(SceneColorBuffer, &SceneColorRTVDesc, &SceneColorRTV);
+    if (FAILED(hr))
+    {
+        assert(TEXT("SceneColorBuffer creation failed"));
+        return;
+    }
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = 1;
+
+    hr = Device->CreateShaderResourceView(SceneColorBuffer, &srvDesc, &SceneColorSRV);
+    if (FAILED(hr))
+    {
+        assert(TEXT("SceneColorBuffer creation failed"));
+        return;
+    }
+}
+
+void FGraphicsDevice::SwitchRTV()
+{
+    RTVs[0] = SceneColorRTV;
+}
+
+void FGraphicsDevice::ReturnRTV()
+{
+    RTVs[0] = FrameBufferRTV;
+}
+
 void FGraphicsDevice::ReleaseFrameBuffer()
 {
     SAFE_RELEASE(FrameBufferRTV);
@@ -227,6 +282,13 @@ void FGraphicsDevice::ReleaseDepthStencilResources()
     SAFE_RELEASE(DepthStencilBuffer);
 }
 
+void FGraphicsDevice::ReleaseSceneColorResources()
+{
+    SAFE_RELEASE(SceneColorBuffer)
+    SAFE_RELEASE(SceneColorRTV)
+    SAFE_RELEASE(SceneColorSRV)
+}
+
 void FGraphicsDevice::Release() 
 {
     DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
@@ -234,6 +296,7 @@ void FGraphicsDevice::Release()
     ReleaseFrameBuffer();
     ReleaseDepthStencilResources();
     ReleaseDeviceAndSwapChain();
+    ReleaseSceneColorResources();
 }
 
 void FGraphicsDevice::SwapBuffer()
@@ -244,6 +307,7 @@ void FGraphicsDevice::Prepare()
 {
     DeviceContext->ClearRenderTargetView(FrameBufferRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
     DeviceContext->ClearRenderTargetView(UUIDFrameBufferRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
+    DeviceContext->ClearRenderTargetView(SceneColorRTV, ClearColor);
     DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0); // 깊이 버퍼 초기화 추가
 
     DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
@@ -282,6 +346,8 @@ void FGraphicsDevice::OnResize(HWND hWindow)
     
     ReleaseFrameBuffer();
 
+    ReleaseSceneColorResources();
+
     if (screenWidth == 0 || screenHeight == 0)
     {
         MessageBox(hWindow, L"Invalid width or height for ResizeBuffers!", L"Error", MB_ICONERROR | MB_OK);
@@ -304,6 +370,7 @@ void FGraphicsDevice::OnResize(HWND hWindow)
     CreateDepthStencilBuffer(hWindow);
     //CreateDepthStencilSRV();
     CreateDepthCopyTexture();
+    CreateSceneColorResources();
 }
 
 void FGraphicsDevice::BindSampler(EShaderStage stage, uint32 StartSlot, uint32 NumSamplers, ID3D11SamplerState* const* ppSamplers) const
@@ -347,172 +414,91 @@ ID3D11ShaderResourceView* FGraphicsDevice::GetCopiedShaderResourceView() const
     return DepthSRV;
 }
 
-// uint32 FGraphicsDevice::GetPixelUUID(POINT pt)
-// {
-//     // pt.x 값 제한하기
-//     if (pt.x < 0) {
-//         pt.x = 0;
-//     }
-//     else if (pt.x > screenWidth) {
-//         pt.x = screenWidth;
-//     }
-//
-//     // pt.y 값 제한하기
-//     if (pt.y < 0) {
-//         pt.y = 0;
-//     }
-//     else if (pt.y > screenHeight) {
-//         pt.y = screenHeight;
-//     }
-//
-//     // 1. Staging 텍스처 생성 (1x1 픽셀)
-//     D3D11_TEXTURE2D_DESC stagingDesc = {};
-//     stagingDesc.Width = 1; // 픽셀 1개만 복사
-//     stagingDesc.Height = 1;
-//     stagingDesc.MipLevels = 1;
-//     stagingDesc.ArraySize = 1;
-//     stagingDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // 원본 텍스처 포맷과 동일
-//     stagingDesc.SampleDesc.Count = 1;
-//     stagingDesc.Usage = D3D11_USAGE_STAGING;
-//     stagingDesc.BindFlags = 0;
-//     stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-//
-//     ID3D11Texture2D* stagingTexture = nullptr;
-//     Device->CreateTexture2D(&stagingDesc, nullptr, &stagingTexture);
-//
-//     // 2. 복사할 영역 정의 (D3D11_BOX)
-//     D3D11_BOX srcBox = {};
-//     srcBox.left = static_cast<UINT>(pt.x);
-//     srcBox.right = srcBox.left + 1; // 1픽셀 너비
-//     srcBox.top = static_cast<UINT>(pt.y);
-//     srcBox.bottom = srcBox.top + 1; // 1픽셀 높이
-//     srcBox.front = 0;
-//     srcBox.back = 1;
-//     FVector4 UUIDColor{ 1, 1, 1, 1 }; 
-//
-//     if (stagingTexture == nullptr)
-//         return DecodeUUIDColor(UUIDColor);
-//
-//     // 3. 특정 좌표만 복사
-//     DeviceContext->CopySubresourceRegion(
-//         stagingTexture, // 대상 텍스처
-//         0,              // 대상 서브리소스
-//         0, 0, 0,        // 대상 좌표 (x, y, z)
-//         UUIDFrameBuffer, // 원본 텍스처
-//         0,              // 원본 서브리소스
-//         &srcBox         // 복사 영역
-//     );
-//
-//     // 4. 데이터 매핑
-//     D3D11_MAPPED_SUBRESOURCE mapped = {};
-//     DeviceContext->Map(stagingTexture, 0, D3D11_MAP_READ, 0, &mapped);
-//
-//     // 5. 픽셀 데이터 추출 (1x1 텍스처이므로 offset = 0)
-//     const BYTE* pixelData = static_cast<const BYTE*>(mapped.pData);
-//
-//     if (pixelData)
-//     {
-//         UUIDColor.x = static_cast<float>(pixelData[0]); // R
-//         UUIDColor.y = static_cast<float>(pixelData[1]); // G
-//         UUIDColor.z = static_cast<float>(pixelData[2]) ; // B
-//         UUIDColor.a = static_cast<float>(pixelData[3]); // A
-//     }
-//
-//     // 6. 매핑 해제 및 정리
-//     DeviceContext->Unmap(stagingTexture, 0);
-//     if (stagingTexture) stagingTexture->Release(); stagingTexture = nullptr;
-//
-//     return DecodeUUIDColor(UUIDColor);
-// }
-//
-// uint32 FGraphicsDevice::DecodeUUIDColor(FVector4 UUIDColor) {
-//     uint32_t W = static_cast<uint32_t>(UUIDColor.a) << 24;
-//     uint32_t Z = static_cast<uint32_t>(UUIDColor.z) << 16;
-//     uint32_t Y = static_cast<uint32_t>(UUIDColor.y) << 8;
-//     uint32_t X = static_cast<uint32_t>(UUIDColor.x);
-//
-//     return W | Z | Y | X;
-// }
-
-
-void FGraphicsDevice::CreateSceneColorResources()
+uint32 FGraphicsDevice::GetPixelUUID(POINT pt)
 {
-    ID3D11Texture2D* backBuffer = nullptr;
-    HRESULT hr = SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
-
-    if (FAILED(hr) || backBuffer == nullptr)
-        return;
-
-    // 백버퍼 정보 가져오기
-    D3D11_TEXTURE2D_DESC backBufferDesc;
-    backBuffer->GetDesc(&backBufferDesc);
-
-    bool needNewTexture = false;
-
-    if (RenderTargetTexture == nullptr)
-    {
-        needNewTexture = true;
+    // pt.x 값 제한하기
+    if (pt.x < 0) {
+        pt.x = 0;
     }
-    else
-    {
-        // 기존 텍스처 크기 확인
-        D3D11_TEXTURE2D_DESC copyDesc;
-        RenderTargetTexture->GetDesc(&copyDesc);
-
-        if (copyDesc.Width != backBufferDesc.Width || copyDesc.Height != backBufferDesc.Height)
-        {
-            if (SceneColorSRV) SceneColorSRV->Release();
-            SceneColorSRV = nullptr;
-
-            RenderTargetTexture->Release();
-            RenderTargetTexture = nullptr;
-            needNewTexture = true;
-        }
+    else if (pt.x > screenWidth) {
+        pt.x = screenWidth;
     }
 
-    // 필요시 새 텍스처 생성
-    if (needNewTexture)
-    {
-        D3D11_TEXTURE2D_DESC texDesc = {};
-        texDesc.Width = backBufferDesc.Width;
-        texDesc.Height = backBufferDesc.Height;
-        texDesc.MipLevels = 1;
-        texDesc.ArraySize = 1;
-        texDesc.Format = backBufferDesc.Format;
-        texDesc.SampleDesc.Count = 1;
-        texDesc.SampleDesc.Quality = 0;
-        texDesc.Usage = D3D11_USAGE_DEFAULT;
-        texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-        texDesc.CPUAccessFlags = 0;
-        texDesc.MiscFlags = 0;
-
-        hr = Device->CreateTexture2D(&texDesc, nullptr, &RenderTargetTexture);
-        if (FAILED(hr))
-        {
-            backBuffer->Release();
-        }
-
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        srvDesc.Format = texDesc.Format;
-        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Texture2D.MostDetailedMip = 0;
-        srvDesc.Texture2D.MipLevels = 1;
-
-        hr = Device->CreateShaderResourceView(RenderTargetTexture, &srvDesc, &SceneColorSRV);
-        if (FAILED(hr))
-        {
-            RenderTargetTexture->Release();
-            RenderTargetTexture = nullptr;
-            backBuffer->Release();
-        }
+    // pt.y 값 제한하기
+    if (pt.y < 0) {
+        pt.y = 0;
+    }
+    else if (pt.y > screenHeight) {
+        pt.y = screenHeight;
     }
 
-    ID3D11RenderTargetView* nullRTV = nullptr;
-    DeviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
-    DeviceContext->CopyResource(RenderTargetTexture, backBuffer);
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
+    // 1. Staging 텍스처 생성 (1x1 픽셀)
+    D3D11_TEXTURE2D_DESC stagingDesc = {};
+    stagingDesc.Width = 1; // 픽셀 1개만 복사
+    stagingDesc.Height = 1;
+    stagingDesc.MipLevels = 1;
+    stagingDesc.ArraySize = 1;
+    stagingDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // 원본 텍스처 포맷과 동일
+    stagingDesc.SampleDesc.Count = 1;
+    stagingDesc.Usage = D3D11_USAGE_STAGING;
+    stagingDesc.BindFlags = 0;
+    stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 
-    backBuffer->Release();
+    ID3D11Texture2D* stagingTexture = nullptr;
+    Device->CreateTexture2D(&stagingDesc, nullptr, &stagingTexture);
+
+    // 2. 복사할 영역 정의 (D3D11_BOX)
+    D3D11_BOX srcBox = {};
+    srcBox.left = static_cast<UINT>(pt.x);
+    srcBox.right = srcBox.left + 1; // 1픽셀 너비
+    srcBox.top = static_cast<UINT>(pt.y);
+    srcBox.bottom = srcBox.top + 1; // 1픽셀 높이
+    srcBox.front = 0;
+    srcBox.back = 1;
+    FVector4 UUIDColor{ 1, 1, 1, 1 }; 
+
+    if (stagingTexture == nullptr)
+        return DecodeUUIDColor(UUIDColor);
+
+    // 3. 특정 좌표만 복사
+    DeviceContext->CopySubresourceRegion(
+        stagingTexture, // 대상 텍스처
+        0,              // 대상 서브리소스
+        0, 0, 0,        // 대상 좌표 (x, y, z)
+        UUIDFrameBuffer, // 원본 텍스처
+        0,              // 원본 서브리소스
+        &srcBox         // 복사 영역
+    );
+
+    // 4. 데이터 매핑
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    DeviceContext->Map(stagingTexture, 0, D3D11_MAP_READ, 0, &mapped);
+
+    // 5. 픽셀 데이터 추출 (1x1 텍스처이므로 offset = 0)
+    const BYTE* pixelData = static_cast<const BYTE*>(mapped.pData);
+
+    if (pixelData)
+    {
+        UUIDColor.x = static_cast<float>(pixelData[0]); // R
+        UUIDColor.y = static_cast<float>(pixelData[1]); // G
+        UUIDColor.z = static_cast<float>(pixelData[2]) ; // B
+        UUIDColor.w = static_cast<float>(pixelData[3]); // A
+    }
+
+    // 6. 매핑 해제 및 정리
+    DeviceContext->Unmap(stagingTexture, 0);
+    if (stagingTexture) stagingTexture->Release(); stagingTexture = nullptr;
+
+    return DecodeUUIDColor(UUIDColor);
+}
+
+uint32 FGraphicsDevice::DecodeUUIDColor(FVector4 UUIDColor) {
+    uint32_t W = static_cast<uint32_t>(UUIDColor.w) << 24;
+    uint32_t Z = static_cast<uint32_t>(UUIDColor.z) << 16;
+    uint32_t Y = static_cast<uint32_t>(UUIDColor.y) << 8;
+    uint32_t X = static_cast<uint32_t>(UUIDColor.x);
+
+    return W | Z | Y | X;
 }
 
 bool FGraphicsDevice::CompileVertexShader(const std::filesystem::path& InFilePath, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode)
@@ -611,7 +597,12 @@ bool FGraphicsDevice::CreateVertexShader(const std::filesystem::path& InFilePath
     ID3DBlob* errorBlob = nullptr;
     
     const std::wstring shaderFilePath = InFilePath.wstring();
-    const HRESULT hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", shaderFlags, 0, ppCode, &errorBlob);
+    
+    HRESULT hr;
+    if (pDefines)
+        hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", shaderFlags, 0, ppCode, &errorBlob);
+    else
+        hr = D3DCompileFromFile(shaderFilePath.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", shaderFlags, 0, ppCode, &errorBlob);
 
     if (FAILED(hr))
     {
@@ -645,7 +636,11 @@ bool FGraphicsDevice::CreatePixelShader(const std::filesystem::path& InFilePath,
     
     const std::wstring shaderFilePath = InFilePath.wstring();    
 
-    const HRESULT hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", shaderFlags, 0, ppCode, &errorBlob);
+    HRESULT hr;
+    if (pDefines)
+        hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", shaderFlags, 0, ppCode, &errorBlob);
+    else
+        hr = D3DCompileFromFile(shaderFilePath.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", shaderFlags, 0, ppCode, &errorBlob);
     
     if (FAILED(hr))
     {
@@ -792,21 +787,6 @@ TArray<FConstantBufferInfo> FGraphicsDevice::ExtractConstantBufferInfos(ID3D11Sh
                 }
             }
             CBInfos.Add(FConstantBufferInfo(CBName, cbDesc.Size, BindingSlot));
-            
-            // if (SUCCEEDED(hr))
-            // {
-            //     const FString CBName = cbDesc.Name;
-            //     // 리소스 바인딩 설명을 가져와 상수 버퍼 슬롯 정보를 얻음
-            //     D3D11_SHADER_INPUT_BIND_DESC bindDesc = {};
-            //     hr = InReflector->GetResourceBindingDesc(cbDesc.Name, &bindDesc);
-            //     uint32 BindingSlot = 0;
-            //     if (SUCCEEDED(hr))
-            //     {
-            //         BindingSlot = bindDesc.BindPoint;
-            //     }
-            //     
-            //     CBInfos.Add(FConstantBufferInfo(CBName, cbDesc.Size, i));
-            // }
         }
     }
     

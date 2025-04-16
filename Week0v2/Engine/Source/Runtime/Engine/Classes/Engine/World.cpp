@@ -14,10 +14,12 @@
 #include "Serialization/FWindowsBinHelper.h"
 
 
-UWorld::UWorld(const UWorld& Other)
-    : Super(Other)
-    , defaultMapName(Other.defaultMapName)
-    , WorldType(Other.WorldType)
+UWorld::UWorld(const UWorld& Other): UObject(Other)
+                                   , defaultMapName(Other.defaultMapName)
+                                   , Level(Other.Level)
+                                   , WorldType(Other.WorldType)
+                                    , EditorPlayer(nullptr)
+                                    , LocalGizmo(nullptr)
 {
 }
 
@@ -56,15 +58,8 @@ void UWorld::CreateBaseObject()
 
 void UWorld::ReleaseBaseObject()
 {
-    if (LocalGizmo)
-    {
-        LocalGizmo = nullptr;
-    }
-    
-    if (EditorPlayer)
-    {
-        EditorPlayer = nullptr;
-    }
+    LocalGizmo = nullptr;
+    EditorPlayer = nullptr;
 }
 
 void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
@@ -116,13 +111,15 @@ void UWorld::Release()
 void UWorld::ClearScene()
 {
     // 1. PickedActor제거
-    SelectedActor = nullptr;
+    SelectedActors.Empty();
     // 2. 모든 Actor Destroy
     
     for (AActor* actor : TObjectRange<AActor>())
     {
         DestroyActor(actor);
     }
+    Level->GetActors().Empty();
+    Level->PendingBeginPlayActors.Empty();
     ReleaseBaseObject();
 }
 
@@ -137,9 +134,9 @@ UObject* UWorld::Duplicate() const
 void UWorld::DuplicateSubObjects(const UObject* SourceObj)
 {
     UObject::DuplicateSubObjects(SourceObj);
-    UWorld* SourceWorld = Cast<UWorld>(SourceObj);
-    Level = Cast<ULevel>(SourceWorld->Level->Duplicate());
+    Level = Cast<ULevel>(Level->Duplicate());
     EditorPlayer = FObjectFactory::ConstructObject<AEditorPlayer>();
+    LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
 }
 
 void UWorld::PostDuplicate()
@@ -156,6 +153,37 @@ void UWorld::ReloadScene(const FString& FileName)
     FWindowsBinHelper::LoadFromBin(FileName, ar);
 
     ar >> *this;
+}
+
+void UWorld::DuplicateSeletedActors()
+{
+    TSet<AActor*> newSelectedActors;
+    for (AActor* Actor : SelectedActors)
+    {
+        AActor* DupedActor = Cast<AActor>(Actor->Duplicate());
+        FString TypeName = DupedActor->GetActorLabel().Left(DupedActor->GetActorLabel().Find("_", ESearchCase::IgnoreCase,ESearchDir::FromEnd));
+        DupedActor->SetActorLabel(TypeName);
+        FVector DupedLocation = DupedActor->GetActorLocation();
+        DupedActor->SetActorLocation(FVector(DupedLocation.x+50, DupedLocation.y+50, DupedLocation.z));
+        Level->GetActors().Add(DupedActor);
+        Level->PendingBeginPlayActors.Add(DupedActor);
+        newSelectedActors.Add(DupedActor);
+    }
+    SelectedActors = newSelectedActors;
+}
+void UWorld::DuplicateSeletedActorsOnLocation()
+{
+    TSet<AActor*> newSelectedActors;
+    for (AActor* Actor : SelectedActors)
+    {
+        AActor* DupedActor = Cast<AActor>(Actor->Duplicate());
+        FString TypeName = DupedActor->GetActorLabel().Left(DupedActor->GetActorLabel().Find("_", ESearchCase::IgnoreCase,ESearchDir::FromEnd));
+        DupedActor->SetActorLabel(TypeName);
+        Level->GetActors().Add(DupedActor);
+        Level->PendingBeginPlayActors.Add(DupedActor);
+        newSelectedActors.Add(DupedActor);
+    }
+    SelectedActors = newSelectedActors;
 }
 
 bool UWorld::DestroyActor(AActor* ThisActor)

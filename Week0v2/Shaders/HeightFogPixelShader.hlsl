@@ -1,9 +1,7 @@
-cbuffer FCameraConstant : register(b0)
+cbuffer FFogCameraConstant : register(b0)
 {
-    matrix ViewMatrix;
-    matrix ProjMatrix;
-    matrix InvViewMatrix;
     matrix InvProjMatrix;
+    matrix InvViewMatrix;
     
     float3 CameraPos;
     float NearPlane;
@@ -17,45 +15,37 @@ cbuffer FViewportInfo : register(b1)
     float2 ViewportOffset;
 }
 
-cbuffer FFogParams : register(b6)
+cbuffer FFogParams : register(b2)
 {
+    float3 FogColor;
     float FogDensity;
-    float HeightFogStart;
-    float HeightFogEnd;
-    float MaxOpacity;
-
-    float DistanceFogNear;
-    float DistanceFotFar;
-    float pad1, pad2;
-    
-    float4 InscatteringColor;
-    float4 DirectionalInscatteringColor;
-    
-    float3 DirectionalLightDirection;
-    float DirectionalInscatteringExponent;
-    
-    float DirectionalInscatteringStartDistance;
-    float pad3, pad4, pad5;
-    
-    int IsExponential;
+    float FogStart;
+    float FogEnd;
+    float FogZPosition;
+    float FogBaseHeight;
+    float HeightFallOff;
+    int bIsHeightFog;
+    float FogMaxOpacity; // MaxOpacity 추가
+    float LightShaftDensity; // 추가: 광선 밀도 [4]
 }
 
-Texture2D SceneTexture : register(t5);
 Texture2D DepthTexture : register(t0);
+Texture2D SceneTexture : register(t1);
 SamplerState SamplerLinear : register(s0);
 
 // Screen space to World space
-float3 ReconstructWorldPosition(float2 UV, float Depth)
+float3 ReconstructWorldPos(float2 uv)
 {
-    float ndcx = UV.x * 2.0 - 1.0;
-    float ndcy = 1.0f - UV.y * 2.0;
-    float4 clipPos = float4(ndcx, ndcy, Depth, 1.0f);
+    // 1. 클립 공간 좌표 계산
+    float4 clipPos = float4(uv * 2.0 - 1.0, 1.0, 1.0);
+
+    clipPos.y *= -1.0;
     
-    float4 viewPos = mul(clipPos, InvProjMatrix);
-    viewPos /= viewPos.w;
-    
-    float4 worldPos = mul(viewPos, InvViewMatrix);
+    // 2. 뷰/프로젝션 행렬 역변환 (엔진별 행렬 전달 필요)
+    float4 worldPos = mul(clipPos, InvProjMatrix);
     worldPos /= worldPos.w;
+    worldPos = mul(worldPos, InvViewMatrix);
+    
     return worldPos.xyz;
 }
 
@@ -72,41 +62,39 @@ float4 mainPS(VS_OUT input) : SV_TARGET
     float depth = DepthTexture.Sample(SamplerLinear, viewportUV).r;
     
     float linearDepth = (NearPlane * FarPlane) / (FarPlane - depth * (FarPlane - NearPlane));
-    float normalized = saturate((linearDepth - DistanceFogNear) / (DistanceFotFar - DistanceFogNear));
-    float3 worldPosition = ReconstructWorldPosition(input.uv, depth);
+    float3 worldPosition = ReconstructWorldPos(input.uv);
     
-    // 높이 기반 안개 계산
-    float heightDiff = saturate((HeightFogEnd - worldPosition.z) / (HeightFogEnd - HeightFogStart));
-    float heightFactor = saturate(1.f - exp(-heightDiff * 3.0f));
-    
-    // 정규화된 깊이 값을 사용하여 거리 기반 안개 계산 (from debug depth shader)
-    float distanceFactor;
-    
-    if (IsExponential != 0)
+    float dist = distance(CameraPos, worldPosition);
+    //거리기반 감쇠
+    float fogRange = (FogEnd - FogStart) * 0.5;
+    float disFactor = saturate((dist - FogStart) / fogRange);
+
+    float fogFactor = disFactor;
+        
+    if (bIsHeightFog)
     {
-        distanceFactor = saturate(1.f - exp(-normalized * 5.0));
+        float FogHeight = FogZPosition + FogBaseHeight;
+        
+        // 높이 기반 (지수 감쇠)
+        float heightDiff = (worldPosition.z + CameraPos.z) - FogHeight;
+        float heightFactor = saturate(exp(-(heightDiff) * HeightFallOff));
+        fogFactor = saturate((disFactor + heightFactor)/2.0); //factor가 클수록 fogcolor에 가까워짐
     }
-    else
+    
+    float FinalFogFactor = min(saturate(fogFactor * FogDensity), FogMaxOpacity);
+
+    float transitionStart = FogStart;
+    float transitionEnd = FogStart * 3.0f;
+    float transitionWeight = saturate((dist - transitionStart) / (transitionEnd - transitionStart));
+    
+    float outputFogFactor = lerp(0.0f, FinalFogFactor, transitionWeight);
+    
+    float3 FinalColor = lerp(sceneColor.rgb, FogColor, outputFogFactor);
+    
+    if (depth == 1) //배경(오브젝트가 아닐때)
     {
-        distanceFactor = normalized;
+        FinalColor = lerp(sceneColor.rgb, FogColor, min(FogDensity, FogMaxOpacity));
     }
-    
-    float fogFactor = FogDensity * heightFactor * distanceFactor;
-    // 방향성 산란 요소를 위한 값 (현재 Direction 0, 0, -1 고정)
-    float3 viewDirection = normalize(CameraPos - worldPosition);
-    float VdotL = max(0.0, dot(-viewDirection, normalize(DirectionalLightDirection)));
-    float directionalInscatteringFactor = pow(VdotL, DirectionalInscatteringExponent);
-    
-    float directionalDistance = max(0.0, linearDepth - DirectionalInscatteringStartDistance);
-    directionalInscatteringFactor *= saturate(directionalDistance / (FarPlane * 0.25));
-    
-    // 최종 안개 색상 계산 (기본 안개 색상 + 방향성 산란 색상)
-    float3 baseInscattering = InscatteringColor.rgb;
-    float3 directionalInscattering = DirectionalInscatteringColor.rgb * directionalInscatteringFactor;
-    float3 fogColor = baseInscattering + directionalInscattering;
-    
-    // 최대 불투명도 제한
-    fogFactor = min(fogFactor, MaxOpacity);
-    
-    return float4(lerp(sceneColor.rgb, fogColor, fogFactor), sceneColor.a);
+
+    return float4(FinalColor, 1.0);
 }

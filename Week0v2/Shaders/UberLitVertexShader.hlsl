@@ -28,10 +28,8 @@ struct PS_INPUT
     float4 color : COLOR; // 전달할 색상
     float2 texcoord : TEXCOORD0;
     float3 normal : TEXCOORD1;
-    int bHasTex : TEXCOORD2;
     float3x3 TBN : TEXCOORD3;
 };
-
 
 struct FDirectionalLight
 {
@@ -80,8 +78,9 @@ cbuffer FLightingConstants : register(b1)
 
 cbuffer FFlagConstants : register(b2)
 {
-    bool IsLit;
-    float3 flagPad0;
+    uint IsLit;
+    uint IsNormal;
+    float2 flagPad0;
 }
 
 cbuffer FCameraConstant : register(b3)
@@ -212,7 +211,7 @@ PS_INPUT mainVS(VS_INPUT input)
     output.color = input.color;
     output.texcoord = input.texcoord;
     
-    float3 normal = normalize(mul(float4(input.normal, 0), MInverseTranspose));
+    float3 normal = mul(float4(input.normal, 0), MInverseTranspose);
     
 #if LIGHTING_MODEL_GOURAUD
     float3 viewDir = normalize(CameraPos - worldPos.xyz);
@@ -244,8 +243,6 @@ PS_INPUT mainVS(VS_INPUT input)
         
     return output;
 #endif
-    
-    
     float3 tangent = normalize(mul(input.tangent, Model));
 
     // 탄젠트-노멀 직교화 (Gram-Schmidt 과정) 해야 안전함
@@ -260,13 +257,6 @@ PS_INPUT mainVS(VS_INPUT input)
 
     output.TBN = TBN;
     output.normal = normal;
-    output.bHasTex = true;
-    
-    // 노멀 계산 (안전한 역전치 행렬 적용)
-    if (all(input.tangent == float3(1, 0, 0)))
-    {
-        output.bHasTex = false;
-    }
-    
+
     return output;
 }

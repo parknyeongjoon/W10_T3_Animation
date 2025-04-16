@@ -47,6 +47,9 @@ public:
     void UpdateConstantBuffer(ID3D11Buffer* InBuffer, const T* InData = nullptr);
 
     template<typename T>
+    void UpdateConstantBuffer(const FName& CBName, const T* InData = nullptr);
+
+    template<typename T>
     void UpdateDynamicVertexBuffer(ID3D11Buffer* InBuffer, T* vertices, const uint32 numVertices) const;
     
     template <typename T>
@@ -62,11 +65,11 @@ public:
 
     void AddOrSetComputeShader(FName InCSName, ID3D11ComputeShader* InShader);
     
-    void CreateVertexShader(const FString& InFileName, D3D_SHADER_MACRO* pDefines);
-    void UpdateVertexShader(const FString& InFileName, D3D_SHADER_MACRO* pDefines);
+    void CreateVertexShader(const FString& InShaderName, const FString& InFileName, D3D_SHADER_MACRO* pDefines);
+    void UpdateVertexShader(const FString& InShaderName, const FString& InFullPath, D3D_SHADER_MACRO* pDefines);
     
-    void CreatePixelShader(const FString& InFileName, D3D_SHADER_MACRO* pDefines);
-    void UpdatePixelShader(const FString& InFileName, D3D_SHADER_MACRO* pDefines);
+    void CreatePixelShader(const FString& InShaderName, const FString& InFileName, D3D_SHADER_MACRO* pDefines);
+    void UpdatePixelShader(const FString& InShaderName, const FString& InFullPath, D3D_SHADER_MACRO* pDefines);
     
     void AddOrSetVertexShader(FName InVSName, const FString& InFullPath, ID3D11VertexShader* InVS, ID3DBlob* InShaderBlob, D3D_SHADER_MACRO*
                               InShaderMacro, std::filesystem::file_time_type InWriteTime);
@@ -272,6 +275,19 @@ void FRenderResourceManager::UpdateConstantBuffer(ID3D11Buffer* InBuffer, const 
     }
     memcpy(sub.pData, InData, sizeof(T));
     GraphicDevice->DeviceContext->Unmap(InBuffer, 0);
+}
+
+template <typename T>
+void FRenderResourceManager::UpdateConstantBuffer(const FName& CBName, const T* InData)
+{
+    ID3D11Buffer* CB = GetConstantBuffer(CBName);
+    if (CB == nullptr)
+    {
+        UE_LOG(LogLevel::Error, TEXT("UpdateConstantBuffer 호출: 키 %s에 해당하는 buffer가 없습니다."), CBName);
+        return;
+    }
+    
+    UpdateConstantBuffer(CB, InData);
 }
 
 template <typename T>

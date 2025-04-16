@@ -28,7 +28,6 @@ public:
     UObject(const UObject& Other)
         : ClassPrivate(Other.ClassPrivate)
         , NamePrivate(Other.NamePrivate)
-        , UUID(Other.UUID)
         , InternalIndex(Other.InternalIndex)
     {
     }
@@ -109,10 +108,10 @@ public:
     FVector4 EncodeUUID() const {
         FVector4 result;
 
-        result.x = UUID % 0xFF;
-        result.y = UUID >> 8 & 0xFF;
-        result.z = UUID >> 16 & 0xFF;
-        result.w = UUID >> 24 & 0xFF;
+        result.x = UUID & 0xFF;
+        result.y = (UUID >> 8) & 0xFF;
+        result.z = (UUID >> 16) & 0xFF;
+        result.w = (UUID >> 24) & 0xFF;
 
         return result;
     }
