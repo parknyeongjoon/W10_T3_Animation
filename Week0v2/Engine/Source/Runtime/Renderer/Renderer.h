@@ -94,12 +94,15 @@ public:
 private:
     FRenderResourceManager* RenderResourceManager = nullptr;
 
-    std::shared_ptr<FStaticMeshRenderPass> StaticMeshRenderPass;
+    std::shared_ptr<FStaticMeshRenderPass> GoroudRenderPass;
+    std::shared_ptr<FStaticMeshRenderPass> LambertRenderPass;
+    std::shared_ptr<FStaticMeshRenderPass> PhongRenderPass;
     std::shared_ptr<FLineBatchRenderPass> LineBatchRenderPass;
     std::shared_ptr<FGizmoRenderPass> GizmoRenderPass;
     std::shared_ptr<FDebugDepthRenderPass> DebugDepthRenderPass;
     std::shared_ptr<FEditorIconRenderPass> EditorIconRenderPass;
 
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
+    EViewModeIndex CurrentViewMode = VMI_Lit_Goroud;
 };
 

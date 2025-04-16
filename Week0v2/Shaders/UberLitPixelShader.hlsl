@@ -236,7 +236,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
     return output;
 #endif
     float4 normalTex = ((NormalTexture.Sample(linearSampler, uvAdjusted)- 0.5) * 2);
-
     float3 Normal = input.normal;
     
     if (bHasNormalTexture)
