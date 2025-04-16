@@ -34,8 +34,8 @@ struct FSpotLight
 };
 
 cbuffer FComputeConstants : register(b0){
-    float4x4 InverseView;
-    float4x4 InverseProj;
+    row_major float4x4 InverseView;
+    row_major float4x4 InverseProj;
     float screenWidth;
     float screenHeight;
     int tileCountX;
