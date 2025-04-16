@@ -23,11 +23,6 @@ public:
     FGraphicsDevice* Graphics;
 private:
     void CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACRO* pDefines);
-    //void CreateStaticMeshShader();
-    //void CreateTextureShader();
-    //void CreateLineBatchShader();
-    //void CreateFogShader();
-    //void CreateDebugDepthShader();
 
 public:
     ID3D11SamplerState* GetSamplerState(const ESamplerType InType) const { return RenderResourceManager->GetSamplerState(InType); }
@@ -55,32 +50,11 @@ public:
     void Release();
     
     void SetViewMode(EViewModeIndex evi);
-
-public://텍스쳐용 기능 추가
     
-    // void PrepareTextureShader() const;
-    //
-    // void RenderTexturePrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices,
-    //     ID3D11Buffer* pIndexBuffer, UINT numIndices,
-    //     ID3D11ShaderResourceView* _TextureSRV,
-    //     ID3D11SamplerState* _SamplerState) const;
-    // void RenderTextPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices,
-    //     ID3D11ShaderResourceView* _TextureSRV,
-    //     ID3D11SamplerState* _SamplerState) const;
-    //
-    // void PrepareSubUVConstant() const;
-
-public:
-    //Render Pass Demo
     void AddRenderObjectsToRenderPass(UWorld* InWorld) const;
     void Render(UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
     void ClearRenderObjects() const;
-    //void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
 
-    // post process
-    //void RenderPostProcess(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
-    //void RenderDebugDepth(std::shared_ptr<FEditorViewportClient> ActiveViewport);
-    //void RenderHeightFog(std::shared_ptr<FEditorViewportClient> ActiveViewport, std::shared_ptr<FEditorViewportClient> CurrentViewport);
 public:
     void PrepareShader(FName InShaderName);
     void BindConstantBuffers(FName InShaderName);

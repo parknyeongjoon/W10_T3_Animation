@@ -553,8 +553,14 @@
     <Folder Include="Shaders\ShaderHeaders\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />
-    <None Include="Shaders\ShaderHeaders\GSamplers.hlsli" />
+    <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Shaders\ShaderHeaders\GSamplers.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
