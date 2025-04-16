@@ -15,42 +15,62 @@
 #include "RenderPass/LineBatchRenderPass.h"
 #include "RenderPass/StaticMeshRenderPass.h"
 
+D3D_SHADER_MACRO FRenderer::GouradDefines[] =
+{
+    {"LIGHTING_MODEL_GOURAUD", "1"},
+    {nullptr, nullptr}
+};
+
+D3D_SHADER_MACRO FRenderer::LambertDefines[] = 
+{
+    {"LIGHTING_MODEL_LAMBERT", "1"},
+    {nullptr, nullptr}
+};
+
+D3D_SHADER_MACRO FRenderer::EditorGizmoDefines[] = 
+{
+    {"RENDER_GIZMO", "1"},
+    {nullptr, nullptr}
+};
+
+D3D_SHADER_MACRO FRenderer::EditorIconDefines[] = 
+{
+    {"RENDER_ICON", "1"},
+    {nullptr, nullptr}
+};
+
 void FRenderer::Initialize(FGraphicsDevice* graphics)
 {
     Graphics = graphics;
     RenderResourceManager = new FRenderResourceManager(graphics);
     RenderResourceManager->Initialize();
-    D3D_SHADER_MACRO defines[] = 
-    {
-        {"LIGHTING_MODEL_GOURAUD", "1"},
-        {nullptr, nullptr}
-    };
+    //SetViewMode(VMI_Lit_Phong);
+    
+    CreateVertexPixelShader(TEXT("UberLit"), GouradDefines);
+    FString GouradShaderName = TEXT("UberLit");
+    GouradShaderName += GouradDefines->Name;
+    GoroudRenderPass = std::make_shared<FStaticMeshRenderPass>(GouradShaderName);
+
+    CreateVertexPixelShader(TEXT("UberLit"), LambertDefines);
+    FString LamberShaderName = TEXT("UberLit");
+    LamberShaderName += LambertDefines->Name;
+    LambertRenderPass = std::make_shared<FStaticMeshRenderPass>(LamberShaderName);
+    
     CreateVertexPixelShader(TEXT("UberLit"), nullptr);
-    FString Prefix = TEXT("UberLit");
-    //Prefix += defines->Name;
-    StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(Prefix);
+    FString PhongShaderName = TEXT("UberLit");
+    PhongRenderPass = std::make_shared<FStaticMeshRenderPass>(PhongShaderName);
     
     CreateVertexPixelShader(TEXT("Line"), nullptr);
     LineBatchRenderPass = std::make_shared<FLineBatchRenderPass>(TEXT("Line"));
 
     CreateVertexPixelShader(TEXT("DebugDepth"), nullptr);
     DebugDepthRenderPass = std::make_shared<FDebugDepthRenderPass>(TEXT("DebugDepth"));
-
-    D3D_SHADER_MACRO EditorGizmoDefines[] = 
-    {
-        {"RENDER_GIZMO", "1"},
-        {nullptr, nullptr}
-    };
+    
     FString GizmoShaderName = TEXT("Editor");
     GizmoShaderName += EditorGizmoDefines->Name;
     CreateVertexPixelShader(TEXT("Editor"), EditorGizmoDefines);
     GizmoRenderPass = std::make_shared<FGizmoRenderPass>(GizmoShaderName);
-
-    D3D_SHADER_MACRO EditorIconDefines[] = 
-    {
-        {"RENDER_ICON", "1"},
-        {nullptr, nullptr}
-    };
+    
     FString IconShaderName = TEXT("Editor");
     IconShaderName += EditorIconDefines->Name;
     CreateVertexPixelShader(TEXT("Editor"), EditorIconDefines);
@@ -640,8 +660,22 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
 
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
     {
-        StaticMeshRenderPass->Prepare(ActiveViewport);
-        StaticMeshRenderPass->Execute(ActiveViewport);
+        //TODO : FLAG로 나누기
+        if (CurrentViewMode  == EViewModeIndex::VMI_Lit_Goroud)
+        {
+            GoroudRenderPass->Prepare(ActiveViewport);
+            GoroudRenderPass->Execute(ActiveViewport);
+        }
+        else if (CurrentViewMode  == EViewModeIndex::VMI_Lit_Lambert)
+        {
+            LambertRenderPass->Prepare(ActiveViewport);
+            LambertRenderPass->Execute(ActiveViewport);
+        }
+        else
+        {
+            PhongRenderPass->Prepare(ActiveViewport);
+            PhongRenderPass->Execute(ActiveViewport);
+        }
     }
 
     LineBatchRenderPass->Prepare(ActiveViewport);
@@ -687,6 +721,17 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     //RenderPostProcess(World, ActiveViewport, ActiveViewport);
 
     //ClearRenderArr();
+}
+
+void FRenderer::ClearRenderObjects() const
+{
+    GoroudRenderPass->ClearRenderObjects();
+    LambertRenderPass->ClearRenderObjects();
+    PhongRenderPass->ClearRenderObjects();
+    LineBatchRenderPass->ClearRenderObjects();
+    GizmoRenderPass->ClearRenderObjects();
+    DebugDepthRenderPass->ClearRenderObjects();
+    EditorIconRenderPass->ClearRenderObjects();
 }
 
 // void FRenderer::RenderTexturePrimitive(
@@ -827,40 +872,72 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
 {
     switch (evi)
     {
-    case EViewModeIndex::VMI_Lit:
+    case EViewModeIndex::VMI_Lit_Goroud:
         CurrentRasterizerState = ERasterizerState::SolidBack;
+        CurrentViewMode = VMI_Lit_Goroud;
         //TODO : Light 받는 거
+        bIsLit = true;
+        bIsNormal = false;
+        break;
+    case EViewModeIndex::VMI_Lit_Lambert:
+        CurrentRasterizerState = ERasterizerState::SolidBack;
+        CurrentViewMode = VMI_Lit_Lambert;
+        bIsLit = true;
+        bIsNormal = false;
+        break;
+    case EViewModeIndex::VMI_Lit_Phong:
+        CurrentRasterizerState = ERasterizerState::SolidBack;
+        CurrentViewMode = VMI_Lit_Phong;
         bIsLit = true;
         bIsNormal = false;
         break;
     case EViewModeIndex::VMI_Wireframe:
         CurrentRasterizerState = ERasterizerState::WireFrame;
+        CurrentViewMode = VMI_Wireframe;
         bIsLit = false;
         bIsNormal = false;
         break;
     case EViewModeIndex::VMI_Unlit:
         CurrentRasterizerState = ERasterizerState::SolidBack;
+        CurrentViewMode = VMI_Unlit;
         //TODO : Light 안 받는 거
         bIsLit = false;
         bIsNormal = false;
         break;
     case EViewModeIndex::VMI_Depth:
         CurrentRasterizerState = ERasterizerState::SolidBack;
+        CurrentViewMode = VMI_Depth;
         break;
     case EViewModeIndex::VMI_Normal:
         CurrentRasterizerState = ERasterizerState::SolidBack;
+        CurrentViewMode = VMI_Normal;
         bIsLit = false;
         bIsNormal = true;
         break;
     default:
         CurrentRasterizerState = ERasterizerState::SolidBack;
+        CurrentViewMode = VMI_Lit_Phong;
+        bIsLit = true;
+        bIsNormal = false;
         break;
     }
 }
 
 void FRenderer::AddRenderObjectsToRenderPass(UWorld* InWorld) const
 {
-    StaticMeshRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    if (CurrentViewMode == VMI_Lit_Goroud)
+    {
+        GoroudRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    }
+    else if (CurrentViewMode == VMI_Lit_Lambert)
+    {
+        LambertRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    }
+    else
+    {
+        PhongRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    }
+    
     GizmoRenderPass->AddRenderObjectsToRenderPass(InWorld);
     EditorIconRenderPass->AddRenderObjectsToRenderPass(InWorld);
 }

@@ -138,7 +138,12 @@ struct FVector
     {
         Ar >> x >> y >> z;
     }
-
+    bool IsNearlyZero(float Tolerance= KINDA_SMALL_NUMBER) const
+    {
+        return FMath::Abs(x) <= Tolerance &&
+               FMath::Abs(y) <= Tolerance &&
+               FMath::Abs(z) <= Tolerance;
+    }
     static const FVector ZeroVector;
     static const FVector OneVector;
     static const FVector UpVector;

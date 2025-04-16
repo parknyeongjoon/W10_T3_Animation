@@ -566,7 +566,12 @@ bool FGraphicsDevice::CreateVertexShader(const std::filesystem::path& InFilePath
     ID3DBlob* errorBlob = nullptr;
     
     const std::wstring shaderFilePath = InFilePath.wstring();
-    const HRESULT hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", shaderFlags, 0, ppCode, &errorBlob);
+    
+    HRESULT hr;
+    if (pDefines)
+        hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", shaderFlags, 0, ppCode, &errorBlob);
+    else
+        hr = D3DCompileFromFile(shaderFilePath.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", shaderFlags, 0, ppCode, &errorBlob);
 
     if (FAILED(hr))
     {
@@ -600,7 +605,11 @@ bool FGraphicsDevice::CreatePixelShader(const std::filesystem::path& InFilePath,
     
     const std::wstring shaderFilePath = InFilePath.wstring();    
 
-    const HRESULT hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", shaderFlags, 0, ppCode, &errorBlob);
+    HRESULT hr;
+    if (pDefines)
+        hr = D3DCompileFromFile(shaderFilePath.c_str(), pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", shaderFlags, 0, ppCode, &errorBlob);
+    else
+        hr = D3DCompileFromFile(shaderFilePath.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", shaderFlags, 0, ppCode, &errorBlob);
     
     if (FAILED(hr))
     {

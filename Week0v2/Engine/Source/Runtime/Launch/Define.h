@@ -14,6 +14,7 @@
 #define _TCHAR_DEFINED
 #include <d3d11.h>
 
+#include "Math/Matrix.h"
 #include "UserInterface/Console.h"
 #include "Serialization/Archive.h"
 
@@ -277,7 +278,6 @@ struct FPoint
 
     float x, y;
 };
-
 struct FBoundingBox
 {
     FBoundingBox(){}
@@ -370,7 +370,6 @@ struct FBoundingBox
         Ar >> min >> max;
     }
 };
-
 struct FCone
 {
     FVector ConeApex; // 원뿔의 꼭짓점
@@ -382,14 +381,134 @@ struct FCone
 
     int ConeSegmentCount; // 원뿔 밑면 분할 수
     float pad[3];
-
 };
-
 struct FSphere
 {
     FVector Center; 
     float Radius;
     FVector4 Color;
+};
+struct FPlane
+{
+    // 평면 방정식: Ax + By + Cz + D = 0
+    float A, B, C, D;
+
+    // 기본 생성자
+    FPlane() : A(0), B(0), C(0), D(0) {}
+
+    // 값들을 인자로 받아 생성하는 생성자
+    FPlane(float InA, float InB, float InC, float InD)
+        : A(InA), B(InB), C(InC), D(InD) {}
+
+    // 평면을 정규화 하는 함수: 평면의 법선(A, B, C)의 길이를 1로 만듭니다.
+    void Normalize()
+    {
+        float Magnitude = std::sqrt(A * A + B * B + C * C);
+        if (Magnitude != 0.0f)
+        {
+            A /= Magnitude;
+            B /= Magnitude;
+            C /= Magnitude;
+            D /= Magnitude;
+        }
+    }
+
+    // 주어진 점(p)와 평면 사이의 signed distance를 계산합니다.
+    // 양수 값이면 점이 평면의 법선 방향 쪽에 있고,
+    // 음수 값이면 반대 방향에 있음을 나타냅니다.
+    float PlaneDot(const FVector& p) const
+    {
+        return A * p.x + B * p.y + C * p.z + D;
+    }
+};
+struct FFrustum
+{
+    // 프러스텀 평면이 6개 있다고 가정 (Left, Right, Bottom, Top, Near, Far)
+    FPlane Planes[6];
+
+    // 구의 (center, radius)를 기준으로 프러스텀과 교차하는지 검사하는 함수
+    bool IntersectsSphere(const FVector& Center, float Radius) const
+    {
+        // 각 평면에 대해 구의 중심과의 거리가 -Radius보다 작으면 완전히 외부에 있다고 봅니다.
+        for (int i = 0; i < 6; ++i)
+        {
+            if (Planes[i].PlaneDot(Center) < -Radius)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    bool IntersectsPoint(const FVector& Point) const
+    {
+        // 6개의 평면 모두에 대해 점이 평면의 '앞쪽'에 있어야 프러스텀 내부로 판단
+        for (int i = 0; i < 6; ++i)
+        {
+            if (Planes[i].PlaneDot(Point) < 0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    static FFrustum ExtractFrustum(const FMatrix& Mat) {
+        FFrustum frustum;
+    
+        // Left Plane = M[3] + M[0]
+        frustum.Planes[0] = FPlane(
+            Mat.M[0][3] + Mat.M[0][0],
+            Mat.M[1][3] + Mat.M[1][0],
+            Mat.M[2][3] + Mat.M[2][0],
+            Mat.M[3][3] + Mat.M[3][0]
+        );
+    
+        // Right Plane = M[3] - M[0]
+        frustum.Planes[1] = FPlane(
+            Mat.M[0][3] - Mat.M[0][0],
+            Mat.M[1][3] - Mat.M[1][0],
+            Mat.M[2][3] - Mat.M[2][0],
+            Mat.M[3][3] - Mat.M[3][0]
+        );
+    
+        // Bottom Plane = M[3] + M[1]
+        frustum.Planes[2] = FPlane(
+            Mat.M[0][3] + Mat.M[0][1],
+            Mat.M[1][3] + Mat.M[1][1],
+            Mat.M[2][3] + Mat.M[2][1],
+            Mat.M[3][3] + Mat.M[3][1]
+        );
+    
+        // Top Plane = M[3] - M[1]
+        frustum.Planes[3] = FPlane(
+            Mat.M[0][3] - Mat.M[0][1],
+            Mat.M[1][3] - Mat.M[1][1],
+            Mat.M[2][3] - Mat.M[2][1],
+            Mat.M[3][3] - Mat.M[3][1]
+        );
+    
+        // Near Plane = M[3] + M[2]
+        frustum.Planes[4] = FPlane(
+            Mat.M[0][3] + Mat.M[0][2],
+            Mat.M[1][3] + Mat.M[1][2],
+            Mat.M[2][3] + Mat.M[2][2],
+            Mat.M[3][3] + Mat.M[3][2]
+        );
+    
+        // Far Plane = M[3] - M[2]
+        frustum.Planes[5] = FPlane(
+            Mat.M[0][3] - Mat.M[0][2],
+            Mat.M[1][3] - Mat.M[1][2],
+            Mat.M[2][3] - Mat.M[2][2],
+            Mat.M[3][3] - Mat.M[3][2]
+        );
+    
+        // 각 평면 정규화
+        for (auto& plane : frustum.Planes) {
+            plane.Normalize();
+        }
+    
+        return frustum;
+    }
 };
 
 // !NOTE : 최대 광원 수 제한

@@ -236,7 +236,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
     return output;
 #endif
     float4 normalTex = ((NormalTexture.Sample(linearSampler, uvAdjusted)- 0.5) * 2);
-
     float3 Normal = input.normal;
     
     if (bHasNormalTexture)
@@ -266,7 +265,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
          TotalLight = TotalLight * 10.0f;
     TotalLight += EmissiveColor; // 자체 발광  
 
-    // 방향광 처리  
+    // 방향광 처리  s
     for(uint i=0; i<NumDirectionalLights; ++i)  
         TotalLight += CalculateDirectionalLight(DirLights[i], Normal, ViewDir, baseColor.rgb);  
 
@@ -278,6 +277,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
         TotalLight += CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
     
     // 최종 색상 
-    output.color = float4(TotalLight*baseColor.rgb, baseColor.a * TransparencyScalar);
+    output.color = float4(TotalLight * baseColor.rgb, baseColor.a * TransparencyScalar);
     return output;  
 }

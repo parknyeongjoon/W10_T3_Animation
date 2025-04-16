@@ -90,6 +90,7 @@ void UEditorEngine::Render()
         renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
     }
     ResizeGizmo();
+    renderer.ClearRenderObjects();
 }
 
 void UEditorEngine::Tick(float deltaSeconds)
