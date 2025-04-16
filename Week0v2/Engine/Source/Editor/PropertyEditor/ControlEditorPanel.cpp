@@ -239,7 +239,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         if (ImGui::DragFloat("##Fov", FOV, 0.1f, 30.0f, 120.0f, "%.1f"))
         {
             //GEngineLoop.GetWorld()->GetCamera()->SetFOV(FOV);
-
         }
         ImGui::Spacing();
 
