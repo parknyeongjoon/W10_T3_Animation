@@ -85,18 +85,9 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView); // 렌더 타겟 설정
 
-    ID3D11ShaderResourceView* FBoundingBoxSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("BoundingBox"));
-    Graphics.DeviceContext->VSSetShaderResources(3, 1, &FBoundingBoxSRV);
-    ID3D11ShaderResourceView* FConeSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Cone"));
-    Graphics.DeviceContext->VSSetShaderResources(4, 1, &FConeSRV);
-    ID3D11ShaderResourceView* FOBBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("OBB"));
-    Graphics.DeviceContext->VSSetShaderResources(5, 1, &FOBBSRV);
-    ID3D11ShaderResourceView* FSphereSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Sphere"));
-    Graphics.DeviceContext->VSSetShaderResources(6, 1, &FSphereSRV);
-
     for (AActor* actor :GEngine->GetWorld()->GetSelectedActors() )
     {
-        ASpotLightActor* Light = Cast<ASpotLightActor>(actor);
+        ALight* Light = Cast<ALight>(actor);
         if (Light)
         {
             TArray<UActorComponent*> Comps = Light->GetComponents();
@@ -143,6 +134,14 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
             }
         }
     }
+    ID3D11ShaderResourceView* FBoundingBoxSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("BoundingBox"));
+    Graphics.DeviceContext->VSSetShaderResources(3, 1, &FBoundingBoxSRV);
+    ID3D11ShaderResourceView* FConeSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Cone"));
+    Graphics.DeviceContext->VSSetShaderResources(4, 1, &FConeSRV);
+    ID3D11ShaderResourceView* FOBBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("OBB"));
+    Graphics.DeviceContext->VSSetShaderResources(5, 1, &FOBBSRV);
+    ID3D11ShaderResourceView* FSphereSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Sphere"));
+    Graphics.DeviceContext->VSSetShaderResources(6, 1, &FSphereSRV);
 }
 
 void FLineBatchRenderPass::UpdateBatchResources()
