@@ -69,6 +69,10 @@ void ControlEditorPanel::Render()
 
     ImGui::SameLine();
 
+    CreateShaderHotReloadButton(IconSize);
+
+    ImGui::SameLine();
+    
     ImVec2 PIEIconSize = ImVec2(IconSize.x + 8, IconSize.y);
     ImGui::PushFont(IconFont);
     CreatePIEButton(PIEIconSize);
@@ -514,6 +518,16 @@ void ControlEditorPanel::CreateFlagButton() const
         }
         ActiveViewport->SetShowFlag(ConvertSelectionToFlags(selected));
         ImGui::EndPopup();
+    }
+}
+
+void ControlEditorPanel::CreateShaderHotReloadButton(const ImVec2 ButtonSize) const
+{
+    ID3D11ShaderResourceView* IconTextureSRV = GEngine->resourceMgr.GetTexture(L"Assets/Texture/HotReload.png")->TextureSRV;
+    const ImTextureID textureID = reinterpret_cast<ImTextureID>(IconTextureSRV); // 실제 사용되는 텍스처 SRV
+    if (ImGui::ImageButton("btn1", textureID, ButtonSize))
+    {
+        GEngine->renderer.GetResourceManager()->HotReloadShaders();
     }
 }
 

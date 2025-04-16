@@ -22,21 +22,6 @@ extern UEditorEngine* GEngine;
 
 void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
-    StaticMesheComponents.Empty();
-
-    LightComponents.Empty();
-    
-    if (InWorld->WorldType == EWorldType::Editor)
-    {
-        for (const auto iter : TObjectRange<USceneComponent>())
-        {
-            if (ULightComponentBase* pGizmoComp = Cast<ULightComponentBase>(iter))
-            {
-                LightComponents.Add(pGizmoComp);
-            }
-        }
-    }
-    
     for (const AActor* actor : InWorld->GetActors())
     {
         for (const UActorComponent* actorComp : actor->GetComponents())
@@ -45,6 +30,11 @@ void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
             {
                 if (!Cast<UGizmoBaseComponent>(actorComp))
                     StaticMesheComponents.Add(pStaticMeshComp);
+            }
+            
+            if (ULightComponentBase* pGizmoComp = Cast<ULightComponentBase>(actorComp))
+            {
+                LightComponents.Add(pGizmoComp);
             }
         }
     }
@@ -93,9 +83,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         View = curEditorViewportClient->GetViewMatrix();
         Proj = curEditorViewportClient->GetProjectionMatrix();
     }
-
-
-
+    
     UpdateCameraConstant(InViewportClient);
     
     for (UStaticMeshComponent* staticMeshComp : StaticMesheComponents)
@@ -158,6 +146,12 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     } 
 }
 
+void FStaticMeshRenderPass::ClearRenderObjects()
+{
+    StaticMesheComponents.Empty();
+    LightComponents.Empty();
+}
+
 void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStaticMeshComponent, const FMatrix& InView, const FMatrix& InProjection)
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
@@ -205,7 +199,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
 
     for (ULightComponentBase* Comp : LightComponents)
     {
-        UPointLightComponent* PointLightComp = dynamic_cast<UPointLightComponent*>(Comp);
+        UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(Comp);
 
         if (PointLightComp)
         {
@@ -218,7 +212,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             continue;
         }
 
-        UDirectionalLightComponent* DirectionalLightComp = dynamic_cast<UDirectionalLightComponent*>(Comp);
+        UDirectionalLightComponent* DirectionalLightComp = Cast<UDirectionalLightComponent>(Comp);
         if (DirectionalLightComp)
         {
             USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(DirectionalLightComp);

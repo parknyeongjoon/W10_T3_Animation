@@ -15,6 +15,30 @@
 #include "RenderPass/LineBatchRenderPass.h"
 #include "RenderPass/StaticMeshRenderPass.h"
 
+D3D_SHADER_MACRO FRenderer::GouradDefines[] =
+{
+    {"LIGHTING_MODEL_GOURAUD", "1"},
+    {nullptr, nullptr}
+};
+
+D3D_SHADER_MACRO FRenderer::LambertDefines[] = 
+{
+    {"LIGHTING_MODEL_LAMBERT", "1"},
+    {nullptr, nullptr}
+};
+
+D3D_SHADER_MACRO FRenderer::EditorGizmoDefines[] = 
+{
+    {"RENDER_GIZMO", "1"},
+    {nullptr, nullptr}
+};
+
+D3D_SHADER_MACRO FRenderer::EditorIconDefines[] = 
+{
+    {"RENDER_ICON", "1"},
+    {nullptr, nullptr}
+};
+
 void FRenderer::Initialize(FGraphicsDevice* graphics)
 {
     Graphics = graphics;
@@ -22,21 +46,11 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     RenderResourceManager->Initialize();
     //SetViewMode(VMI_Lit_Phong);
     
-    D3D_SHADER_MACRO GouradDefines[] = 
-    {
-        {"LIGHTING_MODEL_GOURAUD", "1"},
-        {nullptr, nullptr}
-    };
     CreateVertexPixelShader(TEXT("UberLit"), GouradDefines);
     FString GouradShaderName = TEXT("UberLit");
     GouradShaderName += GouradDefines->Name;
     GoroudRenderPass = std::make_shared<FStaticMeshRenderPass>(GouradShaderName);
 
-    D3D_SHADER_MACRO LambertDefines[] = 
-    {
-        {"LIGHTING_MODEL_LAMBERT", "1"},
-        {nullptr, nullptr}
-    };
     CreateVertexPixelShader(TEXT("UberLit"), LambertDefines);
     FString LamberShaderName = TEXT("UberLit");
     LamberShaderName += LambertDefines->Name;
@@ -51,22 +65,12 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
 
     CreateVertexPixelShader(TEXT("DebugDepth"), nullptr);
     DebugDepthRenderPass = std::make_shared<FDebugDepthRenderPass>(TEXT("DebugDepth"));
-
-    D3D_SHADER_MACRO EditorGizmoDefines[] = 
-    {
-        {"RENDER_GIZMO", "1"},
-        {nullptr, nullptr}
-    };
+    
     FString GizmoShaderName = TEXT("Editor");
     GizmoShaderName += EditorGizmoDefines->Name;
     CreateVertexPixelShader(TEXT("Editor"), EditorGizmoDefines);
     GizmoRenderPass = std::make_shared<FGizmoRenderPass>(GizmoShaderName);
-
-    D3D_SHADER_MACRO EditorIconDefines[] = 
-    {
-        {"RENDER_ICON", "1"},
-        {nullptr, nullptr}
-    };
+    
     FString IconShaderName = TEXT("Editor");
     IconShaderName += EditorIconDefines->Name;
     CreateVertexPixelShader(TEXT("Editor"), EditorIconDefines);
@@ -701,6 +705,17 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     //RenderPostProcess(World, ActiveViewport, ActiveViewport);
 
     //ClearRenderArr();
+}
+
+void FRenderer::ClearRenderObjects() const
+{
+    GoroudRenderPass->ClearRenderObjects();
+    LambertRenderPass->ClearRenderObjects();
+    PhongRenderPass->ClearRenderObjects();
+    LineBatchRenderPass->ClearRenderObjects();
+    GizmoRenderPass->ClearRenderObjects();
+    DebugDepthRenderPass->ClearRenderObjects();
+    EditorIconRenderPass->ClearRenderObjects();
 }
 
 // void FRenderer::RenderTexturePrimitive(

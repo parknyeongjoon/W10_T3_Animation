@@ -38,6 +38,7 @@ void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/SpotLight_64x.png");
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/S_LightDirectional.png");
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/S_LightPoint.png");
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/HotReload.png");
 }
 
 void FResourceMgr::Release(FRenderer* renderer)

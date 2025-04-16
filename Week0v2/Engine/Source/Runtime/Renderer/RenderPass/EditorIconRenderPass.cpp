@@ -16,7 +16,6 @@ FEditorIconRenderPass::~FEditorIconRenderPass()
 
 void FEditorIconRenderPass::AddRenderObjectsToRenderPass(UWorld* InLevel)
 {
-    BillboardComponents.Empty();
     if (InLevel->WorldType != EWorldType::Editor)
     {
         return;
@@ -98,4 +97,9 @@ void FEditorIconRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         
         Graphics.DeviceContext->Draw(6, 0); // 내부에서 버텍스 사용중
     }
+}
+
+void FEditorIconRenderPass::ClearRenderObjects()
+{
+    BillboardComponents.Empty();
 }

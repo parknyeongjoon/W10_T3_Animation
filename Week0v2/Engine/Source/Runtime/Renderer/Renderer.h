@@ -44,6 +44,11 @@ public:
     bool bIsDepth = false;
 public:
     void Initialize(FGraphicsDevice* graphics);
+
+    static D3D_SHADER_MACRO GouradDefines[];
+    static D3D_SHADER_MACRO LambertDefines[];
+    static D3D_SHADER_MACRO EditorGizmoDefines[];
+    static D3D_SHADER_MACRO EditorIconDefines[];
     
     //Release
     void Release();
@@ -68,6 +73,7 @@ public:
     //Render Pass Demo
     void AddRenderObjectsToRenderPass(UWorld* InWorld) const;
     void Render(UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
+    void ClearRenderObjects() const;
     //void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
 
     // post process

@@ -281,21 +281,21 @@ void FRenderResourceManager::CreateVertexShader(const FString& InShaderName, con
 #endif
 }
 
-void FRenderResourceManager::UpdateVertexShader(const FString& InFileName, D3D_SHADER_MACRO* pDefines)
+void FRenderResourceManager::UpdateVertexShader(const FString& InShaderName, const FString& InFullPath, D3D_SHADER_MACRO* pDefines)
 {
     ID3DBlob* VSBlob = nullptr;
 
     const std::filesystem::path current = std::filesystem::current_path();
-    const std::filesystem::path fullpath = current / TEXT("Shaders") / *InFileName;
+    const std::filesystem::path fullpath = *InFullPath;
 
     ID3D11VertexShader* VertexShader;
     GraphicDevice->CreateVertexShader(fullpath, pDefines, &VSBlob, &VertexShader);
     
     std::filesystem::file_time_type CurrentVSWriteTime = std::filesystem::last_write_time(fullpath);
 #if USE_WIDECHAR
-    AddOrSetVertexShader(InFileName, fullpath.wstring(), VertexShader, VSBlob, pDefines, CurrentVSWriteTime);
+    AddOrSetVertexShader(InShaderName, fullpath.wstring(), VertexShader, VSBlob, pDefines, CurrentVSWriteTime);
 #else
-    AddOrSetVertexShader(InFileName, fullpath.string(), VertexShader, VSBlob, pDefines, CurrentVSWriteTime);
+    AddOrSetVertexShader(InShaderName, fullpath.string(), VertexShader, VSBlob, pDefines, CurrentVSWriteTime);
 #endif
 }
 
@@ -320,21 +320,27 @@ void FRenderResourceManager::CreatePixelShader(const FString& InShaderName, cons
 #endif
 }
 
-void FRenderResourceManager::UpdatePixelShader(const FString& InFileName, D3D_SHADER_MACRO* pDefines)
+void FRenderResourceManager::UpdatePixelShader(const FString& InShaderName, const FString& InFullPath, D3D_SHADER_MACRO* pDefines)
 {
     ID3DBlob* PSBlob = nullptr;
     
-    const std::filesystem::path current = std::filesystem::current_path();
-    const std::filesystem::path fullpath = current / TEXT("Shaders") / *InFileName;
+    const std::filesystem::path fullpath = *InFullPath;
 
     ID3D11PixelShader* PixelShader;
-    GraphicDevice->CreatePixelShader(fullpath, pDefines, &PSBlob, &PixelShader);
+    if (pDefines != nullptr)
+    {
+        GraphicDevice->CreatePixelShader(fullpath, pDefines, &PSBlob, &PixelShader);
+    }
+    else
+    {
+        GraphicDevice->CreatePixelShader(fullpath.string(), nullptr, &PSBlob, &PixelShader);
+    }
 
     std::filesystem::file_time_type CurrentPSWriteTime = std::filesystem::last_write_time(fullpath);
 #if USE_WIDECHAR
-    AddOrSetPixelShader(InFileName, fullpath.wstring(), PixelShader, PSBlob, pDefines, CurrentPSWriteTime);
+    AddOrSetPixelShader(InShaderName, fullpath.wstring(), PixelShader, PSBlob, pDefines, CurrentPSWriteTime);
 #else
-    AddOrSetPixelShader(InFileName, fullpath.string(), PixelShader, PSBlob, pDefines, CurrentPSWriteTime);
+    AddOrSetPixelShader(InShaderName, fullpath.string(), PixelShader, PSBlob, pDefines, CurrentPSWriteTime);
 #endif
 }
 

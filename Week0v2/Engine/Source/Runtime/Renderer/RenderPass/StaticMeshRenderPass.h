@@ -20,6 +20,7 @@ public:
     void AddRenderObjectsToRenderPass(UWorld* InWorld) override;
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
+    void ClearRenderObjects() override;
 private:
     static void UpdateMatrixConstants(UStaticMeshComponent* InStaticMeshComponent, const FMatrix& InView, const FMatrix& InProjection);
     void UpdateFlagConstant();
@@ -29,7 +30,7 @@ private:
     static void UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo);
     void UpdateCameraConstant(const std::shared_ptr<FViewportClient>& InViewportClient);
 
-
+private:
     TArray<ULightComponentBase*> LightComponents;
     TArray<UStaticMeshComponent*> StaticMesheComponents;
 };

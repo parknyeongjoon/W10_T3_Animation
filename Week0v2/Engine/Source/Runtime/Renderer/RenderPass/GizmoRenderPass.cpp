@@ -18,8 +18,6 @@ extern UEditorEngine* GEngine;
 
 void FGizmoRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
-    GizmoComponents.Empty();
-    
     if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
     {
         return;
@@ -131,6 +129,11 @@ void FGizmoRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewport
             Graphics.DeviceContext->DrawIndexed(indexCount, startIndex, 0);
         }
     }
+}
+
+void FGizmoRenderPass::ClearRenderObjects()
+{
+    GizmoComponents.Empty();
 }
 
 void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoComponent, const FMatrix& InView, const FMatrix& InProjection)

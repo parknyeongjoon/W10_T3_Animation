@@ -11,7 +11,11 @@ FPixelShader::FPixelShader(const FName InShaderName, const FString& InFullPath, 
     FullPath = InFullPath;
     PS = InPS;
     ShaderBlob = InShaderBlob;
-    ShaderMacro = InShaderMacro;
+    if (InShaderMacro != nullptr)
+        ShaderMacro = InShaderMacro;
+    else
+        ShaderMacro = nullptr;
+    
     LastWriteTime = InWriteTime;
 }
 
@@ -33,7 +37,11 @@ void FPixelShader::UpdateShader()
     FRenderer Renderer = GEngine->renderer;
     FRenderResourceManager* RenderResourceManager = GEngine->renderer.GetResourceManager();
 
-    RenderResourceManager->UpdatePixelShader(ShaderName.ToString(), ShaderMacro);
+    if (ShaderMacro != nullptr)
+        RenderResourceManager->UpdatePixelShader(ShaderName.ToString(), FullPath, ShaderMacro);
+    else
+        RenderResourceManager->UpdatePixelShader(ShaderName.ToString(), FullPath, nullptr);
+    
     const std::filesystem::file_time_type CurrentLastWriteTime = std::filesystem::last_write_time(*FullPath);
     LastWriteTime = CurrentLastWriteTime;
 }
