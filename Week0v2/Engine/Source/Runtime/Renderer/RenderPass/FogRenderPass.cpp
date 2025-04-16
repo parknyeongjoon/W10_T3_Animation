@@ -124,18 +124,16 @@ void FFogRenderPass::UpdateFogConstant(const std::shared_ptr<FViewportClient> In
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
 
     FFogParams FogParams;
-    FogParams.FogDensity = FogComp->FogDensity;
-    FogParams.HeightFogStart = FogComp->HeightFogStart;
-    FogParams.HeightFogEnd = FogComp->HeightFogEnd;
-    FogParams.MaxOpacity = FogComp->FogMaxOpacity;
-    FogParams.DistanceFogNear = FogComp->DistanceFogNear;
-    FogParams.DistanceFogFar = FogComp->DistanceFogFar;
-    FogParams.InscatteringColor = FogComp->FogInscatteringColor;
-    FogParams.DirectionalInscatteringColor = FogComp->DirectionalInscatteringColor;
-    FogParams.DirectionalLightDirection = FogComp->DirectionalLightDirection;
-    FogParams.DirectionalInscatteringExponent = FogComp->DirectionalInscatteringExponent;
-    FogParams.DirectionalInscatteringStartDistance = FogComp->DirectionalInscatteringStartDistance;
-    FogParams.IsExponential = FogComp->bIsExponential;
+    FogParams.FogColor = FogComp->GetFogColor();
+    FogParams.FogDensity = FogComp->GetFogDensity();
+    FogParams.FogStart = FogComp->GetFogStart();
+    FogParams.FogEnd = FogComp->GetFogEnd();
+    FogParams.FogZPosition = FogComp->GetFogZPosition();
+    FogParams.FogBaseHeight = FogComp->GetFogBaseHeight();
+    FogParams.HeightFallOff = FogComp->GetHeightFallOff();
+    FogParams.bIsHeightFog = FogComp->IsHeightFog();
+    FogParams.ScatteringIntensity = FogComp->GetScatteringIntensity();
+    FogParams.LightShaftDensity = FogComp->GetLightShaftDensity();
 
     renderResourceManager->UpdateConstantBuffer(TEXT("FFogParams"), &FogParams);
 }

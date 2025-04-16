@@ -486,64 +486,44 @@ void PropertyEditorPanel::Render()
             ImGui::Text("Basic Properties");
             ImGui::Separator();
 
-            bool bIsActive = HeightFogComp->bIsActive;
-            bool bIsExponential = HeightFogComp->bIsExponential;
+            float FogDensity = HeightFogComp->GetFogDensity();
+            if (ImGui::SliderFloat("Fog Density", &FogDensity, 0.0f, 1.0f, "%.4f"))
+            {
+                HeightFogComp->SetFogDensity(FogDensity);
+            }
+            float FogStart = HeightFogComp->GetFogStart();
+            if (ImGui::SliderFloat("Fog Start", &FogStart, 0.0f, 100.0f, "%.2f"))
+            {
+                HeightFogComp->SetFogStart(FogStart);
+            }
 
-            ImGui::Checkbox("Active", &bIsActive);
-            ImGui::Checkbox("Exponential", &bIsExponential);
+            float FogEnd = HeightFogComp->GetFogEnd();
+            if (ImGui::SliderFloat("Fog End", &FogEnd, 0.0f, 100.0f, "%.2f"))
+            {
+                HeightFogComp->SetFogEnd(FogEnd);
+            }
 
-            HeightFogComp->bIsActive = bIsActive;
-            HeightFogComp->bIsExponential = bIsExponential;
-
-            ImGui::SliderFloat("Fog Density", &HeightFogComp->FogDensity, 0.0f, 1.0f, "%.4f");
-            ImGui::SliderFloat("Height Fog Start", &HeightFogComp->HeightFogStart, 0.0f, 100.0f);
-            ImGui::SliderFloat("Height Fog End", &HeightFogComp->HeightFogEnd, 0.0f, 100.0f);
-            ImGui::SliderFloat("Distance Fog Near", &HeightFogComp->DistanceFogNear, 0.0f, 1000.0f);
-            ImGui::SliderFloat("Distance Fog Far", &HeightFogComp->DistanceFogFar, 0.0f, 10000.0f);
-            ImGui::SliderFloat("Max Opacity", &HeightFogComp->FogMaxOpacity, 0.0f, 1.0f, "%.2f");
+            float FogBaseHeight = HeightFogComp->GetFogBaseHeight();
+            if (ImGui::SliderFloat("Fog Base Height", &FogBaseHeight, HeightFogComp->GetFogZPosition(), 100.0f, "%.2f"))
+            {
+                HeightFogComp->SetFogBaseHeight(FogBaseHeight);
+            }
 
             ImGui::Spacing();
             ImGui::Text("Color Properties");
             ImGui::Separator();
 
             // 안개 색상 편집
-            float inScatteringColor[4] = {
-                HeightFogComp->FogInscatteringColor.R,
-                HeightFogComp->FogInscatteringColor.G,
-                HeightFogComp->FogInscatteringColor.B,
-                HeightFogComp->FogInscatteringColor.A
+            float FogColor[3] = {
+                HeightFogComp->GetFogColor().x,
+                HeightFogComp->GetFogColor().y,
+                HeightFogComp->GetFogColor().z,
             };
 
-            if (ImGui::ColorEdit4("Inscattering Color", inScatteringColor))
+            if (ImGui::ColorEdit3("Fog Color", FogColor))
             {
-                HeightFogComp->FogInscatteringColor.R = inScatteringColor[0];
-                HeightFogComp->FogInscatteringColor.G = inScatteringColor[1];
-                HeightFogComp->FogInscatteringColor.B = inScatteringColor[2];
-                HeightFogComp->FogInscatteringColor.A = inScatteringColor[3];
+                HeightFogComp->SetFogColor(FVector(FogColor[0], FogColor[1], FogColor[2]));
             }
-
-            // 방향성 산란 색상 편집
-            float directionalColor[4] = {
-                HeightFogComp->DirectionalInscatteringColor.R,
-                HeightFogComp->DirectionalInscatteringColor.G,
-                HeightFogComp->DirectionalInscatteringColor.B,
-                HeightFogComp->DirectionalInscatteringColor.A
-            };
-
-            if (ImGui::ColorEdit4("Directional Color", directionalColor))
-            {
-                HeightFogComp->DirectionalInscatteringColor.R = directionalColor[0];
-                HeightFogComp->DirectionalInscatteringColor.G = directionalColor[1];
-                HeightFogComp->DirectionalInscatteringColor.B = directionalColor[2];
-                HeightFogComp->DirectionalInscatteringColor.A = directionalColor[3];
-            }
-
-            ImGui::Spacing();
-            ImGui::Text("Directional Properties");
-            ImGui::Separator();
-
-            ImGui::SliderFloat("Directional Exponent", &HeightFogComp->DirectionalInscatteringExponent, 1.0f, 16.0f);
-            ImGui::SliderFloat("Directional Start Distance", &HeightFogComp->DirectionalInscatteringStartDistance, 0.0f, 5000.0f);
             ImGui::TreePop();
         }
 

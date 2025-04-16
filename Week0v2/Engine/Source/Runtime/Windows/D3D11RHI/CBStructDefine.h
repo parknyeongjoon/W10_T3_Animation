@@ -75,24 +75,16 @@ struct alignas(16) FViewportInfo
 
 struct alignas(16) FFogParams
 {
-    float FogDensity; // offset: 0, size: 4
-    float HeightFogStart; // offset: 4, size: 4
-    float HeightFogEnd; // offset: 8, size: 4
-    float MaxOpacity; // offset: 12, size: 4
-    float DistanceFogNear; // offset: 16, size: 4
-    float DistanceFogFar; // offset: 20, size: 4
-    float pad1; // offset: 24, size: 4
-    float pad2; // offset: 28, size: 4
-    FLinearColor InscatteringColor; // offset: 32, size: 16
-    FLinearColor DirectionalInscatteringColor; // offset: 48, size: 16
-    FVector DirectionalLightDirection; // offset: 64, size: 12
-    float DirectionalInscatteringExponent; // offset: 76, size: 4
-    float DirectionalInscatteringStartDistance; // offset: 80, size: 4
-    float pad3; // offset: 84, size: 4
-    float pad4; // offset: 88, size: 4
-    float pad5; // offset: 92, size: 4
-    int IsExponential; // offset: 96, size: 4
-    uint8 pad0[12]; // Padding to end of buffer
+    FVector FogColor;
+    float FogDensity;
+    float FogStart;
+    float FogEnd;
+    float FogZPosition;
+    float FogBaseHeight;
+    float HeightFallOff;
+    int bIsHeightFog;
+    float ScatteringIntensity; // 추가: 빛 산란 강도 [4]
+    float LightShaftDensity; // 추가: 광선 밀도 [4]
 };
 
 struct alignas(16) FMatrixBuffer

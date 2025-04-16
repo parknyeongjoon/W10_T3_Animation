@@ -2,77 +2,70 @@
 
 UHeightFogComponent::UHeightFogComponent()
     : Super()
+    , FogColor(FVector(1.0f, 0.0f, 0.0f))
+    , FogDensity(1.0f)
+    , FogStart(0.0f)
+    , FogEnd(100.0f)
+    , FogBaseHeight(5.0f)
+    , HeightFallOff(0.02f)
+    , bIsHeightFog(true)
+    , ScatteringIntensity(1.0f)
+    , LightShaftDensity(1.0f)
 {
-    bIsActive = true;
-    bIsExponential = true;
-    FogDensity = 0.5f;
-    HeightFogStart = 0.0f;
-    HeightFogEnd = 10.0f;
-    DistanceFogNear = 0.0f;
-    DistanceFogFar = 100.0f;
-    FogMaxOpacity = 0.8f;
-
-    FogInscatteringColor = FLinearColor(1.0f, 1.0f, 1.0f);
-    DirectionalInscatteringColor = FLinearColor(1.0f, 1.0f, 1.0f);
-    DirectionalLightDirection = FVector(0.0f, 0.0f, -1.0f);
-    DirectionalInscatteringExponent = 1.0f;
-    DirectionalInscatteringStartDistance = 100.0f;
 }
 
 UHeightFogComponent::UHeightFogComponent(const UHeightFogComponent& Other)
     : Super(Other)
-    , bIsActive(Other.bIsActive)
-    , bIsExponential(Other.bIsExponential)
-    , FogDensity(Other.FogDensity)
-    , HeightFogStart(Other.HeightFogStart)
-    , HeightFogEnd(Other.HeightFogEnd)
-    , DistanceFogFar(Other.DistanceFogFar)
-    , DistanceFogNear(Other.DistanceFogNear)
-    , FogMaxOpacity(Other.FogMaxOpacity)
-    , FogInscatteringColor(Other.FogInscatteringColor)
-    , DirectionalInscatteringColor(Other.DirectionalInscatteringColor)
-    , DirectionalLightDirection(Other.DirectionalLightDirection)
-    , DirectionalInscatteringExponent(Other.DirectionalInscatteringExponent)
-    , DirectionalInscatteringStartDistance(Other.DirectionalInscatteringStartDistance)
+    , FogColor(Other.GetFogColor())
+    , FogDensity(Other.GetFogDensity())
+    , FogStart(Other.GetFogStart())
+    , FogEnd(Other.GetFogEnd())
+    , FogBaseHeight(Other.GetFogBaseHeight())
+    , HeightFallOff(Other.GetHeightFallOff())
+    , bIsHeightFog(Other.IsHeightFog())
+    , ScatteringIntensity(Other.GetScatteringIntensity())
+    , LightShaftDensity(Other.GetLightShaftDensity())
 {
 }
+
+void UHeightFogComponent::SetFogColor(const FVector& InColor) { FogColor = InColor; }
+void UHeightFogComponent::SetFogDensity(float InDensity) { FogDensity = InDensity; }
+void UHeightFogComponent::SetFogStart(float InStart) { FogStart = InStart; }
+void UHeightFogComponent::SetFogEnd(float InEnd) { FogEnd = InEnd; }
+void UHeightFogComponent::SetFogBaseHeight(float InHeight) { FogBaseHeight = InHeight; }
+void UHeightFogComponent::SetHeightFallOff(float InFalloff) { HeightFallOff = InFalloff; }
+void UHeightFogComponent::SetHeightFog(bool bEnabled) { bIsHeightFog = bEnabled; }
+void UHeightFogComponent::SetScatteringIntensity(float InIntensity) { ScatteringIntensity = InIntensity; }
+void UHeightFogComponent::SetLightShaftDensity(float InDensity) { LightShaftDensity = InDensity; }
 
 void UHeightFogComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 {
     Super::LoadAndConstruct(Info);
     const FHeightFogComponentInfo& HeightFogInfo = static_cast<const FHeightFogComponentInfo&>(Info);
-    bIsActive = HeightFogInfo.bIsActive;
-    bIsExponential = HeightFogInfo.bIsExponential;
+    FogColor = HeightFogInfo.FogColor;
     FogDensity = HeightFogInfo.FogDensity;
-    HeightFogStart = HeightFogInfo.HeightFogStart;
-    HeightFogEnd = HeightFogInfo.HeightFogEnd;
-    FogMaxOpacity = HeightFogInfo.FogMaxOpacity;
-    DistanceFogNear = HeightFogInfo.DistanceFogNear;
-    DistanceFogFar = HeightFogInfo.DistanceFogFar;
-    FogInscatteringColor = HeightFogInfo.FogInscatteringColor;
-    DirectionalInscatteringColor = HeightFogInfo.DirectionalInscatteringColor;
-    DirectionalLightDirection = HeightFogInfo.DirectionalLightDirection;
-    DirectionalInscatteringExponent = HeightFogInfo.DirectionalInscatteringExponent;
-    DirectionalInscatteringStartDistance = HeightFogInfo.DirectionalInscatteringStartDistance;
+    FogStart = HeightFogInfo.FogStart;
+    FogEnd = HeightFogInfo.FogEnd;
+    FogBaseHeight = HeightFogInfo.FogBaseHeight;
+    HeightFallOff = HeightFogInfo.HeightFallOff;
+    bIsHeightFog = HeightFogInfo.bIsHeightFog;
+    ScatteringIntensity = HeightFogInfo.ScatteringIntensity;
+    LightShaftDensity = HeightFogInfo.LightShaftDensity;
 }
 
 std::shared_ptr<FActorComponentInfo> UHeightFogComponent::GetActorComponentInfo()
 {
     std::shared_ptr<FHeightFogComponentInfo> Info = std::make_shared<FHeightFogComponentInfo>();
     Super::GetActorComponentInfo()->Copy(*Info);
-    Info->bIsActive = bIsActive;
-    Info->bIsExponential = bIsExponential;
+    Info->FogColor = FogColor;
     Info->FogDensity = FogDensity;
-    Info->HeightFogStart = HeightFogStart;
-    Info->HeightFogEnd = HeightFogEnd;
-    Info->FogMaxOpacity = FogMaxOpacity;
-    Info->DistanceFogNear = DistanceFogNear;
-    Info->DistanceFogFar = DistanceFogFar;
-    Info->FogInscatteringColor = FogInscatteringColor;
-    Info->DirectionalInscatteringColor = DirectionalInscatteringColor;
-    Info->DirectionalLightDirection = DirectionalLightDirection;
-    Info->DirectionalInscatteringExponent = DirectionalInscatteringExponent;
-    Info->DirectionalInscatteringStartDistance = DirectionalInscatteringStartDistance;
+    Info->FogStart = FogStart;
+    Info->FogEnd = FogEnd;
+    Info->FogBaseHeight = FogBaseHeight;
+    Info->HeightFallOff = HeightFallOff;
+    Info->bIsHeightFog = bIsHeightFog;
+    Info->ScatteringIntensity = ScatteringIntensity;
+    Info->LightShaftDensity = LightShaftDensity;
     return Info;
 
 }
