@@ -134,3 +134,13 @@ void UPrimitiveBatch::AddSphere(const FVector& center, float radius, const FVect
     Spheres.Add(Sphere);
 }
 
+void UPrimitiveBatch::AddLine(const FVector& StartPos, const FVector& Direction, const float Length, const FVector4& Color)
+{
+    FLine Line;
+    Line.Start = StartPos;
+    Line.Direction = Direction;
+    Line.Length = Length;
+    Line.Color = Color;
+    Lines.Add(Line);
+}
+

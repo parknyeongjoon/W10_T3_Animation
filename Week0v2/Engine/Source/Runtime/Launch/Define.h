@@ -388,6 +388,14 @@ struct FSphere
     float Radius;
     FVector4 Color;
 };
+struct FLine
+{
+    FVector Start;
+    float Length;
+    FVector Direction;
+    float pad;
+    FVector4 Color;
+};
 struct FPlane
 {
     // 평면 방정식: Ax + By + Cz + D = 0

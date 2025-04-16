@@ -18,7 +18,7 @@ cbuffer FPrimitiveCounts : register(b2)
     int BoundingBoxCount; // 렌더링할 AABB의 개수
     int SphereCount;
     int ConeCount; // 렌더링할 cone의 개수
-    int pad;
+    int LineCount;
 };
 
 struct FBoundingBoxData
@@ -54,10 +54,20 @@ struct FSphereData
     float4 Color;
 };
 
+struct FLineData
+{
+    float3 Start;
+    float Length;
+    float3 Direction;
+    float pad;
+    float4 Color;
+};
+
 StructuredBuffer<FBoundingBoxData> g_BoundingBoxes : register(t3);
 StructuredBuffer<FConeData> g_ConeData : register(t4);
 StructuredBuffer<FOrientedBoxCornerData> g_OrientedBoxes : register(t5);
 StructuredBuffer<FSphereData> g_SphereData : register(t6);
+StructuredBuffer<FLineData> g_LineData : register(t7);
 
 static const int BB_EdgeIndices[12][2] =
 {
@@ -287,6 +297,18 @@ float3 ComputeSpherePosition(uint globalInstanceID, uint vertexID)
 }
 
 /////////////////////////////////////////////////////////////////////////
+// Line
+/////////////////////////////////////////////////////////////////////////
+float3 ComputeLinePosition(uint globalInstanceID, uint vertexID)
+{
+    FLineData Line = g_LineData[globalInstanceID / 2];
+    float3 start = Line.Start;
+    float3 end = Line.Start + normalize(Line.Direction) * Line.Length;
+
+    return (vertexID == 0) ? start : end;
+}
+
+/////////////////////////////////////////////////////////////////////////
 // 메인 버텍스 셰이더
 /////////////////////////////////////////////////////////////////////////
 PS_INPUT mainVS(VS_INPUT input)
@@ -299,7 +321,9 @@ PS_INPUT mainVS(VS_INPUT input)
     // ConeCount 개수만큼이므로 총 (2 * SegmentCount * ConeCount).
     uint coneInstCnt = ConeCount * 2 * g_ConeData[0].ConeSegmentCount;
     
-    uint sphereInstCnt = SphereCount * 3 * 32;
+    uint sphereInstCnt = SphereCount * 2 * 3 * 32;
+    
+    uint lineInstCnt = LineCount * 2;
 
     // Grid / Axis / AABB 인스턴스 개수 계산
     uint gridLineCount = GridCount; // 그리드 라인
@@ -308,10 +332,12 @@ PS_INPUT mainVS(VS_INPUT input)
 
     // 1) "콘 인스턴스 시작" 지점
     uint coneInstanceStart = gridLineCount + axisCount + aabbInstanceCount;
-    //2) 구 구간 시작 지점
+    // 2) 구 구간 시작 지점
     uint sphereInstanceStart = coneInstanceStart + coneInstCnt;
-    // 3) 그 다음(=구 구간의 끝)이 곧 OBB 시작 지점
-    uint obbStart = sphereInstanceStart + sphereInstCnt;
+    // 3) 선 구간 시작 지점
+    uint lineInstanceStart = sphereInstanceStart + sphereInstCnt;
+    // 4) 그 다음(=선 구간의 끝)이 곧 OBB 시작 지점
+    uint obbStart = lineInstanceStart + lineInstCnt;
 
     // 이제 instanceID를 기준으로 분기
     if (input.instanceID < gridLineCount)
@@ -354,7 +380,7 @@ PS_INPUT mainVS(VS_INPUT input)
         
         color = g_ConeData[coneIndex].Color;
     }
-    else if (input.instanceID < obbStart)
+    else if (input.instanceID < lineInstanceStart)
     {
         //그 다음 sphere 구간
         uint sphereInstanceID = input.instanceID - sphereInstanceStart;
@@ -363,6 +389,14 @@ PS_INPUT mainVS(VS_INPUT input)
         uint sphereIndex = sphereInstanceID / (3 * N);
         
         color = g_SphereData[sphereIndex].Color;
+    }
+    else if (input.instanceID < obbStart)
+    {
+        // 그 다음 line 구간
+        uint lineInstanceID = input.instanceID - lineInstanceStart;
+        pos = ComputeLinePosition(lineInstanceID, input.vertexID);
+        uint lineIndex = lineInstanceID / 2;
+        color = g_LineData[lineIndex].Color;
     }
     else
     {

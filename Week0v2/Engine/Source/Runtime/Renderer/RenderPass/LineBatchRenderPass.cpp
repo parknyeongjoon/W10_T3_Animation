@@ -60,13 +60,15 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
     PrimitiveCounts.ConeCount = PrimitveBatch.GetCones().Num();
     PrimitiveCounts.BoundingBoxCount = PrimitveBatch.GetBoundingBoxes().Num();
     PrimitiveCounts.SphereCount = PrimitveBatch.GetSpheres().Num();
+    PrimitiveCounts.LineCount = PrimitveBatch.GetLines().Num();
     renderResourceManager->UpdateConstantBuffer(TEXT("FPrimitiveCounts"), &PrimitiveCounts);
 
     const std::shared_ptr<FVBIBTopologyMapping> VBIBTopologyMappingInfo = Renderer.GetVBIBTopologyMapping(VBIBTopologyMappingName);
     VBIBTopologyMappingInfo->Bind();
 
     const uint32 vertexCountPerInstance = 2;
-    const uint32 instanceCount = GridParameters.GridCount + 3 + (PrimitveBatch.GetBoundingBoxes().Num() * 12) + (PrimitveBatch.GetCones().Num() * (2 * PrimitveBatch.GetConeSegmentCount()) + (PrimitveBatch.GetSpheres().Num() * 3 * 32) +(12 * PrimitveBatch.GetOrientedBoundingBoxes().Num()));
+    const uint32 instanceCount = GridParameters.GridCount + 3 + (PrimitveBatch.GetBoundingBoxes().Num() * 12) + (PrimitveBatch.GetCones().Num() * (2 * PrimitveBatch.GetConeSegmentCount())
+        + (PrimitveBatch.GetSpheres().Num() * 3 * 32) + (PrimitveBatch.GetLines().Num() * 2) + (12 * PrimitveBatch.GetOrientedBoundingBoxes().Num()));
     Graphics.DeviceContext->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
 
     PrimitveBatch.ClearBatchPrimitives();
@@ -119,6 +121,19 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                         );
                     }
                 }
+                else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Comp))
+                {
+                    FVector Right = DirectionalLight->GetOwner()->GetActorRightVector();
+                    for (int i = 0; i < 4; ++i)
+                    {
+                        UPrimitiveBatch::GetInstance().AddLine(
+                            DirectionalLight->GetComponentLocation() + Right * (-1.5f + i),
+                            DirectionalLight->GetOwner()->GetActorForwardVector(),
+                            15.0f,
+                            DirectionalLight->GetColor()
+                        );
+                    }
+                }
                 if (UPointLightComponent* PointLight = Cast< UPointLightComponent>(Comp))
                 {
                     if (PointLight->GetRadius() > 0)
@@ -141,6 +156,8 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     Graphics.DeviceContext->VSSetShaderResources(5, 1, &FOBBSRV);
     ID3D11ShaderResourceView* FSphereSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Sphere"));
     Graphics.DeviceContext->VSSetShaderResources(6, 1, &FSphereSRV);
+    ID3D11ShaderResourceView* FLineSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Line"));
+    Graphics.DeviceContext->VSSetShaderResources(7, 1, &FLineSRV);
 }
 
 void FLineBatchRenderPass::UpdateBatchResources()
@@ -214,6 +231,28 @@ void FLineBatchRenderPass::UpdateBatchResources()
         if (SB != nullptr && SBSRV != nullptr)
         {
             renderResourceManager->UpdateStructuredBuffer(SB, UPrimitiveBatch::GetInstance().GetSpheres());
+        }
+    }
+
+    {
+        if (UPrimitiveBatch::GetInstance().GetLines().Num() > UPrimitiveBatch::GetInstance().GetAllocatedLineCapacity())
+        {
+            UPrimitiveBatch::GetInstance().SetAllocatedLineCapacity(UPrimitiveBatch::GetInstance().GetLines().Num());
+
+            ID3D11Buffer* SB = nullptr;
+            ID3D11ShaderResourceView* SBSRV = nullptr;
+            SB = renderResourceManager->CreateStructuredBuffer<FLine>(static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedLineCapacity()));
+            SBSRV = renderResourceManager->CreateBufferSRV(SB, static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedLineCapacity()));
+
+            renderResourceManager->AddOrSetStructuredBuffer(TEXT("Line"), SB);
+            renderResourceManager->AddOrSetStructuredBufferSRV(TEXT("Line"), SBSRV);
+        }
+
+        ID3D11Buffer* SB = renderResourceManager->GetStructuredBuffer(TEXT("Line"));
+        ID3D11ShaderResourceView* SBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Line"));
+        if (SB != nullptr && SBSRV != nullptr)
+        {
+            renderResourceManager->UpdateStructuredBuffer(SB, UPrimitiveBatch::GetInstance().GetLines());
         }
     }
 
