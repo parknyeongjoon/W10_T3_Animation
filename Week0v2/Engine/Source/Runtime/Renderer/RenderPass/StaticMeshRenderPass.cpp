@@ -18,6 +18,8 @@
 #include "UObject/UObjectIterator.h"
 #include <Components/SpotLightComponent.h>
 
+#include "LevelEditor/SLevelEditor.h"
+
 extern UEditorEngine* GEngine;
 
 void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
@@ -197,8 +199,16 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     uint32 PointLightCount = 0;
     uint32 SpotLightCount = 0;
 
+    FMatrix View = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
+    FMatrix Projection = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
+    FFrustum CameraFrustum = FFrustum::ExtractFrustum(View*Projection);
+
     for (ULightComponentBase* Comp : LightComponents)
     {
+        if (!IsLightInFrustum(Comp, CameraFrustum))
+        {
+            continue;
+        }
         UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(Comp);
 
         if (PointLightComp)
@@ -234,7 +244,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             continue;
         }
     }
-
+    //UE_LOG(LogLevel::Error, "Point : %d, Spot : %d Dir : %d", PointLightCount, SpotLightCount, DirectionalLightCount);
     LightConstant.NumPointLights = PointLightCount;
     LightConstant.NumDirectionalLights = DirectionalLightCount;
     LightConstant.NumSpotLights = SpotLightCount;
@@ -331,4 +341,93 @@ void FStaticMeshRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewport
     CameraConstants.FarPlane = curEditorViewportClient->GetFarClip();
 
     renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FCameraConstant")), &CameraConstants);
+}
+
+bool FStaticMeshRenderPass::IsLightInFrustum(ULightComponentBase* LightComponent, const FFrustum& CameraFrustum) const
+{
+    // if (dynamic_cast<UDirectionalLightComponent*>(LightComponent) && !dynamic_cast<USpotLightComponent>(LightComponent))
+    // {
+    //     return true;
+    // }
+
+    // 포인트 라이트 : 구 형태 판단
+    if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComponent))
+    {
+        FVector LightCenter = PointLightComp->GetComponentLocation();
+        float Radius = PointLightComp->GetRadius();
+        return CameraFrustum.IntersectsSphere(LightCenter, Radius);
+    }
+
+    // 스팟 라이트의 경우, 보통 구 또는 원뿔의 바운딩 볼륨을 사용합니다.
+    if (USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(LightComponent))
+    {
+        // FVector LightCenter = SpotLightComp->GetComponentLocation();
+        // // 스팟 라이트의 영향을 대략적으로 표현하는 반지름 (필요 시 실제 cone 계산으로 대체)
+        // float ApproxRadius = SpotLightComp->GetOuterConeAngle(); // 예시: cone 각도를 사용 (단위 및 스케일은 조정 필요)
+        // return CameraFrustum.IntersectsSphere(LightCenter, ApproxRadius);
+        return IsSpotLightInFrustum(SpotLightComp, CameraFrustum);
+    }
+    
+    // 그 외의 경우, 보수적으로 true로 반환
+    return true;
+}
+
+bool FStaticMeshRenderPass::IsSpotLightInFrustum(USpotLightComponent* SpotLightComp, const FFrustum& CameraFrustum) const
+{
+    // 스팟 라이트의 Apex(위치)
+    FVector Apex = SpotLightComp->GetComponentLocation();
+
+    // 스팟 라이트의 방향: 스팟 라이트의 오너의 전방벡터를 사용 (정규화된 값)
+    FVector Dir = SpotLightComp->GetOwner()->GetActorForwardVector().Normalize();
+
+    // 스팟 라이트의 범위 (거리) - 일반적으로 Attenuation Radius 또는 Range를 사용
+    float Range = 50;
+
+    // 스팟 라이트의 외부 콘 각도 (단위: 도)를 라디안으로 변환
+    float OuterAngleRad = SpotLightComp->GetOuterConeAngle();
+
+    // 원뿔의 베이스(밑면) 중심과 반지름 계산
+    FVector BaseCenter = Apex + Dir * Range;
+    float BaseRadius = Range * FMath::Tan(OuterAngleRad);
+
+    // 1. Apex(꼭짓점)가 프러스텀 내부에 있으면 전체 원뿔도 영향을 줄 가능성이 높으므로 true
+    if (CameraFrustum.IntersectsPoint(Apex))
+    {
+        return true;
+    }
+
+    // 2. 베이스 중심이 프러스텀 내부에 있으면 true
+    if (CameraFrustum.IntersectsPoint(BaseCenter))
+    {
+        return true;
+    }
+
+    // 3. 베이스 원의 둘레를 여러 샘플링하여 프러스텀 내부 포함 여부 검사
+    //    (정확도를 높이기 위해 샘플 수를 늘릴 수 있습니다)
+    const int SampleCount = 8;  // 예제에서는 8개의 점으로 샘플링
+    // 원뿔 베이스의 평면에 대한 임의의 좌표계를 생성
+    FVector Right = Dir.Cross(FVector(0, 1, 0));
+    if (Right.IsNearlyZero())  // 만약 Dir이 (0,1,0)와 평행하면 다른 벡터로 교차
+    {
+        Right = Dir.Cross(FVector(1, 0, 0));
+    }
+    Right.Normalize();
+    FVector Up = Dir.Cross(Right).Normalize();
+
+    for (int i = 0; i < SampleCount; ++i)
+    {
+        float Angle = (2.f * PI * i) / SampleCount;
+        // 베이스 원의 둘레 상의 샘플 포인트 계산
+        FVector Offset = (Right * FMath::Cos(Angle) + Up * FMath::Sin(Angle)) * BaseRadius;
+        FVector SamplePoint = BaseCenter + Offset;
+
+        // 샘플 포인트가 프러스텀 내부에 있으면 스팟 라이트 영향 영역이 프러스텀에 일부 포함된 것으로 판단
+        if (CameraFrustum.IntersectsPoint(SamplePoint))
+        {
+            return true;
+        }
+    }
+    
+    // 모든 검사에서 프러스텀 내부에 포함된 점이 없으면 false
+    return false;
 }
