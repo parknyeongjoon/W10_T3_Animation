@@ -56,10 +56,11 @@ void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
         Graphics.ReturnRTV();
 
         Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.FrameBufferRTV, nullptr);
-        Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
-
-        Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
         Graphics.DeviceContext->CopyResource(Graphics.DepthCopyTexture, Graphics.DepthStencilBuffer);
+        Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
+
+        Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 
         ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Linear);
         Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
@@ -78,7 +79,7 @@ void FFogRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
         UpdateScreenConstant(InViewportClient);
         UpdateFogConstant(InViewportClient);
 
-        Graphics.DeviceContext->Draw(4, 0);
+        Graphics.DeviceContext->Draw(6, 0);
 
         bRender = false;
     }

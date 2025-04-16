@@ -22,6 +22,7 @@
 #include "Components/SpotLightComponent.h"
 #include "Actors/SpotLightActor.h"
 #include <Actors/ExponentialHeightFog.h>
+#include <UObject/UObjectIterator.h>
 void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
 {
     activeLevelEditor = levelEditor;
@@ -404,6 +405,16 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 }
                 case OBJ_FOG:
                 {
+                    for (const auto& actor : TObjectRange<AExponentialHeightFogActor>())
+                    {
+                        if (actor)
+                        {
+                            actor->Destroy();
+                            TSet<AActor*> Actors = GEngine->GetWorld()->GetSelectedActors();
+                            if(Actors.Contains(actor))
+                                GEngine->GetWorld()->ClearSelectedActors();
+                        }
+                    }
                     SpawnedActor = World->SpawnActor<AExponentialHeightFogActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_FOG"));
                     break;

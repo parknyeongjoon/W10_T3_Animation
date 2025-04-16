@@ -653,7 +653,8 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
 
     if (ActiveViewport->GetViewMode() != EViewModeIndex::VMI_Wireframe
         && ActiveViewport->GetViewMode() != EViewModeIndex::VMI_Normal
-        && ActiveViewport->GetViewMode() != EViewModeIndex::VMI_Depth)
+        && ActiveViewport->GetViewMode() != EViewModeIndex::VMI_Depth
+        && ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Fog))
     {
         FogRenderPass->PrePrepare(); //fog 렌더 여부 결정 및 준비
     }
