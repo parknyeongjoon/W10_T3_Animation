@@ -68,7 +68,6 @@ float4 mainPS(VS_OUT input) : SV_TARGET
     //거리기반 감쇠
     float fogRange = (FogEnd - FogStart) * 0.5;
     float disFactor = saturate((dist - FogStart) / fogRange);
-    disFactor = smoothstep(FogStart, FogStart * 3, dist);
 
     float fogFactor = disFactor;
         
@@ -79,12 +78,18 @@ float4 mainPS(VS_OUT input) : SV_TARGET
         // 높이 기반 (지수 감쇠)
         float heightDiff = (worldPosition.z + CameraPos.z) - FogHeight;
         float heightFactor = saturate(exp(-(heightDiff) * HeightFallOff));
-        fogFactor = fogFactor * heightFactor; //factor가 클수록 fogcolor에 가까워짐
+        fogFactor = saturate((disFactor + heightFactor)/2.0); //factor가 클수록 fogcolor에 가까워짐
     }
     
     float FinalFogFactor = min(saturate(fogFactor * FogDensity), FogMaxOpacity);
 
-    float3 FinalColor = lerp(sceneColor.rgb, FogColor, FinalFogFactor);
+    float transitionStart = FogStart;
+    float transitionEnd = FogStart * 3.0f;
+    float transitionWeight = saturate((dist - transitionStart) / (transitionEnd - transitionStart));
+    
+    float outputFogFactor = lerp(0.0f, FinalFogFactor, transitionWeight);
+    
+    float3 FinalColor = lerp(sceneColor.rgb, FogColor, outputFogFactor);
     
     if (depth == 1) //배경(오브젝트가 아닐때)
     {

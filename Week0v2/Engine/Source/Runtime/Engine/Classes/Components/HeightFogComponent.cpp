@@ -3,7 +3,7 @@
 UHeightFogComponent::UHeightFogComponent()
     : Super()
     , FogColor(FVector(0.7f, 0.2f, 0.2f))
-    , FogDensity(1.0f)
+    , FogDensity(0.7f)
     , FogStart(30.0f)
     , FogEnd(100.0f)
     , FogBaseHeight(5.0f)

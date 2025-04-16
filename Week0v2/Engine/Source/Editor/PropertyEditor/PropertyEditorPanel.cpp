@@ -498,16 +498,25 @@ void PropertyEditorPanel::Render()
                 HeightFogComp->SetMaxOpacity(FogMaxOpacity);
             }
 
-            float FogStart = HeightFogComp->GetFogStart();
-            if (ImGui::SliderFloat("Fog Start", &FogStart, 0.0f, 1000.0f, "%.2f"))
-            {
-                HeightFogComp->SetFogStart(FogStart);
-            }
-
             float FogEnd = HeightFogComp->GetFogEnd();
             if (ImGui::SliderFloat("Fog End", &FogEnd, 0.0f, 1000.0f, "%.2f"))
             {
                 HeightFogComp->SetFogEnd(FogEnd);
+
+                // FogStart가 제한 범위 벗어났다면 자동 보정
+                float maxFogStart = FogEnd / 3.0f;
+                if (HeightFogComp->GetFogStart() > maxFogStart)
+                {
+                    HeightFogComp->SetFogStart(maxFogStart);
+                }
+            }
+
+            // FogStart 제한: 최대값은 항상 FogEnd / 3
+            float FogStart = HeightFogComp->GetFogStart();
+            float maxFogStart = HeightFogComp->GetFogEnd() / 3.0f;
+            if (ImGui::SliderFloat("Fog Start", &FogStart, 0.0f, maxFogStart, "%.2f"))
+            {
+                HeightFogComp->SetFogStart(FogStart);
             }
 
             float FogBaseHeight = HeightFogComp->GetFogBaseHeight();
