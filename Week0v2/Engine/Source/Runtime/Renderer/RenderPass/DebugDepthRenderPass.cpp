@@ -55,7 +55,7 @@ void FDebugDepthRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewport
     CameraConstants.NearPlane = curEditorViewportClient->GetNearClip();
     CameraConstants.FarPlane = curEditorViewportClient->GetFarClip();
 
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FCameraConstant")), &CameraConstants);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FCameraConstant"), &CameraConstants);
 }
 
 void FDebugDepthRenderPass::UpdateScreenConstat(const std::shared_ptr<FViewportClient> InViewportClient)
@@ -70,5 +70,5 @@ void FDebugDepthRenderPass::UpdateScreenConstat(const std::shared_ptr<FViewportC
     ScreenConstans.ViewportSize = { curEditorViewportClient->GetD3DViewport().Width / Width, curEditorViewportClient->GetD3DViewport().Height / Height };
     ScreenConstans.ViewportOffset = { curEditorViewportClient->GetD3DViewport().TopLeftX / Width, curEditorViewportClient->GetD3DViewport().TopLeftY / Height };
 
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FViewportInfo")), &ScreenConstans);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FViewportInfo"), &ScreenConstans);
 }

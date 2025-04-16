@@ -175,7 +175,7 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
     {
         MatrixConstants.isSelected = false;
     }
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixConstants")), &MatrixConstants);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixConstants"), &MatrixConstants);
 }
 
 void FStaticMeshRenderPass::UpdateFlagConstant()
@@ -188,7 +188,7 @@ void FStaticMeshRenderPass::UpdateFlagConstant()
 
     FlagConstant.IsNormal = GEngine->renderer.bIsNormal;
 
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FFlagConstants")), &FlagConstant);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FFlagConstants"), &FlagConstant);
 }
 
 void FStaticMeshRenderPass::UpdateLightConstants()
@@ -242,7 +242,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     LightConstant.NumDirectionalLights = DirectionalLightCount;
     LightConstant.NumSpotLights = SpotLightCount;
     
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FLightingConstants")), &LightConstant);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FLightingConstants"), &LightConstant);
 }
 
 void FStaticMeshRenderPass::UpdateContstantBufferActor(const FVector4 UUID, int32 isSelected)
@@ -254,7 +254,7 @@ void FStaticMeshRenderPass::UpdateContstantBufferActor(const FVector4 UUID, int3
     ConstatntBufferActor.UUID = UUID;
     ConstatntBufferActor.IsSelectedActor = isSelected;
     
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FConstatntBufferActor")), &ConstatntBufferActor);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FConstatntBufferActor"), &ConstatntBufferActor);
 }
 
 void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent)
@@ -274,7 +274,7 @@ void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComp
         UVBuffer.indexV = 0;
     }
     
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FSubUVConstant")), &UVBuffer);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FSubUVConstant"), &UVBuffer);
 }
 
 void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
@@ -291,7 +291,7 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
     MaterialConstants.SpecularScalar = MaterialInfo.SpecularScalar;
     MaterialConstants.EmissiveColor = MaterialInfo.Emissive;
     //normalScale값 있는데 parse만 하고 constant로 넘기고 있진 않음
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMaterialConstants")), &MaterialConstants);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMaterialConstants"), &MaterialConstants);
     
     if (MaterialInfo.bHasTexture == true)
     {

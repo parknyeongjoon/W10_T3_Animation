@@ -48,17 +48,17 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
         MVPConstant.ViewProj = curEditorViewportClient->GetViewMatrix() * curEditorViewportClient->GetProjectionMatrix();
     }
 
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixBuffer")), &MVPConstant);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixBuffer"), &MVPConstant);
 
     const FGridParametersData GridParameters = PrimitveBatch.GetGridParameters();
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FGridParametersData")), &GridParameters);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FGridParametersData"), &GridParameters);
 
     UpdateBatchResources();
 
     FPrimitiveCounts PrimitiveCounts;
     PrimitiveCounts.ConeCount = PrimitveBatch.GetCones().Num();
     PrimitiveCounts.BoundingBoxCount = PrimitveBatch.GetBoundingBoxes().Num();
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FPrimitiveCounts")), &PrimitiveCounts);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FPrimitiveCounts"), &PrimitiveCounts);
 
     const std::shared_ptr<FVBIBTopologyMapping> VBIBTopologyMappingInfo = Renderer.GetVBIBTopologyMapping(VBIBTopologyMappingName);
     VBIBTopologyMappingInfo->Bind();

@@ -153,7 +153,7 @@ void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoCompone
     {
         MatrixConstants.isSelected = false;
     }
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMatrixConstants")), &MatrixConstants);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixConstants"), &MatrixConstants);
 }
 
 void FGizmoRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
@@ -169,7 +169,7 @@ void FGizmoRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialI
     MaterialConstants.SpecularColor = MaterialInfo.Specular;
     MaterialConstants.SpecularScalar = MaterialInfo.SpecularScalar;
     MaterialConstants.EmissiveColor = MaterialInfo.Emissive;
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMaterialConstants")), &MaterialConstants);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMaterialConstants"), &MaterialConstants);
     
     if (MaterialInfo.bHasTexture == true)
     {
