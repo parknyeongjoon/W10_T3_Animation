@@ -236,16 +236,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     float2 tileSize = float2(TILE_SIZE_X, TILE_SIZE_Y);
     
-    // 1. NDC(-1~1) → 스크린 픽셀 좌표 변환
-    // float2 screenPos = (0.5 * ((input.position.xy / input.position.w) + 1.0)) * float2(screenWidth, screenHeight);
-    float2 UVPos = CalculateUVWithClipPosition(input.position);
-    float2 tileCoord = UVPos * tileSize;
-    int tileIndex = tileCoord.y * numTilesX + tileCoord.x;
-    
-    // float2 uv = CalculateUVWithNDCPosition(input.position);
-    // uint2 uvToTile = clamp(uint2(uv.xy * tileSize), uint2(0,0), uint2(tileSize - 1));
-    // int tileIndex = uvToTile.y * TILE_SIZE_X + uvToTile.x;
-    
+    uint2 pixelCoord = uint2(input.position.xy);
+    uint2 tileCoord = pixelCoord / tileSize; // 각 성분별 나눔
+    uint tileIndex = tileCoord.x + tileCoord.y * numTilesX;
     
     if(!IsLit)
     {
