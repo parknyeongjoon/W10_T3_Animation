@@ -211,6 +211,60 @@ void FGraphicsDevice::CreateFrameBuffer()
     RTVs[1] = UUIDFrameBufferRTV;
 }
 
+void FGraphicsDevice::CreateSceneColorResources()
+{
+    D3D11_TEXTURE2D_DESC textureDesc = {};
+    textureDesc.Width = screenWidth;
+    textureDesc.Height = screenHeight;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.Usage = D3D11_USAGE_DEFAULT;
+    textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+    HRESULT hr = Device->CreateTexture2D(&textureDesc, nullptr, &SceneColorBuffer);
+    if (FAILED(hr))
+    {
+        assert(TEXT("SceneColorBuffer creation failed"));
+        return;
+    }
+
+    D3D11_RENDER_TARGET_VIEW_DESC SceneColorRTVDesc = {};
+    SceneColorRTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;      // 색상 포맷
+    SceneColorRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
+
+    hr = Device->CreateRenderTargetView(SceneColorBuffer, &SceneColorRTVDesc, &SceneColorRTV);
+    if (FAILED(hr))
+    {
+        assert(TEXT("SceneColorBuffer creation failed"));
+        return;
+    }
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = 1;
+
+    hr = Device->CreateShaderResourceView(SceneColorBuffer, &srvDesc, &SceneColorSRV);
+    if (FAILED(hr))
+    {
+        assert(TEXT("SceneColorBuffer creation failed"));
+        return;
+    }
+}
+
+void FGraphicsDevice::SwitchRTV()
+{
+    RTVs[0] = SceneColorRTV;
+}
+
+void FGraphicsDevice::ReturnRTV()
+{
+    RTVs[0] = FrameBufferRTV;
+}
+
 void FGraphicsDevice::ReleaseFrameBuffer()
 {
     SAFE_RELEASE(FrameBufferRTV);
@@ -226,6 +280,13 @@ void FGraphicsDevice::ReleaseDepthStencilResources()
     SAFE_RELEASE(DepthStencilBuffer);
 }
 
+void FGraphicsDevice::ReleaseSceneColorResources()
+{
+    SAFE_RELEASE(SceneColorBuffer)
+    SAFE_RELEASE(SceneColorRTV)
+    SAFE_RELEASE(SceneColorSRV)
+}
+
 void FGraphicsDevice::Release() 
 {
     DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
@@ -233,6 +294,7 @@ void FGraphicsDevice::Release()
     ReleaseFrameBuffer();
     ReleaseDepthStencilResources();
     ReleaseDeviceAndSwapChain();
+    ReleaseSceneColorResources();
 }
 
 void FGraphicsDevice::SwapBuffer()
@@ -431,87 +493,6 @@ uint32 FGraphicsDevice::DecodeUUIDColor(FVector4 UUIDColor) {
     uint32_t X = static_cast<uint32_t>(UUIDColor.x);
 
     return W | Z | Y | X;
-}
-
-
-void FGraphicsDevice::CreateSceneColorResources()
-{
-    ID3D11Texture2D* backBuffer = nullptr;
-    HRESULT hr = SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
-
-    if (FAILED(hr) || backBuffer == nullptr)
-        return;
-
-    // 백버퍼 정보 가져오기
-    D3D11_TEXTURE2D_DESC backBufferDesc;
-    backBuffer->GetDesc(&backBufferDesc);
-
-    bool needNewTexture = false;
-
-    if (RenderTargetTexture == nullptr)
-    {
-        needNewTexture = true;
-    }
-    else
-    {
-        // 기존 텍스처 크기 확인
-        D3D11_TEXTURE2D_DESC copyDesc;
-        RenderTargetTexture->GetDesc(&copyDesc);
-
-        if (copyDesc.Width != backBufferDesc.Width || copyDesc.Height != backBufferDesc.Height)
-        {
-            if (SceneColorSRV) SceneColorSRV->Release();
-            SceneColorSRV = nullptr;
-
-            RenderTargetTexture->Release();
-            RenderTargetTexture = nullptr;
-            needNewTexture = true;
-        }
-    }
-
-    // 필요시 새 텍스처 생성
-    if (needNewTexture)
-    {
-        D3D11_TEXTURE2D_DESC texDesc = {};
-        texDesc.Width = backBufferDesc.Width;
-        texDesc.Height = backBufferDesc.Height;
-        texDesc.MipLevels = 1;
-        texDesc.ArraySize = 1;
-        texDesc.Format = backBufferDesc.Format;
-        texDesc.SampleDesc.Count = 1;
-        texDesc.SampleDesc.Quality = 0;
-        texDesc.Usage = D3D11_USAGE_DEFAULT;
-        texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-        texDesc.CPUAccessFlags = 0;
-        texDesc.MiscFlags = 0;
-
-        hr = Device->CreateTexture2D(&texDesc, nullptr, &RenderTargetTexture);
-        if (FAILED(hr))
-        {
-            backBuffer->Release();
-        }
-
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        srvDesc.Format = texDesc.Format;
-        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Texture2D.MostDetailedMip = 0;
-        srvDesc.Texture2D.MipLevels = 1;
-
-        hr = Device->CreateShaderResourceView(RenderTargetTexture, &srvDesc, &SceneColorSRV);
-        if (FAILED(hr))
-        {
-            RenderTargetTexture->Release();
-            RenderTargetTexture = nullptr;
-            backBuffer->Release();
-        }
-    }
-
-    ID3D11RenderTargetView* nullRTV = nullptr;
-    DeviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
-    DeviceContext->CopyResource(RenderTargetTexture, backBuffer);
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
-
-    backBuffer->Release();
 }
 
 bool FGraphicsDevice::CompileVertexShader(const std::filesystem::path& InFilePath, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode)

@@ -8,6 +8,7 @@
 #include "Define.h"
 #include "RenderResourceManager.h"
 #include "RenderPass/DebugDepthRenderPass.h"
+#include "RenderPass/FogRenderPass.h"
 
 class FEditorIconRenderPass;
 class FGizmoRenderPass;
@@ -99,6 +100,7 @@ private:
     std::shared_ptr<FGizmoRenderPass> GizmoRenderPass;
     std::shared_ptr<FDebugDepthRenderPass> DebugDepthRenderPass;
     std::shared_ptr<FEditorIconRenderPass> EditorIconRenderPass;
+    std::shared_ptr<FFogRenderPass> FogRenderPass;
 
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
 };

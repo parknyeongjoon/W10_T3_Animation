@@ -21,6 +21,7 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "Components/SpotLightComponent.h"
 #include "Actors/SpotLightActor.h"
+#include <Actors/ExponentialHeightFog.h>
 void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
 {
     activeLevelEditor = levelEditor;
@@ -398,12 +399,12 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     Text->SetText(L"안녕하세요 Jungle 1");
                     break;
                 }
-                // case OBJ_FOG:
-                // {
-                //     SpawnedActor = World->SpawnActor<AExponentialHeightFog>();
-                //     SpawnedActor->SetActorLabel(TEXT("OBJ_FOG"));
-                //     break;
-                // }
+                case OBJ_FOG:
+                {
+                    SpawnedActor = World->SpawnActor<AExponentialHeightFog>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_FOG"));
+                    break;
+                }
                 case OBJ_CAR:
                 {
                     AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();

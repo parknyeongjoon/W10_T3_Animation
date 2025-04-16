@@ -56,6 +56,9 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     CreateVertexPixelShader(TEXT("Editor"), EditorIconDefines);
     EditorIconRenderPass = std::make_shared<FEditorIconRenderPass>(IconShaderName);
 
+    CreateVertexPixelShader(TEXT("HeightFog"), nullptr);
+    FogRenderPass = std::make_shared<FFogRenderPass>(TEXT("HeightFog"));
+
     // D3D_SHADER_MACRO EditorArrowDefines[] = 
     // {
     //     {"RENDER_ARROW", "1"},
@@ -628,6 +631,8 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     SetViewMode(ActiveViewport->GetViewMode());
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
 
+    FogRenderPass->PrePrepare();
+
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
     {
         StaticMeshRenderPass->Prepare(ActiveViewport);
@@ -642,6 +647,9 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
         DebugDepthRenderPass->Prepare(ActiveViewport);
         DebugDepthRenderPass->Execute(ActiveViewport);
     }
+
+    FogRenderPass->Prepare(ActiveViewport);
+    FogRenderPass->Execute(ActiveViewport);
     
     EditorIconRenderPass->Prepare(ActiveViewport);
     EditorIconRenderPass->Execute(ActiveViewport);

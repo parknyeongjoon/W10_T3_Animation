@@ -200,6 +200,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\ActorEditor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\DirectionalLightActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\ExponentialHeightFog.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBallActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.cpp" />
@@ -255,6 +256,7 @@
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\EditorIconRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FBaseRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FogRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\GizmoRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\LineBatchRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\StaticMeshRenderPass.cpp" />
@@ -326,6 +328,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\AssetDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\DirectionalLightActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\ExponentialHeightFog.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBallActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.h" />
@@ -388,6 +391,7 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\EditorIconRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FBaseRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FogRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\GizmoRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\LineBatchRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\StaticMeshRenderPass.h" />
