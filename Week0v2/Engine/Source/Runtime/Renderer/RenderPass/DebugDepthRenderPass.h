@@ -16,9 +16,5 @@ public:
 
 private:
 	void UpdateCameraConstant(const std::shared_ptr<FViewportClient> InViewportClient);
-    void UpdateScreenConstat(const std::shared_ptr<FViewportClient> InViewportClient);
-
-private:
-    ID3D11Buffer* ScreenConstantBuffer = nullptr;
-    ID3D11Buffer* CameraConstantBuffer = nullptr;
+    void UpdateScreenConstant(std::shared_ptr<FViewportClient> InViewportClient);
 };

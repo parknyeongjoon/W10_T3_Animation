@@ -8,7 +8,7 @@ cbuffer FMaterialConstants : register(b0)
     float3 SpecularColor;
     float SpecularScalar;
     float3 EmissiveColor;
-    float MaterialPad0;
+    uint bHasNormalTexture;
 }
 
 cbuffer FMatrixConstants : register(b1)

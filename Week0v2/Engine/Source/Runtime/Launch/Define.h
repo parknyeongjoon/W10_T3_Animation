@@ -385,6 +385,13 @@ struct FCone
 
 };
 
+struct FSphere
+{
+    FVector Center; 
+    float Radius;
+    FVector4 Color;
+};
+
 // !NOTE : 최대 광원 수 제한
 #define MAX_DIRECTIONAL_LIGHTS 4
 #define MAX_POINT_LIGHTS 16

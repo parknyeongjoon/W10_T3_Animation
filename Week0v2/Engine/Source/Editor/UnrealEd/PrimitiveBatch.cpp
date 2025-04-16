@@ -125,3 +125,12 @@ void UPrimitiveBatch::AddCone(const FVector& center, float radius, float height,
     Cones.Add(cone);
 }
 
+void UPrimitiveBatch::AddSphere(const FVector& center, float radius, const FVector4& color)
+{
+    FSphere Sphere;
+    Sphere.Center = center;
+    Sphere.Radius = radius;
+    Sphere.Color = color;
+    Spheres.Add(Sphere);
+}
+

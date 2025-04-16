@@ -16,9 +16,9 @@ cbuffer FGridParametersData : register(b1)
 cbuffer FPrimitiveCounts : register(b2)
 {
     int BoundingBoxCount; // 렌더링할 AABB의 개수
-    int pad;
+    int SphereCount;
     int ConeCount; // 렌더링할 cone의 개수
-    int pad1;
+    int pad;
 };
 
 struct FBoundingBoxData
@@ -47,9 +47,17 @@ struct FOrientedBoxCornerData
     float3 corners[8]; // 회전/이동 된 월드 공간상의 8꼭짓점
 };
 
+struct FSphereData
+{
+    float3 Center; 
+    float Radius; 
+    float4 Color;
+};
+
 StructuredBuffer<FBoundingBoxData> g_BoundingBoxes : register(t3);
 StructuredBuffer<FConeData> g_ConeData : register(t4);
 StructuredBuffer<FOrientedBoxCornerData> g_OrientedBoxes : register(t5);
+StructuredBuffer<FSphereData> g_SphereData : register(t6);
 
 static const int BB_EdgeIndices[12][2] =
 {
@@ -236,6 +244,49 @@ float3 ComputeOrientedBoxPosition(uint obIndex, uint edgeIndex, uint vertexID)
 }
 
 /////////////////////////////////////////////////////////////////////////
+// Sphere
+/////////////////////////////////////////////////////////////////////////
+float3 ComputeSpherePosition(uint globalInstanceID, uint vertexID)
+{
+    // 세 평면마다 N개의 선분 → 전체 인스턴스 수 = 3 * N
+    int N = 32;
+
+    uint ringIndex = globalInstanceID / N; // 0: XY, 1: YZ, 2: XZ
+    uint segmentIndex = globalInstanceID % N; // 0 ~ N-1
+    
+    FSphereData sphere = g_SphereData[globalInstanceID / (3 * N)]; // 인스턴스 그룹 당 하나의 구 정보
+
+    float radius = sphere.Radius;
+    float3 center = sphere.Center;
+
+    float angle0 = segmentIndex * 6.2831853 / N;
+    float angle1 = ((segmentIndex + 1) % N) * 6.2831853 / N;
+
+    float3 p0, p1;
+
+    if (ringIndex == 0)
+    {
+        // XY 평면 원
+        p0 = center + float3(cos(angle0), sin(angle0), 0) * radius;
+        p1 = center + float3(cos(angle1), sin(angle1), 0) * radius;
+    }
+    else if (ringIndex == 1)
+    {
+        // YZ 평면 원
+        p0 = center + float3(0, cos(angle0), sin(angle0)) * radius;
+        p1 = center + float3(0, cos(angle1), sin(angle1)) * radius;
+    }
+    else
+    {
+        // XZ 평면 원
+        p0 = center + float3(cos(angle0), 0, sin(angle0)) * radius;
+        p1 = center + float3(cos(angle1), 0, sin(angle1)) * radius;
+    }
+
+    return (vertexID == 0) ? p0 : p1;
+}
+
+/////////////////////////////////////////////////////////////////////////
 // 메인 버텍스 셰이더
 /////////////////////////////////////////////////////////////////////////
 PS_INPUT mainVS(VS_INPUT input)
@@ -247,6 +298,8 @@ PS_INPUT mainVS(VS_INPUT input)
     // Cone 하나당 (2 * SegmentCount) 선분.
     // ConeCount 개수만큼이므로 총 (2 * SegmentCount * ConeCount).
     uint coneInstCnt = ConeCount * 2 * g_ConeData[0].ConeSegmentCount;
+    
+    uint sphereInstCnt = SphereCount * 3 * 32;
 
     // Grid / Axis / AABB 인스턴스 개수 계산
     uint gridLineCount = GridCount; // 그리드 라인
@@ -255,8 +308,10 @@ PS_INPUT mainVS(VS_INPUT input)
 
     // 1) "콘 인스턴스 시작" 지점
     uint coneInstanceStart = gridLineCount + axisCount + aabbInstanceCount;
-    // 2) 그 다음(=콘 구간의 끝)이 곧 OBB 시작 지점
-    uint obbStart = coneInstanceStart + coneInstCnt;
+    //2) 구 구간 시작 지점
+    uint sphereInstanceStart = coneInstanceStart + coneInstCnt;
+    // 3) 그 다음(=구 구간의 끝)이 곧 OBB 시작 지점
+    uint obbStart = sphereInstanceStart + sphereInstCnt;
 
     // 이제 instanceID를 기준으로 분기
     if (input.instanceID < gridLineCount)
@@ -289,7 +344,7 @@ PS_INPUT mainVS(VS_INPUT input)
         pos = ComputeBoundingBoxPosition(bbInstanceID, bbEdgeIndex, input.vertexID);
         color = float4(1.0, 1.0, 0.0, 1.0); // 노란색
     }
-    else if (input.instanceID < obbStart)
+    else if (input.instanceID < sphereInstanceStart)
     {
         // 그 다음 콘(Cone) 구간
         uint coneInstanceID = input.instanceID - coneInstanceStart;
@@ -298,8 +353,16 @@ PS_INPUT mainVS(VS_INPUT input)
         uint coneIndex = coneInstanceID / (2 * N);
         
         color = g_ConeData[coneIndex].Color;
-   
+    }
+    else if (input.instanceID < obbStart)
+    {
+        //그 다음 sphere 구간
+        uint sphereInstanceID = input.instanceID - sphereInstanceStart;
+        pos = ComputeSpherePosition(sphereInstanceID, input.vertexID);
+        int N = 32;
+        uint sphereIndex = sphereInstanceID / (3 * N);
         
+        color = g_SphereData[sphereIndex].Color;
     }
     else
     {

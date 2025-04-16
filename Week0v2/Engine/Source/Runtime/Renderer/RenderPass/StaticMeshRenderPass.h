@@ -27,6 +27,8 @@ private:
     void UpdateContstantBufferActor(const FVector4 UUID, int32 isSelected);
     static void UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent);
     static void UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo);
+    void UpdateCameraConstant(const std::shared_ptr<FViewportClient>& InViewportClient);
+
 
     TArray<ULightComponentBase*> LightComponents;
     TArray<UStaticMeshComponent*> StaticMesheComponents;

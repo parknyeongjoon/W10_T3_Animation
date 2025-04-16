@@ -28,7 +28,6 @@ struct PS_INPUT
     float4 color : COLOR; // 전달할 색상
     float2 texcoord : TEXCOORD0;
     float3 normal : TEXCOORD1;
-    int bHasTex : TEXCOORD2;
     float3x3 TBN : TEXCOORD3;
 };
 
@@ -258,13 +257,6 @@ PS_INPUT mainVS(VS_INPUT input)
 
     output.TBN = TBN;
     output.normal = normal;
-    output.bHasTex = true;
-    
-    // 노멀 계산 (안전한 역전치 행렬 적용)
-    if (all(input.tangent == float3(1, 0, 0)))
-    {
-        output.bHasTex = false;
-    }
-    
+
     return output;
 }

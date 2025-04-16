@@ -101,7 +101,7 @@ struct alignas(16) FGridParametersData
 struct alignas(16) FPrimitiveCounts
 {
     int BoundingBoxCount; // offset: 0, size: 4
-    int pad; // offset: 4, size: 4
+    int SphereCount; // offset: 4, size: 4
     int ConeCount; // offset: 8, size: 4
     int pad1; // offset: 12, size: 4
 };
@@ -115,7 +115,7 @@ struct alignas(16) FMaterialConstants
     FVector SpecularColor; // offset: 32, size: 12
     float SpecularScalar; // offset: 44, size: 4
     FVector EmissiveColor; // offset: 48, size: 12
-    float MaterialPad0; // offset: 60, size: 4
+    uint32 bHasNormalTexture; // offset: 60, size: 4
 };
 
 struct alignas(16) FLightingConstants
