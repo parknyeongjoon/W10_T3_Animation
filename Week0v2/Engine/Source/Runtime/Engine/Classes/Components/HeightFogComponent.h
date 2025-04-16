@@ -19,9 +19,9 @@ struct FHeightFogComponentInfo : public FPrimitiveComponentInfo
 
     FHeightFogComponentInfo()
         : FPrimitiveComponentInfo()
-        , FogColor(FVector(1.0f, 0.0f ,0.0f))
+        , FogColor(FVector(0.7f, 0.2f, 0.2f))
         , FogDensity(1.0f)
-        , FogStart(0.0f)
+        , FogStart(30.0f)
         , FogEnd(100.0f)
         , FogBaseHeight(5.0f)
         , HeightFallOff(0.02f)

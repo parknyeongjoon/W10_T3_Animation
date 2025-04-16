@@ -492,13 +492,13 @@ void PropertyEditorPanel::Render()
                 HeightFogComp->SetFogDensity(FogDensity);
             }
             float FogStart = HeightFogComp->GetFogStart();
-            if (ImGui::SliderFloat("Fog Start", &FogStart, 0.0f, 100.0f, "%.2f"))
+            if (ImGui::SliderFloat("Fog Start", &FogStart, 0.0f, 1000.0f, "%.2f"))
             {
                 HeightFogComp->SetFogStart(FogStart);
             }
 
             float FogEnd = HeightFogComp->GetFogEnd();
-            if (ImGui::SliderFloat("Fog End", &FogEnd, 0.0f, 100.0f, "%.2f"))
+            if (ImGui::SliderFloat("Fog End", &FogEnd, 0.0f, 1000.0f, "%.2f"))
             {
                 HeightFogComp->SetFogEnd(FogEnd);
             }
@@ -507,6 +507,12 @@ void PropertyEditorPanel::Render()
             if (ImGui::SliderFloat("Fog Base Height", &FogBaseHeight, HeightFogComp->GetFogZPosition(), 100.0f, "%.2f"))
             {
                 HeightFogComp->SetFogBaseHeight(FogBaseHeight);
+            }
+
+            float FogHeightFallOff = HeightFogComp->GetHeightFallOff();
+            if (ImGui::SliderFloat("Fog Height Fall Off", &FogHeightFallOff, 0.0f, 0.1f, "%.3f"))
+            {
+                HeightFogComp->SetHeightFallOff(FogHeightFallOff);
             }
 
             ImGui::Spacing();
