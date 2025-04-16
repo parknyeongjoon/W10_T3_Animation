@@ -161,6 +161,8 @@ void UWorld::DuplicateSeletedActors()
     for (AActor* Actor : SelectedActors)
     {
         AActor* DupedActor = Cast<AActor>(Actor->Duplicate());
+        FString TypeName = DupedActor->GetActorLabel().Left(DupedActor->GetActorLabel().Find("_", ESearchCase::IgnoreCase,ESearchDir::FromEnd));
+        DupedActor->SetActorLabel(TypeName);
         FVector DupedLocation = DupedActor->GetActorLocation();
         DupedActor->SetActorLocation(FVector(DupedLocation.x+50, DupedLocation.y+50, DupedLocation.z));
         Level->GetActors().Add(DupedActor);
@@ -175,7 +177,8 @@ void UWorld::DuplicateSeletedActorsOnLocation()
     for (AActor* Actor : SelectedActors)
     {
         AActor* DupedActor = Cast<AActor>(Actor->Duplicate());
-        FVector DupedLocation = DupedActor->GetActorLocation();
+        FString TypeName = DupedActor->GetActorLabel().Left(DupedActor->GetActorLabel().Find("_", ESearchCase::IgnoreCase,ESearchDir::FromEnd));
+        DupedActor->SetActorLabel(TypeName);
         Level->GetActors().Add(DupedActor);
         Level->PendingBeginPlayActors.Add(DupedActor);
         newSelectedActors.Add(DupedActor);
