@@ -68,7 +68,7 @@ float4 mainPS(VS_OUT input) : SV_TARGET
     //거리기반 감쇠
     float fogRange = (FogEnd - FogStart) * 0.5;
     float disFactor = saturate((dist - FogStart) / fogRange);
-    disFactor = smoothstep(FogStart, FogStart * 1.5, dist);
+    disFactor = smoothstep(FogStart, FogStart * 3, dist);
 
     float fogFactor = disFactor;
         
