@@ -679,14 +679,14 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
         }
     }
 
-    LineBatchRenderPass->Prepare(ActiveViewport);
-    LineBatchRenderPass->Execute(ActiveViewport);
-
     if (FogRenderPass->ShouldRender())
     {
         FogRenderPass->Prepare(ActiveViewport);
         FogRenderPass->Execute(ActiveViewport);
     }
+
+    LineBatchRenderPass->Prepare(ActiveViewport);
+    LineBatchRenderPass->Execute(ActiveViewport);
 
     if (ActiveViewport->GetViewMode() == EViewModeIndex::VMI_Depth)
     {
