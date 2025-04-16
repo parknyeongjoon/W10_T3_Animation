@@ -642,16 +642,15 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
         DebugDepthRenderPass->Prepare(ActiveViewport);
         DebugDepthRenderPass->Execute(ActiveViewport);
     }
-    
-    EditorIconRenderPass->Prepare(ActiveViewport);
-    EditorIconRenderPass->Execute(ActiveViewport);
 
-    if (!World->GetSelectedActors().IsEmpty())
+    if (World->GetSelectedActor() != nullptr)
     {
         GizmoRenderPass->Prepare(ActiveViewport);
         GizmoRenderPass->Execute(ActiveViewport);
     }
 
+    EditorIconRenderPass->Prepare(ActiveViewport);
+    EditorIconRenderPass->Execute(ActiveViewport);
     
     //Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
     //ChangeViewMode(ActiveViewport->GetViewMode());
