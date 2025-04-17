@@ -1,10 +1,8 @@
-#include "Engine/Source/Editor/PropertyEditor/ShowFlags.h"
 #include "UParticleSubUVComp.h"
 
 #include "EditorEngine.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "Engine/World.h"
-#include "LevelEditor/SLevelEditor.h"
 
 
 UParticleSubUVComp::UParticleSubUVComp()

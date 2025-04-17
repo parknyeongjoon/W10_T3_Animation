@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include "Components/FireBallComponent.h"
 #include "GameFramework/Actor.h"
 
+class UFireBallComponent;
 class UBillboardComponent;
 class UProjectileMovementComponent;
 class UPointLightComponent;

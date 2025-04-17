@@ -88,6 +88,30 @@ public:
 public:
     FString(const std::string& InString) : PrivateString(InString) {}
     FString(const ANSICHAR* InString) : PrivateString(InString) {}
+
+    explicit FString(const std::wstring& InString) : FString(InString.c_str()) {}
+    explicit FString(const WIDECHAR* InString)
+    {
+        if (!InString) // Null 체크
+        {
+            PrivateString = "";
+            return;
+        }
+
+        // Wide 문자열을 UTF-8 기반의 narrow 문자열로 변환
+        int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, InString, -1, nullptr, 0, nullptr, nullptr);
+        if (sizeNeeded <= 0) // 변환 실패 또는 빈 문자열
+        {
+            PrivateString = "";
+            return;
+        }
+
+        // sizeNeeded는 널 종료 문자를 포함한 길이입니다.
+        std::string narrowStr(sizeNeeded - 1, 0); // 널 문자 제외한 크기로 할당
+        WideCharToMultiByte(CP_UTF8, 0, InString, -1, &narrowStr[0], sizeNeeded, nullptr, nullptr);
+
+        PrivateString = narrowStr; // 변환된 문자열로 내부 데이터 초기화
+    }
 #endif
 
 #if USE_WIDECHAR
@@ -138,6 +162,17 @@ public:
 
 	static float ToFloat(const FString& InString);
 
+    static int ToInt(const FString& InString);
+
+    bool ToBool() const;
+
+    /**
+    * 이 문자열의 시작 부분에서 Count개의 문자를 제외한 나머지를 복사하여 반환합니다.
+    * @param Count 제거할 앞부분 문자의 개수.
+    * @return 시작 부분이 제거된 새로운 FString 객체. Count가 0보다 작거나 같으면 원본 복사본을,
+    *         Count가 문자열 길이보다 크거나 같으면 빈 문자열을 반환합니다.
+    */
+    FString RightChop(int32 Count) const;
 public:
     FORCEINLINE int32 Len() const;
     FORCEINLINE bool IsEmpty() const;
@@ -192,6 +227,17 @@ public:
         ESearchDir::Type SearchDir = ESearchDir::FromStart, int32 StartPosition = -1
     ) const;
 
+    void Reserve(int32 CharacterCount);
+    void Resize(int32 CharacterCount);
+
+    [[nodiscard]] FString ToUpper() const &;
+    [[nodiscard]] FString ToUpper() &&;
+    void ToUpperInline();
+
+    [[nodiscard]] FString ToLower() const &;
+    [[nodiscard]] FString ToLower() &&;
+    void ToLowerInline();
+
 public:
     /** ElementType* 로 반환하는 연산자 */
     FORCEINLINE const ElementType* operator*() const;
@@ -223,6 +269,15 @@ public:
         std::wstring wstr = std::wstring(string.PrivateString.begin(), string.PrivateString.end());
         return FWString(wstr);
     }
+
+    // --- Printf 함수 ---
+    /**
+     * @brief 가변 인자를 사용하여 포맷팅된 FString을 생성합니다. printf와 유사하게 동작합니다.
+     * @param Format 포맷 문자열 (TCHAR*).
+     * @param ... 포맷 문자열에 대응하는 가변 인자.
+     * @return 포맷팅된 새로운 FString 객체.
+     */
+    static FString Printf(const ElementType* Format, ...);
 };
 
 template <typename Number>

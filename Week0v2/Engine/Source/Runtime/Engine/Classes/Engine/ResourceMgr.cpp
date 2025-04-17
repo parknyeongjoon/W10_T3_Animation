@@ -1,10 +1,7 @@
 #include "ResourceMgr.h"
-#include <fstream>
-#include <sstream>
 #include <wincodec.h>
 #include <ranges>
 #include "Define.h"
-#include "Components/SkySphereComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "DirectXTK/Include/DDSTextureLoader.h"
 #include "Engine/FLoaderOBJ.h"

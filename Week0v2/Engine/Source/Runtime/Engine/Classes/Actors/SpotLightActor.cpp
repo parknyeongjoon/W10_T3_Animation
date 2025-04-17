@@ -1,6 +1,7 @@
 #include "SpotLightActor.h"
-#include "Components/SpotLightComponent.h"
-#include "Components/UBillboardComponent.h"
+
+#include "Components/LightComponents/SpotLightComponent.h"
+#include "Components/PrimitiveComponents/UBillboardComponent.h"
 
 ASpotLightActor::ASpotLightActor()
 {

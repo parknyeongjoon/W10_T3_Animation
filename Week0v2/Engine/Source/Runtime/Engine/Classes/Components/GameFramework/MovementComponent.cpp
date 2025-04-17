@@ -1,6 +1,6 @@
 #include "MovementComponent.h"
 
-#include "Components/PrimitiveComponent.h"
+#include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "GameFramework/Actor.h"
 
 UMovementComponent::UMovementComponent()

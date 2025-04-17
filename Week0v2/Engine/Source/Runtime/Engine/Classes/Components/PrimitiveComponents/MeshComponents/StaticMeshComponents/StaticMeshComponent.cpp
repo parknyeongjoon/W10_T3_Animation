@@ -1,12 +1,11 @@
-#include "Components/StaticMeshComponent.h"
+#include "StaticMeshComponent.h"
 
 #include "Engine/World.h"
 #include "Launch/EditorEngine.h"
 #include "UObject/ObjectFactory.h"
 #include "UnrealEd/PrimitiveBatch.h"
-#include "ActorComponentInfo.h"
 #include "Classes/Engine/FLoaderOBJ.h"
-
+#include "Components/Mesh/StaticMesh.h"
 
 UStaticMeshComponent::UStaticMeshComponent(const UStaticMeshComponent& Other)
     : UMeshComponent(Other)
@@ -119,6 +118,15 @@ int UStaticMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayD
     }
     return nIntersections;
 }
+
+void UStaticMeshComponent::SetStaticMesh(UStaticMesh* value)
+{ 
+    staticMesh = value;
+    OverrideMaterials.SetNum(value->GetMaterials().Num());
+    AABB = FBoundingBox(staticMesh->GetRenderData()->BoundingBoxMin, staticMesh->GetRenderData()->BoundingBoxMax);
+    VBIBTopologyMappingName = staticMesh->GetRenderData()->DisplayName;
+}
+
 std::shared_ptr<FActorComponentInfo> UStaticMeshComponent::GetActorComponentInfo()
 {
     std::shared_ptr<FStaticMeshComponentInfo> Info = std::make_shared<FStaticMeshComponentInfo>();

@@ -1,23 +1,23 @@
 #include "PropertyEditorPanel.h"
 
 #include "Engine/World.h"
-#include "Actors/Player.h"
-#include "Components/DirectionalLightComponent.h"
-#include "Components/PointLightComponent.h"
-#include "Components/StaticMeshComponent.h"
-#include "Components/HeightFogComponent.h"
-#include "Components/UTextComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Math/MathUtility.h"
 #include "UnrealEd/ImGuiWidget.h"
 #include "UObject/Casts.h"
-#include <Components/CubeComp.h>
-#include <Components/UParticleSubUVComp.h>
 
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Components/GameFramework/RotatingMovementComponent.h"
-#include <Components/SpotLightComponent.h>
 #include <Math/JungleMath.h>
+
+#include "Components/LightComponents/DirectionalLightComponent.h"
+#include "Components/LightComponents/PointLightComponent.h"
+#include "Components/LightComponents/SpotLightComponent.h"
+#include "Components/Mesh/StaticMesh.h"
+#include "Components/PrimitiveComponents/HeightFogComponent.h"
+#include "Components/PrimitiveComponents/UParticleSubUVComp.h"
+#include "Components/PrimitiveComponents/UTextComponent.h"
+#include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/CubeComp.h"
 
 void PropertyEditorPanel::Render()
 {
@@ -715,7 +715,7 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
         const TMap<FWString, UStaticMesh*> Meshes = FManagerOBJ::GetStaticMeshes();
         if (ImGui::BeginCombo("##StaticMesh", GetData(PreviewName), ImGuiComboFlags_None))
         {
-            for (auto Mesh : Meshes)
+            for (const auto Mesh : Meshes)
             {
                 if (ImGui::Selectable(GetData(Mesh.Value->GetRenderData()->DisplayName), false))
                 {

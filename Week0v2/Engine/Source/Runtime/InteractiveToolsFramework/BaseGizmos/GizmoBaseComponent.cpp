@@ -1,6 +1,7 @@
 #include "GizmoBaseComponent.h"
 
 #include "EditorEngine.h"
+#include "Components/Mesh/StaticMesh.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "LevelEditor/SLevelEditor.h"

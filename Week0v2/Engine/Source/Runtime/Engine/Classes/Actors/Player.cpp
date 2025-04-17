@@ -6,7 +6,6 @@
 #include "BaseGizmos/GizmoCircleComponent.h"
 #include "BaseGizmos/TransformGizmo.h"
 #include "Camera/CameraComponent.h"
-#include "Components/LightComponent.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Math/JungleMath.h"
 #include "PropertyEditor/ShowFlags.h"
@@ -14,6 +13,7 @@
 #include "UObject/UObjectIterator.h"
 
 #include "EditorEngine.h"
+#include "Components/LightComponents/LightComponentBase.h"
 #include "PropertyEditor/PrimitiveDrawEditor.h"
 #include "UnrealEd/UnrealEd.h"
 

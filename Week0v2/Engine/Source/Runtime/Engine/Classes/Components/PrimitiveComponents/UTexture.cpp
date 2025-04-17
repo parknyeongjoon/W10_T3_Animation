@@ -2,8 +2,6 @@
 #include <wincodec.h>
 
 #include "EditorEngine.h"
-#include "LaunchEngineLoop.h"
-
 
 void UTexture::init(FWString _fileName)
 {

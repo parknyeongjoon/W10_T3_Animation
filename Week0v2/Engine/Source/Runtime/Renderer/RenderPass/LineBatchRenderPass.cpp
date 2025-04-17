@@ -5,12 +5,13 @@
 #include "Renderer/VBIBTopologyMapping.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/PrimitiveBatch.h"
-#include <Actors/SpotLightActor.h>
 #include "Engine/World.h"
-#include <Components/SpotLightComponent.h>
 #include <Math/JungleMath.h>
-#include <Components/PointLightComponent.h>
 
+#include "Components/LightComponents/PointLightComponent.h"
+#include "Components/LightComponents/SpotLightComponent.h"
+
+class USpotLightComponent;
 extern UEditorEngine* GEngine;
 
 FLineBatchRenderPass::FLineBatchRenderPass(const FName& InShaderName)

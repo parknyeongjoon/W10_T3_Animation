@@ -1,5 +1,5 @@
-#include "LightComponent.h"
-#include "UBillboardComponent.h"
+#include "LightComponentBase.h"
+
 #include "Math/JungleMath.h"
 #include "UnrealEd/PrimitiveBatch.h"
 #include "UObject/ObjectFactory.h"
@@ -56,7 +56,7 @@ void ULightComponentBase::PostDuplicate()
 
 std::shared_ptr<FActorComponentInfo> ULightComponentBase::GetActorComponentInfo()
 {
-    std::shared_ptr<FLightComponentInfo> Info = std::make_shared<FLightComponentInfo>();
+    std::shared_ptr<FLightComponentBaseInfo> Info = std::make_shared<FLightComponentBaseInfo>();
     Super::GetActorComponentInfo()->Copy(*Info);
 
     Info->Color = color;
@@ -69,7 +69,7 @@ std::shared_ptr<FActorComponentInfo> ULightComponentBase::GetActorComponentInfo(
 void ULightComponentBase::LoadAndConstruct(const FActorComponentInfo& Info)
 {
     Super::LoadAndConstruct(Info);
-    const FLightComponentInfo& LightInfo = static_cast<const FLightComponentInfo&>(Info);
+    const FLightComponentBaseInfo& LightInfo = static_cast<const FLightComponentBaseInfo&>(Info);
     color = LightInfo.Color;
     Intensity = LightInfo.Intensity;
 }

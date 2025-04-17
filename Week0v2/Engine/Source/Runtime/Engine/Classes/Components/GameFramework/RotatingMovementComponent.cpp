@@ -1,6 +1,6 @@
 #include "RotatingMovementComponent.h"
 
-#include "Components/PrimitiveComponent.h"
+#include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
 

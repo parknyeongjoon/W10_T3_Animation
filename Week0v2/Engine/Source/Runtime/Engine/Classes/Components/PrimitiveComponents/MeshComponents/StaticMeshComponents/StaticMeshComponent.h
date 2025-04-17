@@ -1,6 +1,7 @@
 #pragma once
-#include "Components/MeshComponent.h"
-#include "Mesh/StaticMesh.h"
+#include "Components/PrimitiveComponents/MeshComponents/MeshComponent.h"
+
+class UStaticMesh;
 
 struct FStaticMeshComponentInfo : public FPrimitiveComponentInfo
 {
@@ -58,13 +59,7 @@ public:
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance) override;
     
     UStaticMesh* GetStaticMesh() const { return staticMesh; }
-    void SetStaticMesh(UStaticMesh* value)
-    { 
-        staticMesh = value;
-        OverrideMaterials.SetNum(value->GetMaterials().Num());
-        AABB = FBoundingBox(staticMesh->GetRenderData()->BoundingBoxMin, staticMesh->GetRenderData()->BoundingBoxMax);
-        VBIBTopologyMappingName = staticMesh->GetRenderData()->DisplayName;
-    }
+    void SetStaticMesh(UStaticMesh* value);
 
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo();
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;

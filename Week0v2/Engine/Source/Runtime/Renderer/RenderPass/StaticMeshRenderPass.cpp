@@ -2,10 +2,6 @@
 
 #include "EditorEngine.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
-#include "Components/DirectionalLightComponent.h"
-#include "Components/LightComponent.h"
-#include "Components/PointLightComponent.h"
-#include "Components/SkySphereComponent.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
@@ -15,10 +11,14 @@
 #include "Renderer/VBIBTopologyMapping.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/PrimitiveBatch.h"
-#include "UObject/UObjectIterator.h"
-#include <Components/SpotLightComponent.h>
 
 #include "UnrealClient.h"
+#include "Components/LightComponents/DirectionalLightComponent.h"
+#include "Components/LightComponents/PointLightComponent.h"
+#include "Components/LightComponents/SpotLightComponent.h"
+#include "Components/Material/Material.h"
+#include "Components/Mesh/StaticMesh.h"
+#include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/SkySphereComponent.h"
 #include "Renderer/ComputeShader/ComputeTileLightCulling.h"
 
 #include "LevelEditor/SLevelEditor.h"
