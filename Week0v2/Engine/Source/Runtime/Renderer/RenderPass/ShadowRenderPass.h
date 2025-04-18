@@ -31,7 +31,7 @@ private:
 private:
     TArray<ULightComponentBase*> Lights;
     TArray<UStaticMeshComponent*> StaticMeshComponents;
-    void UpdateCameraConstant(FMatrix Model, FMatrix View, FMatrix Proj);
+    void UpdateCameraConstant(FMatrix Model, FMatrix View, FMatrix Proj, int index);
     bool bRender = false;
-    ID3D11Buffer* CameraConstantBuffer = nullptr;
+    TArray< ID3D11Buffer*> CameraConstantBuffers;
 };

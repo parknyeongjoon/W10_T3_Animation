@@ -16,21 +16,24 @@
 FShadowRenderPass::FShadowRenderPass(const FName& InShaderName)
     :FBaseRenderPass(InShaderName)
 {
-    if (CameraConstantBuffer)
-        return;
     FGraphicsDevice& Graphics = GEngine->graphicDevice;
     D3D11_BUFFER_DESC cbDesc = {};
-    cbDesc.ByteWidth = sizeof(FLightCameraConstant);
-    cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    cbDesc.MiscFlags = 0;
-    cbDesc.StructureByteStride = 0;
-
-    HRESULT hr = Graphics.Device->CreateBuffer(&cbDesc, nullptr, &CameraConstantBuffer);
-    if (FAILED(hr))
+    for (int i = 0; i < 16; ++i)
     {
-        // 에러 처리
+        cbDesc = {};
+        cbDesc.ByteWidth = sizeof(FLightCameraConstant);
+        cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+        cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        cbDesc.MiscFlags = 0;
+        cbDesc.StructureByteStride = 0;
+        ID3D11Buffer* ConstantBuffer = nullptr;
+        HRESULT hr = Graphics.Device->CreateBuffer(&cbDesc, nullptr, &ConstantBuffer);
+        if (FAILED(hr))
+        {
+            // 에러 처리
+        }
+        CameraConstantBuffers.Add(ConstantBuffer);
     }
 }
 
@@ -69,8 +72,18 @@ void FShadowRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClien
 
     Graphics.DeviceContext->PSSetShader(nullptr, nullptr, 0);
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
+
     Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
     Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState());
+    D3D11_VIEWPORT vp = {};
+    vp.TopLeftX = 0;
+    vp.TopLeftY = 0;
+    vp.Width = 1024; // ShadowMap size
+    vp.Height = 1024;
+    vp.MinDepth = 0.0f;
+    vp.MaxDepth = 1.0f;
+    Graphics.DeviceContext->RSSetViewports(1, &vp);
+
     ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
     Graphics.DeviceContext->PSSetShaderResources(0, 1, nullSRV);
 }
@@ -90,7 +103,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
     FFrustum CameraFrustum = FFrustum::ExtractFrustum(CameraView * CameraProjection);
 
     FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f };
-
+    int curLight = 0;
     for (ULightComponentBase* Comp : Lights)
     {
         if (!IsLightInFrustum(Comp, CameraFrustum))
@@ -99,20 +112,14 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
         }
         if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Comp))
         {
+            Prepare(InViewportClient);
             Graphics.DeviceContext->ClearDepthStencilView(
                 SpotLight->GetDSV(),
                 D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
                 1.0f, 0
             );
             Graphics.DeviceContext->ClearRenderTargetView(SpotLight->GetRTV(), ClearColor);
-            D3D11_VIEWPORT vp = {};
-            vp.TopLeftX = 0;
-            vp.TopLeftY = 0;
-            vp.Width = 1024; // ShadowMap size
-            vp.Height = 1024;
-            vp.MinDepth = 0.0f;
-            vp.MaxDepth = 1.0f;
-            Graphics.DeviceContext->RSSetViewports(1, &vp);
+
             Graphics.DeviceContext->OMSetRenderTargets(0, nullptr, SpotLight->GetDSV()); // 렌더 타겟 설정
             View = SpotLight->GetViewMatrix();//GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
             Proj = SpotLight->GetProjectionMatrix();//GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
@@ -122,7 +129,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
                 const OBJ::FStaticMeshRenderData* renderData = StaticMesh->GetStaticMesh()->GetRenderData();
                 if (renderData == nullptr) continue;
                 Model = StaticMesh->GetWorldMatrix();
-                UpdateCameraConstant(Model, View, Proj);
+                UpdateCameraConstant(Model, View, Proj, curLight);
                 // VIBuffer Bind
                 const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(StaticMesh->GetVBIBTopologyMappingName());
                 VBIBTopMappingInfo->Bind();
@@ -154,13 +161,14 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
             Graphics.DeviceContext->CopyResource(Graphics.DepthCopyTexture, Graphics.DepthStencilBuffer);
             Graphics.DeviceContext->PSSetShaderResources(0, 1, &ShadowMap);
             Graphics.DeviceContext->Draw(4, 0);
+            curLight += 1;
         }
     }
     Graphics.DeviceContext->RSSetViewports(1, &curEditorViewportClient->GetD3DViewport());
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView);
 }
 
-void FShadowRenderPass::UpdateCameraConstant(FMatrix Model, FMatrix View, FMatrix Proj)
+void FShadowRenderPass::UpdateCameraConstant(FMatrix Model, FMatrix View, FMatrix Proj, int index)
 {
     const FGraphicsDevice& Graphics = GEngine->graphicDevice;
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
@@ -170,9 +178,9 @@ void FShadowRenderPass::UpdateCameraConstant(FMatrix Model, FMatrix View, FMatri
     CameraConstants.View = View;
     CameraConstants.Proj = Proj;
 
-    renderResourceManager->UpdateConstantBuffer(CameraConstantBuffer, &CameraConstants);
+    renderResourceManager->UpdateConstantBuffer(CameraConstantBuffers[index], &CameraConstants);
 
-    Graphics.DeviceContext->VSSetConstantBuffers(0, 1, &CameraConstantBuffer);
+    Graphics.DeviceContext->VSSetConstantBuffers(0, 1, &CameraConstantBuffers[index]);
 }
 
 bool FShadowRenderPass::IsLightInFrustum(ULightComponentBase* LightComponent, const FFrustum& CameraFrustum) const
