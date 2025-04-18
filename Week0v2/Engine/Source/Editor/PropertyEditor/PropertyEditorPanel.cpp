@@ -1,23 +1,23 @@
 #include "PropertyEditorPanel.h"
 
 #include "Engine/World.h"
-#include "Actors/Player.h"
-#include "Components/DirectionalLightComponent.h"
-#include "Components/PointLightComponent.h"
-#include "Components/StaticMeshComponent.h"
-#include "Components/HeightFogComponent.h"
-#include "Components/UTextComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Math/MathUtility.h"
 #include "UnrealEd/ImGuiWidget.h"
 #include "UObject/Casts.h"
-#include <Components/CubeComp.h>
-#include <Components/UParticleSubUVComp.h>
 
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Components/GameFramework/RotatingMovementComponent.h"
-#include <Components/SpotLightComponent.h>
 #include <Math/JungleMath.h>
+
+#include "Components/LightComponents/DirectionalLightComponent.h"
+#include "Components/LightComponents/PointLightComponent.h"
+#include "Components/LightComponents/SpotLightComponent.h"
+#include "Components/Mesh/StaticMesh.h"
+#include "Components/PrimitiveComponents/HeightFogComponent.h"
+#include "Components/PrimitiveComponents/UParticleSubUVComp.h"
+#include "Components/PrimitiveComponents/UTextComponent.h"
+#include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/CubeComp.h"
 
 void PropertyEditorPanel::Render()
 {
@@ -208,13 +208,13 @@ void PropertyEditorPanel::Render()
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
         {
+            Location = SceneComp->GetRelativeLocation();
+            Rotation = SceneComp->GetRelativeRotation().ToVector();
+            Scale = SceneComp->GetRelativeScale();
             if (PickedComponent != LastComponent)
             {
                 LastComponent = PickedComponent;
                 bFirstFrame = true;
-                Location = SceneComp->GetRelativeLocation();
-                Rotation = SceneComp->GetRelativeRotation().ToVector();
-                Scale = SceneComp->GetRelativeScale();
             }
 
             bool bChanged = false;
@@ -258,7 +258,7 @@ void PropertyEditorPanel::Render()
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         if (ImGui::TreeNodeEx("Light Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
         {
-            FVector4 currColor = lightObj->GetColor();
+            FVector4 currColor = lightObj->GetLightColor();
 
             float r = currColor.x;
             float g = currColor.y;
@@ -715,7 +715,7 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
         const TMap<FWString, UStaticMesh*> Meshes = FManagerOBJ::GetStaticMeshes();
         if (ImGui::BeginCombo("##StaticMesh", GetData(PreviewName), ImGuiComboFlags_None))
         {
-            for (auto Mesh : Meshes)
+            for (const auto Mesh : Meshes)
             {
                 if (ImGui::Selectable(GetData(Mesh.Value->GetRenderData()->DisplayName), false))
                 {

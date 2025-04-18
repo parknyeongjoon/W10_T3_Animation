@@ -51,10 +51,10 @@ protected:
 
 public:
     float GetRadius() const { return Radius; }
-    void SetRadius(float _newRadius) { Radius = _newRadius; }
+    void SetRadius(const float InRadius) { Radius = InRadius; }
     float GetAttenuation() const { return 1.0f / AttenuationFalloff * (Radius * Radius); }
     float GetAttenuationFalloff() const { return AttenuationFalloff; }
-    void SetAttenuationFallOff(float _attenuationFalloff) { AttenuationFalloff = _attenuationFalloff; }
+    void SetAttenuationFallOff(const float InAttenuationFalloff) { AttenuationFalloff = InAttenuationFalloff; }
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;

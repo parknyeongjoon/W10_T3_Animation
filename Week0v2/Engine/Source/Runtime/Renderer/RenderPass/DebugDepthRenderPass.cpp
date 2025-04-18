@@ -4,7 +4,6 @@
 #include "D3D11RHI/CBStructDefine.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "Renderer/VBIBTopologyMapping.h"
-#include "Components/Quad.h"
 
 void FDebugDepthRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {

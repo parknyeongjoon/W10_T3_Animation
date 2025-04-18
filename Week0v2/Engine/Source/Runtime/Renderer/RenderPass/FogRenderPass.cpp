@@ -1,9 +1,10 @@
 #include "FogRenderPass.h"
 #include <Define.h>
 #include <EditorEngine.h>
-#include <Components/QuadTexture.h>
 #include <UObject/UObjectIterator.h>
 #include <D3D11RHI/CBStructDefine.h>
+
+#include "Components/PrimitiveComponents/HeightFogComponent.h"
 #include "UnrealEd/EditorViewportClient.h"
 
 FFogRenderPass::FFogRenderPass(const FName& InShaderName)

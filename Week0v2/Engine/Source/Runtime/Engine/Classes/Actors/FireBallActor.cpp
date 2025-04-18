@@ -1,8 +1,9 @@
 ﻿#include "FireBallActor.h"
 
-#include "Components/PointLightComponent.h"
 #include "Components/GameFramework/ProjectileMovementComponent.h"
-#include "Components/UBillboardComponent.h"
+#include "Components/LightComponents/PointLightComponent.h"
+#include "Components/PrimitiveComponents/UBillboardComponent.h"
+#include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/FireBallComponent.h"
 
 AFireBallActor::AFireBallActor()
     : Super()
