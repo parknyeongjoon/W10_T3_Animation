@@ -63,16 +63,16 @@ public:
     FVector4 GetColor() const;
 
 protected:
-    FVector4 color = { 1, 1, 1, 1 }; // RGBA
+    FVector4 LightColor = { 1, 1, 1, 1 }; // RGBA
     float Intensity = 1.0f;
     bool bCastShadows = false;
     
 public:
-    FVector4 GetColor() {return color;}
+    FVector4 GetLightColor() const { return LightColor; }
     float GetIntensity() const { return Intensity; }
     void SetIntensity(float InIntensity) { Intensity = InIntensity; }
     bool CanCastShadows() const { return bCastShadows; }
-    void SetCanCastShadows(const bool InbCastShadows) { bCastShadows = InbCastShadows; }
+    void SetCastShadows(const bool InbCastShadows) { bCastShadows = InbCastShadows; }
 public:
     // duplictae
     virtual UObject* Duplicate() const override;

@@ -10,12 +10,12 @@ ULightComponentBase::ULightComponentBase()
 {
     // FString name = "SpotLight";
     // SetName(name);
-    color = { 1,1,1,1 };
+    LightColor = { 1,1,1,1 };
 }
 
 ULightComponentBase::ULightComponentBase(const ULightComponentBase& Other)
     : Super(Other)
-    , color(Other.color)
+    , LightColor(Other.LightColor)
     , Intensity(Other.Intensity)
 {
 }
@@ -27,12 +27,12 @@ ULightComponentBase::~ULightComponentBase()
 
 void ULightComponentBase::SetColor(FVector4 newColor)
 {
-    color = newColor;
+    LightColor = newColor;
 }
 
 FVector4 ULightComponentBase::GetColor() const
 {
-    return color;
+    return LightColor;
 }
 
 UObject* ULightComponentBase::Duplicate() const
@@ -59,9 +59,8 @@ std::shared_ptr<FActorComponentInfo> ULightComponentBase::GetActorComponentInfo(
     std::shared_ptr<FLightComponentBaseInfo> Info = std::make_shared<FLightComponentBaseInfo>();
     Super::GetActorComponentInfo()->Copy(*Info);
 
-    Info->Color = color;
+    Info->Color = LightColor;
     Info->Intensity = Intensity;
-    Info->AABB = AABB;
 
     return Info;
 }
@@ -70,7 +69,7 @@ void ULightComponentBase::LoadAndConstruct(const FActorComponentInfo& Info)
 {
     Super::LoadAndConstruct(Info);
     const FLightComponentBaseInfo& LightInfo = static_cast<const FLightComponentBaseInfo&>(Info);
-    color = LightInfo.Color;
+    LightColor = LightInfo.Color;
     Intensity = LightInfo.Intensity;
 }
 

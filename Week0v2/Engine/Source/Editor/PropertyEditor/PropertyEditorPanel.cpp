@@ -258,7 +258,7 @@ void PropertyEditorPanel::Render()
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         if (ImGui::TreeNodeEx("Light Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
         {
-            FVector4 currColor = lightObj->GetColor();
+            FVector4 currColor = lightObj->GetLightColor();
 
             float r = currColor.x;
             float g = currColor.y;

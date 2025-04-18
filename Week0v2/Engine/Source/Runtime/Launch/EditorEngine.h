@@ -3,7 +3,7 @@
 #include "D3D11RHI/GraphicDevice.h"
 #include "Engine/Engine.h"
 #include "Renderer/Renderer.h"
-#include "Engine/ResourceMgr.h"
+#include "Engine/ResourceManager.h"
 
 
 class FSceneMgr;
@@ -43,7 +43,7 @@ private:
 public:
     static FGraphicsDevice graphicDevice;
     static FRenderer renderer;
-    static FResourceMgr resourceMgr;
+    static FResourceManager resourceMgr;
     
     HWND hWnd;
     ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;

@@ -18,7 +18,7 @@ class ULevel;
 
 FGraphicsDevice UEditorEngine::graphicDevice;
 FRenderer UEditorEngine::renderer;
-FResourceMgr UEditorEngine::resourceMgr;
+FResourceManager UEditorEngine::resourceMgr;
 
 UEditorEngine::UEditorEngine()
     : hWnd(nullptr)

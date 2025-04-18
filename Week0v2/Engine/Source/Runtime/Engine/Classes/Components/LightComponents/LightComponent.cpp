@@ -7,6 +7,10 @@ ULightComponent::ULightComponent()
 
 ULightComponent::ULightComponent(const ULightComponent& Other)
     : Super(Other)
+    , ShadowResolutionScale(Other.ShadowResolutionScale)
+    , ShadowBias(Other.ShadowBias)
+    , ShadowSlopeBias(Other.ShadowSlopeBias)
+    , ShadowSharpen(Other.ShadowSharpen)
 {
 }
 
@@ -66,7 +70,10 @@ void ULightComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 UObject* ULightComponent::Duplicate() const
 {
-    return Super::Duplicate();
+    ULightComponentBase* NewComp = FObjectFactory::ConstructObjectFrom<ULightComponentBase>(this);
+    NewComp->DuplicateSubObjects(this);
+    NewComp->PostDuplicate();
+    return NewComp;
 }
 
 void ULightComponent::DuplicateSubObjects(const UObject* Source)
@@ -87,4 +94,9 @@ std::shared_ptr<FActorComponentInfo> ULightComponent::GetActorComponentInfo()
 void ULightComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 {
     Super::LoadAndConstruct(Info);
+    const FLightComponentInfo& LightInfo = static_cast<const FLightComponentInfo&>(Info);
+    ShadowResolutionScale = LightInfo.ShadowResolutionScale;
+    ShadowBias = LightInfo.ShadowBias;
+    ShadowSlopeBias = LightInfo.ShadowSlopeBias;
+    ShadowSharpen = LightInfo.ShadowSharpen;
 }
