@@ -326,14 +326,18 @@ PS_OUTPUT mainPS(PS_INPUT input)
             
             float2 shadowUV = LightViewPos.xy / LightViewPos.w * 0.5 + 0.5;
             shadowUV.y = 1.0 - shadowUV.y;
-
             float worldDepth = LightViewPos.z / LightViewPos.w;
-            
-            float depthFromMap = SpotLightShadowMap[k].Sample(pointSampler, shadowUV).r;
-            
-            if (worldDepth >= depthFromMap + 0.001)
+
+            if(shadowUV.x > 0 && shadowUV.x < 1 &&
+                shadowUV.y > 0 && shadowUV.y < 1 && 
+                worldDepth > 0 && worldDepth < 1)
             {
-                bIsShadow = true;
+                float depthFromMap = SpotLightShadowMap[k].Sample(pointSampler, shadowUV).r;
+            
+                if (worldDepth >= depthFromMap + 0.001)
+                {
+                    bIsShadow = true;
+                }
             }
         }
     }
