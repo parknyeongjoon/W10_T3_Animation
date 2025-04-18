@@ -1,12 +1,11 @@
 #include "RotatingMovementComponent.h"
 
-#include "Components/PrimitiveComponent.h"
+#include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
 
 URotatingMovementComponent::URotatingMovementComponent()
 {
-    RotationRate.z = 180.0f;
 }
 
 URotatingMovementComponent::URotatingMovementComponent(const URotatingMovementComponent& other)

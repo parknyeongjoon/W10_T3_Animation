@@ -2,7 +2,7 @@
 #include "EditorEngine.h"
 #include "Actors/Player.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
-#include "Components/SkySphereComponent.h"
+#include "Components/Mesh/StaticMesh.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"

@@ -1,8 +1,7 @@
 #include "EditorIconRenderPass.h"
 
 #include "EditorEngine.h"
-#include "Components/LightComponent.h"
-#include "Components/UBillboardComponent.h"
+#include "Components/PrimitiveComponents/UBillboardComponent.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"

@@ -5,7 +5,7 @@
 
 class FRenderer;
 class FGraphicsDevice;
-class FResourceMgr
+class FResourceManager
 {
 
 public:
@@ -14,7 +14,8 @@ public:
     HRESULT LoadTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* context, const wchar_t* filename);
     HRESULT LoadTextureFromDDS(ID3D11Device* device, ID3D11DeviceContext* context, const wchar_t* filename);
 
-    std::shared_ptr<FTexture> GetTexture(const FWString& name) const;
+    std::shared_ptr<FTexture> GetTexture(const FWString& name);
 private:
-    TMap<FWString, std::shared_ptr<FTexture>> textureMap;
+    FGraphicsDevice* GraphicDevice = nullptr;
+    TMap<FWString, std::shared_ptr<FTexture>> Textures;
 };

@@ -1,6 +1,9 @@
 #pragma once
 #include "Classes/GameFramework/Actor.h"
-#include <Components/LightComponent.h>
+
+class UBillboardComponent;
+class ULightComponentBase;
+
 class ALight : public AActor
 {
     DECLARE_CLASS(ALight, AActor)

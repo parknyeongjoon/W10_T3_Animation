@@ -1,7 +1,11 @@
 #pragma once
+
+#define _TCHAR_DEFINED
+#include <d3d11.h>
+
 #include "FBaseRenderPass.h"
-#include "Windows/D3D11RHI/GraphicDevice.h"
-#include <Components/HeightFogComponent.h>
+
+class UHeightFogComponent;
 
 class FFogRenderPass : public FBaseRenderPass
 {

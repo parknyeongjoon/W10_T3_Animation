@@ -4,12 +4,17 @@
 #include "Math/JungleMath.h"
 
 USpotLightComponent::USpotLightComponent()
+    : Super()
 {
 
 }
 
 USpotLightComponent::USpotLightComponent(const USpotLightComponent& Other)
+    : Super(Other)
+    , InnerConeAngle(Other.InnerConeAngle)
+    , OuterConeAngle(Other.OuterConeAngle)
 {
+
 }
 
 void USpotLightComponent::SetInnerConeAngle(float Angle)
@@ -36,12 +41,6 @@ UObject* USpotLightComponent::Duplicate() const
 void USpotLightComponent::DuplicateSubObjects(const UObject* Source)
 {
     Super::DuplicateSubObjects(Source);
-    USpotLightComponent* SourceComp = Cast<USpotLightComponent>(Source);
-    if (SourceComp)
-    {
-        InnerConeAngle = SourceComp->InnerConeAngle;
-        OuterConeAngle = SourceComp->OuterConeAngle;
-    }
 }
 
 void USpotLightComponent::PostDuplicate()

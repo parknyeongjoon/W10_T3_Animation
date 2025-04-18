@@ -1,50 +1,47 @@
 #pragma once
-#include "PrimitiveComponent.h"
 #include "Define.h"
+#include "Components/SceneComponent.h"
 #include "UObject/ObjectMacros.h"
 
-class UBillboardComponent;
-
-struct FLightComponentInfo : public FSceneComponentInfo
+struct FLightComponentBaseInfo : public FSceneComponentInfo
 {
-    DECLARE_ACTORCOMPONENT_INFO(FLightComponentInfo);
+    DECLARE_ACTORCOMPONENT_INFO(FLightComponentBaseInfo);
 
     FVector4 Color;
-    FBoundingBox AABB;
     float Intensity;
+    bool bCastShadows;
 
     // ctor
-    FLightComponentInfo()
+    FLightComponentBaseInfo()
         : FSceneComponentInfo()
         , Color(FVector4(1, 1, 1, 1))
-        , AABB(FVector::ZeroVector, FVector::ZeroVector)
         , Intensity(1.0f)
+        , bCastShadows(false)
     {
-        InfoType = TEXT("FLightComponentInfo");
+        InfoType = TEXT("FLightComponentBaseInfo");
         ComponentType = TEXT("ULightComponentBase");
     }
 
     virtual void Copy(FActorComponentInfo& Other) override
     {
-        FSceneComponentInfo::Copy(Other);
-        FLightComponentInfo& LightInfo = static_cast<FLightComponentInfo&>(Other);
+        FLightComponentBaseInfo::Copy(Other);
+        FLightComponentBaseInfo& LightInfo = static_cast<FLightComponentBaseInfo&>(Other);
         LightInfo.Color = Color;
-        LightInfo.AABB = AABB;
         LightInfo.Intensity = Intensity;
+        LightInfo.bCastShadows = bCastShadows;
     }
 
     virtual void Serialize(FArchive& ar) const override
     {
-        FSceneComponentInfo::Serialize(ar);
-        ar << Color << AABB << Intensity;
+        FLightComponentBaseInfo::Serialize(ar);
+        ar << Color << Intensity << bCastShadows;
     }
 
     virtual void Deserialize(FArchive& ar) override
     {
-        FSceneComponentInfo::Deserialize(ar);
-        ar >> Color >> AABB >> Intensity;
+        FLightComponentBaseInfo::Deserialize(ar);
+        ar >> Color >> Intensity >> bCastShadows;
     }
-
 };
 
 class ULightComponentBase : public USceneComponent
@@ -66,14 +63,16 @@ public:
     FVector4 GetColor() const;
 
 protected:
-    FVector4 color = { 1, 1, 1, 1 }; // RGBA
+    FVector4 LightColor = { 1, 1, 1, 1 }; // RGBA
     float Intensity = 1.0f;
+    bool bCastShadows = false;
     
 public:
-    FVector4 GetColor() {return color;}
+    FVector4 GetLightColor() const { return LightColor; }
     float GetIntensity() const { return Intensity; }
-    void SetIntensity(float _intensity) { Intensity = _intensity; }
-
+    void SetIntensity(float InIntensity) { Intensity = InIntensity; }
+    bool CanCastShadows() const { return bCastShadows; }
+    void SetCastShadows(const bool InbCastShadows) { bCastShadows = InbCastShadows; }
 public:
     // duplictae
     virtual UObject* Duplicate() const override;
@@ -83,5 +82,5 @@ public:
 public:
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
-
 };
+

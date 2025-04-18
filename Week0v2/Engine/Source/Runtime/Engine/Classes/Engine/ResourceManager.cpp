@@ -1,16 +1,14 @@
-#include "ResourceMgr.h"
-#include <fstream>
-#include <sstream>
+#include "ResourceManager.h"
 #include <wincodec.h>
 #include <ranges>
 #include "Define.h"
-#include "Components/SkySphereComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "DirectXTK/Include/DDSTextureLoader.h"
 #include "Engine/FLoaderOBJ.h"
 
-void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
+void FResourceManager::Initialize(FRenderer* renderer, FGraphicsDevice* device)
 {
+    GraphicDevice = device;
     //RegisterMesh(renderer, "Quad", quadVertices, sizeof(quadVertices) / sizeof(FVertexSimple), quadInices, sizeof(quadInices)/sizeof(uint32));
 
     //FManagerOBJ::LoadObjStaticMeshAsset("Assets/AxisArrowX.obj");
@@ -24,59 +22,53 @@ void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
     //FManagerOBJ::LoadObjStaticMeshAsset("Assets//AxisCircleZ.obj");
     // FManagerOBJ::LoadObjStaticMeshAsset("Assets/helloBlender.obj");
 
-	LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/ocean_sky.jpg");
-	LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/font.png");
-	LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Texture/font.dds");
-	LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/emart.png");
-	LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/T_Explosion_SubUV.png");
-	LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/UUID_Font.png");
-	LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Texture/UUID_Font.dds");
-	LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png");
-	LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/spotLight.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/Pawn_64x.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/PointLight_64x.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/SpotLight_64x.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/S_LightDirectional.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/S_LightPoint.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/HotReload.png");
+	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/ocean_sky.jpg");
+	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/font.png");
+	LoadTextureFromDDS(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/font.dds");
+	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/emart.png");
+	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/T_Explosion_SubUV.png");
+	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/UUID_Font.png");
+	LoadTextureFromDDS(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/UUID_Font.dds");
+	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png");
+	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/spotLight.png");
 }
 
-void FResourceMgr::Release(FRenderer* renderer)
+void FResourceManager::Release(FRenderer* renderer)
 {
-	for (const auto& Pair : textureMap)
+    for (auto& Pair : Textures)
     {
-		FTexture* texture =	Pair.Value.get();
-		texture->Release();
-	}
-    textureMap.Empty();
+        if (Pair.Value)
+            Pair.Value->Release();
+    }
+    Textures.Empty();
 }
 
-#include <unordered_map>
-
-struct PairHash {
-	template <typename T1, typename T2>
-	std::size_t operator()(const std::pair<T1, T2>& pair) const {
-		return std::hash<T1>()(pair.first) ^ (std::hash<T2>()(pair.second) << 1);
-	}
-};
-struct TupleHash {
-	template <typename T1, typename T2, typename T3>
-	std::size_t operator()(const std::tuple<T1, T2, T3>& tuple) const {
-		std::size_t h1 = std::hash<T1>()(std::get<0>(tuple));
-		std::size_t h2 = std::hash<T2>()(std::get<1>(tuple));
-		std::size_t h3 = std::hash<T3>()(std::get<2>(tuple));
-
-		return h1 ^ (h2 << 1) ^ (h3 << 2);  // 해시 값 섞기
-	}
-};
-
-std::shared_ptr<FTexture> FResourceMgr::GetTexture(const FWString& name) const
+std::shared_ptr<FTexture> FResourceManager::GetTexture(const FWString& name)
 {
-    auto* TempValue = textureMap.Find(name);
-    return TempValue ? *TempValue : nullptr;
+    auto it = Textures.Find(name);
+    if (it != nullptr)
+        return *it;
+
+    // 아직 로드되지 않은 경우, 확장자별로 로드
+    const wchar_t* filename = name.c_str();
+    HRESULT hr = S_OK;
+    if (name.size() >= 4 && _wcsicmp(filename + name.size() - 4, L".dds") == 0)
+    {
+        hr = LoadTextureFromDDS(GraphicDevice->Device, GraphicDevice->DeviceContext, filename);
+    }
+    else
+    {
+        hr = LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, filename);
+    }
+
+    if (FAILED(hr))
+        return nullptr;
+
+    auto newIt = Textures.Find(name);
+    return newIt ? *newIt : nullptr;
 }
 
-HRESULT FResourceMgr::LoadTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* context, const wchar_t* filename)
+HRESULT FResourceManager::LoadTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* context, const wchar_t* filename)
 {
 	IWICImagingFactory* wicFactory = nullptr;
 	IWICBitmapDecoder* decoder = nullptr;
@@ -154,13 +146,16 @@ HRESULT FResourceMgr::LoadTextureFromFile(ID3D11Device* device, ID3D11DeviceCont
 
 	FWString name = FWString(filename);
 
-	textureMap[name] = std::make_shared<FTexture>(TextureSRV, Texture2D, width, height, name);
+	Textures[name] = std::make_shared<FTexture>(TextureSRV, Texture2D, width, height, name);
 
 	Console::GetInstance().AddLog(LogLevel::Warning, "Texture File Load Successs");
+
+    // COM 언인니셜라이즈
+    CoUninitialize();
 	return hr;
 }
 
-HRESULT FResourceMgr::LoadTextureFromDDS(ID3D11Device* device, ID3D11DeviceContext* context, const wchar_t* filename)
+HRESULT FResourceManager::LoadTextureFromDDS(ID3D11Device* device, ID3D11DeviceContext* context, const wchar_t* filename)
 {
 
 	ID3D11Resource* texture = nullptr;
@@ -195,7 +190,7 @@ HRESULT FResourceMgr::LoadTextureFromDDS(ID3D11Device* device, ID3D11DeviceConte
 
 	FWString name = FWString(filename);
 
-	textureMap[name] = std::make_shared<FTexture>(textureView, texture2D, width, height, name);
+	Textures[name] = std::make_shared<FTexture>(textureView, texture2D, width, height, name);
 
 	Console::GetInstance().AddLog(LogLevel::Warning, "Texture File Load Successs");
 

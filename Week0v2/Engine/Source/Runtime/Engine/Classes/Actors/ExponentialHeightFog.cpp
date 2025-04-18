@@ -1,4 +1,5 @@
 #include "ExponentialHeightFog.h"
+#include "Components/PrimitiveComponents/HeightFogComponent.h"
 
 AExponentialHeightFogActor::AExponentialHeightFogActor()
     :Super()

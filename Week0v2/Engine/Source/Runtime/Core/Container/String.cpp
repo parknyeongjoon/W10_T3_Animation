@@ -31,6 +31,74 @@ float FString::ToFloat(const FString& InString)
 	return std::stof(*InString);
 }
 
+int FString::ToInt(const FString& InString)
+{
+    return std::stoi(*InString);
+}
+
+bool FString::ToBool() const
+{
+    // 빈 문자열은 false로 처리
+    if (IsEmpty())
+    {
+        return false;
+    }
+
+    // 가장 일반적인 경우: "true" 또는 "1" (대소문자 무관)
+    // Equals 함수가 이미 대소문자 무시 비교를 지원하므로 활용합니다.
+    if (Equals(TEXT("true"), ESearchCase::IgnoreCase))
+    {
+        return true;
+    }
+    if (Equals(TEXT("1"))) // "1"은 대소문자 구분이 의미 없음
+    {
+        return true;
+    }
+
+    // 그 외: "false" 또는 "0" (대소문자 무관)
+    // 이 경우들도 명시적으로 false를 반환하는 것이 안전합니다.
+    if (Equals(TEXT("false"), ESearchCase::IgnoreCase))
+    {
+        return false;
+    }
+    if (Equals(TEXT("0"))) // "0"도 대소문자 구분이 의미 없음
+    {
+        return false;
+    }
+
+    // 위 조건에 해당하지 않는 모든 다른 문자열은 false로 처리합니다.
+    // (예: "Yes", "No", "On", "Off" 등을 추가로 지원하고 싶다면 여기에 조건을 추가할 수 있습니다.)
+    // UE_LOG(LogTemp, Warning, TEXT("FString::ToBool() : Unrecognized string '%s' treated as false."), **this); // 필요시 경고 로그
+    return false;
+}
+
+FString FString::RightChop(int32 Count) const
+{
+    const int32 MyLen = Len(); // 현재 문자열 길이
+
+    // Count가 0 이하이면 원본 문자열의 복사본을 반환
+    if (Count <= 0)
+    {
+        return *this; // 복사본 반환
+    }
+
+    // Count가 문자열 길이 이상이면 빈 문자열 반환
+    if (Count >= MyLen)
+    {
+        return FString(); // 기본 생성된 빈 FString 반환
+    }
+
+    // std::basic_string::substr(pos)는 위치 pos부터 끝까지의 부분 문자열을 반환합니다.
+    // Count는 제거할 문자의 개수이므로, 부분 문자열은 Count 인덱스부터 시작합니다.
+    // static_cast<size_t>는 substr이 size_t를 인자로 받기 때문에 필요합니다.
+    BaseStringType Substring = PrivateString.substr(static_cast<size_t>(Count));
+
+    // 추출된 부분 문자열로 새로운 FString 객체를 생성하여 반환
+    // std::move를 사용하면 불필요한 복사를 피할 수 있습니다 (C++11 이상).
+    return FString(std::move(Substring));
+}
+
+
 void FString::Empty()
 {
     PrivateString.clear();
@@ -121,9 +189,79 @@ int32 FString::Find(
     }
 }
 
+void FString::Reserve(const int32 CharacterCount)
+{
+    PrivateString.reserve(CharacterCount);
+}
+
+void FString::Resize(const int32 CharacterCount)
+{
+    PrivateString.resize(CharacterCount);
+}
+
+FString FString::ToUpper() const &
+{
+    BaseStringType UpperCaseString = PrivateString;
+    std::ranges::transform(
+        UpperCaseString,
+        UpperCaseString.begin(),
+        [](const ElementType Char) { return std::toupper(Char); }
+    );
+    return FString{std::move(UpperCaseString)};
+}
+
+FString FString::ToUpper() &&
+{
+    std::ranges::transform(
+    PrivateString,
+    PrivateString.begin(),
+    [](const ElementType Char) { return std::toupper(Char); }
+);
+    return std::move(*this);
+}
+
+void FString::ToUpperInline()
+{
+    std::ranges::transform(
+        PrivateString,
+        PrivateString.begin(),
+        [](const ElementType Char) { return std::toupper(Char); }
+    );
+}
+
+FString FString::ToLower() const &
+{
+    BaseStringType LowerCaseString = PrivateString;
+    std::ranges::transform(
+        LowerCaseString,
+        LowerCaseString.begin(),
+        [](const ElementType Char) { return std::tolower(Char); }
+    );
+    return FString{std::move(LowerCaseString)};
+}
+
+FString FString::ToLower() &&
+{
+    std::ranges::transform(
+        PrivateString,
+        PrivateString.begin(),
+        [](const ElementType Char) { return std::tolower(Char); }
+    );
+    return std::move(*this);
+}
+
+void FString::ToLowerInline()
+{
+    std::ranges::transform(
+        PrivateString,
+        PrivateString.begin(),
+        [](const ElementType Char) { return std::tolower(Char); }
+    );
+}
+
 FString FString::Printf(const ElementType* Format, ...)
 {
-    if (!Format) // 포맷 문자열 null 체크
+     if (!Format) // 포맷 문자열 null 체크
     {
         return FString();
     }
@@ -212,4 +350,3 @@ FString FString::Printf(const ElementType* Format, ...)
         }
     }
 }
-

@@ -1,5 +1,5 @@
 #include "Light.h"
-#include "Components/UBillboardComponent.h"
+#include "Components/PrimitiveComponents/UBillboardComponent.h"
 
 ALight::ALight()
     : Super()
