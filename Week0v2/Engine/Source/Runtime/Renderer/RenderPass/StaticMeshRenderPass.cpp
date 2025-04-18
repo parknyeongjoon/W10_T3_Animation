@@ -25,6 +25,21 @@
 
 extern UEditorEngine* GEngine;
 
+FStaticMeshRenderPass::FStaticMeshRenderPass(const FName& InShaderName)
+    :FBaseRenderPass(InShaderName)
+{
+    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+
+    D3D11_SAMPLER_DESC desc = {};
+    desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    desc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+
+    Graphics.Device->CreateSamplerState(&desc, &ShadowMapSampler);
+
+    CreateDummyTexture();
+}
+
 void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
     for (const AActor* actor : InWorld->GetActors())
@@ -72,6 +87,9 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
     
     ID3D11SamplerState* linearSampler = Renderer.GetSamplerState(ESamplerType::Linear);
     Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &linearSampler);
+
+    ID3D11SamplerState* PostProcessSampler = Renderer.GetSamplerState(ESamplerType::PostProcess);
+    Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::PostProcess), 1, &PostProcessSampler);
 }
 
 void FStaticMeshRenderPass::UpdateComputeResource()
@@ -213,6 +231,39 @@ void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewpo
     renderResourceManager->UpdateConstantBuffer(ComputeConstantBuffer, &ComputeConstants);
 }
 
+void FStaticMeshRenderPass::CreateDummyTexture()
+{
+    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    // 1x1 흰색 텍스처
+    uint32_t whitePixel = 0xFFFFFFFF; // RGBA (1.0, 1.0, 1.0, 1.0)
+
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    texDesc.Width = 1;
+    texDesc.Height = 1;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    texDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    texDesc.SampleDesc.Count = 1;
+
+    D3D11_SUBRESOURCE_DATA initData = {};
+    initData.pSysMem = &whitePixel;
+    initData.SysMemPitch = sizeof(uint32_t);
+
+    ID3D11Texture2D* tex = nullptr;
+    HRESULT hr = Graphics.Device->CreateTexture2D(&texDesc, &initData, &tex);
+    if (FAILED(hr)) return;
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = texDesc.Format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = 1;
+
+    hr = Graphics.Device->CreateShaderResourceView(tex, &srvDesc, &DummyWhiteTextureSRV);
+    tex->Release(); // SRV에 참조 복사되므로 해제 OK
+}
+
 void FStaticMeshRenderPass::ClearRenderObjects()
 {
     StaticMesheComponents.Empty();
@@ -256,6 +307,7 @@ void FStaticMeshRenderPass::UpdateFlagConstant()
 void FStaticMeshRenderPass::UpdateLightConstants()
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
     FLightingConstants LightConstant;
     uint32 DirectionalLightCount = 0;
@@ -265,6 +317,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     FMatrix View = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
     FMatrix Projection = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
     FFrustum CameraFrustum = FFrustum::ExtractFrustum(View*Projection);
+    ID3D11ShaderResourceView* ShadowMaps[8] = { nullptr };
 
     for (ULightComponentBase* Comp : LightComponents)
     {
@@ -286,6 +339,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
         }
 
         UDirectionalLightComponent* DirectionalLightComp = Cast<UDirectionalLightComponent>(Comp);
+        
         if (DirectionalLightComp)
         {
             USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(DirectionalLightComp);
@@ -297,6 +351,9 @@ void FStaticMeshRenderPass::UpdateLightConstants()
                 LightConstant.SpotLights[SpotLightCount].Direction = SpotLightComp->GetOwner()->GetActorForwardVector();
                 LightConstant.SpotLights[SpotLightCount].InnerAngle = SpotLightComp->GetInnerConeAngle();
                 LightConstant.SpotLights[SpotLightCount].OuterAngle = SpotLightComp->GetOuterConeAngle();
+                LightConstant.SpotLights[SpotLightCount].View = SpotLightComp->GetViewMatrix();
+                LightConstant.SpotLights[SpotLightCount].Proj = SpotLightComp->GetProjectionMatrix();
+                ShadowMaps[SpotLightCount] = SpotLightComp->GetShadowMap();
                 SpotLightCount++;
                 continue;
             }
@@ -307,6 +364,16 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             continue;
         }
     }
+    for (int i = 0; i < 8; ++i)
+    {
+        if (ShadowMaps[i] == nullptr)
+            if (DummyWhiteTextureSRV == nullptr)
+            {
+                CreateDummyTexture();
+                ShadowMaps[i] = DummyWhiteTextureSRV;
+            }
+    }
+    Graphics.DeviceContext->PSSetShaderResources(3, 8, ShadowMaps);
     //UE_LOG(LogLevel::Error, "Point : %d, Spot : %d Dir : %d", PointLightCount, SpotLightCount, DirectionalLightCount);
     LightConstant.NumPointLights = PointLightCount;
     LightConstant.NumSpotLights = SpotLightCount;

@@ -199,6 +199,7 @@ enum class ESamplerType
     Linear,
     Anisotropic,
     PostProcess,
+    ShadowMap,
     End,
 };
 
@@ -563,4 +564,7 @@ struct FSpotLight
 
     float OuterAngle;
     FVector pad;
+
+    FMatrix View;
+    FMatrix Proj;
 };

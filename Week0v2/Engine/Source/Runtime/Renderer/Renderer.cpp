@@ -245,6 +245,8 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
     {
+        ShadowRenderPass->Prepare(ActiveViewport);
+        ShadowRenderPass->Execute(ActiveViewport);
         //TODO : FLAG로 나누기
         if (CurrentViewMode  == EViewModeIndex::VMI_Lit_Goroud)
         {
@@ -261,8 +263,6 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
             PhongRenderPass->Prepare(ActiveViewport);
             PhongRenderPass->Execute(ActiveViewport);
         }
-        ShadowRenderPass->Prepare(ActiveViewport);
-        ShadowRenderPass->Execute(ActiveViewport);
     }
 
     if (FogRenderPass->ShouldRender())

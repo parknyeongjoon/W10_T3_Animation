@@ -15,9 +15,7 @@ class UStaticMeshComponent;
 class FStaticMeshRenderPass : public FBaseRenderPass
 {
 public:
-    explicit FStaticMeshRenderPass(const FName& InShaderName)
-        : FBaseRenderPass(InShaderName)
-    {}
+    explicit FStaticMeshRenderPass(const FName& InShaderName);
 
     virtual ~FStaticMeshRenderPass() {}
     void AddRenderObjectsToRenderPass(UWorld* InWorld) override;
@@ -25,6 +23,7 @@ public:
     void UpdateComputeResource();
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
     void UpdateComputeConstants(std::shared_ptr<FViewportClient> InViewportClient);
+    void CreateDummyTexture();
 
     void ClearRenderObjects() override;
 private:
@@ -42,4 +41,6 @@ private:
 private:        
     TArray<ULightComponentBase*> LightComponents;
     TArray<UStaticMeshComponent*> StaticMesheComponents;
+    ID3D11ShaderResourceView* DummyWhiteTextureSRV = nullptr;
+    ID3D11SamplerState* ShadowMapSampler = nullptr;
 };

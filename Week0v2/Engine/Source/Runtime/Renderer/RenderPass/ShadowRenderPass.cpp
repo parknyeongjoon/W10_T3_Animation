@@ -18,7 +18,7 @@ FShadowRenderPass::FShadowRenderPass(const FName& InShaderName)
 {
     FGraphicsDevice& Graphics = GEngine->graphicDevice;
     D3D11_BUFFER_DESC cbDesc = {};
-    for (int i = 0; i < 16; ++i)
+    for (int i = 0; i < 8; ++i)
     {
         cbDesc = {};
         cbDesc.ByteWidth = sizeof(FLightCameraConstant);

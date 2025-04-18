@@ -60,10 +60,20 @@ void FRenderResourceManager::LoadStates()
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
     GraphicDevice->Device->CreateSamplerState(&samplerDesc, &SamplerStates[static_cast<uint32>(ESamplerType::PostProcess)]);
 
+    ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+    samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL; // 중요!!
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    GraphicDevice->Device->CreateSamplerState(&samplerDesc, &SamplerStates[static_cast<uint32>(ESamplerType::ShadowMap)]);
+
 	GraphicDevice->BindSamplers(static_cast<uint32>(ESamplerType::Point), 1, &SamplerStates[static_cast<uint32>(ESamplerType::Point)]);
 	GraphicDevice->BindSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &SamplerStates[static_cast<uint32>(ESamplerType::Linear)]);
 	GraphicDevice->BindSamplers(static_cast<uint32>(ESamplerType::Anisotropic), 1, &SamplerStates[static_cast<uint32>(ESamplerType::Anisotropic)]);
 	GraphicDevice->BindSamplers(static_cast<uint32>(ESamplerType::PostProcess), 1, &SamplerStates[static_cast<uint32>(ESamplerType::PostProcess)]);
+    GraphicDevice->BindSamplers(static_cast<uint32>(ESamplerType::ShadowMap), 1, &SamplerStates[static_cast<uint32>(ESamplerType::ShadowMap)]);
 #pragma endregion
 #pragma region rasterize state
     D3D11_RASTERIZER_DESC rsDesc = {};

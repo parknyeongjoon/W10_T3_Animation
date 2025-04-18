@@ -269,6 +269,12 @@ PS_OUTPUT mainPS(PS_INPUT input)
     uint2 tileCoord = pixelCoord / tileSize; // 각 성분별 나눔
     uint tileIndex = tileCoord.x + tileCoord.y * numTilesX;
     
+    if(!IsLit)
+    {
+        output.color = float4(baseColor.rgb, 1.0);
+        return output;
+    }
+    
     float3 Normal = input.normal;
     
     if (bHasNormalTexture)

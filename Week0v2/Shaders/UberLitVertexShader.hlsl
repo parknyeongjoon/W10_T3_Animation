@@ -62,6 +62,9 @@ struct FSpotLight
     
     float OuterAngle;
     float3 pad;
+    
+    row_major float4x4 View;
+    row_major float4x4 Proj;
 };
 
 cbuffer FLightingConstants : register(b1)
