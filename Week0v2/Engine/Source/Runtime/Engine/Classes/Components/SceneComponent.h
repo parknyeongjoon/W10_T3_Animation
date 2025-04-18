@@ -3,14 +3,14 @@
 #include "Math/Quat.h"
 #include "UObject/ObjectMacros.h"
 #include "ActorComponentInfo.h"
+#include "Math/Rotator.h"
 
 struct FSceneComponentInfo : public FActorComponentInfo
 {
     DECLARE_ACTORCOMPONENT_INFO(FSceneComponentInfo);
     
     FVector RelativeLocation;
-    FVector RelativeRotation;
-    FQuat QuatRotation;
+    FRotator RelativeRotation;
     FVector RelativeScale3D;
     FBoundingBox AABB;
 
@@ -18,7 +18,6 @@ struct FSceneComponentInfo : public FActorComponentInfo
         : FActorComponentInfo()
         , RelativeLocation(FVector::ZeroVector)
         , RelativeRotation(FVector::ZeroVector)
-        , QuatRotation(FQuat::Identity())
         , RelativeScale3D(FVector::OneVector)
         , AABB(FBoundingBox(FVector::ZeroVector, FVector::ZeroVector))
     {
@@ -32,7 +31,6 @@ struct FSceneComponentInfo : public FActorComponentInfo
         FSceneComponentInfo& OtherScene = static_cast<FSceneComponentInfo&>(Other);
         OtherScene.RelativeLocation = RelativeLocation;
         OtherScene.RelativeRotation = RelativeRotation;
-        OtherScene.QuatRotation = QuatRotation;
         OtherScene.RelativeScale3D = RelativeScale3D;
         OtherScene.AABB = AABB;
     }
@@ -40,13 +38,13 @@ struct FSceneComponentInfo : public FActorComponentInfo
     virtual void Serialize(FArchive& ar) const override
     {
         FActorComponentInfo::Serialize(ar);
-        ar << RelativeLocation << RelativeRotation << QuatRotation << RelativeScale3D << AABB;
+        ar << RelativeLocation << RelativeRotation << RelativeScale3D << AABB;
     }
 
     virtual void Deserialize(FArchive& ar) override
     {
         FActorComponentInfo::Deserialize(ar);
-        ar >> RelativeLocation >> RelativeRotation >> QuatRotation >> RelativeScale3D >> AABB;
+        ar >> RelativeLocation >> RelativeRotation >> RelativeScale3D >> AABB;
     }
 };
 
@@ -68,59 +66,39 @@ public:
     void AddLocation(FVector _added);
     void AddRotation(FVector _added);
     void AddScale(FVector _added);
+    FVector GetComponentLocation() const;
+    FRotator GetComponentRotation() const;
+    FVector GetComponentScale() const;
+    FMatrix GetScaleMatrix() const;
+    FMatrix GetRotationMatrix() const;
+    FMatrix GetTranslationMatrix() const;
+    FMatrix GetWorldMatrix() const;
 
     FBoundingBox GetBoundingBox() { return AABB; }
     void SetBoundingBox(const FBoundingBox& InAABB) { AABB = InAABB; }
 protected:
     FVector RelativeLocation;
-    FVector RelativeRotation;
-    FQuat QuatRotation;
-    FVector RelativeScale3D;
+    FRotator RelativeRotation;
+    FVector RelativeScale;
 
     USceneComponent* AttachParent = nullptr;
     TArray<USceneComponent*> AttachChildren;
 
     FBoundingBox AABB;
 public:
-    virtual FVector GetWorldRotation();
-    FVector GetWorldScale();
-    FVector GetWorldLocation();
-    FVector GetLocalRotation();
-    FQuat GetQuat() const { return QuatRotation; }
+    PROPERTY(FVector, RelativeLocation)
+    PROPERTY(FRotator, RelativeRotation)
+    PROPERTY(FVector, RelativeScale)
+    
+    void AttachToComponent(USceneComponent* InParent);
 
 #define region
-    FVector GetRelativeLocation() const { return RelativeLocation; }
-    FVector GetRelativeRotation() const { return RelativeRotation; }
-    FQuat GetRelativeQuat() const { return QuatRotation; }
-    FVector GetRelativeScale() const { return RelativeScale3D; }
-    FMatrix GetRelativeTransform() const;
-
-    FVector GetComponentLocation() const;
-    FVector GetComponentRotation() const;
-    FQuat GetComponentQuat() const;
-    FVector GetComponentScale() const;
-    FMatrix GetComponentTransform() const;
-
-    FMatrix GetComponentTranslateMatrix() const;
-    FMatrix GetComponentRotationMatrix() const;
-    FMatrix GetComponentScaleMatrix() const;
-    
-    FVector GetLocalScale() const { return RelativeScale3D; }
+    FVector GetLocalScale() const { return RelativeScale; }
     FVector GetLocalLocation() const { return RelativeLocation; }
-
-
-    void SetRelativeLocation(FVector _newLoc);
-    void SetRelativeRotation(FVector _newRot);
-    void SetRelativeQuat(FQuat _newRot);
-    void SetRelativeScale(FVector _newScale);
+    
     void SetupAttachment(USceneComponent* InParent);
     void DetachFromParent();
 #define endregion
-    void SetLocation(FVector _newLoc) { RelativeLocation = _newLoc; }
-    virtual void SetRotation(FVector _newRot);
-    void SetRotation(FQuat _newRot) { QuatRotation = _newRot; }
-    void SetScale(FVector _newScale) { RelativeScale3D = _newScale; }
-
 public:
     USceneComponent* GetAttachParent() const;
     void SetAttachParent(USceneComponent* InParent);

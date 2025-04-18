@@ -5,6 +5,7 @@
 class FArchive;
 class FString;
 
+enum :uint16 { NAME_SIZE = 256 };
 
 class FName
 {

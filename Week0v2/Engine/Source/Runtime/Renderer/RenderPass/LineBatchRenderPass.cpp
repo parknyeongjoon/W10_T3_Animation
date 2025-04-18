@@ -96,8 +96,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
             {
                 if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Comp))
                 {
-                    const FMatrix Model = JungleMath::CreateModelMatrix(SpotLight->GetComponentLocation(), SpotLight->GetComponentRotation(),
-                        SpotLight->GetComponentScale());
+                    const FMatrix Model = SpotLight->GetWorldMatrix();
                     if (SpotLight->GetOuterConeAngle() > 0) 
                     {
                         UPrimitiveBatch::GetInstance().AddCone(

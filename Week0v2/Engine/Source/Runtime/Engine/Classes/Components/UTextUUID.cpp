@@ -2,8 +2,8 @@
 
 UTextUUID::UTextUUID()
 {
-    SetScale(FVector(0.1f, 0.25f, 0.25f));
-    SetLocation(FVector(0.0f, 0.0f, -0.5f));
+    SetRelativeScale(FVector(0.1f, 0.25f, 0.25f));
+    SetRelativeLocation(FVector(0.0f, 0.0f, -0.5f));
 }
 
 UTextUUID::UTextUUID(const UTextUUID& Other)

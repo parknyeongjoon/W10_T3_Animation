@@ -206,6 +206,15 @@ public:
     void Serialize(FArchive& Ar) const;
     void Deserialize(FArchive& Ar);
 
+    // --- Printf 함수 ---
+    /**
+     * @brief 가변 인자를 사용하여 포맷팅된 FString을 생성합니다. printf와 유사하게 동작합니다.
+     * @param Format 포맷 문자열 (TCHAR*).
+     * @param ... 포맷 문자열에 대응하는 가변 인자.
+     * @return 포맷팅된 새로운 FString 객체.
+     */
+    static FString Printf(const ElementType* Format, ...);
+
     static FString ToFString(const FWString& widestring)
     {
 #if USE_WIDECHAR

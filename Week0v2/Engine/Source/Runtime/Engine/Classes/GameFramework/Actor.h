@@ -79,7 +79,7 @@ public:
 
 public:
     FVector GetActorLocation() const { return RootComponent ? RootComponent->GetComponentLocation() : FVector::ZeroVector; }
-    FVector GetActorRotation() const { return RootComponent ? RootComponent->GetComponentRotation() : FVector::ZeroVector; }
+    FRotator GetActorRotation() const { return RootComponent ? RootComponent->GetComponentRotation() : FRotator(); }
     FVector GetActorScale() const { return RootComponent ? RootComponent->GetComponentScale() : FVector::ZeroVector; }
 
     FVector GetActorForwardVector() const { return RootComponent ? RootComponent->GetForwardVector() : FVector::ForwardVector; }
@@ -87,7 +87,7 @@ public:
     FVector GetActorUpVector() const { return RootComponent ? RootComponent->GetUpVector() : FVector::UpVector; }
 
     bool SetActorLocation(const FVector& NewLocation);
-    bool SetActorRotation(const FVector& NewRotation);
+    bool SetActorRotation(const FRotator& NewRotation) const;
     bool SetActorScale(const FVector& NewScale);
     
     virtual UObject* Duplicate() const override;

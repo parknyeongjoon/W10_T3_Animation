@@ -17,11 +17,11 @@ URotatingMovementComponent::URotatingMovementComponent(const URotatingMovementCo
 
 void URotatingMovementComponent::TickComponent(float DeltaTime)
 {
-    const FVector OldRotation = UpdatedComponent->GetComponentRotation();
-    const FVector DeltaRotation = (RotationRate * DeltaTime);
-    const FVector NewRotation = OldRotation + DeltaRotation;
+    const FRotator OldRotation = UpdatedComponent->GetComponentRotation();
+    const FRotator DeltaRotation = (RotationRate * DeltaTime / 1000.0f);
+    FRotator NewRotation = OldRotation.Add(DeltaRotation.Pitch, DeltaRotation.Yaw, DeltaRotation.Roll);
 
-    UpdatedComponent->SetRotation(NewRotation);
+    UpdatedComponent->SetRelativeRotation(NewRotation);
 }
 
 UObject* URotatingMovementComponent::Duplicate() const

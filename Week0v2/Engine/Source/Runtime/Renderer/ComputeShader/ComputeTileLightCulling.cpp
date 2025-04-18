@@ -130,7 +130,7 @@ void FComputeTileLightCulling::UpdateLightConstants()
         {
             LightConstant.PointLights[PointLightCount].Color = PointLightComp->GetColor();
             LightConstant.PointLights[PointLightCount].Intensity = PointLightComp->GetIntensity();
-            LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetWorldLocation();
+            LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetComponentLocation();
             LightConstant.PointLights[PointLightCount].Radius = PointLightComp->GetRadius();
             LightConstant.PointLights[PointLightCount].AttenuationFalloff = PointLightComp->GetAttenuationFalloff();
             PointLightCount++;

@@ -111,9 +111,7 @@ void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InVi
     
     for (UStaticMeshComponent* staticMeshComp : StaticMesheComponents)
     {
-        const FMatrix Model = JungleMath::CreateModelMatrix(staticMeshComp->GetComponentLocation(), staticMeshComp->GetComponentRotation(),
-                                                    staticMeshComp->GetComponentScale());
-        
+        const FMatrix Model = staticMeshComp->GetWorldMatrix();
         UpdateMatrixConstants(staticMeshComp, View, Proj);
         FVector4 UUIDColor = staticMeshComp->EncodeUUID() / 255.0f ;
         uint32 isSelected = 0;
@@ -225,10 +223,8 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
     // MVP Update
-    const FMatrix Model = JungleMath::CreateModelMatrix(InStaticMeshComponent->GetComponentLocation(), InStaticMeshComponent->GetComponentRotation(),
-                                                        InStaticMeshComponent->GetComponentScale());
+    const FMatrix Model = InStaticMeshComponent->GetWorldMatrix();
     const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
-        
     FMatrixConstants MatrixConstants;
     MatrixConstants.Model = Model;
     MatrixConstants.ViewProj = InView * InProjection;

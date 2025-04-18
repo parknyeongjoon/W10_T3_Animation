@@ -140,8 +140,7 @@ void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoCompone
 {
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
     // MVP Update
-    const FMatrix Model = JungleMath::CreateModelMatrix(InGizmoComponent->GetComponentLocation(), InGizmoComponent->GetComponentRotation(),
-                                                        InGizmoComponent->GetComponentScale());
+    const FMatrix Model = InGizmoComponent->GetWorldMatrix();
     const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
         
     FMatrixConstants MatrixConstants;

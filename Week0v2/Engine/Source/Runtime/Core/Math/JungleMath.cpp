@@ -2,6 +2,7 @@
 #include <DirectXMath.h>
 
 #include "MathUtility.h"
+#include "Rotator.h"
 
 using namespace DirectX;
 FVector4 JungleMath::ConvertV3ToV4(FVector vec3)
@@ -19,10 +20,10 @@ FMatrix JungleMath::CreateModelMatrix(FVector translation, FVector rotation, FVe
 {
     FMatrix Translation = FMatrix::CreateTranslationMatrix(translation);
 
-    FMatrix Rotation = FMatrix::CreateRotation(rotation.x, rotation.y, rotation.z);
+    FMatrix Rotation = FMatrix::CreateRotationMatrix(rotation.x, rotation.y, rotation.z);
     //FMatrix Rotation = JungleMath::EulerToQuaternion(rotation).ToMatrix();
 
-    FMatrix Scale = FMatrix::CreateScale(scale.x, scale.y, scale.z);
+    FMatrix Scale = FMatrix::CreateScaleMatrix(scale.x, scale.y, scale.z);
     return Scale * Rotation * Translation;
 }
 
@@ -30,7 +31,7 @@ FMatrix JungleMath::CreateModelMatrix(FVector translation, FQuat rotation, FVect
 {
     FMatrix Translation = FMatrix::CreateTranslationMatrix(translation);
     FMatrix Rotation = rotation.ToMatrix();
-    FMatrix Scale = FMatrix::CreateScale(scale.x, scale.y, scale.z);
+    FMatrix Scale = FMatrix::CreateScaleMatrix(scale.x, scale.y, scale.z);
     return Scale * Rotation * Translation;
 }
 FMatrix JungleMath::CreateViewMatrix(FVector eye, FVector target, FVector up)
@@ -145,9 +146,9 @@ FVector JungleMath::QuaternionToEuler(const FQuat& quat)
     euler.x = RadToDeg(atan2(sinRoll, cosRoll));
     return euler;
 }
-FVector JungleMath::FVectorRotate(FVector& origin, const FQuat& rotation)
+FVector JungleMath::FVectorRotate(FVector& origin, const FRotator& InRotation)
 {
-    return rotation.RotateVector(origin);
+    return InRotation.ToQuaternion().RotateVector(origin);
 }
 
 FMatrix JungleMath::CreateRotationMatrix(FVector rotation)

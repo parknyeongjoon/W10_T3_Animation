@@ -103,7 +103,7 @@ void PropertyEditorPanel::Render()
                     }
                     PickedComponent = BillboardComponent;
                     BillboardComponent->SetTexture(L"Assets/Texture/Pawn_64x.png");
-                    BillboardComponent->SetLocation(FVector(0.0f, 0.0f, 3.0f));
+                    BillboardComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 3.0f));
                 }
                 //if (ImGui::Selectable("LightComponent"))
                 //{
@@ -146,7 +146,7 @@ void PropertyEditorPanel::Render()
                     PickedComponent = ParticleComponent;
                     ParticleComponent->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
                     ParticleComponent->SetRowColumnCount(6, 6);
-                    ParticleComponent->SetScale(FVector(10.0f, 10.0f, 1.0f));
+                    ParticleComponent->SetRelativeScale(FVector(10.0f, 10.0f, 1.0f));
                     ParticleComponent->Activate();
                 }
                 if (ImGui::Selectable("StaticMeshComponent"))
@@ -213,7 +213,7 @@ void PropertyEditorPanel::Render()
                 LastComponent = PickedComponent;
                 bFirstFrame = true;
                 Location = SceneComp->GetRelativeLocation();
-                Rotation = SceneComp->GetRelativeRotation();
+                Rotation = SceneComp->GetRelativeRotation().ToVector();
                 Scale = SceneComp->GetRelativeScale();
             }
 
@@ -230,9 +230,9 @@ void PropertyEditorPanel::Render()
 
             if (bChanged && !bFirstFrame)
             {
-                SceneComp->SetLocation(Location);
-                SceneComp->SetRotation(Rotation);
-                SceneComp->SetScale(Scale);
+                SceneComp->SetRelativeLocation(Location);
+                SceneComp->SetRelativeRotation(Rotation);
+                SceneComp->SetRelativeScale(Scale);
             }
             
             //always local
