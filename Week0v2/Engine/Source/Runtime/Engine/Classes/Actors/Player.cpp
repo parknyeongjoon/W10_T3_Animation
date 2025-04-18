@@ -532,11 +532,11 @@ void AEditorPlayer::ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* 
     }
     if (cdMode == CDM_LOCAL)
     {
-        pObj->SetRotation(currentRotation * rotationDelta);
+        pObj->SetRelativeQuat(currentRotation * rotationDelta);
     }
     else if (cdMode == CDM_WORLD)
     {
-        pObj->SetRotation(rotationDelta * currentRotation);
+        pObj->SetRelativeQuat(rotationDelta * currentRotation);
     }
 }
 

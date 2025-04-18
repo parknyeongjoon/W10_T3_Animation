@@ -46,7 +46,7 @@ void UProjectileMovementComponent::InitializeComponent()
         {
             if (UpdatedComponent)
             {
-                UpdatedComponent->SetRotation(Velocity); // Warning: Euler rotation not working. need FRotator
+                UpdatedComponent->SetRelativeRotation(Velocity); // Warning: Euler rotation not working. need FRotator
             }
         }
 

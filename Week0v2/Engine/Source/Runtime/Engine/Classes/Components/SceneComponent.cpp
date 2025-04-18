@@ -113,11 +113,11 @@ FVector USceneComponent::GetLocalRotation()
 	return JungleMath::QuaternionToEuler(QuatRotation);
 }
 
-void USceneComponent::SetRotation(FVector _newRot)
-{
-	RelativeRotation = _newRot;
-	QuatRotation = JungleMath::EulerToQuaternion(_newRot);
-}
+//void USceneComponent::SetRotation(FVector _newRot)
+//{
+//	RelativeRotation = _newRot;
+//	QuatRotation = JungleMath::EulerToQuaternion(_newRot);
+//}
 
 FMatrix USceneComponent::GetRelativeTransform() const
 {
