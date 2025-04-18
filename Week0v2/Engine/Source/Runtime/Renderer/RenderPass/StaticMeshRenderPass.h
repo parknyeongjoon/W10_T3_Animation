@@ -43,4 +43,5 @@ private:
     TArray<UStaticMeshComponent*> StaticMesheComponents;
     ID3D11ShaderResourceView* DummyWhiteTextureSRV = nullptr;
     ID3D11SamplerState* ShadowMapSampler = nullptr;
+    ID3D11Buffer* LightConstantBuffer = nullptr;
 };

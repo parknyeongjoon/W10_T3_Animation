@@ -210,7 +210,7 @@ PS_INPUT mainVS(VS_INPUT input)
     
     float4 worldPos = mul(input.position, Model);
     output.position = mul(worldPos, ViewProj);
-    output.worldPos = worldPos.xyz;
+    output.worldPos = float3(worldPos.x, worldPos.y, worldPos.z);
     output.color = input.color;
     output.texcoord = input.texcoord;
     

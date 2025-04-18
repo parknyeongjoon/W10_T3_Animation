@@ -323,18 +323,23 @@ PS_OUTPUT mainPS(PS_INPUT input)
         if (!bIsShadow)
         {
             float4 LightViewPos = WorldToLight(input.worldPos, SpotLights[k].View, SpotLights[k].Proj);
-            float2 shadowUV = LightViewPos.xy / LightViewPos.w * 0.5 + 0.5;
-            float shadowDepth = LightViewPos.z / LightViewPos.w * 0.5 + 0.5;
-
-            float depthFromMap = SpotLightShadowMap[k].Sample(shadowMapSampler, shadowUV).r;
             
-            if(shadowDepth <= depthFromMap)
+            float2 shadowUV = LightViewPos.xy / LightViewPos.w * 0.5 + 0.5;
+            shadowUV.y = 1.0 - shadowUV.y;
+
+            float worldDepth = LightViewPos.z / LightViewPos.w;
+            
+            float depthFromMap = SpotLightShadowMap[k].Sample(pointSampler, shadowUV).r;
+            
+            if (worldDepth >= depthFromMap + 0.001)
+            {
                 bIsShadow = true;
+            }
         }
     }
     
     float4 FinalColor = float4(TotalLight * baseColor.rgb, baseColor.a * TransparencyScalar);
     // 최종 색상 
-    output.color = (bIsShadow) ? FinalColor * float4(0, 0, 0, 1) : FinalColor;
+    output.color = (bIsShadow) ? FinalColor * float4(0.5, 0.5, 0.5, 1) : FinalColor;
     return output;  
 }

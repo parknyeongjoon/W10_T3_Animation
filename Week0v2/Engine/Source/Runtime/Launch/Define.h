@@ -199,7 +199,6 @@ enum class ESamplerType
     Linear,
     Anisotropic,
     PostProcess,
-    ShadowMap,
     End,
 };
 

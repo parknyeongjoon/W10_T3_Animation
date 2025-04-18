@@ -33,11 +33,20 @@ FStaticMeshRenderPass::FStaticMeshRenderPass(const FName& InShaderName)
     D3D11_SAMPLER_DESC desc = {};
     desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
     desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
     desc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
 
     Graphics.Device->CreateSamplerState(&desc, &ShadowMapSampler);
 
     CreateDummyTexture();
+
+    D3D11_BUFFER_DESC constdesc = {};
+    constdesc.ByteWidth = sizeof(FLightingConstants);
+    std::cout<< "sizeof(FLightingConstants): " << sizeof(FLightingConstants) << std::endl;
+    constdesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    constdesc.Usage = D3D11_USAGE_DYNAMIC;
+    constdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    Graphics.Device->CreateBuffer(&constdesc, nullptr, &LightConstantBuffer);
 }
 
 void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
@@ -351,8 +360,8 @@ void FStaticMeshRenderPass::UpdateLightConstants()
                 LightConstant.SpotLights[SpotLightCount].Direction = SpotLightComp->GetOwner()->GetActorForwardVector();
                 LightConstant.SpotLights[SpotLightCount].InnerAngle = SpotLightComp->GetInnerConeAngle();
                 LightConstant.SpotLights[SpotLightCount].OuterAngle = SpotLightComp->GetOuterConeAngle();
-                LightConstant.SpotLights[SpotLightCount].View = SpotLightComp->GetViewMatrix();
-                LightConstant.SpotLights[SpotLightCount].Proj = SpotLightComp->GetProjectionMatrix();
+                LightConstant.SpotLights[SpotLightCount].View = (SpotLightComp->GetViewMatrix());
+                LightConstant.SpotLights[SpotLightCount].Proj = (SpotLightComp->GetProjectionMatrix());
                 ShadowMaps[SpotLightCount] = SpotLightComp->GetShadowMap();
                 SpotLightCount++;
                 continue;
@@ -373,13 +382,15 @@ void FStaticMeshRenderPass::UpdateLightConstants()
                 ShadowMaps[i] = DummyWhiteTextureSRV;
             }
     }
+
     Graphics.DeviceContext->PSSetShaderResources(3, 8, ShadowMaps);
     //UE_LOG(LogLevel::Error, "Point : %d, Spot : %d Dir : %d", PointLightCount, SpotLightCount, DirectionalLightCount);
     LightConstant.NumPointLights = PointLightCount;
     LightConstant.NumSpotLights = SpotLightCount;
     LightConstant.NumDirectionalLights = DirectionalLightCount;
     
-    renderResourceManager->UpdateConstantBuffer(TEXT("FLightingConstants"), &LightConstant);
+    renderResourceManager->UpdateConstantBuffer(LightConstantBuffer, &LightConstant);
+    Graphics.DeviceContext->PSSetConstantBuffers(2, 1, &LightConstantBuffer);
 }
 
 void FStaticMeshRenderPass::UpdateContstantBufferActor(const FVector4 UUID, int32 isSelected)

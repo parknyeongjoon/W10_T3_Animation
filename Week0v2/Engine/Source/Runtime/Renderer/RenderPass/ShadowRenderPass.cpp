@@ -119,7 +119,8 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
                 1.0f, 0
             );
             Graphics.DeviceContext->ClearRenderTargetView(SpotLight->GetRTV(), ClearColor);
-
+            ID3D11ShaderResourceView* nullSRVs[8] = { nullptr };
+            Graphics.DeviceContext->PSSetShaderResources(3, 8, nullSRVs);
             Graphics.DeviceContext->OMSetRenderTargets(0, nullptr, SpotLight->GetDSV()); // 렌더 타겟 설정
             View = SpotLight->GetViewMatrix();//GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
             Proj = SpotLight->GetProjectionMatrix();//GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
