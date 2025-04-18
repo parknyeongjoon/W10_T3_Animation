@@ -2,13 +2,11 @@
 
 #include "EditorEngine.h"
 #include "UnrealClient.h"
-#include "Components/DirectionalLightComponent.h"
-#include "Components/LightComponent.h"
-#include "Components/PointLightComponent.h"
+#include "Components/LightComponents/DirectionalLightComponent.h"
+#include "Components/LightComponents/PointLightComponent.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
-#include "LevelEditor/SLevelEditor.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/VBIBTopologyMapping.h"
 #include "UnrealEd/EditorViewportClient.h"
@@ -128,7 +126,7 @@ void FComputeTileLightCulling::UpdateLightConstants()
 
         if (PointLightComp)
         {
-            LightConstant.PointLights[PointLightCount].Color = PointLightComp->GetColor();
+            LightConstant.PointLights[PointLightCount].Color = PointLightComp->GetLightColor();
             LightConstant.PointLights[PointLightCount].Intensity = PointLightComp->GetIntensity();
             LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetWorldLocation();
             LightConstant.PointLights[PointLightCount].Radius = PointLightComp->GetRadius();
@@ -140,7 +138,7 @@ void FComputeTileLightCulling::UpdateLightConstants()
         UDirectionalLightComponent* DirectionalLightComp = dynamic_cast<UDirectionalLightComponent*>(Comp);
         if (DirectionalLightComp)
         {
-            LightConstant.DirLights[DirectionalLightCount].Color = DirectionalLightComp->GetColor();
+            LightConstant.DirLights[DirectionalLightCount].Color = DirectionalLightComp->GetLightColor();
             LightConstant.DirLights[DirectionalLightCount].Intensity = DirectionalLightComp->GetIntensity();
             LightConstant.DirLights[DirectionalLightCount].Direction = DirectionalLightComp->GetForwardVector();
             DirectionalLightCount++;

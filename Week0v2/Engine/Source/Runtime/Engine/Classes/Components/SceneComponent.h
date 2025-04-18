@@ -117,8 +117,8 @@ public:
     void DetachFromParent();
 #define endregion
     void SetLocation(FVector _newLoc) { RelativeLocation = _newLoc; }
-    virtual void SetRotation(FVector _newRot);
-    void SetRotation(FQuat _newRot) { QuatRotation = _newRot; }
+    //virtual void SetRotation(FVector _newRot);
+    //void SetRotation(FQuat _newRot) { QuatRotation = _newRot; }
     void SetScale(FVector _newScale) { RelativeScale3D = _newScale; }
 
 public:

@@ -1,6 +1,6 @@
 #pragma once
-#include "Actors/Light.h"
 #include "LightComponent.h"
+#include "Actors/Light.h"
 
 struct FDirectionalLightComponentInfo : public FLightComponentInfo
 {
@@ -33,10 +33,9 @@ struct FDirectionalLightComponentInfo : public FLightComponentInfo
         ar >> Direction;
     }
 };
-class UDirectionalLightComponent :
-    public ULightComponentBase
+class UDirectionalLightComponent : public ULightComponent
 {
-    DECLARE_CLASS(UDirectionalLightComponent, ULightComponentBase)
+    DECLARE_CLASS(UDirectionalLightComponent, ULightComponent)
 public:
     UDirectionalLightComponent();
     UDirectionalLightComponent(const UDirectionalLightComponent& Other);

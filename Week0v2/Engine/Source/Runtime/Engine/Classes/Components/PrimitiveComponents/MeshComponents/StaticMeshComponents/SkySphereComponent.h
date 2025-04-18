@@ -1,5 +1,5 @@
 #pragma once
-#include "Components/StaticMeshComponent.h"
+#include "StaticMeshComponent.h"
 #include "Engine/Texture.h"
 
 

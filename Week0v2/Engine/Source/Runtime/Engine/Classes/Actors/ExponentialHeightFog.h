@@ -1,6 +1,7 @@
 #pragma once
 #include "GameFramework/Actor.h"
-#include <Components/HeightFogComponent.h>
+
+class UHeightFogComponent;
 
 class AExponentialHeightFogActor : public AActor
 {

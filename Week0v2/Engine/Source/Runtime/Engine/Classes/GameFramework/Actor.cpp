@@ -141,7 +141,7 @@ bool AActor::SetActorRotation(const FVector& NewRotation)
 {
     if (RootComponent)
     {
-        RootComponent->SetRotation(NewRotation);
+        RootComponent->SetRelativeRotation(NewRotation);
         return true;
     }
     return false;

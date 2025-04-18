@@ -2,27 +2,25 @@
 
 #include "Engine/World.h"
 #include "Actors/Player.h"
-#include "Components/SphereComp.h"
-#include "Components/UParticleSubUVComp.h"
-#include "Components/UTextComponent.h"
-#include "Components/HeightFogComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Engine/StaticMeshActor.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "tinyfiledialogs/tinyfiledialogs.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "PropertyEditor/ShowFlags.h"
-#include "Actors/FireBallActor.h"
 #include "Classes/Actors/DirectionalLightActor.h"
 #include "Classes/Actors/PointLightActor.h"
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Serialization/Archive.h"
 #include "Serialization/FWindowsBinHelper.h"
-#include "LevelEditor/SLevelEditor.h"
-#include "Components/SpotLightComponent.h"
 #include "Actors/SpotLightActor.h"
 #include <Actors/ExponentialHeightFog.h>
 #include <UObject/UObjectIterator.h>
+
+#include "Components/PrimitiveComponents/UParticleSubUVComp.h"
+#include "Components/PrimitiveComponents/UTextComponent.h"
+#include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
+
 void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
 {
     activeLevelEditor = levelEditor;

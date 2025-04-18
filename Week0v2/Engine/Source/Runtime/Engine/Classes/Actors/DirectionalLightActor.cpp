@@ -1,7 +1,8 @@
 #include "DirectionalLightActor.h"
-#include <Components/DirectionalLightComponent.h>
 
-#include "Components/UBillboardComponent.h"
+#include "Components/LightComponents/DirectionalLightComponent.h"
+#include "Components/PrimitiveComponents/UBillboardComponent.h"
+
 
 ADirectionalLightActor::ADirectionalLightActor()
     : Super()

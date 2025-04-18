@@ -5,12 +5,13 @@
 #include "Renderer/VBIBTopologyMapping.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/PrimitiveBatch.h"
-#include <Actors/SpotLightActor.h>
 #include "Engine/World.h"
-#include <Components/SpotLightComponent.h>
 #include <Math/JungleMath.h>
-#include <Components/PointLightComponent.h>
 
+#include "Components/LightComponents/PointLightComponent.h"
+#include "Components/LightComponents/SpotLightComponent.h"
+
+class USpotLightComponent;
 extern UEditorEngine* GEngine;
 
 FLineBatchRenderPass::FLineBatchRenderPass(const FName& InShaderName)
@@ -105,7 +106,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                             tan(SpotLight->GetOuterConeAngle()) * 15.0f,
                             15.0f,
                             15,
-                            SpotLight->GetColor(),
+                            SpotLight->GetLightColor(),
                             Model
                         );
                     }
@@ -116,7 +117,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                             tan(SpotLight->GetInnerConeAngle()) * 15.0f,
                             15.0f,
                             15,
-                            SpotLight->GetColor(),
+                            SpotLight->GetLightColor(),
                             Model
                         );
                     }
@@ -130,7 +131,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                             DirectionalLight->GetComponentLocation() + Right * (-1.5f + i),
                             DirectionalLight->GetOwner()->GetActorForwardVector(),
                             15.0f,
-                            DirectionalLight->GetColor()
+                            DirectionalLight->GetLightColor()
                         );
                     }
                 }
@@ -141,7 +142,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                         UPrimitiveBatch::GetInstance().AddSphere(
                             PointLight->GetComponentLocation(),
                             PointLight->GetRadius(),
-                            PointLight->GetColor()
+                            PointLight->GetLightColor()
                         );
                     }
                 }

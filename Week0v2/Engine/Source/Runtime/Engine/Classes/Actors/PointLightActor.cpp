@@ -1,7 +1,8 @@
 #include "PointLightActor.h"
-#include <Components/PointLightComponent.h>
 
-#include "Components/UBillboardComponent.h"
+#include "Components/LightComponents/PointLightComponent.h"
+#include "Components/PrimitiveComponents/UBillboardComponent.h"
+
 
 APointLightActor::APointLightActor()
 {

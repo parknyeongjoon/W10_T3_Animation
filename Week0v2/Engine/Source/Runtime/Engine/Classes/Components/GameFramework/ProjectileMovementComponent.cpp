@@ -1,6 +1,6 @@
 #include "ProjectileMovementComponent.h"
 
-#include "Components/PrimitiveComponent.h"
+#include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 
@@ -46,7 +46,7 @@ void UProjectileMovementComponent::InitializeComponent()
         {
             if (UpdatedComponent)
             {
-                UpdatedComponent->SetRotation(Velocity); // Warning: Euler rotation not working. need FRotator
+                UpdatedComponent->SetRelativeRotation(Velocity); // Warning: Euler rotation not working. need FRotator
             }
         }
 
