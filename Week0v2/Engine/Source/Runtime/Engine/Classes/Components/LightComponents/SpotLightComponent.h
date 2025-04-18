@@ -59,8 +59,29 @@ public:
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
+    FMatrix GetViewMatrix();
+    FMatrix GetProjectionMatrix();
+
+    ID3D11ShaderResourceView* GetShadowMap() { return ShadowMap; }
+    ID3D11DepthStencilView* GetDSV() { return DSV; }
+
+    ID3D11RenderTargetView* GetRTV() { return LightRTV; }
+    ID3D11ShaderResourceView* GetSRV() { return RTVSRV; }
 
 public:
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
+
+private:
+    ID3D11Texture2D* DSVBuffer = nullptr;
+    ID3D11ShaderResourceView* ShadowMap = nullptr;
+    ID3D11DepthStencilView* DSV = nullptr;
+    FMatrix View;
+    FMatrix Projection;
+
+    ID3D11Texture2D* RTVBuffer = nullptr;
+    ID3D11RenderTargetView* LightRTV = nullptr;
+    ID3D11ShaderResourceView* RTVSRV = nullptr;
+    float ScreenWidth = 0;
+    float ScreenHeight = 0;
 };

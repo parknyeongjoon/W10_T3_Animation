@@ -448,6 +448,13 @@
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.h" />
     <ClInclude Include="FEditorStateManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\PrimitiveDrawEditor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\ExponentialHeightFog.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\ComputeShader\ComputeTileLightCulling.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\EditorArrowRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\EditorIconRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FogRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\ShadowRenderPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -516,12 +523,6 @@
     <FxCompile Include="Shaders\LineVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\StaticMeshVertexShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\StaticMeshPixelShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\DebugDepthVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
@@ -535,6 +536,11 @@
     <FxCompile Include="Shaders\UberLitVertexShader.hlsl" />
     <FxCompile Include="Shaders\EditorVertexShader.hlsl" />
     <FxCompile Include="Shaders\EditorPixelShader.hlsl" />
+    <FxCompile Include="Shaders\TileLightCulling.compute" />
+    <FxCompile Include="Shaders\ShadowVertexShader.hlsl" />
+    <FxCompile Include="Shaders\ShadowPixelShader.hlsl" />
+    <FxCompile Include="Shaders\LightDepthPixelShader.hlsl" />
+    <FxCompile Include="Shaders\LightDepthVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week0v2.natvis" />
@@ -577,6 +583,13 @@
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.cpp" />
     <ClCompile Include="FEditorStateManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\PrimitiveDrawEditor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\ExponentialHeightFog.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\ComputeShader\ComputeTileLightCulling.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\EditorArrowRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\EditorIconRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FogRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\ShadowRenderPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

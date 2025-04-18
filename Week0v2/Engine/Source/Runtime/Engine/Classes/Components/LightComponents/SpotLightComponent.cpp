@@ -2,11 +2,79 @@
 #include "UObject/ObjectFactory.h"
 #include "CoreUObject/UObject/Casts.h"
 #include "Math/JungleMath.h"
+#include <D3D11RHI/GraphicDevice.h>
+#include "EditorEngine.h"
 
 USpotLightComponent::USpotLightComponent()
     : Super()
 {
+    FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = 1024;
+    desc.Height = 1024;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R32_TYPELESS;;     // 중요: TYPELESS
+    desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.MiscFlags = 0;
+    desc.SampleDesc.Count = 1;
+
+    Graphics.Device->CreateTexture2D(&desc, nullptr, &DSVBuffer);
+
+    D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+    dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    Graphics.Device->CreateDepthStencilView(DSVBuffer, &dsvDesc, &DSV);
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_R32_FLOAT; // 깊이 데이터만 읽기 위한 포맷
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = 1;
+
+    Graphics.Device->CreateShaderResourceView(DSVBuffer, &srvDesc, &ShadowMap);
+
+    D3D11_TEXTURE2D_DESC textureDesc = {};
+    textureDesc.Width = 1024;
+    textureDesc.Height = 1024;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.Usage = D3D11_USAGE_DEFAULT;
+    textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+    HRESULT hr = Graphics.Device->CreateTexture2D(&textureDesc, nullptr, &RTVBuffer);
+    if (FAILED(hr))
+    {
+        assert(TEXT("SceneColorBuffer creation failed"));
+        return;
+    }
+
+    D3D11_RENDER_TARGET_VIEW_DESC SceneColorRTVDesc = {};
+    SceneColorRTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;      // 색상 포맷
+    SceneColorRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
+
+    hr = Graphics.Device->CreateRenderTargetView(RTVBuffer, &SceneColorRTVDesc, &LightRTV);
+    if (FAILED(hr))
+    {
+        assert(TEXT("SceneColorBuffer creation failed"));
+        return;
+    }
+
+    srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = 1;
+
+    hr = Graphics.Device->CreateShaderResourceView(RTVBuffer, &srvDesc, &RTVSRV);
+    if (FAILED(hr))
+    {
+        assert(TEXT("SceneColorBuffer creation failed"));
+        return;
+    }
 }
 
 USpotLightComponent::USpotLightComponent(const USpotLightComponent& Other)
@@ -45,6 +113,23 @@ void USpotLightComponent::DuplicateSubObjects(const UObject* Source)
 
 void USpotLightComponent::PostDuplicate()
 {
+}
+
+FMatrix USpotLightComponent::GetViewMatrix()
+{
+    return JungleMath::CreateViewMatrix(GetComponentLocation(),
+        GetComponentLocation() + GetOwner()->GetActorForwardVector() * 15.0f,
+        FVector{ 1.0f, 0.0f, 0.0f });
+}
+
+FMatrix USpotLightComponent::GetProjectionMatrix()
+{
+    return JungleMath::CreateProjectionMatrix(
+        OuterConeAngle,
+        1.0f,
+        0.1f,
+        1000.0f
+    );
 }
 
 std::shared_ptr<FActorComponentInfo> USpotLightComponent::GetActorComponentInfo()

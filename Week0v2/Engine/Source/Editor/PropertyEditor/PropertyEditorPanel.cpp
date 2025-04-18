@@ -9,6 +9,7 @@
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Components/GameFramework/RotatingMovementComponent.h"
 #include <Math/JungleMath.h>
+#include <UObject/UObjectIterator.h>
 
 #include "Components/LightComponents/DirectionalLightComponent.h"
 #include "Components/LightComponents/PointLightComponent.h"
@@ -50,6 +51,8 @@ void PropertyEditorPanel::Render()
     AActor* PickedActor = nullptr; 
     if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
             PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
+
+    ImVec2 imageSize = ImVec2(128, 128); // 이미지 출력 크기
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)
@@ -399,6 +402,14 @@ void PropertyEditorPanel::Render()
                     SpotLight->SetInnerConeAngle(InnerAngle);
                 }
             }
+            ImTextureID LightDepth = reinterpret_cast<ImTextureID>(SpotLight->GetShadowMap());
+            ImGui::Text("Shadow Map");
+            ImGui::Image(LightDepth, imageSize);
+
+            ImTextureID LightTexture = reinterpret_cast<ImTextureID>(SpotLight->GetSRV());
+
+            ImGui::Text("Light Depth View");
+            ImGui::Image(LightTexture, imageSize);
         }
     }
 

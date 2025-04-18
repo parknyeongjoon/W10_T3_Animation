@@ -9,6 +9,7 @@
 #include "RenderResourceManager.h"
 #include "RenderPass/DebugDepthRenderPass.h"
 #include "RenderPass/FogRenderPass.h"
+#include "RenderPass/ShadowRenderPass.h"
 
 class FComputeTileLightCulling;
 class FEditorIconRenderPass;
@@ -94,6 +95,7 @@ private:
     std::shared_ptr<FDebugDepthRenderPass> DebugDepthRenderPass;
     std::shared_ptr<FEditorIconRenderPass> EditorIconRenderPass;
     std::shared_ptr<FFogRenderPass> FogRenderPass;
+    std::shared_ptr<FShadowRenderPass> ShadowRenderPass;
 
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
     EViewModeIndex CurrentViewMode = VMI_Lit_Goroud;
