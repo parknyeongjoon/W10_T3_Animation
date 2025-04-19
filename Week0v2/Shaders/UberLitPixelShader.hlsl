@@ -297,9 +297,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
     if (IsSelectedActor == 1)
          TotalLight = TotalLight * 10.0f;
     TotalLight += EmissiveColor; // 자체 발광  
-
-    bool bIsShadow = false;
-    float shadow = 0;
     
     // 방향광 처리  s
     for(uint i=0; i<NumDirectionalLights; ++i)  
@@ -320,9 +317,11 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     for (uint k = 0; k < NumSpotLights; ++k)
     {
+        bool bIsShadow = false;
+        float shadow = 0;
         float3 LightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
         TotalLight += LightColor;
-        if (!bIsShadow && length(LightColor) > 0.0)
+        if (length(LightColor) > 0.0)
         {
             float4 LightViewPos = WorldToLight(input.worldPos, SpotLights[k].View, SpotLights[k].Proj);
             
@@ -351,10 +350,13 @@ PS_OUTPUT mainPS(PS_INPUT input)
                 bIsShadow = true;
             }
         }
+        float shadowFactor = bIsShadow ? (1.0 - shadow) : 1.0;
+        if (bIsShadow)
+            TotalLight += LightColor * shadowFactor;
     }
     
     float4 FinalColor = float4(TotalLight * baseColor.rgb, baseColor.a * TransparencyScalar);
     // 최종 색상 
-    output.color = (bIsShadow) ? FinalColor * (1 - shadow) : FinalColor;
+    output.color = FinalColor;
     return output;  
 }
