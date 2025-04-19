@@ -527,9 +527,9 @@ struct FFrustum
 enum class ELightType
 {
     None,
-    Directional,
-    Point,
-    Spot,
+    DirectionalLight,
+    PointLight,
+    SpotLight,
     Max,
 };
 

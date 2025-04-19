@@ -7,7 +7,7 @@ using Microsoft::WRL::ComPtr;
 
 struct FShadowResource  
 {  
-   static UINT ShadowResolutions;
+   static UINT ShadowResolution;
 
    ComPtr<ID3D11ShaderResourceView> ShadowSRV; // Example usage of ComPtr  
    TArray<ComPtr<ID3D11DepthStencilView>> ShadowDSVs;  
@@ -31,6 +31,12 @@ struct FShadowResource
        if (faceIndex < 0 || faceIndex >= ShadowDSVs.Num())
            return nullptr;
        return ShadowDSVs[faceIndex].Get();
+   }
+   D3D11_VIEWPORT GetViewport(int faceIndex = 0) const
+   {
+       if (faceIndex < 0 || faceIndex >= Viewports.Num())
+           return {};
+       return Viewports[faceIndex];
    }
 };
 

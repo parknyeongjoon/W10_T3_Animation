@@ -1,14 +1,14 @@
 #include "ShadowResource.h"
 
-static UINT ShadowResolution = 1024; // Default shadow resolution
+UINT FShadowResource::ShadowResolution = 1024; // Default shadow resolution
 
 FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType)
     :LightType(LightType)
 {
     switch (LightType)
     {
-    case ELightType::Directional:
-    case ELightType::Spot:
+    case ELightType::DirectionalLight:
+    case ELightType::SpotLight:
     {
         // Texture2D 생성
         D3D11_TEXTURE2D_DESC textureDesc = {};
@@ -17,6 +17,7 @@ FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType)
         textureDesc.MipLevels = 1;
         textureDesc.ArraySize = 1;
         textureDesc.Format = DXGI_FORMAT_R32_TYPELESS; // 중요: TYPELESS
+        textureDesc.MiscFlags = 0;
         textureDesc.SampleDesc.Count = 1;
         textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 
@@ -65,7 +66,7 @@ FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType)
         Viewports.Add(viewport);
         break;
     }
-    case ELightType::Point:
+    case ELightType::PointLight:
     {
         NumFaces = 6;
         // Texture2D - Cube Array
