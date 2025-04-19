@@ -334,9 +334,8 @@ void FStaticMeshRenderPass::UpdateLightConstants()
         {
             continue;
         }
-        UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(Comp);
 
-        if (PointLightComp)
+        if (const UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(Comp))
         {
             LightConstant.PointLights[PointLightCount].Color = PointLightComp->GetLightColor();
             LightConstant.PointLights[PointLightCount].Intensity = PointLightComp->GetIntensity();
@@ -346,10 +345,8 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             PointLightCount++;
             continue;
         }
-
-        UDirectionalLightComponent* DirectionalLightComp = Cast<UDirectionalLightComponent>(Comp);
         
-        if (DirectionalLightComp)
+        if (const UDirectionalLightComponent* DirectionalLightComp = Cast<UDirectionalLightComponent>(Comp))
         {
             USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(DirectionalLightComp);
             if (SpotLightComp)

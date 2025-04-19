@@ -185,7 +185,7 @@ float3 CalculatePointLight(
     float3 specularColor = Light.Color.rgb * Specular * SpecularColor;
 
     return (Diffuse + specularColor) * Light.Intensity * Attenuation;  
-}  
+}
 
 float3 CalculateSpotLight(
     FSpotLight Light,
@@ -239,6 +239,38 @@ float4 WorldToLight(float3 WorldPos, row_major float4x4 View, row_major float4x4
     return LightViewPos;
 }
 
+float4 CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
+{
+    float shadow = 0;
+    float4 LightViewPos = WorldToLight(WorldPos, View, Projection);
+            
+    float2 shadowUV = LightViewPos.xy / LightViewPos.w * 0.5 + 0.5;
+    shadowUV.y = 1.0 - shadowUV.y;
+    float worldDepth = LightViewPos.z / LightViewPos.w;
+
+    if(shadowUV.x >= 0 && shadowUV.x <= 1 &&
+        shadowUV.y >= 0 && shadowUV.y <= 1 && 
+        worldDepth >= 0 && worldDepth <= 1)
+    {
+        float bias = max(0.01 * (1.0 - dot(Normal, -LightDir)), 0.001);
+        for (int x = -1; x <= 1; ++x)
+        {
+            for (int y = -1; y <= 1; ++y)
+            {
+                uint textureWidth, textureHeight;
+                ShadowMap.GetDimensions(textureWidth, textureHeight);
+                float2 texelSize = 1.0 / float2(textureWidth, textureHeight);
+                float2 offset = float2(x, y) * texelSize;
+                float sample = ShadowMap.Sample(pointSampler, shadowUV + offset).r;
+                shadow += (worldDepth >= sample + bias) ? 1.0 : 0.0;
+            }
+        }
+        shadow = shadow / 9.0;
+    }
+    
+    return shadow;
+}
+
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
@@ -269,6 +301,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
     uint2 tileCoord = pixelCoord / tileSize; // 각 성분별 나눔
     uint tileIndex = tileCoord.x + tileCoord.y * numTilesX;
     
+    float shadowFactor = 1;
+    
     float3 Normal = input.normal;
     
     if (bHasNormalTexture)
@@ -295,12 +329,17 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // TODO : Lit이면 낮은 값 Unlit이면 float3(1.0f,1.0f,1.0f)면 됩니다.
     float3 TotalLight = float3(0.01f,0.01f,0.01f); // 전역 앰비언트  
     if (IsSelectedActor == 1)
-         TotalLight = TotalLight * 10.0f;
+        TotalLight = TotalLight * 10.0f;
     TotalLight += EmissiveColor; // 자체 발광  
-    
-    // 방향광 처리  s
-    for(uint i=0; i<NumDirectionalLights; ++i)  
-        TotalLight += CalculateDirectionalLight(DirLights[i], Normal, ViewDir, baseColor.rgb);  
+
+    float3 LightColor = CalculateDirectionalLight(DirLight, Normal, ViewDir, baseColor.rgb);
+    TotalLight += LightColor;
+    if (length(LightColor) > 0.0)
+    {
+        // float shadow = CalculateShadow(input.worldPos, Normal, DirLight.Direction, DirLight.View, DirLight.Proj, SpotLightShadowMap[0]);
+        // if (shadow > 0)
+        //     shadowFactor -= shadow;
+    }
 
     // 점광 처리  
     for(uint j=0; j<NumPointLights; ++j)
@@ -311,8 +350,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
         {
             break;
         }
-        
-        TotalLight += CalculatePointLight(PointLights[lightIndex], input.worldPos, Normal, ViewDir, baseColor.rgb);
+
+        float3 LightColor = CalculatePointLight(PointLights[lightIndex], input.worldPos, Normal, ViewDir, baseColor.rgb);
+        TotalLight += LightColor;
     }
     
     for (uint k = 0; k < NumSpotLights; ++k)
@@ -350,7 +390,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
                 bIsShadow = true;
             }
         }
-        float shadowFactor = bIsShadow ? (1.0 - shadow) : 1.0;
+        shadowFactor += bIsShadow ? (1.0 - shadow) : 1.0;
         if (bIsShadow)
             TotalLight += LightColor * shadowFactor;
     }
@@ -358,5 +398,5 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float4 FinalColor = float4(TotalLight * baseColor.rgb, baseColor.a * TransparencyScalar);
     // 최종 색상 
     output.color = FinalColor;
-    return output;  
+    return output;
 }
