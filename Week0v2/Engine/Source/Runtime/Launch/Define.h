@@ -529,6 +529,9 @@ struct FDirectionalLight
     float Intensity;
 
     FVector4 Color;
+
+    FMatrix View;
+    FMatrix Projection;
 };
 
 struct FPointLight
