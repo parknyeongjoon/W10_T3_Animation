@@ -201,7 +201,8 @@ void SLevelEditor::LoadConfig()
     ActiveViewportClient->orthoSize = GetValueFromConfig(config, "OrthoZoomSize", 10.0f);
 
     SetViewportClient(GetValueFromConfig(config, "ActiveViewportIndex", 0));
-    bMultiViewportMode = GetValueFromConfig(config, "bMutiView", false);
+    //bMultiViewportMode = GetValueFromConfig(config, "bMutiView", false);
+    bMultiViewportMode = false;
     for (size_t i = 0; i < 4; i++)
     {
         viewportClients[i]->LoadConfig(config);
