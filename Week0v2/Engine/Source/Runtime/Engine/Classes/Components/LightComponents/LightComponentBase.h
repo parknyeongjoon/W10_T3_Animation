@@ -3,7 +3,8 @@
 #include "Components/SceneComponent.h"
 #include "Engine/Texture.h"
 #include "UObject/ObjectMacros.h"
-
+#include <wrl/client.h> // Add this include for Microsoft::WRL::ComPtr
+using Microsoft::WRL::ComPtr; // Add this using directive to use ComPtr
 struct FLightComponentBaseInfo : public FSceneComponentInfo
 {
     DECLARE_ACTORCOMPONENT_INFO(FLightComponentBaseInfo);
