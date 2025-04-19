@@ -118,17 +118,19 @@ void USpotLightComponent::PostDuplicate()
 FMatrix USpotLightComponent::GetViewMatrix()
 {
     FVector Up = FVector{ 0.0f, 0.0f, 1.0f };
-    if (Up.Dot(GetOwner()->GetActorForwardVector()) > 0.9f)
+    FVector Forward = GetOwner()->GetActorForwardVector();
+    float dot = abs(Up.Dot(Forward));
+    if (dot > 0.99f)
         Up = FVector(1.0f, 0.0f, 0.0f);
     return JungleMath::CreateViewMatrix(GetComponentLocation(),
         GetOwner()->GetActorForwardVector() + GetComponentLocation(),
         Up);
-}
+} 
 
 FMatrix USpotLightComponent::GetProjectionMatrix()
 {
     return JungleMath::CreateProjectionMatrix(
-        OuterConeAngle * 1.5f,
+        OuterConeAngle * 2.0f,
         1.0f,
         0.1f,
         1000.0f
