@@ -121,11 +121,11 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
         
         if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
         {
-            View = SpotLight->GetViewMatrix();//GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
-            Proj = SpotLight->GetProjectionMatrix();//GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
+            View = SpotLight->GetViewMatrix();
+            Proj = SpotLight->GetProjectionMatrix();
             RenderStaticMesh(View, Proj);
         }
-        else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
+        if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
         {
             View = DirectionalLight->GetViewMatrix();
             Proj = DirectionalLight->GetProjectionMatrix();
