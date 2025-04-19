@@ -299,6 +299,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     TotalLight += EmissiveColor; // 자체 발광  
 
     bool bIsShadow = false;
+    float shadow = 0;
     
     // 방향광 처리  s
     for(uint i=0; i<NumDirectionalLights; ++i)  
@@ -319,8 +320,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     for (uint k = 0; k < NumSpotLights; ++k)
     {
-        TotalLight += CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
-        if (!bIsShadow)
+        float3 LightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
+        TotalLight += LightColor;
+        if (!bIsShadow && length(LightColor) > 0.0)
         {
             float4 LightViewPos = WorldToLight(input.worldPos, SpotLights[k].View, SpotLights[k].Proj);
             
@@ -332,18 +334,24 @@ PS_OUTPUT mainPS(PS_INPUT input)
                 shadowUV.y >= 0 && shadowUV.y <= 1 && 
                 worldDepth >= 0 && worldDepth <= 1)
             {
-                float depthFromMap = SpotLightShadowMap[k].Sample(pointSampler, shadowUV).r;
-            
-                if (worldDepth >= depthFromMap + 0.001)
+                float bias = max(0.01 * (1.0 - dot(Normal, -SpotLights[k].Direction)), 0.001);
+                for (int x = -1; x <= 1; ++x)
                 {
-                    bIsShadow = true;
+                    for (int y = -1; y <= 1; ++y)
+                    {
+                        float2 offset = float2(x, y) * 1.0 / 1024.0;
+                        float sample = SpotLightShadowMap[k].Sample(pointSampler, shadowUV + offset).r;
+                        shadow += (worldDepth >= sample + bias) ? 1.0 : 0.0;
+                    }
                 }
+                shadow = shadow / 9.0;
+                bIsShadow = true;
             }
         }
     }
     
     float4 FinalColor = float4(TotalLight * baseColor.rgb, baseColor.a * TransparencyScalar);
     // 최종 색상 
-    output.color = (bIsShadow) ? FinalColor * float4(0.5, 0.5, 0.5, 1) : FinalColor;
+    output.color = (bIsShadow) ? FinalColor * (1 - shadow) : FinalColor;
     return output;  
 }

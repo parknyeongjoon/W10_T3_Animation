@@ -9,7 +9,7 @@ ASpotLightActor::ASpotLightActor()
     LightComponent->SetRelativeRotation(FVector(0, -3.141592f / 2.0f, 0));
     BillboardComponent->SetTexture(L"Assets/Texture/SpotLight_64x.png");
 }
-
+     
 ASpotLightActor::ASpotLightActor(const ASpotLightActor& Other)
 {
 }
