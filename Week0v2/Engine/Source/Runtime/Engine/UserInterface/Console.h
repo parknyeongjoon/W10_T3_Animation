@@ -5,70 +5,23 @@
 #include <windows.h>
 #include <psapi.h>
 enum class LogLevel { Display, Warning, Error };
-class StatOverlay {
+class StatOverlay 
+{
 public:
     bool showFPS = false;
     bool showMemory = false;
     bool showRender = false;
-    void ToggleStat(const std::string& command) {
-        if (command == "stat fps") {showFPS = true; showRender = true;}
-        else if (command == "stat memory") {showMemory = true; showRender = true;}
-        else if (command == "stat none") {
-            showFPS = false;
-            showMemory = false;
-            showRender = false;
-        }
-    }
+    bool showShadow = false;
 
-    void Render(ID3D11DeviceContext* context, UINT width, UINT height) {
+    void ToggleStat(const std::string& command);
 
-        if (!showRender)
-            return;
-        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
-        // 창 크기를 화면의 50%로 설정합니다.
-        ImVec2 windowSize(displaySize.x * 0.5f, displaySize.y * 0.5f);
-        // 창을 중앙에 배치하기 위해 위치를 계산합니다.
-        ImVec2 windowPos((displaySize.x - windowSize.x) * 0.5f, (displaySize.y - windowSize.y) * 0.5f);
 
+    void Render(ID3D11DeviceContext* context, UINT width, UINT height);
     
-        ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-        ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
-        ImGui::Begin("Stat Overlay", nullptr,
-                     ImGuiWindowFlags_NoTitleBar |
-                     ImGuiWindowFlags_NoResize |
-                     ImGuiWindowFlags_NoMove |
-                     ImGuiWindowFlags_NoScrollbar);
-        if (showFPS) {
-            static float lastTime = ImGui::GetTime();
-            static int frameCount = 0;
-            static float fps = 0.0f;
-
-            frameCount++;
-            float currentTime = ImGui::GetTime();
-            float deltaTime = currentTime - lastTime;
-
-            if (deltaTime >= 1.0f) { // 1초마다 FPS 업데이트
-                fps = frameCount / deltaTime;
-                frameCount = 0;
-                lastTime = currentTime;
-            }
-            ImGui::Text("FPS: %.2f", fps);
-        }
-
-
-        if (showMemory)
-        {
-            ImGui::Text("Allocated Object Count: %llu", FPlatformMemory::GetAllocationCount<EAT_Object>());
-            ImGui::Text("Allocated Object Memory: %llu B", FPlatformMemory::GetAllocationBytes<EAT_Object>());
-            ImGui::Text("Allocated Container Count: %llu", FPlatformMemory::GetAllocationCount<EAT_Container>());
-            ImGui::Text("Allocated Container memory: %llu B", FPlatformMemory::GetAllocationBytes<EAT_Container>());
-        }
-        ImGui::PopStyleColor();
-        ImGui::End();
-    }
 
 private:
+    bool isOpen = true;
+
     float CalculateFPS() {
         static int frameCount = 0;
         static float elapsedTime = 0.0f;
@@ -89,7 +42,6 @@ private:
     }
 
     void DrawTextOverlay(const std::string& text, int x, int y) {
-        // ImGui 사용 시
         ImGui::SetNextWindowPos(ImVec2(x, y));
         ImGui::Text("%s", text.c_str());
     }

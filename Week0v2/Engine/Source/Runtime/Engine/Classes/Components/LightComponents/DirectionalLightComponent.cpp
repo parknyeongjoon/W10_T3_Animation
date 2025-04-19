@@ -7,34 +7,8 @@
 UDirectionalLightComponent::UDirectionalLightComponent()
 {
     LightMap = new FTexture(nullptr, nullptr, 0,0,L"");
-    ShadowMap = new FTexture(nullptr, nullptr, 0,0,L"");
     
     FGraphicsDevice& Graphics = GEngine->graphicDevice;
-
-    D3D11_TEXTURE2D_DESC desc = {};
-    desc.Width = 1024;
-    desc.Height = 1024;
-    desc.MipLevels = 1;
-    desc.ArraySize = 1;
-    desc.Format = DXGI_FORMAT_R32_TYPELESS;     // 중요: TYPELESS
-    desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.MiscFlags = 0;
-    desc.SampleDesc.Count = 1;
-
-    Graphics.Device->CreateTexture2D(&desc, nullptr, &ShadowMap->Texture);
-
-    D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-    dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
-    dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    Graphics.Device->CreateDepthStencilView(ShadowMap->Texture, &dsvDesc, &DSV);
-
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.Format = DXGI_FORMAT_R32_FLOAT; // 깊이 데이터만 읽기 위한 포맷
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MipLevels = 1;
-
-    Graphics.Device->CreateShaderResourceView(ShadowMap->Texture, &srvDesc, &ShadowMap->TextureSRV);
 
     D3D11_TEXTURE2D_DESC textureDesc = {};
     textureDesc.Width = 1024;
@@ -64,7 +38,7 @@ UDirectionalLightComponent::UDirectionalLightComponent()
         return;
     }
 
-    srvDesc = {};
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MostDetailedMip = 0;

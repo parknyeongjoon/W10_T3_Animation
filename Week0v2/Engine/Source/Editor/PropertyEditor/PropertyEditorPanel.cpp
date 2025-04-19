@@ -343,7 +343,7 @@ void PropertyEditorPanel::Render()
         {
             // direction
             UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(PickedComponent);
-            ImTextureID LightDepth = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowMap()->TextureSRV);
+            ImTextureID LightDepth = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()->GetSRV());
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth, imageSize);
 
@@ -410,7 +410,7 @@ void PropertyEditorPanel::Render()
                     SpotLight->SetInnerConeAngle(InnerAngle);
                 }
             }
-            ImTextureID LightDepth = reinterpret_cast<ImTextureID>(SpotLight->GetShadowMap()->TextureSRV);
+            ImTextureID LightDepth = reinterpret_cast<ImTextureID>(SpotLight->GetShadowResource()->GetSRV());
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth, imageSize);
 
