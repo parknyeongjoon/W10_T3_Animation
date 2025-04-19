@@ -339,7 +339,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
                 {
                     for (int y = -1; y <= 1; ++y)
                     {
-                        float2 offset = float2(x, y) * 1.0 / 1024.0;
+                        uint textureWidth, textureHeight;
+                        SpotLightShadowMap[k].GetDimensions(textureWidth, textureHeight);
+                        float2 texelSize = 1.0 / float2(textureWidth, textureHeight);
+                        float2 offset = float2(x, y) * texelSize;
                         float sample = SpotLightShadowMap[k].Sample(pointSampler, shadowUV + offset).r;
                         shadow += (worldDepth >= sample + bias) ? 1.0 : 0.0;
                     }
