@@ -103,10 +103,9 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                         UPrimitiveBatch::GetInstance().AddCone(
                             SpotLight->GetComponentLocation(),
                             tan(SpotLight->GetOuterConeAngle()) * 15.0f,
-                            15.0f,
+                            SpotLight->GetComponentLocation() + SpotLight->GetForwardVector() * 15.0f,
                             15,
-                            SpotLight->GetLightColor(),
-                            Model
+                            SpotLight->GetLightColor()
                         );
                     }
                     if (SpotLight->GetInnerConeAngle() > 0)
@@ -114,21 +113,20 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                         UPrimitiveBatch::GetInstance().AddCone(
                             SpotLight->GetComponentLocation(),
                             tan(SpotLight->GetInnerConeAngle()) * 15.0f,
-                            15.0f,
+                            SpotLight->GetComponentLocation() + SpotLight->GetForwardVector() * 15.0f,
                             15,
-                            SpotLight->GetLightColor(),
-                            Model
+                            SpotLight->GetLightColor()
                         );
                     }
                 }
                 else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Comp))
                 {
-                    FVector Right = DirectionalLight->GetOwner()->GetActorRightVector();
+                    FVector Right = DirectionalLight->GetRightVector();
                     for (int i = 0; i < 4; ++i)
                     {
                         UPrimitiveBatch::GetInstance().AddLine(
                             DirectionalLight->GetComponentLocation() + Right * (-1.5f + i),
-                            DirectionalLight->GetOwner()->GetActorForwardVector(),
+                            DirectionalLight->GetForwardVector(),
                             15.0f,
                             DirectionalLight->GetLightColor()
                         );

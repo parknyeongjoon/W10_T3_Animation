@@ -357,7 +357,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
                 LightConstant.SpotLights[SpotLightCount].Position = SpotLightComp->GetComponentLocation();
                 LightConstant.SpotLights[SpotLightCount].Color = SpotLightComp->GetLightColor();
                 LightConstant.SpotLights[SpotLightCount].Intensity = SpotLightComp->GetIntensity();
-                LightConstant.SpotLights[SpotLightCount].Direction = SpotLightComp->GetOwner()->GetActorForwardVector();
+                LightConstant.SpotLights[SpotLightCount].Direction = SpotLightComp->GetForwardVector();
                 LightConstant.SpotLights[SpotLightCount].InnerAngle = SpotLightComp->GetInnerConeAngle();
                 LightConstant.SpotLights[SpotLightCount].OuterAngle = SpotLightComp->GetOuterConeAngle();
                 LightConstant.SpotLights[SpotLightCount].View = (SpotLightComp->GetViewMatrix());
@@ -368,7 +368,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             }
             LightConstant.DirLights[DirectionalLightCount].Color = DirectionalLightComp->GetLightColor();
             LightConstant.DirLights[DirectionalLightCount].Intensity = DirectionalLightComp->GetIntensity();
-            LightConstant.DirLights[DirectionalLightCount].Direction = DirectionalLightComp->GetOwner()->GetActorForwardVector();
+            LightConstant.DirLights[DirectionalLightCount].Direction = DirectionalLightComp->GetForwardVector();
             DirectionalLightCount++;
             continue;
         }

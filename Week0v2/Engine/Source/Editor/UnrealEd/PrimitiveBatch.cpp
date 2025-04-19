@@ -110,16 +110,14 @@ void UPrimitiveBatch::AddOBB(const FBoundingBox& localAABB, const FVector& cente
 
 }
 
-void UPrimitiveBatch::AddCone(const FVector& center, float radius, float height, int segments, const FVector4& color, const FMatrix& modelMatrix)
+void UPrimitiveBatch::AddCone(const FVector& start, float radius, const FVector& end, int segments, const FVector4& color)
 {
     ConeSegmentCount = segments;
-    FVector localApex = FVector(0, 0, 0);
     FCone cone;
-    cone.ConeApex = center + FMatrix::TransformVector(localApex, modelMatrix);
-    FVector localBaseCenter = FVector(height, 0, 0);
-    cone.ConeBaseCenter = center + FMatrix::TransformVector(localBaseCenter, modelMatrix);
+    cone.ConeApex = start;
+    cone.ConeBaseCenter = end;
     cone.ConeRadius = radius;
-    cone.ConeHeight = height;
+    cone.ConeHeight = (start-end).Magnitude();
     cone.Color = color;
     cone.ConeSegmentCount = ConeSegmentCount;
     Cones.Add(cone);
