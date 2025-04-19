@@ -44,7 +44,7 @@ class USpotLightComponent : public UDirectionalLightComponent
 public:
     USpotLightComponent();
     USpotLightComponent(const USpotLightComponent& Other);
-    virtual ~USpotLightComponent() override = default;
+    virtual ~USpotLightComponent() override;
 protected:
     //angle은 내부적으로 radian
     float InnerConeAngle = 0.0f;

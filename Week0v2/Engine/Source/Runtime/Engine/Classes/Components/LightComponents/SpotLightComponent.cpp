@@ -85,6 +85,42 @@ USpotLightComponent::USpotLightComponent(const USpotLightComponent& Other)
 
 }
 
+USpotLightComponent::~USpotLightComponent()
+{
+    // release dx11 resources
+    if (DSVBuffer)
+    {
+        DSVBuffer->Release();
+        DSVBuffer = nullptr;
+    }
+    if (DSV)
+    {
+        DSV->Release();
+        DSV = nullptr;
+    }
+    if (ShadowMap)
+    {
+        ShadowMap->Release();
+        ShadowMap = nullptr;
+    }
+    if (RTVBuffer)
+    {
+        RTVBuffer->Release();
+        RTVBuffer = nullptr;
+    }
+    if (LightRTV)
+    {
+        LightRTV->Release();
+        LightRTV = nullptr;
+    }
+    if (RTVSRV)
+    {
+        RTVSRV->Release();
+        RTVSRV = nullptr;
+    }
+
+}
+
 void USpotLightComponent::SetInnerConeAngle(float Angle)
 {
     Angle = JungleMath::DegToRad(Angle);
