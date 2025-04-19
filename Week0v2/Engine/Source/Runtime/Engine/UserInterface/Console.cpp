@@ -52,8 +52,8 @@ void Console::Draw() {
     ImVec2 windowPos(0, displaySize.y - currentHeight);
     
     // 창 위치와 크기를 고정
-    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+    //ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+    //ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
     // 창을 표시하고 닫힘 여부 확인
     overlay.Render(GEngine->graphicDevice.DeviceContext, width, height);
     bExpand = ImGui::Begin("Console", &bWasOpen);
@@ -177,3 +177,92 @@ void Console::OnResize(HWND hWindow)
     height = clientRect.bottom - clientRect.top;
 }
 
+void StatOverlay::ToggleStat(const std::string& command)
+{
+    if (command == "stat fps") { showFPS = true; showRender = true; isOpen = true; }
+    else if (command == "stat memory") { showMemory = true; showRender = true; isOpen = true; }
+    else if (command == "stat shadow") { showShadow = true; showRender = true; isOpen = true; }
+    else if (command == "stat none") {
+        showFPS = false;
+        showMemory = false;
+        showRender = false;
+        isOpen = false;
+    }
+}
+
+void StatOverlay::Render(ID3D11DeviceContext* context, UINT width, UINT height)
+{
+    if (!showRender || !isOpen)
+        return;
+
+    ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+    ImVec2 windowSize(displaySize.x * 0.5f, displaySize.y * 0.5f);
+    ImVec2 windowPos((displaySize.x - windowSize.x) * 0.5f, (displaySize.y - windowSize.y) * 0.5f);
+
+    //ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+    //ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+
+    ImGui::Begin("Stat Overlay", &isOpen);
+
+    if (showFPS) {
+        static float lastTime = ImGui::GetTime();
+        static int frameCount = 0;
+        static float fps = 0.0f;
+
+        frameCount++;
+        float currentTime = ImGui::GetTime();
+        float deltaTime = currentTime - lastTime;
+
+        if (deltaTime >= 1.0f) {
+            fps = frameCount / deltaTime;
+            frameCount = 0;
+            lastTime = currentTime;
+        }
+        ImGui::Text("FPS: %.2f", fps);
+        ImGui::Separator();
+    }
+
+    if (showMemory) {
+        ImGui::Text("Allocated Object Count: %llu", FPlatformMemory::GetAllocationCount<EAT_Object>());
+        ImGui::Text("Allocated Object Memory: %llu B", FPlatformMemory::GetAllocationBytes<EAT_Object>());
+        ImGui::Text("Allocated Container Count: %llu", FPlatformMemory::GetAllocationCount<EAT_Container>());
+        ImGui::Text("Allocated Container Memory: %llu B", FPlatformMemory::GetAllocationBytes<EAT_Container>());
+
+        ImGui::Separator();
+    }
+
+    if (showShadow)
+    {
+        FShadowMemoryUsageInfo Info = FShadowResourceFactory::GetShadowMemoryUsageInfo();
+        ImGui::Text("Shadow Memory Usage Info:");
+        float total = (float)Info.TotalMemoryUsage / (1024.f * 1024.f);
+        ImGui::Text("Total Memory: %.2f MB", total);
+        for (const auto& pair : Info.MemoryUsageByLightType)
+        {
+            switch (pair.Key)
+            {
+            case ELightType::DirectionalLight:
+                ImGui::Text("Directional Light");
+                break;
+            case ELightType::PointLight:
+                ImGui::Text("Point Light");
+                break;
+            case ELightType::SpotLight:
+                ImGui::Text("Spot Light");
+                break;
+            }
+            // byte to mb
+            ImGui::Text("Count : %d", Info.LightCountByLightType[pair.Key]);
+            float mb = (float)pair.Value / (1024.f * 1024.f);
+            ImGui::Text("Memory: %.2f MB", mb);
+        }
+    }
+
+    ImGui::PopStyleColor();
+    ImGui::End();
+
+    if (!isOpen) {
+        showRender = false;
+    }
+}
