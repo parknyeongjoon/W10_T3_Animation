@@ -1,5 +1,5 @@
 #include "ShadowResource.h"
-
+#include "Math/MathUtility.h"
 UINT FShadowResource::ShadowResolution = 1024; // Default shadow resolution
 
 FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType)
@@ -153,6 +153,7 @@ size_t FShadowResource::GetEsimatedMemoryUsageInBytes() const
     case DXGI_FORMAT_R32_FLOAT:
     case DXGI_FORMAT_D32_FLOAT:
     case DXGI_FORMAT_R24G8_TYPELESS:
+    case DXGI_FORMAT_R32_TYPELESS:
     case DXGI_FORMAT_D24_UNORM_S8_UINT:
         PixelSizeInBytes = 4;
         break;
@@ -168,9 +169,67 @@ size_t FShadowResource::GetEsimatedMemoryUsageInBytes() const
         static_cast<size_t>(Desc.Height) *
         PixelSizeInBytes;
 
-    size_t Total = SizePerTex * Desc.ArraySize * Desc.MipLevels;
+    // 멀티샘플링 고려
+    size_t SampleCount = FMath::Max((UINT)1, Desc.SampleDesc.Count);
+    SizePerTex *= SampleCount;
+
+    // 배열/밉맵 고려
+    size_t Total = SizePerTex * Desc.ArraySize;
+    if (Desc.MipLevels > 1)
+    {
+        // 밉맵 체인은 상위 레벨의 1/4씩 추가됨 (대략적인 추정)
+        Total += Total / 3;
+    }
+
+    // 뷰 객체 메모리 추정 (대략 1KB per view)
+    const size_t ViewOverhead = 1024;
+    size_t ViewCount = 0;
+    if (ShadowSRV) ViewCount++;
+    ViewCount += ShadowDSVs.Num();
+    Total += ViewCount * ViewOverhead;
 
     return Total;
 }
 
-
+FShadowResource* FShadowResourceFactory::CreateShadowResource(ID3D11Device* Device, ELightType LightType)
+{
+    FShadowResource* shadowResource = new FShadowResource(Device, LightType);
+    if (shadowResource)
+    {
+        if (ShadowResources.Contains(shadowResource->LightType))
+        {
+            ShadowResources[shadowResource->LightType].Add(shadowResource);
+        }
+        else
+        {
+            ShadowResources.Add(shadowResource->LightType, TArray<FShadowResource*>());
+            ShadowResources[shadowResource->LightType].Add(shadowResource);
+        }
+    }
+    else
+    {
+        // Handle error
+        assert(TEXT("Failed to create shadow resource"));
+    }
+    return shadowResource;
+};
+FShadowMemoryUsageInfo FShadowResourceFactory::GetShadowMemoryUsageInfo()
+{
+    FShadowMemoryUsageInfo memoryUsageInfo;
+    for (const auto& pair : ShadowResources)
+    {
+        ELightType lightType = pair.Key;
+        const TArray<FShadowResource*>& shadowResources = pair.Value;
+        size_t totalMemory = 0;
+        size_t count = 0;
+        for (const FShadowResource* shadowResource : shadowResources)
+        {
+            totalMemory += shadowResource->GetEsimatedMemoryUsageInBytes();
+            count++;
+        }
+        memoryUsageInfo.TotalMemoryUsage += totalMemory;
+        memoryUsageInfo.MemoryUsageByLightType.Add(lightType, totalMemory);
+        memoryUsageInfo.LightCountByLightType.Add(lightType, count);
+    }
+    return memoryUsageInfo;
+}

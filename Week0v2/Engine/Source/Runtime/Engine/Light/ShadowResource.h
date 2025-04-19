@@ -1,6 +1,7 @@
 #pragma once  
 #include "Define.h"  
 #include "Container/Map.h"
+#define _TCHAR_DEFINED
 #include <wrl/client.h> 
 
 using Microsoft::WRL::ComPtr;
@@ -24,6 +25,7 @@ struct FShadowResource
    ~FShadowResource();
 
    size_t GetEsimatedMemoryUsageInBytes() const;
+   ELightType GetLightType() const { return LightType; }
    ID3D11ShaderResourceView* GetSRV() const { return ShadowSRV.Get(); }
    ID3D11Texture2D* GetTexture() const { return ShadowTexture.Get(); }
    ID3D11DepthStencilView* GetDSV(int faceIndex = 0) const
@@ -44,51 +46,14 @@ struct FShadowMemoryUsageInfo
 {
     size_t TotalMemoryUsage = 0;
     TMap<ELightType, size_t> MemoryUsageByLightType;
+    TMap<ELightType, size_t> LightCountByLightType;
 };
 
 class FShadowResourceFactory
 {
 public:
     static inline TMap<ELightType, TArray<FShadowResource*>> ShadowResources;
-    static FShadowResource* CreateShadowResource(ID3D11Device* Device, ELightType LightType)
-    {
-        FShadowResource* shadowResource = new FShadowResource(Device, LightType);
-        if (shadowResource)
-        {
-            if(ShadowResources.Contains(shadowResource->LightType))
-            {
-                ShadowResources[shadowResource->LightType].Add(shadowResource);
-            }
-            else
-            {
-                ShadowResources.Add(shadowResource->LightType, TArray<FShadowResource*>());
-                ShadowResources[shadowResource->LightType].Add(shadowResource);
-            }
-        }
-        else
-        {
-            // Handle error
-            assert(TEXT("Failed to create shadow resource"));
-        }
-        return shadowResource;
-    };
-
-    static FShadowMemoryUsageInfo GetShadowMemoryUsageInfo()
-    {
-        FShadowMemoryUsageInfo memoryUsageInfo;
-        for (const auto& pair : ShadowResources)
-        {
-            ELightType lightType = pair.Key;
-            const TArray<FShadowResource*>& shadowResources = pair.Value;
-            size_t totalMemory = 0;
-            for (const FShadowResource* shadowResource : shadowResources)
-            {
-                totalMemory += shadowResource->GetEsimatedMemoryUsageInBytes();
-            }
-            memoryUsageInfo.TotalMemoryUsage += totalMemory;
-            memoryUsageInfo.MemoryUsageByLightType.Add(lightType, totalMemory);
-        }
-        return memoryUsageInfo;
-    }
+    static FShadowResource* CreateShadowResource(ID3D11Device* Device, ELightType LightType);
+    static FShadowMemoryUsageInfo GetShadowMemoryUsageInfo();
 };
 
