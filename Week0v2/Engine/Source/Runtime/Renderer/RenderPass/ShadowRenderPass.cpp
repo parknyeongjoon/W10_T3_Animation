@@ -106,6 +106,19 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
             continue;
         }
 
+        if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
+        {
+            Light = SpotLight;
+        }
+        else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
+        {
+            Light = DirectionalLight;
+        }
+        else if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
+        {
+            Light = PointLight;
+        }
+
         FShadowResource* ShadowResource = Light->GetShadowResource();
         if (ShadowResource == nullptr)
             return;

@@ -347,10 +347,10 @@ void PropertyEditorPanel::Render()
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth, imageSize);
 
-            ImTextureID LightTexture = reinterpret_cast<ImTextureID>(DirectionalLight->GetLightMap()->TextureSRV);
-
-            ImGui::Text("Light Depth View");
-            ImGui::Image(LightTexture, imageSize);
+            // ImTextureID LightTexture = reinterpret_cast<ImTextureID>(DirectionalLight->GetLightMap()->TextureSRV);
+            //
+            // ImGui::Text("Light Depth View");
+            // ImGui::Image(LightTexture, imageSize);
             //TODO: 회전 각에 맞춰 direction 변동
             /*if (DirectionalLight)
             {

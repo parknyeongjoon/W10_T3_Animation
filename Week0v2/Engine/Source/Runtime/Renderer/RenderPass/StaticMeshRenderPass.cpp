@@ -319,7 +319,6 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
     FLightingConstants LightConstant;
-    uint32 DirectionalLightCount = 0;
     uint32 PointLightCount = 0;
     uint32 SpotLightCount = 0;
 
@@ -348,15 +347,15 @@ void FStaticMeshRenderPass::UpdateLightConstants()
         
         if (const UDirectionalLightComponent* DirectionalLightComp = Cast<UDirectionalLightComponent>(Comp))
         {
-            LightConstant.DirLights[DirectionalLightCount].Color = DirectionalLightComp->GetLightColor();
-            LightConstant.DirLights[DirectionalLightCount].Intensity = DirectionalLightComp->GetIntensity();
-            LightConstant.DirLights[DirectionalLightCount].Direction = DirectionalLightComp->GetForwardVector();
-            DirectionalLightCount++;
+            LightConstant.DirLight.Color = DirectionalLightComp->GetLightColor();
+            LightConstant.DirLight.Intensity = DirectionalLightComp->GetIntensity();
+            LightConstant.DirLight.Direction = DirectionalLightComp->GetForwardVector();
+            LightConstant.DirLight.View = DirectionalLightComp->GetViewMatrix();
+            LightConstant.DirLight.Projection = Projection;
             continue;
         }
 
-        USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(Comp);
-        if (SpotLightComp)
+        if (USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(Comp))
         {
             LightConstant.SpotLights[SpotLightCount].Position = SpotLightComp->GetComponentLocation();
             LightConstant.SpotLights[SpotLightCount].Color = SpotLightComp->GetLightColor();
@@ -385,7 +384,6 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     //UE_LOG(LogLevel::Error, "Point : %d, Spot : %d Dir : %d", PointLightCount, SpotLightCount, DirectionalLightCount);
     LightConstant.NumPointLights = PointLightCount;
     LightConstant.NumSpotLights = SpotLightCount;
-    LightConstant.NumDirectionalLights = DirectionalLightCount;
     
     renderResourceManager->UpdateConstantBuffer(LightConstantBuffer, &LightConstant);
     Graphics.DeviceContext->PSSetConstantBuffers(2, 1, &LightConstantBuffer);

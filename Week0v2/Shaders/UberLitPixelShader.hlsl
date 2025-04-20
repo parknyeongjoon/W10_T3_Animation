@@ -66,12 +66,11 @@ struct FSpotLight
 
 cbuffer FLightingConstants : register(b2)
 {
-    uint NumDirectionalLights;
     uint NumPointLights;
     uint NumSpotLights;
-    float pad;
+    float2 pad2;
 
-    FDirectionalLight DirLights[4];
+    FDirectionalLight DirLight;
     FPointLight PointLights[16];
     FSpotLight SpotLights[8];
 };
@@ -332,7 +331,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
         TotalLight = TotalLight * 10.0f;
     TotalLight += EmissiveColor; // 자체 발광  
 
-    float3 LightColor = CalculateDirectionalLight(DirLights[0], Normal, ViewDir, baseColor.rgb);
+    float3 LightColor = CalculateDirectionalLight(DirLight, Normal, ViewDir, baseColor.rgb);
     TotalLight += LightColor;
     if (length(LightColor) > 0.0)
     {

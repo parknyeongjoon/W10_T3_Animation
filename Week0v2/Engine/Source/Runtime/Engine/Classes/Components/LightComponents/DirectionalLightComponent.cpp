@@ -7,50 +7,6 @@
 UDirectionalLightComponent::UDirectionalLightComponent()
 {
     ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight);
-    // LightMap = new FTexture(nullptr, nullptr, 0,0,L"");
-    //
-    // FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    //
-    // D3D11_TEXTURE2D_DESC textureDesc = {};
-    // textureDesc.Width = 1024;
-    // textureDesc.Height = 1024;
-    // textureDesc.MipLevels = 1;
-    // textureDesc.ArraySize = 1;
-    // textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    // textureDesc.SampleDesc.Count = 1;
-    // textureDesc.Usage = D3D11_USAGE_DEFAULT;
-    // textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-    //
-    // HRESULT hr = Graphics.Device->CreateTexture2D(&textureDesc, nullptr, &LightMap->Texture);
-    // if (FAILED(hr))
-    // {
-    //     assert(TEXT("SceneColorBuffer creation failed"));
-    //     return;
-    // }
-    //
-    // D3D11_RENDER_TARGET_VIEW_DESC SceneColorRTVDesc = {};
-    // SceneColorRTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;      // 색상 포맷
-    // SceneColorRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
-    //
-    // hr = Graphics.Device->CreateRenderTargetView(LightMap->Texture, &SceneColorRTVDesc, &LightRTV);
-    // if (FAILED(hr))
-    // {
-    //     assert(TEXT("SceneColorBuffer creation failed"));
-    //     return;
-    // }
-    //
-    // D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    // srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    // srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    // srvDesc.Texture2D.MostDetailedMip = 0;
-    // srvDesc.Texture2D.MipLevels = 1;
-    //
-    // hr = Graphics.Device->CreateShaderResourceView(LightMap->Texture, &srvDesc, &LightMap->TextureSRV);
-    // if (FAILED(hr))
-    // {
-    //     assert(TEXT("SceneColorBuffer creation failed"));
-    //     return;
-    // }
 }
 
 UDirectionalLightComponent::UDirectionalLightComponent(const UDirectionalLightComponent& Other)
