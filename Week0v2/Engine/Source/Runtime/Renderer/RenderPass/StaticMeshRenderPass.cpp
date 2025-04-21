@@ -114,7 +114,7 @@ void FStaticMeshRenderPass::UpdateComputeResource()
     Graphics.DeviceContext->PSSetShaderResources(2, 1, &TileCullingSRV);
 }
 
-void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InViewportClient)
+void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     FRenderer& Renderer = GEngine->renderer;
     FGraphicsDevice& Graphics = GEngine->graphicDevice;

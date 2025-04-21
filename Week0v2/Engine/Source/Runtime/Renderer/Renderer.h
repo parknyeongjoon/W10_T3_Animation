@@ -57,6 +57,7 @@ public:
     void Release();
     
     void SetViewMode(EViewModeIndex evi);
+    EViewModeIndex GetCurrentViewMode() const { return CurrentViewMode; }
 
 public:
     //Render Pass Demo
@@ -64,6 +65,7 @@ public:
     void AddRenderObjectsToRenderPass(UWorld* InWorld) const;
     void Render(UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
     void ClearRenderObjects() const;
+
 
 public:
     void PrepareShader(FName InShaderName);

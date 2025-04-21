@@ -361,18 +361,9 @@ void FRenderer::AddRenderObjectsToRenderPass(UWorld* InWorld) const
 {
     ComputeTileLightCulling->AddRenderObjectsToRenderPass(InWorld);
 
-    if (CurrentViewMode == VMI_Lit_Goroud)
-    {
-        GoroudRenderPass->AddRenderObjectsToRenderPass(InWorld);
-    }
-    else if (CurrentViewMode == VMI_Lit_Lambert)
-    {
-        LambertRenderPass->AddRenderObjectsToRenderPass(InWorld);
-    }
-    else
-    {
-        PhongRenderPass->AddRenderObjectsToRenderPass(InWorld);
-    }
+    GoroudRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    LambertRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    PhongRenderPass->AddRenderObjectsToRenderPass(InWorld);
     
     GizmoRenderPass->AddRenderObjectsToRenderPass(InWorld);
     EditorIconRenderPass->AddRenderObjectsToRenderPass(InWorld);
