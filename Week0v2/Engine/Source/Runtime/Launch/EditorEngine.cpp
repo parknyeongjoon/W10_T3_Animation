@@ -95,7 +95,6 @@ void UEditorEngine::Render()
 
 void UEditorEngine::Tick(float deltaSeconds)
 {
-
     GWorld->Tick(levelType, deltaSeconds);
     Input();
     // GWorld->Tick(LEVELTICK_All, deltaSeconds);
@@ -113,6 +112,8 @@ void UEditorEngine::Tick(float deltaSeconds)
     GUObjectArray.ProcessPendingDestroyObjects();
 
     graphicDevice.SwapBuffer();
+    FVector CurRotation = GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetRotation();
+    std::cout << "Camera rotation : " << CurRotation.x << ", " << CurRotation.y << ", " << CurRotation.z << std::endl;
 }
 
 float UEditorEngine::GetAspectRatio(IDXGISwapChain* swapChain) const

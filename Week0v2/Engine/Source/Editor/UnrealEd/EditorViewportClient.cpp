@@ -239,9 +239,9 @@ void FEditorViewportClient::CameraRotatePitch(float _Value)
 {
     FVector curCameraRot = ViewTransformPerspective.GetRotation();
     curCameraRot.y += _Value;
-    if (curCameraRot.y <= -89.0f)
+    if (curCameraRot.y < -89.0f)
         curCameraRot.y = -89.0f;
-    if (curCameraRot.y >= 89.0f)
+    if (curCameraRot.y > 89.0f)
         curCameraRot.y = 89.0f;
     ViewTransformPerspective.SetRotation(curCameraRot);
 }

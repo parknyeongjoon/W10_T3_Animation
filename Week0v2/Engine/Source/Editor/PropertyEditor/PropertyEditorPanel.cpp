@@ -20,6 +20,9 @@
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/CubeComp.h"
 
+#include "LevelEditor/SLevelEditor.h"
+#include "UnrealEd/EditorViewportClient.h"
+
 void PropertyEditorPanel::Render()
 {
     /* Pre Setup */
@@ -52,7 +55,7 @@ void PropertyEditorPanel::Render()
     if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
             PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
 
-    ImVec2 imageSize = ImVec2(128, 128); // 이미지 출력 크기
+    ImVec2 imageSize = ImVec2(256, 256); // 이미지 출력 크기
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)
@@ -413,6 +416,15 @@ void PropertyEditorPanel::Render()
             ImTextureID LightDepth = reinterpret_cast<ImTextureID>(SpotLight->GetShadowResource()->GetSRV());
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth, imageSize);
+            bool override = false;
+            if (ImGui::Checkbox("Override Camera", &override))
+            {
+                GEngine->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.SetLocation(SpotLight->GetComponentLocation());
+                FRotator Rotator = SpotLight->GetComponentRotation();
+                FVector Rotation = { FMath::Clamp(Rotator.Roll, -89.0f, 89.0f), FMath::Clamp(-Rotator.Pitch, -89.0f, 89.0f), FMath::Clamp(Rotator.Yaw, -89.0f, 89.0f) };
+                GEngine->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.SetRotation(Rotation);
+                GEngine->GetLevelEditor()->GetActiveViewportClient()->SetViewFOV(JungleMath::RadToDeg(SpotLight->GetOuterConeAngle()) * 2.0f);
+            }
         }
     }
 
