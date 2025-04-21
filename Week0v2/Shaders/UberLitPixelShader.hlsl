@@ -3,9 +3,11 @@
 
 Texture2D Texture : register(t0);
 Texture2D NormalTexture : register(t1);
-Texture2D SpotLightShadowMap[8] : register(t3);
 
 StructuredBuffer<uint> TileLightIndices : register(t2);
+
+Texture2D SpotLightShadowMap[8] : register(t3);
+Texture2D DirectionalLightShadowMap : register(t11);
 
 #define MAX_POINTLIGHT_COUNT 16
 
@@ -33,6 +35,9 @@ struct FDirectionalLight
     float3 Direction;
     float Intensity;
     float4 Color;
+
+    row_major float4x4 View;
+    row_major float4x4 Projection;
 };
 
 struct FPointLight
@@ -300,8 +305,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
     uint2 tileCoord = pixelCoord / tileSize; // 각 성분별 나눔
     uint tileIndex = tileCoord.x + tileCoord.y * numTilesX;
     
-    float shadowFactor = 1;
-    
     float3 Normal = input.normal;
     
     if (bHasNormalTexture)
@@ -331,14 +334,13 @@ PS_OUTPUT mainPS(PS_INPUT input)
         TotalLight = TotalLight * 10.0f;
     TotalLight += EmissiveColor; // 자체 발광  
 
-    float3 LightColor = CalculateDirectionalLight(DirLight, Normal, ViewDir, baseColor.rgb);
-    TotalLight += LightColor;
-    if (length(LightColor) > 0.0)
+    float3 DirLightColor = CalculateDirectionalLight(DirLight, Normal, ViewDir, baseColor.rgb);
+    if (length(DirLightColor) > 0.0)
     {
-        // float shadow = CalculateShadow(input.worldPos, Normal, DirLight.Direction, DirLight.View, DirLight.Proj, SpotLightShadowMap[0]);
-        // if (shadow > 0)
-        //     shadowFactor -= shadow;
+        float dirShadow = CalculateShadow(input.worldPos, Normal, DirLight.Direction, DirLight.View, DirLight.Projection, DirectionalLightShadowMap);
+        DirLightColor *= (1 - dirShadow);
     }
+    TotalLight += DirLightColor;
 
     // 점광 처리  
     for(uint j=0; j<NumPointLights; ++j)
@@ -356,42 +358,13 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     for (uint k = 0; k < NumSpotLights; ++k)
     {
-        bool bIsShadow = false;
-        float shadow = 0;
-        float3 LightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
-        TotalLight += LightColor;
-        if (length(LightColor) > 0.0)
+        float3 SpotLightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
+        if (length(SpotLightColor) > 0.0)
         {
-            float4 LightViewPos = WorldToLight(input.worldPos, SpotLights[k].View, SpotLights[k].Proj);
-            
-            float2 shadowUV = LightViewPos.xy / LightViewPos.w * 0.5 + 0.5;
-            shadowUV.y = 1.0 - shadowUV.y;
-            float worldDepth = LightViewPos.z / LightViewPos.w;
-
-            if(shadowUV.x >= 0 && shadowUV.x <= 1 &&
-                shadowUV.y >= 0 && shadowUV.y <= 1 && 
-                worldDepth >= 0 && worldDepth <= 1)
-            {
-                float bias = max(0.01 * (1.0 - dot(Normal, -SpotLights[k].Direction)), 0.001);
-                for (int x = -1; x <= 1; ++x)
-                {
-                    for (int y = -1; y <= 1; ++y)
-                    {
-                        uint textureWidth, textureHeight;
-                        SpotLightShadowMap[k].GetDimensions(textureWidth, textureHeight);
-                        float2 texelSize = 1.0 / float2(textureWidth, textureHeight);
-                        float2 offset = float2(x, y) * texelSize;
-                        float sample = SpotLightShadowMap[k].Sample(pointSampler, shadowUV + offset).r;
-                        shadow += (worldDepth >= sample + bias) ? 1.0 : 0.0;
-                    }
-                }
-                shadow = shadow / 9.0;
-                bIsShadow = true;
-            }
+             float SpotShadow = CalculateShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
+            SpotLightColor *= (1 - SpotShadow);
         }
-        shadowFactor += bIsShadow ? (1.0 - shadow) : 1.0;
-        if (bIsShadow)
-            TotalLight += LightColor * shadowFactor;
+        TotalLight += SpotLightColor;
     }
     
     float4 FinalColor = float4(TotalLight * baseColor.rgb, baseColor.a * TransparencyScalar);

@@ -351,7 +351,10 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.DirLight.Intensity = DirectionalLightComp->GetIntensity();
             LightConstant.DirLight.Direction = DirectionalLightComp->GetForwardVector();
             LightConstant.DirLight.View = DirectionalLightComp->GetViewMatrix();
-            LightConstant.DirLight.Projection = Projection;
+            LightConstant.DirLight.Projection = DirectionalLightComp->GetProjectionMatrix();
+
+            ID3D11ShaderResourceView* DirectionalShadowMap = DirectionalLightComp->GetShadowResource()->GetSRV();
+            Graphics.DeviceContext->PSSetShaderResources(11, 1, &DirectionalShadowMap);
             continue;
         }
 
@@ -370,6 +373,8 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             continue;
         }
     }
+
+    // Binding ShadowMap
     for (int i = 0; i < 8; ++i)
     {
         if (ShadowMaps[i] == nullptr)

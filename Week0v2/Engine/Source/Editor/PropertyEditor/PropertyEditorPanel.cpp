@@ -413,11 +413,6 @@ void PropertyEditorPanel::Render()
             ImTextureID LightDepth = reinterpret_cast<ImTextureID>(SpotLight->GetShadowResource()->GetSRV());
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth, imageSize);
-
-            ImTextureID LightTexture = reinterpret_cast<ImTextureID>(SpotLight->GetLightMap()->TextureSRV);
-
-            ImGui::Text("Light Depth View");
-            ImGui::Image(LightTexture, imageSize);
         }
     }
 

@@ -23,7 +23,7 @@ UDirectionalLightComponent::UDirectionalLightComponent(const UDirectionalLightCo
 //    GetOwner()->GetRootComponent()->SetRelativeQuat(FQuat::FromAxisAngle(Axis, Angle));
 //    Direction = _newDir;
 //}
-const float SCENE_RADIUS = 3.0f;
+const float SCENE_RADIUS = 100.0f;
 FMatrix UDirectionalLightComponent::GetViewMatrix() const
 {
     // 광원 위치 결정 (씬의 중심에서 반대 방향으로)
@@ -46,14 +46,8 @@ FMatrix UDirectionalLightComponent::GetViewMatrix() const
 
 FMatrix UDirectionalLightComponent::GetProjectionMatrix() const
 {
-    return JungleMath::CreateProjectionMatrix(
-    45 * 2.0f,
-    1.0f,
-    0.1f,
-    1000.0f
-    );
     // 직교 투영 행렬 계산 (방향광은 직교 투영 사용)
-    return JungleMath::CreateOrthoProjectionMatrix(1,1, 0.1f, SCENE_RADIUS);
+    return JungleMath::CreateOrthoProjectionMatrix(SCENE_RADIUS * 2,SCENE_RADIUS * 2, 0.1f, 4 * SCENE_RADIUS);
 }
 
 UObject* UDirectionalLightComponent::Duplicate() const
