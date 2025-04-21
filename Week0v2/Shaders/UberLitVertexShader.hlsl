@@ -69,12 +69,11 @@ struct FSpotLight
 
 cbuffer FLightingConstants : register(b1)
 {
-    uint NumDirectionalLights;
     uint NumPointLights;
     uint NumSpotLights;
-    float pad;
+    float2 pad2;
 
-    FDirectionalLight DirLights[4];
+    FDirectionalLight DirLight;
     FPointLight PointLights[16];
     FSpotLight SpotLights[8];
 };
@@ -214,7 +213,7 @@ PS_INPUT mainVS(VS_INPUT input)
     output.color = input.color;
     output.texcoord = input.texcoord;
     
-    float3 normal = mul(float4(input.normal, 0), MInverseTranspose);
+    float3 normal = mul(float4(input.normal, 0), MInverseTranspose).xyz;
     
 #if LIGHTING_MODEL_GOURAUD
     float3 viewDir = normalize(CameraPos - worldPos.xyz);
@@ -230,8 +229,7 @@ PS_INPUT mainVS(VS_INPUT input)
         return output;
     }
     // 정점 색상 계산 (디퓨즈 + 스페큘러)
-    for(uint i=0; i<NumDirectionalLights; ++i)  
-        totalLight += CalculateDirectionalLight(DirLights[i], normal, viewDir, input.color.rgb);
+    totalLight += CalculateDirectionalLight(DirLight, normal, viewDir, input.color.rgb);
 
     // 점광 처리  
     for(uint j=0; j<NumPointLights; ++j)  

@@ -196,8 +196,10 @@ void FStaticMeshRenderPass:: Execute(const std::shared_ptr<FViewportClient> InVi
         }
     }
 
-    ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-    Graphics.DeviceContext->PSSetShaderResources(2, 1, nullSRV); //쓰고 해제 나중에 이쁘게 뺴기
+    ID3D11ShaderResourceView* nullSRV[8] = { nullptr };
+    Graphics.DeviceContext->PSSetShaderResources(2, 1, &nullSRV[0]); //쓰고 해제 나중에 이쁘게 뺴기
+    Graphics.DeviceContext->PSSetShaderResources(3, 8, nullSRV);
+    Graphics.DeviceContext->PSSetShaderResources(11, 1, &nullSRV[0]);
 }
 
 void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
@@ -391,6 +393,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     LightConstant.NumSpotLights = SpotLightCount;
     
     renderResourceManager->UpdateConstantBuffer(LightConstantBuffer, &LightConstant);
+    Graphics.DeviceContext->VSSetConstantBuffers(1, 1, &LightConstantBuffer);
     Graphics.DeviceContext->PSSetConstantBuffers(2, 1, &LightConstantBuffer);
 }
 
