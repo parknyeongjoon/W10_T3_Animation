@@ -59,6 +59,9 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
 
+    FMatrix GetViewMatrixForFace(int faceIndex);
+    FMatrix GetProjectionMatrix() const override;
+
 public:
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;

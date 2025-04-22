@@ -99,10 +99,10 @@ void FShadowRenderPass::RenderPointLightShadowMap(UPointLightComponent* PointLig
         Graphics.DeviceContext->PSSetShaderResources(0, 1, &nullSRV);
         Graphics.DeviceContext->OMSetRenderTargets(0, nullptr, CurrentFaceDSV);
 
-        //FMatrix CubeView = PointLight->GetViewMatrixForFace(face);
-       // FMatrix CubeProj= PointLight->GetProjectionMatrix();
+        FMatrix CubeView = PointLight->GetViewMatrixForFace(faceIndex);
+        FMatrix CubeProj= PointLight->GetProjectionMatrix();
         // 현재 면에 대한 뷰와 프로젝션 매트릭스로 렌더링
-       // RenderStaticMesh(CubeView, CubeProj);
+       RenderStaticMesh(CubeView, CubeProj);
     }
 }
 
@@ -140,7 +140,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
 
         if (PointLight)
         {
-            //RenderPointLightShadowMap(PointLight, ShadowResource, Graphics);
+            RenderPointLightShadowMap(PointLight, ShadowResource, Graphics);
         }
         // 스팟 라이트와 디렉셔널 라이트는 기존 방식대로 처리
         else
@@ -168,6 +168,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
             }
         }
     }
+
     Graphics.DeviceContext->RSSetViewports(1, &curEditorViewportClient->GetD3DViewport());
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView);
 }
