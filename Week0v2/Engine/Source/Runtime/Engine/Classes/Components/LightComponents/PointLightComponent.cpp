@@ -82,7 +82,7 @@ FMatrix UPointLightComponent::GetProjectionMatrix() const
 
     // 근거리/원거리 평면
     const float nearPlane = 0.1f;
-    const float farPlane = 1000.f;
+    const float farPlane = Radius;
 
     return JungleMath::CreateProjectionMatrix(
         cubeFaceAngle,
