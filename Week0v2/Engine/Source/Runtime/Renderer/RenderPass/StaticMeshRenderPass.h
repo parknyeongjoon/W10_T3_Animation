@@ -22,7 +22,7 @@ public:
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void UpdateComputeResource();
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
-    void UpdateComputeConstants(std::shared_ptr<FViewportClient> InViewportClient);
+    //void UpdateComputeConstants(std::shared_ptr<FViewportClient> InViewportClient);
     void CreateDummyTexture();
 
     void ClearRenderObjects() override;
