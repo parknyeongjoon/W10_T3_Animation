@@ -4,6 +4,8 @@
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 #include <Components/LightComponents/SpotLightComponent.h>
 
+class UPointLightComponent;
+
 struct FLightCameraConstant
 {
     FMatrix Model;
@@ -21,6 +23,7 @@ public:
     void ClearRenderObjects() override;
 
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
+    void RenderPointLightShadowMap(UPointLightComponent* PointLight, FShadowResource* ShadowResource, FGraphicsDevice& Graphics);
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
     bool ShouldRender() { return bRender; }
 

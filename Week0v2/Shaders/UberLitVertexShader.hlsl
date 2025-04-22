@@ -36,6 +36,9 @@ struct FDirectionalLight
     float3 Direction;
     float Intensity;
     float4 Color;
+    
+    float4x4 View;
+    float4x4 Projection;
 };
 
 struct FPointLight

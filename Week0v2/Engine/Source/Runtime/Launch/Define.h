@@ -199,6 +199,7 @@ enum class ESamplerType
     Linear,
     Anisotropic,
     PostProcess,
+    ComparisonSampler, // Compare
     End,
 };
 
@@ -554,6 +555,9 @@ struct FPointLight
     float Intensity;
     float AttenuationFalloff;
     FVector2D Padd;
+
+    FMatrix PointLightView[6];
+    FMatrix PointLightProj;
 };
 
 struct FComputeConstants{
