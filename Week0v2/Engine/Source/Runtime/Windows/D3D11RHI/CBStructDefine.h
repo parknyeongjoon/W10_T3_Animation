@@ -7,6 +7,9 @@
 #include "Math/Vector4.h"
 #include "Math/Color.h"
 
+const int MAX_POINTLIGHT = 8;
+const int MAX_SPOTLIGHT = 8;
+
 struct alignas(16) FFogCameraConstant
 {
     FMatrix InvProjMatrix;
@@ -143,8 +146,8 @@ struct alignas(16) FLightingConstants
     float pad; // offset: 8, size: 8
     float pad2;
     FDirectionalLight DirLight;
-    FPointLight PointLights[16];
-    FSpotLight SpotLights[8]; 
+    FPointLight PointLights[MAX_POINTLIGHT];
+    FSpotLight SpotLights[MAX_SPOTLIGHT]; 
 };
 
 struct alignas(16) FFlagConstants

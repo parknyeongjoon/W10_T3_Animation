@@ -9,7 +9,7 @@ Texture2D NormalTexture : register(t1);
 Texture2D SpotLightShadowMap[8] : register(t3);
 Texture2D DirectionalLightShadowMap : register(t11);
 
-TextureCube<float> PointLightShadowMap : register(t12);
+TextureCube<float> PointLightShadowMap[8] : register(t12);
 
 
 #define MAX_POINTLIGHT_COUNT 16
@@ -138,7 +138,7 @@ struct PS_OUTPUT
     float4 UUID : SV_Target1;
 };
 
-float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight PointLight)
+float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight PointLight,int mapIndex)
 {
     float4 WoldPos4 = float4(worldPos, 1.0f);
     
@@ -162,8 +162,8 @@ float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight 
     float bias = max(0.001 * (1.0 - dot(worldNormal, LightDirection)), 0.0001);
     float refDepth = clipPos.z / clipPos.w - bias;
 
-    // SampleCmpLevelZero 으로 비교
-    float shadow = PointLightShadowMap.SampleCmp(
+
+    float shadow = PointLightShadowMap[mapIndex].SampleCmp(
         CompareSampler,
         LightDirection, // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
         refDepth
@@ -171,7 +171,6 @@ float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight 
 
    return shadow;
 }
-
 
 float3 CalculateDirectionalLight(  
     FDirectionalLight Light,  
@@ -322,9 +321,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     PS_OUTPUT output;
     output.UUID = UUID;
     float2 uvAdjusted = input.texcoord;
-    
-    float a = PointLightShadowMap.Sample(pointSampler, float3(1.0f, 1.f, 1.f));
-    
+
     // 기본 색상 추출  
     float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
 
@@ -398,7 +395,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
         float3 LightColor = CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);
         
-        float Shadow = CalculatePointLightShadow(input.worldPos,input.normal, PointLights[j]);
+        float Shadow = CalculatePointLightShadow(input.worldPos,input.normal, PointLights[j],j);
         
         TotalLight += LightColor * Shadow;
     }

@@ -113,7 +113,7 @@ void UEditorEngine::Tick(float deltaSeconds)
 
     graphicDevice.SwapBuffer();
     FVector CurRotation = GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetRotation();
-    std::cout << "Camera rotation : " << CurRotation.x << ", " << CurRotation.y << ", " << CurRotation.z << std::endl;
+   
 }
 
 float UEditorEngine::GetAspectRatio(IDXGISwapChain* swapChain) const
