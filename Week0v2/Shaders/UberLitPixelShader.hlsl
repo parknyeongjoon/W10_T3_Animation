@@ -12,7 +12,7 @@ Texture2D DirectionalLightShadowMap[CASCADE_COUNT] : register(t11);
 
 TextureCube<float> PointLightShadowMap[8] : register(t15);
 
-#define MAX_POINTLIGHT_COUNT 16
+#define MAX_POINTLIGHT_COUNT 8
 
 cbuffer FMaterialConstants : register(b0)
 {
@@ -84,7 +84,7 @@ cbuffer FLightingConstants : register(b2)
     float2 pad2;
 
     FDirectionalLight DirLight;
-    FPointLight PointLights[16];
+    FPointLight PointLights[8];
     FSpotLight SpotLights[8];
 };
 

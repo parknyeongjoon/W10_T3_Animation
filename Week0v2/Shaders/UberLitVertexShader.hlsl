@@ -77,7 +77,7 @@ cbuffer FLightingConstants : register(b1)
     float2 pad2;
 
     FDirectionalLight DirLight;
-    FPointLight PointLights[16];
+    FPointLight PointLights[8];
     FSpotLight SpotLights[8];
 };
 
