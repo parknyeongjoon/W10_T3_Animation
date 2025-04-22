@@ -73,14 +73,9 @@ void FShadowRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClien
 
     Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
     Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState());
-    //D3D11_VIEWPORT vp = {};
-    //vp.TopLeftX = 0;
-    //vp.TopLeftY = 0;
-    //vp.Width = 1024; // ShadowMap size
-    //vp.Height = 1024;
-    //vp.MinDepth = 0.0f;
-    //vp.MaxDepth = 1.0f;
-    //Graphics.DeviceContext->RSSetViewports(1, &vp);
+    
+    ID3D11SamplerState* CompareSampler = Renderer.GetSamplerState(ESamplerType::ComparisonSampler);
+    Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::ComparisonSampler), 1, &CompareSampler);
 }
 
 void FShadowRenderPass::RenderPointLightShadowMap(UPointLightComponent* PointLight, FShadowResource* ShadowResource, FGraphicsDevice& Graphics)

@@ -345,6 +345,14 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.PointLights[PointLightCount].AttenuationFalloff = PointLightComp->GetAttenuationFalloff();
 ;
             ShadowCubeMap = PointLightComp->GetShadowResource()->GetSRV();
+
+            for (int face = 0;face < 6;face++)
+            {
+                LightConstant.PointLights[PointLightCount].PointLightView[face] = PointLightComp->GetViewMatrixForFace(face);
+            }
+
+            LightConstant.PointLights[PointLightCount].PointLightProj = PointLightComp->GetProjectionMatrix();
+
             PointLightCount++;
             continue;
         }

@@ -34,24 +34,23 @@ void UPointLightComponent::PostDuplicate()
 {
 }
 
-FMatrix UPointLightComponent::GetViewMatrixForFace(int faceIndex)
+FMatrix UPointLightComponent::GetViewMatrixForFace(int faceIndex) const
 {
     FVector Up, Forward;
 
-    // 각 면에 따른 방향 벡터 설정
     switch (faceIndex)
     {
     case 0: // +X 방향
         Forward = FVector(1.0f, 0.0f, 0.0f);
-        Up = FVector(0.0f, 0.0f, 1.0f);
+        Up = FVector(0.0f, 1.0f, 0.0f);
         break;
     case 1: // -X 방향
         Forward = FVector(-1.0f, 0.0f, 0.0f);
-        Up = FVector(0.0f, 0.0f, 1.0f);
+        Up = FVector(0.0f, 1.0f, 0.0f);
         break;
     case 2: // +Y 방향
         Forward = FVector(0.0f, 1.0f, 0.0f);
-        Up = FVector(0.0f, 0.0f, 1.0f);
+        Up = FVector(0.0f, 0.0f, -1.0f);
         break;
     case 3: // -Y 방향
         Forward = FVector(0.0f, -1.0f, 0.0f);
@@ -66,7 +65,6 @@ FMatrix UPointLightComponent::GetViewMatrixForFace(int faceIndex)
         Up = FVector(0.0f, 1.0f, 0.0f);
         break;
     }
-
     return JungleMath::CreateViewMatrix(
         GetComponentLocation(),
         Forward + GetComponentLocation(),

@@ -59,7 +59,7 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
 
-    FMatrix GetViewMatrixForFace(int faceIndex);
+    FMatrix GetViewMatrixForFace(int faceIndex) const;
     FMatrix GetProjectionMatrix() const override;
 
 public:
