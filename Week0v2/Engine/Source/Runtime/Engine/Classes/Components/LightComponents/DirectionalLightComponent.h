@@ -39,7 +39,7 @@ class UDirectionalLightComponent : public ULightComponent
 public:
     UDirectionalLightComponent();
     UDirectionalLightComponent(const UDirectionalLightComponent& Other);
-    virtual ~UDirectionalLightComponent() override = default;
+    virtual ~UDirectionalLightComponent() override;
 private:
     FVector Direction = FVector(0.0f, 0.0f, -1.0f);
 public:
@@ -59,4 +59,7 @@ public:
 public:
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
+
+private:
+    TArray<FShadowResource*> ShadowResources;
 };

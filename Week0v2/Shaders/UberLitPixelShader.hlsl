@@ -4,7 +4,7 @@
 Texture2D Texture : register(t0);
 Texture2D NormalTexture : register(t1);
 
-StructuredBuffer<uint> TileLightIndices : register(t2);
+//StructuredBuffer<uint> TileLightIndices : register(t2);
 
 Texture2D SpotLightShadowMap[8] : register(t3);
 Texture2D DirectionalLightShadowMap : register(t11);
@@ -347,12 +347,12 @@ PS_OUTPUT mainPS(PS_INPUT input)
     // 점광 처리  
     for(uint j=0; j<NumPointLights; ++j)
     {
-       //uint listIndex = tileIndex * MAX_POINTLIGHT_COUNT + j;
-       //uint lightIndex = TileLightIndices[listIndex];
-       //if (lightIndex == 0xFFFFFFFF)
-       //{
-       //    break;
-       //}
+        //uint listIndex = tileIndex * MAX_POINTLIGHT_COUNT + j;
+        //uint lightIndex = TileLightIndices[listIndex];
+        //if (lightIndex == 0xFFFFFFFF)
+        //{
+        //    break;
+        //}
 
         float3 LightColor = CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);
         TotalLight += LightColor;
