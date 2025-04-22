@@ -338,6 +338,12 @@ void FStaticMeshRenderPass::UpdateLightConstants()
 
         if (const UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(Comp))
         {
+            if (PointLightCount > MAX_POINTLIGHT-1)
+            {
+                PointLightCount = MAX_POINTLIGHT-1;
+                continue;
+            }
+
             LightConstant.PointLights[PointLightCount].Color = PointLightComp->GetLightColor();
             LightConstant.PointLights[PointLightCount].Intensity = PointLightComp->GetIntensity();
             LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetComponentLocation();
@@ -372,6 +378,12 @@ void FStaticMeshRenderPass::UpdateLightConstants()
 
         if (USpotLightComponent* SpotLightComp = Cast<USpotLightComponent>(Comp))
         {
+            if (SpotLightCount > MAX_SPOTLIGHT-1) 
+            {
+                SpotLightCount = MAX_POINTLIGHT-1;
+                continue;
+            }
+
             LightConstant.SpotLights[SpotLightCount].Position = SpotLightComp->GetComponentLocation();
             LightConstant.SpotLights[SpotLightCount].Color = SpotLightComp->GetLightColor();
             LightConstant.SpotLights[SpotLightCount].Intensity = SpotLightComp->GetIntensity();
