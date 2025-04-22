@@ -584,3 +584,15 @@ struct FSpotLight
     FMatrix View;
     FMatrix Proj;
 };
+
+struct FIntRect
+{
+    int32 X;
+    int32 Y;
+    int32 Width;
+    int32 Height;
+    FIntRect() : X(0), Y(0), Width(0), Height(0) {}
+    FIntRect(int32 InX, int32 InY, int32 InWidth, int32 InHeight)
+        : X(InX), Y(InY), Width(InWidth), Height(InHeight) {
+    }
+};
