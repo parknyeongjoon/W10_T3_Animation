@@ -47,7 +47,9 @@ public:
     void SetDirection(FVector _newDir) { Direction = _newDir; }
 
     FMatrix GetViewMatrix() const override;
+    FMatrix GetCascadeViewMatrix(UINT CascadeIndex) const;
     FMatrix GetProjectionMatrix() const override;
+    FMatrix GetCascadeProjectionMatrix(UINT CascadeIndex) const;
 
 public:
     virtual UObject* Duplicate() const override;

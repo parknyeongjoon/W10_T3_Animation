@@ -5,8 +5,10 @@
 #include "Math/JungleMath.h"
 #include "EditorEngine.h"
 #include "UnrealClient.h"
+#include "Engine/FLoaderOBJ.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "Engine/Classes/Engine/StaticMeshActor.h"
 
 FVector FEditorViewportClient::Pivot = FVector(0.0f, 0.0f, 0.0f);
 float FEditorViewportClient::orthoSize = 10.0f;
@@ -40,6 +42,31 @@ void FEditorViewportClient::Tick(float DeltaTime)
     Input();
     UpdateViewMatrix();
     UpdateProjectionMatrix();
+    UpdateCascadeShadowArea();
+
+    // ----- Test Start
+    // if (DebugCube.IsEmpty())
+    // {
+    //     for (int i=0;i<CASCADE_COUNT*8;i++)
+    //     {
+    //         AStaticMeshActor* TempActor = GEngine->GetWorld()->SpawnActor<AStaticMeshActor>();
+    //         TempActor->SetActorLabel(TEXT("OBJ_CUBE"));
+    //         UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+    //         FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
+    //         MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
+    //         DebugCube.Add(TempActor);
+    //     }
+    // }
+    //
+    // for (int i=0;i<CASCADE_COUNT;i++)
+    // {
+    //     for (int j=0;j<8;j++)
+    //     {
+    //         DebugCube[i*8+j]->SetActorLocation(cascadeCorners[i][j]);
+    //     }
+    // }
+    // ----- Test Finish
+    
     // UEditorEngine::renderer.GetConstantBufferUpdater().UpdateCameraConstant(
     //     UEditorEngine::renderer.CameraConstantBuffer,
     //     this
@@ -190,6 +217,77 @@ D3D11_VIEWPORT& FEditorViewportClient::GetD3DViewport()
 {
     return Viewport->GetScreenRect();
 }
+
+void FEditorViewportClient::CalculateCascadeSplits(float NearClip, float FarClip)
+{
+    // 균등 분할 방식
+    float range = FarClip - NearClip;
+    
+    for (int i = 0; i < CASCADE_COUNT; i++) {
+        float p = (i + 1) / float(CASCADE_COUNT);
+        cascadeSplits[i] = NearClip + range * p;
+    }
+}
+
+void FEditorViewportClient::CalculateFrustumCorners(UINT cascadeIndex)
+{
+    float prevSplitDist = cascadeIndex == 0 ? GetNearClip() : cascadeSplits[cascadeIndex - 1];
+    float splitDist = cascadeSplits[cascadeIndex];
+    
+    // 카메라 공간에서 절두체 코너 계산
+    // 근평면 4개 코너 + 원평면 4개 코너
+    CalculateFrustumCornersInCameraSpace(prevSplitDist, splitDist, cascadeIndex);
+    
+    // 월드 공간으로 변환
+    FMatrix cameraToWorldMatrix = FMatrix::Inverse(GetViewMatrix());
+    for (int i = 0; i < 8; i++) {
+        FVector4 worldCorner = cameraToWorldMatrix.TransformFVector4(FVector4(cascadeCorners[cascadeIndex][i], 1.0f));
+        cascadeCorners[cascadeIndex][i] = FVector(worldCorner.x, worldCorner.y, worldCorner.z);
+    }
+}
+
+void FEditorViewportClient::CalculateFrustumCornersInCameraSpace(float NearDist, float FarDist, int CascadeIndex) {
+    // 카메라 투영 행렬에서 필요한 값들을 추출
+    float fov = GetViewFOV();  // 시야각(라디안)
+    fov = FMath::DegreesToRadians(fov);
+    float aspect = GetAspectRatio();  // 종횡비(width/height)
+    
+    // 근평면과 원평면의 높이와 너비 계산
+    float nearHeight = 2.0f * tan(fov * 0.5f) * NearDist;
+    float nearWidth = nearHeight * aspect;
+    float farHeight = 2.0f * tan(fov * 0.5f) * FarDist;
+    float farWidth = farHeight * aspect;
+    
+    // 근평면의 4개 모서리 계산 (카메라 공간)
+    // 왼쪽 아래
+    cascadeCorners[CascadeIndex][0] = FVector(-nearWidth * 0.5f, -nearHeight * 0.5f, NearDist);
+    // 오른쪽 아래
+    cascadeCorners[CascadeIndex][1] = FVector(nearWidth * 0.5f, -nearHeight * 0.5f, NearDist);
+    // 오른쪽 위
+    cascadeCorners[CascadeIndex][2] = FVector(nearWidth * 0.5f, nearHeight * 0.5f, NearDist);
+    // 왼쪽 위
+    cascadeCorners[CascadeIndex][3] = FVector(-nearWidth * 0.5f, nearHeight * 0.5f, NearDist);
+    
+    // 원평면의 4개 모서리 계산 (카메라 공간)
+    // 왼쪽 아래
+    cascadeCorners[CascadeIndex][4] = FVector(-farWidth * 0.5f, -farHeight * 0.5f, FarDist);
+    // 오른쪽 아래
+    cascadeCorners[CascadeIndex][5] = FVector(farWidth * 0.5f, -farHeight * 0.5f, FarDist);
+    // 오른쪽 위
+    cascadeCorners[CascadeIndex][6] = FVector(farWidth * 0.5f, farHeight * 0.5f, FarDist);
+    // 왼쪽 위
+    cascadeCorners[CascadeIndex][7] = FVector(-farWidth * 0.5f, farHeight * 0.5f, FarDist);
+}
+
+void FEditorViewportClient::UpdateCascadeShadowArea()
+{
+    CalculateCascadeSplits(GetNearClip(), GetFarClip());
+    for (int i=0;i<CASCADE_COUNT;i++)
+    {
+        CalculateFrustumCorners(i);
+    }
+}
+
 void FEditorViewportClient::CameraMoveForward(float _Value)
 {
     if (IsPerspective()) {
@@ -260,7 +358,7 @@ void FEditorViewportClient::UpdateViewMatrix()
 {
     if (IsPerspective()) {
         nearPlane = 0.1f;
-        farPlane = 1000000.f;
+        farPlane = 1000.f;
         View = JungleMath::CreateViewMatrix(ViewTransformPerspective.GetLocation(),
             ViewTransformPerspective.GetLocation() + ViewTransformPerspective.GetForwardVector(),
             FVector{ 0.0f,0.0f, 1.0f });

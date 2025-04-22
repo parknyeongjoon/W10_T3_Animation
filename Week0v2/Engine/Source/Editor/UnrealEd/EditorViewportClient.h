@@ -2,6 +2,7 @@
 #include <sstream>
 
 #include "Define.h"
+#include "EditorEngine.h"
 #include "Container/Map.h"
 #include "UObject/ObjectMacros.h"
 #include "ViewportClient.h"
@@ -117,7 +118,7 @@ public:
     float FOVAngle = 60.0f;
     float AspectRatio;
     float nearPlane = 0.1f;
-    float farPlane = 1000000.0f;
+    float farPlane = 1000.0f;
     static FVector Pivot;
     static float orthoSize;
     ELevelViewportType ViewportType;
@@ -126,7 +127,25 @@ public:
 
     FMatrix View;
     FMatrix Projection;
+
+    // Cascade Shadow Map
+private:
+    static const int CASCADE_COUNT = 4;
+    float cascadeSplits[CASCADE_COUNT]; // 카스케이드 경계 저장
+    FVector cascadeCorners[CASCADE_COUNT][8];
+
+    
+    void CalculateCascadeSplits(float NearClip, float FarClip);
+    void CalculateFrustumCorners(UINT CascadeIndex);
+    void CalculateFrustumCornersInCameraSpace(float NearDist, float FarDist, int CascadeIndex);
+
+
+    //Test
+    TArray<AActor*> DebugCube;
+
 public: //Camera Movement
+    FVector* GetCascadeCorner(UINT CascadeIndex) { return cascadeCorners[CascadeIndex]; }
+    void UpdateCascadeShadowArea();
     void CameraMoveForward(float _Value);
     void CameraMoveRight(float _Value);
     void CameraMoveUp(float _Value);
@@ -146,6 +165,7 @@ public: //Camera Movement
     float GetNearClip() {return nearPlane;}
     void SetFarClip(float newFarClip) {farPlane = newFarClip;}
     float GetFarClip() {return farPlane;}
+    float GetAspectRatio() { return AspectRatio; }
     
     bool IsOrtho() const;
     bool IsPerspective() const;

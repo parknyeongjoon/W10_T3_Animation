@@ -97,6 +97,31 @@ struct FVector
             x * Other.y - y * Other.x
         };
     }
+    FVector Min(const FVector& Other) const
+    {
+        FVector result = *this;
+        if (x > Other.x)
+            result.x = Other.x;
+        if (y > Other.y)
+            result.y = Other.y;
+        if (z > Other.z)
+            result.z = Other.z;
+
+        return result;
+    }
+
+    FVector Max(const FVector& Other) const
+    {
+        FVector result = *this;
+        if (x < Other.x)
+            result.x = Other.x;
+        if (y < Other.y)
+            result.y = Other.y;
+        if (z < Other.z)
+            result.z = Other.z;
+
+        return result;
+    }
 
     bool operator==(const FVector& other) const {
         return (x == other.x && y == other.y && z == other.z);
