@@ -9,6 +9,9 @@ Texture2D NormalTexture : register(t1);
 Texture2D SpotLightShadowMap[8] : register(t3);
 Texture2D DirectionalLightShadowMap : register(t11);
 
+TextureCube<float> PointLightShadowMap : register(t12);
+
+
 #define MAX_POINTLIGHT_COUNT 16
 
 cbuffer FMaterialConstants : register(b0)
@@ -50,6 +53,9 @@ struct FPointLight
     float Intensity;
     float AttenuationFalloff;
     float2 pad;
+    
+    row_major float4x4 View[6];
+    row_major float4x4 Proj;
 };
 
 struct FSpotLight
@@ -68,6 +74,7 @@ struct FSpotLight
     row_major float4x4 View;
     row_major float4x4 Proj;
 };
+
 
 cbuffer FLightingConstants : register(b2)
 {
@@ -131,6 +138,41 @@ struct PS_OUTPUT
     float4 color : SV_Target0;
     float4 UUID : SV_Target1;
 };
+
+float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight PointLight)
+{
+    float4 WoldPos4 = float4(worldPos, 1.0f);
+    
+    float3 LightDirection = normalize(worldPos - PointLight.Position);
+    
+    float3 LightDirectionAbs = abs(LightDirection); // 절대값 각 축 크기 구함.
+    int face;
+    if (LightDirectionAbs.x >= LightDirectionAbs.y && LightDirectionAbs.x >= LightDirectionAbs.z) 
+        face = LightDirection.x > 0 ? 0 : 1; // +X, -X
+    else if (LightDirectionAbs.y >= LightDirectionAbs.z)
+        face = LightDirection.y > 0 ? 2 : 3; // +Y, -Y
+    else
+        face = LightDirection.z > 0 ? 4 : 5; // +Z, -Z
+    
+    float4 LightViewPos = mul(WoldPos4, PointLight.View[face]); // 월드 → 라이트(큐브 face) 공간
+    float4 clipPos = mul(LightViewPos,PointLight.Proj); // 라이트 공간 -> Clip space
+
+    //FIXME : bias 적용
+    // NDC 깊이 (0~1) 추출
+    //float refDepth = clipPos.z / clipPos.w - bias;
+    float bias = max(0.001 * (1.0 - dot(worldNormal, LightDirection)), 0.0001);
+    float refDepth = clipPos.z / clipPos.w - bias;
+
+    // SampleCmpLevelZero 으로 비교
+    float shadow = PointLightShadowMap.SampleCmp(
+        CompareSampler,
+        LightDirection, // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
+        refDepth
+    );
+
+   return shadow;
+}
+
 
 float3 CalculateDirectionalLight(  
     FDirectionalLight Light,  
@@ -310,6 +352,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
     output.UUID = UUID;
     float2 uvAdjusted = input.texcoord;
     
+    float a = PointLightShadowMap.Sample(pointSampler, float3(1.0f, 1.f, 1.f));
+    
     // 기본 색상 추출  
     float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
 
@@ -382,7 +426,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
         //}
 
         float3 LightColor = CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);
-        TotalLight += LightColor;
+        
+        float Shadow = CalculatePointLightShadow(input.worldPos,input.normal, PointLights[j]);
+        
+        TotalLight += LightColor * Shadow;
     }
     
     for (uint k = 0; k < NumSpotLights; ++k)

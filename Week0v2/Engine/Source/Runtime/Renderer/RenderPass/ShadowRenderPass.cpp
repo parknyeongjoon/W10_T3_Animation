@@ -73,15 +73,34 @@ void FShadowRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClien
 
     Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
     Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState());
-    //D3D11_VIEWPORT vp = {};
-    //vp.TopLeftX = 0;
-    //vp.TopLeftY = 0;
-    //vp.Width = 1024; // ShadowMap size
-    //vp.Height = 1024;
-    //vp.MinDepth = 0.0f;
-    //vp.MaxDepth = 1.0f;
-    //Graphics.DeviceContext->RSSetViewports(1, &vp);
+    
+    ID3D11SamplerState* CompareSampler = Renderer.GetSamplerState(ESamplerType::ComparisonSampler);
+    Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::ComparisonSampler), 1, &CompareSampler);
 }
+
+void FShadowRenderPass::RenderPointLightShadowMap(UPointLightComponent* PointLight, FShadowResource* ShadowResource, FGraphicsDevice& Graphics)
+{
+    // 각 면마다 렌더링
+    for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
+    {
+        D3D11_VIEWPORT vp = ShadowResource->GetViewport();
+        Graphics.DeviceContext->RSSetViewports(1, &vp);
+
+        // 현재 면의 DSV 가져오기
+        ID3D11DepthStencilView* CurrentFaceDSV = ShadowResource->GetDSV(faceIndex);
+        Graphics.DeviceContext->ClearDepthStencilView(CurrentFaceDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+        ID3D11ShaderResourceView* nullSRV = nullptr;
+        Graphics.DeviceContext->PSSetShaderResources(0, 1, &nullSRV);
+        Graphics.DeviceContext->OMSetRenderTargets(0, nullptr, CurrentFaceDSV);
+
+        FMatrix CubeView = PointLight->GetViewMatrixForFace(faceIndex);
+        FMatrix CubeProj= PointLight->GetProjectionMatrix();
+        // 현재 면에 대한 뷰와 프로젝션 매트릭스로 렌더링
+       RenderStaticMesh(CubeView, CubeProj);
+    }
+}
+
 
 void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
 {
@@ -106,22 +125,13 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
             continue;
         }
 
-        if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
-        {
-            Light = SpotLight;
-        }
-        else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
-        {
-            Light = DirectionalLight;
-        }
-        else if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
-        {
-            Light = PointLight;
-        }
+        USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light);
+        UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light);
+        UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light);
 
         FShadowResource* ShadowResource = Light->GetShadowResource();
         if (ShadowResource == nullptr)
-            return;
+            continue;
 
         D3D11_VIEWPORT vp = ShadowResource->GetViewport();
         Graphics.DeviceContext->RSSetViewports(1, &vp);
@@ -163,6 +173,37 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
             Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
         }
     }
+        if (PointLight)
+        {
+            RenderPointLightShadowMap(PointLight, ShadowResource, Graphics);
+        }
+        // 스팟 라이트와 디렉셔널 라이트는 기존 방식대로 처리
+        else
+        {
+            D3D11_VIEWPORT vp = ShadowResource->GetViewport();
+            Graphics.DeviceContext->RSSetViewports(1, &vp);
+            Prepare(InViewportClient);
+            Graphics.DeviceContext->ClearDepthStencilView(ShadowResource->GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+            ID3D11ShaderResourceView* nullSRV = nullptr;
+            Graphics.DeviceContext->PSSetShaderResources(0, 1, &nullSRV);
+            Graphics.DeviceContext->OMSetRenderTargets(0, nullptr, ShadowResource->GetDSV());
+
+            if (SpotLight)
+            {
+                View = SpotLight->GetViewMatrix();
+                Proj = SpotLight->GetProjectionMatrix();
+                RenderStaticMesh(View, Proj);
+            }
+            else if (DirectionalLight)
+            {
+                View = DirectionalLight->GetViewMatrix();
+                Proj = DirectionalLight->GetProjectionMatrix();
+                RenderStaticMesh(View, Proj);
+            }
+        }
+    }
+
     Graphics.DeviceContext->RSSetViewports(1, &curEditorViewportClient->GetD3DViewport());
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView);
 }

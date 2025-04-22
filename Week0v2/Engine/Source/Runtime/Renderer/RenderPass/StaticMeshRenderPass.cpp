@@ -132,7 +132,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     // 일단 지금은 staticMesh돌면서 업데이트 해줄 필요가 없어서 여기 넣는데, Prepare에 넣을지 아니면 여기 그대로 둘지는 좀 더 생각해봐야함.
     // 매프레임 한번씩만 해줘도 충분하고 라이트 갯수가 변경될때만 해줘도 충분할듯하다
     // 지금 딸깍이에서 structuredBuffer도 처리해줘서 그 타이밍보고 나중에 다시 PSSetShaderResources를 해줘야함
-    UpdateComputeResource();
+   // UpdateComputeResource();
     
     UpdateCameraConstant(InViewportClient);
     
@@ -330,7 +330,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     FMatrix Projection = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
     FFrustum CameraFrustum = FFrustum::ExtractFrustum(View*Projection);
     ID3D11ShaderResourceView* ShadowMaps[8] = { nullptr };
-
+    ID3D11ShaderResourceView* ShadowCubeMap = nullptr;
     for (ULightComponentBase* Comp : LightComponents)
     {
         if (!IsLightInFrustum(Comp, CameraFrustum))
@@ -345,6 +345,16 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetComponentLocation();
             LightConstant.PointLights[PointLightCount].Radius = PointLightComp->GetRadius();
             LightConstant.PointLights[PointLightCount].AttenuationFalloff = PointLightComp->GetAttenuationFalloff();
+;
+            ShadowCubeMap = PointLightComp->GetShadowResource()->GetSRV();
+
+            for (int face = 0;face < 6;face++)
+            {
+                LightConstant.PointLights[PointLightCount].PointLightView[face] = PointLightComp->GetViewMatrixForFace(face);
+            }
+
+            LightConstant.PointLights[PointLightCount].PointLightProj = PointLightComp->GetProjectionMatrix();
+
             PointLightCount++;
             continue;
         }
@@ -389,6 +399,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             }
     }
 
+    Graphics.DeviceContext->PSSetShaderResources(12, 1, &ShadowCubeMap);
     Graphics.DeviceContext->PSSetShaderResources(3, 8, ShadowMaps);
     //UE_LOG(LogLevel::Error, "Point : %d, Spot : %d Dir : %d", PointLightCount, SpotLightCount, DirectionalLightCount);
     LightConstant.NumPointLights = PointLightCount;

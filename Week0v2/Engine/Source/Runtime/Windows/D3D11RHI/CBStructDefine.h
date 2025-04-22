@@ -144,7 +144,7 @@ struct alignas(16) FLightingConstants
     float pad2;
     FDirectionalLight DirLight;
     FPointLight PointLights[16];
-    FSpotLight SpotLights[8];
+    FSpotLight SpotLights[8]; 
 };
 
 struct alignas(16) FFlagConstants

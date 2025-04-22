@@ -20,6 +20,9 @@
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/CubeComp.h"
 
+#include "LevelEditor/SLevelEditor.h"
+#include "UnrealEd/EditorViewportClient.h"
+
 void PropertyEditorPanel::Render()
 {
     /* Pre Setup */
@@ -52,7 +55,7 @@ void PropertyEditorPanel::Render()
     if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
             PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
 
-    ImVec2 imageSize = ImVec2(128, 128); // 이미지 출력 크기
+    ImVec2 imageSize = ImVec2(256, 256); // 이미지 출력 크기
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)
@@ -346,6 +349,18 @@ void PropertyEditorPanel::Render()
             ImTextureID LightDepth = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()->GetSRV());
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth, imageSize);
+            bool override = Cast<UDirectionalLightComponent>(GEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
+            if (ImGui::Checkbox("Override Camera", &override))
+            {
+                if (override)
+                {
+                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(DirectionalLight);
+                }
+                else
+                {
+                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
+                }
+            }
 
             // ImTextureID LightTexture = reinterpret_cast<ImTextureID>(DirectionalLight->GetLightMap()->TextureSRV);
             //
@@ -383,6 +398,9 @@ void PropertyEditorPanel::Render()
                 //    PointLight->SetAttenuationFallOff(attenuationVal);
                 //}
             }
+            ImTextureID LightDepth = reinterpret_cast<ImTextureID>(PointLight->GetShadowResource()->GetSRV());
+            ImGui::Text("Shadow Map");
+            ImGui::Image(LightDepth, imageSize);
         }
 
         if (PickedComponent->IsA<USpotLightComponent>())
@@ -413,6 +431,18 @@ void PropertyEditorPanel::Render()
             ImTextureID LightDepth = reinterpret_cast<ImTextureID>(SpotLight->GetShadowResource()->GetSRV());
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth, imageSize);
+            bool override = Cast<USpotLightComponent>(GEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
+            if (ImGui::Checkbox("Override Camera", &override))
+            {
+                if (override)
+                {
+                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(SpotLight);
+                }
+                else
+                {
+                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
+                }
+            }
         }
     }
 

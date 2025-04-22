@@ -60,10 +60,27 @@ void FRenderResourceManager::LoadStates()
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
     GraphicDevice->Device->CreateSamplerState(&samplerDesc, &SamplerStates[static_cast<uint32>(ESamplerType::PostProcess)]);
 
+    // 비교 샘플러 상태 생성
+    ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+    samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT; // 비교 필터링 모드
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS; // 그림자 맵 비교에 적합한 LESS
+    samplerDesc.BorderColor[0] = 1.0f;
+    samplerDesc.BorderColor[1] = 1.0f;
+    samplerDesc.BorderColor[2] = 1.0f;
+    samplerDesc.BorderColor[3] = 1.0f;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    GraphicDevice->Device->CreateSamplerState(&samplerDesc, &SamplerStates[static_cast<uint32>(ESamplerType::ComparisonSampler)]);
+
 	GraphicDevice->BindSamplers(static_cast<uint32>(ESamplerType::Point), 1, &SamplerStates[static_cast<uint32>(ESamplerType::Point)]);
 	GraphicDevice->BindSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &SamplerStates[static_cast<uint32>(ESamplerType::Linear)]);
 	GraphicDevice->BindSamplers(static_cast<uint32>(ESamplerType::Anisotropic), 1, &SamplerStates[static_cast<uint32>(ESamplerType::Anisotropic)]);
 	GraphicDevice->BindSamplers(static_cast<uint32>(ESamplerType::PostProcess), 1, &SamplerStates[static_cast<uint32>(ESamplerType::PostProcess)]);
+    GraphicDevice->BindSamplers(static_cast<uint32>(ESamplerType::ComparisonSampler), 1, &SamplerStates[static_cast<uint32>(ESamplerType::ComparisonSampler)]);
+
 #pragma endregion
 #pragma region rasterize state
     D3D11_RASTERIZER_DESC rsDesc = {};
