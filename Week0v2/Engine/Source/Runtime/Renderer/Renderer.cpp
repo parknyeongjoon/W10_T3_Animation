@@ -241,7 +241,7 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     }
     //값을 써줄때 
     
-    ComputeTileLightCulling->Dispatch(ActiveViewport);
+    //ComputeTileLightCulling->Dispatch(ActiveViewport);
     
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
     {
