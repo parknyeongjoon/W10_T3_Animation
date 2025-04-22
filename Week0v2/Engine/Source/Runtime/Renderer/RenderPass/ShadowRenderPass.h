@@ -25,6 +25,7 @@ public:
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void RenderPointLightShadowMap(UPointLightComponent* PointLight, FShadowResource* ShadowResource, FGraphicsDevice& Graphics);
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
+    void SetShaderResource(FShadowResource* ShadowResource);
     bool ShouldRender() { return bRender; }
 
 private:

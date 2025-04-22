@@ -106,7 +106,6 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
 {
     Prepare(InViewportClient);
     
-    FRenderer& Renderer = GEngine->renderer;
     FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
     FMatrix View = FMatrix::Identity;
@@ -117,7 +116,6 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
     FMatrix CameraProjection = curEditorViewportClient->GetProjectionMatrix();
     FFrustum CameraFrustum = FFrustum::ExtractFrustum(CameraView * CameraProjection);
 
-    FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f };
     for (ULightComponentBase* Light : Lights)
     {
         if (!IsLightInFrustum(Light, CameraFrustum))
@@ -125,47 +123,46 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
             continue;
         }
 
-        USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light);
-        UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light);
-        UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light);
-
-        FShadowResource* ShadowResource = Light->GetShadowResource();
-        if (ShadowResource == nullptr)
-            continue;
-
-        if (PointLight)
+        if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
         {
-            RenderPointLightShadowMap(PointLight, ShadowResource, Graphics);
+            RenderPointLightShadowMap(PointLight, PointLight->GetShadowResource(), Graphics);
         }
-        // 스팟 라이트와 디렉셔널 라이트는 기존 방식대로 처리
-        else
+        else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
         {
-            D3D11_VIEWPORT vp = ShadowResource->GetViewport();
-            Graphics.DeviceContext->RSSetViewports(1, &vp);
-            Prepare(InViewportClient);
-            Graphics.DeviceContext->ClearDepthStencilView(ShadowResource->GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-            ID3D11ShaderResourceView* nullSRV = nullptr;
-            Graphics.DeviceContext->PSSetShaderResources(0, 1, &nullSRV);
-            Graphics.DeviceContext->OMSetRenderTargets(0, nullptr, ShadowResource->GetDSV());
-
-            if (SpotLight)
+            SetShaderResource(SpotLight->GetShadowResource());
+            View = SpotLight->GetViewMatrix();
+            Proj = SpotLight->GetProjectionMatrix();
+            RenderStaticMesh(View, Proj);
+        }
+        else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
+        {
+            for (int i=0;i<CASCADE_COUNT;i++)
             {
-                View = SpotLight->GetViewMatrix();
-                Proj = SpotLight->GetProjectionMatrix();
-                RenderStaticMesh(View, Proj);
-            }
-            else if (DirectionalLight)
-            {
-                View = DirectionalLight->GetViewMatrix();
-                Proj = DirectionalLight->GetProjectionMatrix();
+                //TODO : Cascade 영역 따라서 해상도 바꿔가면서 Shadow 맵 그리기
+                SetShaderResource(&DirectionalLight->GetShadowResource()[i]);
+                View = DirectionalLight->GetCascadeViewMatrix(i);
+                Proj = DirectionalLight->GetCascadeProjectionMatrix(i);
                 RenderStaticMesh(View, Proj);
             }
         }
+        
     }
 
     Graphics.DeviceContext->RSSetViewports(1, &curEditorViewportClient->GetD3DViewport());
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView);
+}
+
+void FShadowRenderPass::SetShaderResource(FShadowResource* ShadowResource)
+{
+    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    
+    if (ShadowResource == nullptr)
+        return;
+        
+    D3D11_VIEWPORT vp = ShadowResource->GetViewport();
+    Graphics.DeviceContext->RSSetViewports(1, &vp);
+    Graphics.DeviceContext->ClearDepthStencilView(ShadowResource->GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    Graphics.DeviceContext->OMSetRenderTargets(0, nullptr, ShadowResource->GetDSV()); // 렌더 타겟 설정
 }
 
 void FShadowRenderPass::UpdateCameraConstant(FMatrix Model, FMatrix View, FMatrix Proj) const

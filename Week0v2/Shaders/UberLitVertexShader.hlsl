@@ -1,7 +1,7 @@
-#include "ShaderHeaders/GSamplers.hlsli"
-
 #define NUM_POINT_LIGHT 4
 #define NUM_SPOT_LIGHT 4
+
+static const int CASCADE_COUNT = 4;
 
 cbuffer FMatrixConstants : register(b0)
 {
@@ -36,9 +36,9 @@ struct FDirectionalLight
     float3 Direction;
     float Intensity;
     float4 Color;
-    
-    float4x4 View;
-    float4x4 Projection;
+
+    row_major float4x4 View[CASCADE_COUNT];
+    row_major float4x4 Projection[CASCADE_COUNT];
 };
 
 struct FPointLight

@@ -1,16 +1,16 @@
 #include "ShaderHeaders/GSamplers.hlsli"
 
-
 Texture2D Texture : register(t0);
 Texture2D NormalTexture : register(t1);
 
-//StructuredBuffer<uint> TileLightIndices : register(t2);
+// StructuredBuffer<uint> TileLightIndices : register(t2);
+
+static const int CASCADE_COUNT = 4;
 
 Texture2D SpotLightShadowMap[8] : register(t3);
-Texture2D DirectionalLightShadowMap : register(t11);
+Texture2D DirectionalLightShadowMap[CASCADE_COUNT] : register(t11);
 
-TextureCube<float> PointLightShadowMap[8] : register(t12);
-
+TextureCube<float> PointLightShadowMap[8] : register(t15);
 
 #define MAX_POINTLIGHT_COUNT 16
 
@@ -39,8 +39,9 @@ struct FDirectionalLight
     float Intensity;
     float4 Color;
 
-    row_major float4x4 View;
-    row_major float4x4 Projection;
+
+    row_major float4x4 View[CASCADE_COUNT];
+    row_major float4x4 Projection[CASCADE_COUNT];
 };
 
 struct FPointLight
@@ -378,7 +379,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float3 DirLightColor = CalculateDirectionalLight(DirLight, Normal, ViewDir, baseColor.rgb);
     if (length(DirLightColor) > 0.0)
     {
-        float dirShadow = CalculateShadow(input.worldPos, Normal, DirLight.Direction, DirLight.View, DirLight.Projection, DirectionalLightShadowMap);
+        float dirShadow = CalculateShadow(input.worldPos, Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
         DirLightColor *= (1 - dirShadow);
     }
     TotalLight += DirLightColor;

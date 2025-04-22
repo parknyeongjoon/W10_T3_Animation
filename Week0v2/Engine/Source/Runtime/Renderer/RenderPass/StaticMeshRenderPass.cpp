@@ -362,11 +362,16 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.DirLight.Color = DirectionalLightComp->GetLightColor();
             LightConstant.DirLight.Intensity = DirectionalLightComp->GetIntensity();
             LightConstant.DirLight.Direction = DirectionalLightComp->GetForwardVector();
-            LightConstant.DirLight.View = DirectionalLightComp->GetViewMatrix();
-            LightConstant.DirLight.Projection = DirectionalLightComp->GetProjectionMatrix();
+            
+            TArray<ID3D11ShaderResourceView*> DirectionalShadowMaps;
+            for (int i=0;i<CASCADE_COUNT;i++)
+            {
+                LightConstant.DirLight.View[i] = DirectionalLightComp->GetCascadeViewMatrix(i);
+                LightConstant.DirLight.Projection[i] = DirectionalLightComp->GetCascadeProjectionMatrix(i);
+                DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetSRV());
+            }
 
-            ID3D11ShaderResourceView* DirectionalShadowMap = DirectionalLightComp->GetShadowResource()->GetSRV();
-            Graphics.DeviceContext->PSSetShaderResources(11, 1, &DirectionalShadowMap);
+            Graphics.DeviceContext->PSSetShaderResources(11, 4, DirectionalShadowMaps.GetData());
             continue;
         }
 
@@ -397,7 +402,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             }
     }
 
-    Graphics.DeviceContext->PSSetShaderResources(12, 8, ShadowCubeMap);
+    Graphics.DeviceContext->PSSetShaderResources(15, 8, ShadowCubeMap);
     Graphics.DeviceContext->PSSetShaderResources(3, 8, ShadowMaps);
     //UE_LOG(LogLevel::Error, "Point : %d, Spot : %d Dir : %d", PointLightCount, SpotLightCount, DirectionalLightCount);
     LightConstant.NumPointLights = PointLightCount;
