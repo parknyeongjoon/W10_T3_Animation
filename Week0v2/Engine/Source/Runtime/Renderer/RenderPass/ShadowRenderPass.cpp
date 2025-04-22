@@ -157,6 +157,8 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
                 //VSM
                 if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
                 {
+                    FLOAT ClearColor[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
+                    Graphics.DeviceContext->ClearRenderTargetView(ShadowResource->GetVSMRTV(), ClearColor);
                     ID3D11RenderTargetView* RTV = ShadowResource->GetVSMRTV();
                     Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
                     GEngine->renderer.PrepareShader(TEXT("LightDepth"));
@@ -166,8 +168,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
                     ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
                     Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
                     Graphics.DeviceContext->Draw(4, 0);
-                    RTV = nullptr;
-                    Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
+                    Prepare(InViewportClient);
                 }
             }
             else if (DirectionalLight)
@@ -178,6 +179,8 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
                 //VSM
                 if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
                 {
+                    FLOAT ClearColor[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
+                    Graphics.DeviceContext->ClearRenderTargetView(ShadowResource->GetVSMRTV(), ClearColor);
                     ID3D11RenderTargetView* RTV = ShadowResource->GetVSMRTV();
                     Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
                     GEngine->renderer.PrepareShader(TEXT("LightDepth"));
@@ -187,13 +190,11 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
                     ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
                     Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
                     Graphics.DeviceContext->Draw(4, 0);
-                    RTV = nullptr;
-                    Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
+                    Prepare(InViewportClient);
                 }
             }
         }
     }
-
     Graphics.DeviceContext->RSSetViewports(1, &curEditorViewportClient->GetD3DViewport());
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView);
 }

@@ -200,6 +200,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     Graphics.DeviceContext->PSSetShaderResources(2, 1, &nullSRV[0]); //쓰고 해제 나중에 이쁘게 뺴기
     Graphics.DeviceContext->PSSetShaderResources(3, 8, nullSRV);
     Graphics.DeviceContext->PSSetShaderResources(11, 1, &nullSRV[0]);
+    Graphics.DeviceContext->PSSetShaderResources(12, 8, nullSRV);
 }
 
 //void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
