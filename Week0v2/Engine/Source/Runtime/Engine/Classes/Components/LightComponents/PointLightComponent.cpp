@@ -2,9 +2,11 @@
 #include "UObject/ObjectFactory.h"
 #include "CoreUObject/UObject/Casts.h"
 #include <Math/JungleMath.h>
+#include "EditorEngine.h"
 
 UPointLightComponent::UPointLightComponent()
 {
+    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::PointLight, 1024);
 }
 
 UPointLightComponent::UPointLightComponent(const UPointLightComponent& Other)

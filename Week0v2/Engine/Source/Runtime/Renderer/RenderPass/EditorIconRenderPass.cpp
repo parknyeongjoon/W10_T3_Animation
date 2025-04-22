@@ -94,6 +94,8 @@ void FEditorIconRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
 
         Graphics.DeviceContext->PSSetShaderResources(0, 1, &item->Texture->TextureSRV);
         
+        //TOD 이거 고쳐야함 Warning의 이유
+        //D3D11 WARNING: ID3D11DeviceContext::Draw: Vertex Buffer at the input vertex slot 0 is not big enough for what the Draw*() call expects to traverse. This is OK, as reading off the end of the Buffer is defined to return 0. However the developer probably did not intend to make use of this behavior.  [ EXECUTION WARNING #356: DEVICE_DRAW_VERTEX_BUFFER_TOO_SMALL]
         Graphics.DeviceContext->Draw(6, 0); // 내부에서 버텍스 사용중
     }
 }
