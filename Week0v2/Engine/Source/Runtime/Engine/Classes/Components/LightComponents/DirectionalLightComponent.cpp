@@ -6,10 +6,16 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "Math/JungleMath.h"
 #include "UnrealEd/EditorViewportClient.h"
+#include "Define.h"
 
 UDirectionalLightComponent::UDirectionalLightComponent()
 {
-    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight, 4096);
+    ShadowResource = new FShadowResource[CASCADE_COUNT];
+    for (int i =0;i<CASCADE_COUNT;i++)
+    {
+        UINT temp = pow(2,4-i);
+        ShadowResource[i] = *FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight, 512 * temp);
+    }
 }
 
 UDirectionalLightComponent::UDirectionalLightComponent(const UDirectionalLightComponent& Other)

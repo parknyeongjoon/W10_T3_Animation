@@ -130,7 +130,6 @@ public:
 
     // Cascade Shadow Map
 private:
-    static const int CASCADE_COUNT = 4;
     float cascadeSplits[CASCADE_COUNT]; // 카스케이드 경계 저장
     FVector cascadeCorners[CASCADE_COUNT][8];
 
