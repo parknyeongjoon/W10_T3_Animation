@@ -14,7 +14,7 @@ UDirectionalLightComponent::UDirectionalLightComponent()
     for (int i =0;i<CASCADE_COUNT;i++)
     {
         UINT temp = pow(2,4-i);
-        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight, 512 * temp);
+        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight, 256 * temp);
         ShadowResource[i] = *resource;
         ShadowResources.Add(resource);
     }
