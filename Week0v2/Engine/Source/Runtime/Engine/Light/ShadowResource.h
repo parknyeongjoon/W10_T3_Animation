@@ -1,35 +1,44 @@
 #pragma once  
 #include "Define.h"  
 #include "Container/Map.h"
+#include <wrl/client.h> 
 
-class FShadowAtlas;
+using Microsoft::WRL::ComPtr;
 
-struct FShadowResource  
-{  
-   static UINT ShadowResolution;
+struct FShadowResource
+{
+    //static ID3D11SamplerState* comparisonSampler;
+    ComPtr<ID3D11ShaderResourceView> ShadowSRV; // Example usage of ComPtr  
+    TArray<ComPtr<ID3D11DepthStencilView>> ShadowDSVs;
+    ComPtr<ID3D11Texture2D> ShadowTexture;
+    TArray<D3D11_VIEWPORT> Viewports;
+    ComPtr<ID3D11DepthStencilView>ShadowDSV;   
+    ELightType GetLightType() const { return LightType; }
 
-   FShadowAtlas* ParentAtlas = nullptr;
-   UINT AtlasSliceIndex = 0;
+    // Face의 개수. Directional/Spot Light는 1개, Point Light는 6개..  
+    int NumFaces = 1;
 
-   //Atlas 내 위치 정보
-   D3D11_VIEWPORT SliceViewport;
+    ELightType LightType;
 
-   // Face의 개수. Directional/Spot Light는 1개, Point Light는 6개..  
-   int NumFaces = 1;  
+    FShadowResource() = default;
+    FShadowResource(ID3D11Device* Device, ELightType LightType, UINT ShadowResolution);
+    ~FShadowResource();
 
-   ELightType LightType;  
-
-   FShadowResource() = default;
-   FShadowResource(FShadowAtlas* Atlas, ELightType InLightType, UINT SliceIndex);
-   ~FShadowResource();
-
-   size_t GetEsimatedMemoryUsageInBytes() const;
-   ELightType GetLightType() const { return LightType; }
-
-   ID3D11ShaderResourceView* GetSRV() const;
-   ID3D11Texture2D* GetTexture() const;
-   ID3D11DepthStencilView* GetDSV(int faceIndex = 0) const;
-   D3D11_VIEWPORT GetViewport(int faceIndex = 0) const;
+    size_t GetEsimatedMemoryUsageInBytes() const;
+    ID3D11ShaderResourceView* GetSRV() const { return ShadowSRV.Get(); }
+    ID3D11Texture2D* GetTexture() const { return ShadowTexture.Get(); }
+    ID3D11DepthStencilView* GetDSV(int faceIndex = 0) const
+    {
+        if (faceIndex < 0 || faceIndex >= ShadowDSVs.Num())
+            return nullptr;
+        return ShadowDSVs[faceIndex].Get();
+    }
+    D3D11_VIEWPORT GetViewport(int faceIndex = 0) const
+    {
+        if (faceIndex < 0 || faceIndex >= Viewports.Num())
+            return {};
+        return Viewports[faceIndex];
+    }
 };
 
 struct FShadowMemoryUsageInfo
@@ -42,12 +51,7 @@ struct FShadowMemoryUsageInfo
 class FShadowResourceFactory
 {
 public:
-    static inline TArray<FShadowAtlas*> ShadowAtlases;
     static inline TMap<ELightType, TArray<FShadowResource*>> ShadowResources;
-    static FShadowResource* CreateShadowResource(ID3D11Device* Device, ELightType LightType);
+    static FShadowResource* CreateShadowResource(ID3D11Device* Device, ELightType LightType, UINT ShadowResource);
     static FShadowMemoryUsageInfo GetShadowMemoryUsageInfo();
-
-private:
-    static FShadowAtlas* FindOrCreateAtlas(ID3D11Device* Device, ELightType LightType, bool bForceCreateNew = false);
 };
-
