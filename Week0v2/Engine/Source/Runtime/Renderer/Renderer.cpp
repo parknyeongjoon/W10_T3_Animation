@@ -46,7 +46,7 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     RenderResourceManager = new FRenderResourceManager(graphics);
     RenderResourceManager->Initialize();
 
-    CreateComputeShader();
+    //CreateComputeShader();
     
     D3D_SHADER_MACRO defines[] = 
     {
@@ -189,43 +189,43 @@ void FRenderer::CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACR
 
 #pragma region Shader
 
-void FRenderer::CreateComputeShader()
-{
-    ID3DBlob* CSBlob_LightCulling = nullptr;
-    
-    ID3D11ComputeShader* ComputeShader = RenderResourceManager->GetComputeShader(TEXT("TileLightCulling"));
-    
-    if (ComputeShader == nullptr)
-    {
-        Graphics->CreateComputeShader(TEXT("TileLightCulling.compute"), nullptr, &CSBlob_LightCulling, &ComputeShader);
-    }
-    else
-    {
-        FGraphicsDevice::CompileComputeShader(TEXT("TileLightCulling.compute"), nullptr,  &CSBlob_LightCulling);
-    }
-    RenderResourceManager->AddOrSetComputeShader(TEXT("TileLightCulling"), ComputeShader);
-    
-    TArray<FConstantBufferInfo> LightCullingComputeConstant;
-    Graphics->ExtractPixelShaderInfo(CSBlob_LightCulling, LightCullingComputeConstant);
-    
-    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
-
-    for (const FConstantBufferInfo item : LightCullingComputeConstant)
-    {
-        ShaderStageToCB[{EShaderStage::CS, item.Name}] = item.BindSlot;
-        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
-        {
-            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
-            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
-        }
-    }
-
-    MappingVSPSCBSlot(TEXT("TileLightCulling"), ShaderStageToCB);
-    
-    ComputeTileLightCulling = std::make_shared<FComputeTileLightCulling>(TEXT("TileLightCulling"));
-
-    SAFE_RELEASE(CSBlob_LightCulling)
-}
+//void FRenderer::CreateComputeShader()
+//{
+//    ID3DBlob* CSBlob_LightCulling = nullptr;
+//    
+//    ID3D11ComputeShader* ComputeShader = RenderResourceManager->GetComputeShader(TEXT("TileLightCulling"));
+//    
+//    if (ComputeShader == nullptr)
+//    {
+//        Graphics->CreateComputeShader(TEXT("TileLightCulling.compute"), nullptr, &CSBlob_LightCulling, &ComputeShader);
+//    }
+//    else
+//    {
+//        FGraphicsDevice::CompileComputeShader(TEXT("TileLightCulling.compute"), nullptr,  &CSBlob_LightCulling);
+//    }
+//    RenderResourceManager->AddOrSetComputeShader(TEXT("TileLightCulling"), ComputeShader);
+//    
+//    TArray<FConstantBufferInfo> LightCullingComputeConstant;
+//    Graphics->ExtractPixelShaderInfo(CSBlob_LightCulling, LightCullingComputeConstant);
+//    
+//    TMap<FShaderConstantKey, uint32> ShaderStageToCB;
+//
+//    for (const FConstantBufferInfo item : LightCullingComputeConstant)
+//    {
+//        ShaderStageToCB[{EShaderStage::CS, item.Name}] = item.BindSlot;
+//        if (RenderResourceManager->GetConstantBuffer(item.Name) == nullptr)
+//        {
+//            ID3D11Buffer* ConstantBuffer = RenderResourceManager->CreateConstantBuffer(item.ByteWidth);
+//            RenderResourceManager->AddOrSetConstantBuffer(item.Name, ConstantBuffer);
+//        }
+//    }
+//
+//    MappingVSPSCBSlot(TEXT("TileLightCulling"), ShaderStageToCB);
+//    
+//    ComputeTileLightCulling = std::make_shared<FComputeTileLightCulling>(TEXT("TileLightCulling"));
+//
+//    SAFE_RELEASE(CSBlob_LightCulling)
+//}
 
 void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
 {
@@ -359,7 +359,7 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
 
 void FRenderer::AddRenderObjectsToRenderPass(UWorld* InWorld) const
 {
-    ComputeTileLightCulling->AddRenderObjectsToRenderPass(InWorld);
+    //ComputeTileLightCulling->AddRenderObjectsToRenderPass(InWorld);
 
     GoroudRenderPass->AddRenderObjectsToRenderPass(InWorld);
     LambertRenderPass->AddRenderObjectsToRenderPass(InWorld);

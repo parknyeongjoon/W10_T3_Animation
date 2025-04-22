@@ -522,6 +522,7 @@ struct FFrustum
 // !NOTE : 최대 광원 수 제한
 #define MAX_DIRECTIONAL_LIGHTS 4
 #define MAX_POINT_LIGHTS 16
+constexpr UINT CASCADE_COUNT = 4;
 
 enum class ELightType
 {

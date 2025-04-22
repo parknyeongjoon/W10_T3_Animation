@@ -2,17 +2,43 @@
 #include "UObject/ObjectFactory.h"
 #include "CoreUObject/UObject/Casts.h"
 #include "EditorEngine.h"
+#include "Engine/World.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "Math/JungleMath.h"
+#include "UnrealEd/EditorViewportClient.h"
+#include "Define.h"
 
 UDirectionalLightComponent::UDirectionalLightComponent()
 {
-    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight);
+    ShadowResource = new FShadowResource[CASCADE_COUNT];
+    for (int i =0;i<CASCADE_COUNT;i++)
+    {
+        UINT temp = pow(2,4-i);
+        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight, 512 * temp);
+        ShadowResource[i] = *resource;
+        ShadowResources.Add(resource);
+    }
 }
 
 UDirectionalLightComponent::UDirectionalLightComponent(const UDirectionalLightComponent& Other)
     : Super(Other)
     , Direction(Other.Direction)
 {
+}
+
+UDirectionalLightComponent::~UDirectionalLightComponent()
+{
+    // release all resources
+    ShadowResource = nullptr;
+    for (int i = 0; i < ShadowResources.Num(); i++)
+    {
+        if (ShadowResources[i])
+        {
+            delete ShadowResources[i];
+            ShadowResources[i] = nullptr;
+        }
+    }
+    ShadowResources.Empty();
 }
 
 //void UDirectionalLightComponent::SetDirection(FVector _newDir)
@@ -36,18 +62,75 @@ FMatrix UDirectionalLightComponent::GetViewMatrix() const
         upVector = FVector(0.0f, 0.0f, 1.0f);
     }
     
-    FMatrix lightView = JungleMath::CreateViewMatrix(
+    return JungleMath::CreateViewMatrix(
         lightPos,
         sceneCenter,
         upVector);
+}
 
-    return lightView;
+FMatrix UDirectionalLightComponent::GetCascadeViewMatrix(UINT CascadeIndex) const
+{
+    FVector* CascadeCorner = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeCorner(CascadeIndex);
+    FVector center = FVector::ZeroVector;
+    for (int i=0;i<8;i++)
+    {
+        center += CascadeCorner[i];
+    }
+    center /= 8.0f;
+
+    FVector lightDir = Direction.Normalize();
+    FVector up = FVector(0.0f, 1.0f, 0.0f);
+    if (abs(lightDir.Dot(up)) > 0.99f) {
+        up = FVector(0.0f, 0.0f, 0.99f);
+    }
+
+    return JungleMath::CreateViewMatrix(
+        center - lightDir * SCENE_RADIUS,
+        center,
+        up);
 }
 
 FMatrix UDirectionalLightComponent::GetProjectionMatrix() const
 {
     // 직교 투영 행렬 계산 (방향광은 직교 투영 사용)
     return JungleMath::CreateOrthoProjectionMatrix(SCENE_RADIUS * 2,SCENE_RADIUS * 2, 0.1f, 4 * SCENE_RADIUS);
+}
+
+FMatrix UDirectionalLightComponent::GetCascadeProjectionMatrix(UINT CascadeIndex) const
+{
+    FVector* CascadeCorner = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeCorner(CascadeIndex);
+    FMatrix viewMatrix = GetCascadeViewMatrix(CascadeIndex);
+
+    FVector minExtents = FVector(FLT_MAX, FLT_MAX, FLT_MAX);
+    FVector maxExtents = FVector(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+    
+    for (int i = 0; i < 8; i++) {
+        FVector4 lightSpaceCorner = viewMatrix.TransformFVector4(FVector4(CascadeCorner[i], 1.0f));
+        FVector temp;
+        temp = (lightSpaceCorner.x, lightSpaceCorner.y, lightSpaceCorner.z);
+        minExtents = temp.Min(minExtents);
+        maxExtents = temp.Max(maxExtents);
+    }
+
+    // 경계 박스의 크기 계산
+    float width = maxExtents.x - minExtents.x;
+    float height = maxExtents.y - minExtents.y;
+    float nearPlane, farPlane;
+
+    // 정밀도를 위해 z 근평면과 원평면을 조정
+    if (minExtents.z < 0) {
+        nearPlane = minExtents.z * 1.1f;
+    } else {
+        nearPlane = minExtents.z * 0.9f;
+    }
+
+    if (maxExtents.z < 0) {
+        farPlane = maxExtents.z * 0.9f;
+    } else {
+        farPlane = maxExtents.z * 1.1f;
+    }
+
+    return JungleMath::CreateOrthoProjectionMatrix(width,height, nearPlane, farPlane);
 }
 
 UObject* UDirectionalLightComponent::Duplicate() const

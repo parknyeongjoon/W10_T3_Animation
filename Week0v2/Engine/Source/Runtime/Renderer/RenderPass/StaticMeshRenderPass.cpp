@@ -132,7 +132,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     // 일단 지금은 staticMesh돌면서 업데이트 해줄 필요가 없어서 여기 넣는데, Prepare에 넣을지 아니면 여기 그대로 둘지는 좀 더 생각해봐야함.
     // 매프레임 한번씩만 해줘도 충분하고 라이트 갯수가 변경될때만 해줘도 충분할듯하다
     // 지금 딸깍이에서 structuredBuffer도 처리해줘서 그 타이밍보고 나중에 다시 PSSetShaderResources를 해줘야함
-    UpdateComputeResource();
+   // UpdateComputeResource();
     
     UpdateCameraConstant(InViewportClient);
     
@@ -153,7 +153,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
 
         UpdateFlagConstant();
         
-        UpdateComputeConstants(InViewportClient);
+        //UpdateComputeConstants(InViewportClient);
         
         if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
         {
@@ -202,45 +202,45 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     Graphics.DeviceContext->PSSetShaderResources(11, 1, &nullSRV[0]);
 }
 
-void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
-{
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
-    // MVP Update
-    FComputeConstants ComputeConstants;
-    
-    FEditorViewportClient* ViewPort = dynamic_cast<FEditorViewportClient*>(InViewportClient.get());
-    
-    int screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;  // 화면 가로 픽셀 수
-    int screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;  // 화면 세로 픽셀 수
-
-    // 타일 크기 (예: 16x16 픽셀)
-    const int TILE_SIZE_X = 16;
-    const int TILE_SIZE_Y = 16;
-
-    // 타일 개수 계산
-    int numTilesX = (screenWidth + TILE_SIZE_X - 1) / TILE_SIZE_X; // 1024/16=64
-    int numTilesY = (screenHeight + TILE_SIZE_Y - 1) / TILE_SIZE_Y; // 768/16=48
-    
-    FMatrix InvView = FMatrix::Identity;
-    FMatrix InvProj = FMatrix::Identity;
-    std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
-    if (curEditorViewportClient != nullptr)
-    {
-        InvView = FMatrix::Inverse(curEditorViewportClient->GetViewMatrix());
-        InvProj = FMatrix::Inverse(curEditorViewportClient->GetProjectionMatrix());
-    }
-    
-    ComputeConstants.screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;
-    ComputeConstants.screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;
-    ComputeConstants.InverseProj = InvProj;
-    ComputeConstants.InverseView = InvView;
-    ComputeConstants.tileCountX = numTilesX;
-    ComputeConstants.tileCountY = numTilesY;
-
-    ID3D11Buffer* ComputeConstantBuffer = renderResourceManager->GetConstantBuffer(TEXT("FComputeConstants"));
-
-    renderResourceManager->UpdateConstantBuffer(ComputeConstantBuffer, &ComputeConstants);
-}
+//void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
+//{
+//    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+//    // MVP Update
+//    FComputeConstants ComputeConstants;
+//    
+//    FEditorViewportClient* ViewPort = dynamic_cast<FEditorViewportClient*>(InViewportClient.get());
+//    
+//    int screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;  // 화면 가로 픽셀 수
+//    int screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;  // 화면 세로 픽셀 수
+//
+//    // 타일 크기 (예: 16x16 픽셀)
+//    const int TILE_SIZE_X = 16;
+//    const int TILE_SIZE_Y = 16;
+//
+//    // 타일 개수 계산
+//    int numTilesX = (screenWidth + TILE_SIZE_X - 1) / TILE_SIZE_X; // 1024/16=64
+//    int numTilesY = (screenHeight + TILE_SIZE_Y - 1) / TILE_SIZE_Y; // 768/16=48
+//    
+//    FMatrix InvView = FMatrix::Identity;
+//    FMatrix InvProj = FMatrix::Identity;
+//    std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
+//    if (curEditorViewportClient != nullptr)
+//    {
+//        InvView = FMatrix::Inverse(curEditorViewportClient->GetViewMatrix());
+//        InvProj = FMatrix::Inverse(curEditorViewportClient->GetProjectionMatrix());
+//    }
+//    
+//    ComputeConstants.screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;
+//    ComputeConstants.screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;
+//    ComputeConstants.InverseProj = InvProj;
+//    ComputeConstants.InverseView = InvView;
+//    ComputeConstants.tileCountX = numTilesX;
+//    ComputeConstants.tileCountY = numTilesY;
+//
+//    ID3D11Buffer* ComputeConstantBuffer = renderResourceManager->GetConstantBuffer(TEXT("FComputeConstants"));
+//
+//    renderResourceManager->UpdateConstantBuffer(ComputeConstantBuffer, &ComputeConstants);
+//}
 
 void FStaticMeshRenderPass::CreateDummyTexture()
 {
@@ -328,7 +328,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     FMatrix Projection = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
     FFrustum CameraFrustum = FFrustum::ExtractFrustum(View*Projection);
     ID3D11ShaderResourceView* ShadowMaps[8] = { nullptr };
-
+    ID3D11ShaderResourceView* ShadowCubeMap = nullptr;
     for (ULightComponentBase* Comp : LightComponents)
     {
         if (!IsLightInFrustum(Comp, CameraFrustum))
@@ -343,6 +343,8 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetComponentLocation();
             LightConstant.PointLights[PointLightCount].Radius = PointLightComp->GetRadius();
             LightConstant.PointLights[PointLightCount].AttenuationFalloff = PointLightComp->GetAttenuationFalloff();
+;
+            ShadowCubeMap = PointLightComp->GetShadowResource()->GetSRV();
             PointLightCount++;
             continue;
         }
@@ -387,6 +389,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             }
     }
 
+    Graphics.DeviceContext->PSSetShaderResources(12, 1, &ShadowCubeMap);
     Graphics.DeviceContext->PSSetShaderResources(3, 8, ShadowMaps);
     //UE_LOG(LogLevel::Error, "Point : %d, Spot : %d Dir : %d", PointLightCount, SpotLightCount, DirectionalLightCount);
     LightConstant.NumPointLights = PointLightCount;

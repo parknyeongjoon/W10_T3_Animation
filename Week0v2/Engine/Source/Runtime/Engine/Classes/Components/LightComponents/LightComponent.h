@@ -48,7 +48,7 @@ class ULightComponent : public ULightComponentBase
 public:
     ULightComponent();
     ULightComponent(const ULightComponent& Other);
-    ~ULightComponent() override;
+    virtual ~ULightComponent() override;
     
     void UninitializeComponent() override;
     void OnComponentDestroyed() override;
