@@ -12,7 +12,7 @@ Texture2D DirectionalLightShadowMap : register(t11);
 TextureCube<float> PointLightShadowMap[8] : register(t12);
 
 
-#define MAX_POINTLIGHT_COUNT 16
+#define MAX_POINTLIGHT_COUNT 8
 
 cbuffer FMaterialConstants : register(b0)
 {
