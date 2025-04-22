@@ -107,6 +107,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
     Prepare(InViewportClient);
     
     FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderer& Renderer = GEngine->renderer;
 
     FMatrix View = FMatrix::Identity;
     FMatrix Proj = FMatrix::Identity;
@@ -137,11 +138,11 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
             if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
             {
                 FLOAT ClearColor[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
-                Graphics.DeviceContext->ClearRenderTargetView(ShadowResource->GetVSMRTV(), ClearColor);
-                ID3D11RenderTargetView* RTV = ShadowResource->GetVSMRTV();
+                ID3D11RenderTargetView* RTV = SpotLight->GetShadowResource()->GetVSMRTV();
+                Graphics.DeviceContext->ClearRenderTargetView(RTV, ClearColor);
                 Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
                 GEngine->renderer.PrepareShader(TEXT("LightDepth"));
-                ID3D11ShaderResourceView* SRV = ShadowResource->GetSRV();
+                ID3D11ShaderResourceView* SRV = SpotLight->GetShadowResource()->GetSRV();
                 Graphics.DeviceContext->PSSetShaderResources(0, 1, &SRV);
                 Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
                 ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
@@ -163,11 +164,11 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
                 if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
                 {
                     FLOAT ClearColor[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
-                    Graphics.DeviceContext->ClearRenderTargetView(ShadowResource->GetVSMRTV(), ClearColor);
-                    ID3D11RenderTargetView* RTV = ShadowResource->GetVSMRTV();
+                    ID3D11RenderTargetView* RTV = DirectionalLight->GetShadowResource()[i].GetVSMRTV();
+                    Graphics.DeviceContext->ClearRenderTargetView(RTV, ClearColor);
                     Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
                     GEngine->renderer.PrepareShader(TEXT("LightDepth"));
-                    ID3D11ShaderResourceView* SRV = ShadowResource->GetSRV();
+                    ID3D11ShaderResourceView* SRV = DirectionalLight->GetShadowResource()[i].GetSRV();
                     Graphics.DeviceContext->PSSetShaderResources(0, 1, &SRV);
                     Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
                     ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);

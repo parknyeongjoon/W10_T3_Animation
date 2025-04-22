@@ -196,11 +196,12 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         }
     }
 
-    ID3D11ShaderResourceView* nullSRV[8] = { nullptr };
-    Graphics.DeviceContext->PSSetShaderResources(2, 1, &nullSRV[0]); //쓰고 해제 나중에 이쁘게 뺴기
-    Graphics.DeviceContext->PSSetShaderResources(3, 8, nullSRV);
-    Graphics.DeviceContext->PSSetShaderResources(11, 1, &nullSRV[0]);
-    Graphics.DeviceContext->PSSetShaderResources(12, 8, nullSRV);
+    ID3D11ShaderResourceView* nullSRVs[8] = { nullptr };
+    ID3D11ShaderResourceView* nullSRV[4] = { nullptr };
+    Graphics.DeviceContext->PSSetShaderResources(2, 1, &nullSRVs[0]); //쓰고 해제 나중에 이쁘게 뺴기
+    Graphics.DeviceContext->PSSetShaderResources(3, 8, nullSRVs);
+    Graphics.DeviceContext->PSSetShaderResources(11, 4, nullSRV);
+    Graphics.DeviceContext->PSSetShaderResources(15, 8, nullSRVs);
 }
 
 //void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
@@ -377,11 +378,15 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             {
                 LightConstant.DirLight.View[i] = DirectionalLightComp->GetCascadeViewMatrix(i);
                 LightConstant.DirLight.Projection[i] = DirectionalLightComp->GetCascadeProjectionMatrix(i);
-                DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetSRV());
+                if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
+                {
+                    DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetVSMSRV());
+                }
+                else
+                {
+                    DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetSRV());
+                }
             }
-
-            ID3D11ShaderResourceView* DirectionalShadowMap = (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ? 
-                DirectionalLightComp->GetShadowResource()->GetVSMSRV() : DirectionalShadowMaps.GetData();
             Graphics.DeviceContext->PSSetShaderResources(11, 4, DirectionalShadowMaps.GetData());
             continue;
         }
