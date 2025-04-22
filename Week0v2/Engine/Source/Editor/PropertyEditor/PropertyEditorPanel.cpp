@@ -349,6 +349,18 @@ void PropertyEditorPanel::Render()
             ImTextureID LightDepth = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()->GetSRV());
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth, imageSize);
+            bool override = Cast<UDirectionalLightComponent>(GEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
+            if (ImGui::Checkbox("Override Camera", &override))
+            {
+                if (override)
+                {
+                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(DirectionalLight);
+                }
+                else
+                {
+                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
+                }
+            }
 
             // ImTextureID LightTexture = reinterpret_cast<ImTextureID>(DirectionalLight->GetLightMap()->TextureSRV);
             //
@@ -416,14 +428,17 @@ void PropertyEditorPanel::Render()
             ImTextureID LightDepth = reinterpret_cast<ImTextureID>(SpotLight->GetShadowResource()->GetSRV());
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth, imageSize);
-            bool override = false;
+            bool override = Cast<USpotLightComponent>(GEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
             if (ImGui::Checkbox("Override Camera", &override))
             {
-                GEngine->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.SetLocation(SpotLight->GetComponentLocation());
-                FRotator Rotator = SpotLight->GetComponentRotation();
-                FVector Rotation = { FMath::Clamp(Rotator.Roll, -89.0f, 89.0f), FMath::Clamp(-Rotator.Pitch, -89.0f, 89.0f), FMath::Clamp(Rotator.Yaw, -89.0f, 89.0f) };
-                GEngine->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.SetRotation(Rotation);
-                GEngine->GetLevelEditor()->GetActiveViewportClient()->SetViewFOV(JungleMath::RadToDeg(SpotLight->GetOuterConeAngle()) * 2.0f);
+                if (override)
+                {
+                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(SpotLight);
+                }
+                else
+                {
+                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
+                }
             }
         }
     }
