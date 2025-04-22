@@ -9,6 +9,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "Engine/Classes/Engine/StaticMeshActor.h"
+#include "Components/SceneComponent.h"
 
 FVector FEditorViewportClient::Pivot = FVector(0.0f, 0.0f, 0.0f);
 float FEditorViewportClient::orthoSize = 10.0f;
@@ -290,120 +291,169 @@ void FEditorViewportClient::UpdateCascadeShadowArea()
 
 void FEditorViewportClient::CameraMoveForward(float _Value)
 {
-    if (IsPerspective()) {
-        FVector curCameraLoc = ViewTransformPerspective.GetLocation();
-        curCameraLoc = curCameraLoc + ViewTransformPerspective.GetForwardVector() * GetCameraSpeedScalar() * _Value;
-        ViewTransformPerspective.SetLocation(curCameraLoc);
-    }
-    else
+    if (!OverrideComponent)
     {
-        Pivot.x += _Value * 0.1f;
+        if (IsPerspective()) {
+            FVector curCameraLoc = ViewTransformPerspective.GetLocation();
+            curCameraLoc = curCameraLoc + ViewTransformPerspective.GetForwardVector() * GetCameraSpeedScalar() * _Value;
+            ViewTransformPerspective.SetLocation(curCameraLoc);
+        }
+        else
+        {
+            Pivot.x += _Value * 0.1f;
+        }
     }
 }
 
 void FEditorViewportClient::CameraMoveRight(float _Value)
 {
-    if (IsPerspective()) {
-        FVector curCameraLoc = ViewTransformPerspective.GetLocation();
-        curCameraLoc = curCameraLoc + ViewTransformPerspective.GetRightVector() * GetCameraSpeedScalar() * _Value;
-        ViewTransformPerspective.SetLocation(curCameraLoc);
-    }
-    else
+    if (!OverrideComponent)
     {
-        Pivot.y += _Value * 0.1f;
+        if (IsPerspective()) {
+            FVector curCameraLoc = ViewTransformPerspective.GetLocation();
+            curCameraLoc = curCameraLoc + ViewTransformPerspective.GetRightVector() * GetCameraSpeedScalar() * _Value;
+            ViewTransformPerspective.SetLocation(curCameraLoc);
+        }
+        else
+        {
+            Pivot.y += _Value * 0.1f;
+        }
     }
 }
 
 void FEditorViewportClient::CameraMoveUp(float _Value)
 {
-    if (IsPerspective()) {
-        FVector curCameraLoc = ViewTransformPerspective.GetLocation();
-        curCameraLoc.z = curCameraLoc.z + GetCameraSpeedScalar() * _Value;
-        ViewTransformPerspective.SetLocation(curCameraLoc);
-    }
-    else {
-        Pivot.z += _Value * 0.1f;
+    if (!OverrideComponent)
+    {
+        if (IsPerspective()) {
+            FVector curCameraLoc = ViewTransformPerspective.GetLocation();
+            curCameraLoc.z = curCameraLoc.z + GetCameraSpeedScalar() * _Value;
+            ViewTransformPerspective.SetLocation(curCameraLoc);
+        }
+        else {
+            Pivot.z += _Value * 0.1f;
+        }
     }
 }
 
 void FEditorViewportClient::CameraRotateYaw(float _Value)
 {
-    FVector curCameraRot = ViewTransformPerspective.GetRotation();
-    curCameraRot.z += _Value ;
-    ViewTransformPerspective.SetRotation(curCameraRot);
+    if (!OverrideComponent)
+    {
+        FVector curCameraRot = ViewTransformPerspective.GetRotation();
+        curCameraRot.z += _Value;
+        ViewTransformPerspective.SetRotation(curCameraRot);
+    }
 }
 
 void FEditorViewportClient::CameraRotatePitch(float _Value)
 {
-    FVector curCameraRot = ViewTransformPerspective.GetRotation();
-    curCameraRot.y += _Value;
-    if (curCameraRot.y <= -89.0f)
-        curCameraRot.y = -89.0f;
-    if (curCameraRot.y >= 89.0f)
-        curCameraRot.y = 89.0f;
-    ViewTransformPerspective.SetRotation(curCameraRot);
+    if (!OverrideComponent)
+    {
+        FVector curCameraRot = ViewTransformPerspective.GetRotation();
+        curCameraRot.y += _Value;
+        if (curCameraRot.y < -89.0f)
+            curCameraRot.y = -89.0f;
+        if (curCameraRot.y > 89.0f)
+            curCameraRot.y = 89.0f;
+        ViewTransformPerspective.SetRotation(curCameraRot);
+    }
 }
 
 void FEditorViewportClient::PivotMoveRight(float _Value)
 {
-    Pivot = Pivot + ViewTransformOrthographic.GetRightVector() * _Value * -0.05f;
+    if (!OverrideComponent)
+    {
+        Pivot = Pivot + ViewTransformOrthographic.GetRightVector() * _Value * -0.05f;
+    }
 }
 
 void FEditorViewportClient::PivotMoveUp(float _Value)
 {
-    Pivot = Pivot + ViewTransformOrthographic.GetUpVector() * _Value * 0.05f;
+    if (!OverrideComponent)
+    {
+        Pivot = Pivot + ViewTransformOrthographic.GetUpVector() * _Value * 0.05f;
+    }
 }
 
 void FEditorViewportClient::UpdateViewMatrix()
 {
-    if (IsPerspective()) {
-        nearPlane = 0.1f;
-        farPlane = 1000.f;
-        View = JungleMath::CreateViewMatrix(ViewTransformPerspective.GetLocation(),
-            ViewTransformPerspective.GetLocation() + ViewTransformPerspective.GetForwardVector(),
-            FVector{ 0.0f,0.0f, 1.0f });
-    }
-    else 
+    if (!OverrideComponent)
     {
-        UpdateOrthoCameraLoc();
-        if (ViewportType == LVT_OrthoXY || ViewportType == LVT_OrthoNegativeXY) {
-            View = JungleMath::CreateViewMatrix(ViewTransformOrthographic.GetLocation(),
-                Pivot, FVector(0.0f, -1.0f, 0.0f));
+        if (IsPerspective()) {
+            nearPlane = 0.1f;
+            farPlane = 1000.f;
+            View = JungleMath::CreateViewMatrix(ViewTransformPerspective.GetLocation(),
+                ViewTransformPerspective.GetLocation() + ViewTransformPerspective.GetForwardVector(),
+                FVector{ 0.0f,0.0f, 1.0f });
         }
         else
         {
-            View = JungleMath::CreateViewMatrix(ViewTransformOrthographic.GetLocation(),
-                Pivot, FVector(0.0f, 0.0f, 1.0f));
+            UpdateOrthoCameraLoc();
+            if (ViewportType == LVT_OrthoXY || ViewportType == LVT_OrthoNegativeXY) {
+                View = JungleMath::CreateViewMatrix(ViewTransformOrthographic.GetLocation(),
+                    Pivot, FVector(0.0f, -1.0f, 0.0f));
+            }
+            else
+            {
+                View = JungleMath::CreateViewMatrix(ViewTransformOrthographic.GetLocation(),
+                    Pivot, FVector(0.0f, 0.0f, 1.0f));
+            }
+        }
+    }
+    else
+    {
+        if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(OverrideComponent))
+        {
+            View = SpotLight->GetViewMatrix();
+        }
+        if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(OverrideComponent))
+        {
+            View = DirectionalLight->GetViewMatrix();
         }
     }
 }
 
 void FEditorViewportClient::UpdateProjectionMatrix()
 {
-    if (IsPerspective()) {
-        Projection = JungleMath::CreateProjectionMatrix(
-            ViewFOV * (3.141592f / 180.0f),
-            GetViewport()->GetScreenRect().Width/ GetViewport()->GetScreenRect().Height,
-            nearPlane,
-            farPlane
-        );
+    if (!OverrideComponent)
+    {
+        if (IsPerspective()) {
+            Projection = JungleMath::CreateProjectionMatrix(
+                ViewFOV * (3.141592f / 180.0f),
+                GetViewport()->GetScreenRect().Width / GetViewport()->GetScreenRect().Height,
+                nearPlane,
+                farPlane
+            );
+        }
+        else
+        {
+            // 스왑체인의 가로세로 비율을 구합니다.
+            float aspectRatio = GetViewport()->GetScreenRect().Width / GetViewport()->GetScreenRect().Height;
+
+            // 오쏘그래픽 너비는 줌 값과 가로세로 비율에 따라 결정됩니다.
+            float orthoWidth = orthoSize * aspectRatio;
+            float orthoHeight = orthoSize;
+
+            // 오쏘그래픽 투영 행렬 생성 (nearPlane, farPlane 은 기존 값 사용)
+            Projection = JungleMath::CreateOrthoProjectionMatrix(
+                orthoWidth,
+                orthoHeight,
+                nearPlane,
+                farPlane
+            );
+        }
     }
     else
     {
-        // 스왑체인의 가로세로 비율을 구합니다.
-        float aspectRatio = GetViewport()->GetScreenRect().Width / GetViewport()->GetScreenRect().Height;
-
-        // 오쏘그래픽 너비는 줌 값과 가로세로 비율에 따라 결정됩니다.
-        float orthoWidth = orthoSize * aspectRatio;
-        float orthoHeight = orthoSize;
-
-        // 오쏘그래픽 투영 행렬 생성 (nearPlane, farPlane 은 기존 값 사용)
-        Projection = JungleMath::CreateOrthoProjectionMatrix(
-            orthoWidth,
-            orthoHeight,
-            nearPlane,
-            farPlane
-        );
+        if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(OverrideComponent))
+        {
+            Projection = SpotLight->GetProjectionMatrix();
+        }
+        if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(OverrideComponent))
+        {
+            Projection = DirectionalLight->GetProjectionMatrix();
+        }
     }
 }
 

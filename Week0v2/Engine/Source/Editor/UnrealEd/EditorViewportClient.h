@@ -12,6 +12,8 @@
 #define MIN_ORTHOZOOM				1.0							/* 2D ortho viewport zoom >= MIN_ORTHOZOOM */
 #define MAX_ORTHOZOOM				1e25	
 
+class USceneComponent;
+
 struct FViewportCameraTransform
 {
 public:
@@ -112,6 +114,8 @@ public:
     /** Viewport camera transform data for perspective viewports */
     FViewportCameraTransform		ViewTransformPerspective;
     FViewportCameraTransform        ViewTransformOrthographic;
+    //override camera
+    USceneComponent* OverrideComponent = nullptr;
     // 카메라 정보 
     float ViewFOV = 60.0f;
     /** Viewport's stored horizontal field of view (saved in ini files). */
@@ -176,6 +180,10 @@ public: //Camera Movement
     uint64 GetShowFlag() { return ShowFlag; }
     void SetShowFlag(uint64 newMode) { ShowFlag = newMode; }
     bool GetIsOnRBMouseClick() { return bRightMouseDown; }
+
+    //camera overriding
+    USceneComponent* GetOverrideComponent() { return OverrideComponent; }
+    void SetOverrideComponent(USceneComponent* newComp) { OverrideComponent = newComp; }
 
     //Flag Test Code
     static void SetOthoSize(float _Value);
