@@ -367,7 +367,8 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.DirLight.View = DirectionalLightComp->GetViewMatrix();
             LightConstant.DirLight.Projection = DirectionalLightComp->GetProjectionMatrix();
 
-            ID3D11ShaderResourceView* DirectionalShadowMap = DirectionalLightComp->GetShadowResource()->GetSRV();
+            ID3D11ShaderResourceView* DirectionalShadowMap = (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ? 
+                DirectionalLightComp->GetShadowResource()->GetVSMSRV() : DirectionalLightComp->GetShadowResource()->GetSRV();
             Graphics.DeviceContext->PSSetShaderResources(11, 1, &DirectionalShadowMap);
             continue;
         }
@@ -382,7 +383,8 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.SpotLights[SpotLightCount].OuterAngle = SpotLightComp->GetOuterConeAngle();
             LightConstant.SpotLights[SpotLightCount].View = (SpotLightComp->GetViewMatrix());
             LightConstant.SpotLights[SpotLightCount].Proj = (SpotLightComp->GetProjectionMatrix());
-            ShadowMaps[SpotLightCount] = SpotLightComp->GetShadowResource()->GetVSMSRV();
+            ShadowMaps[SpotLightCount] = (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ? 
+                SpotLightComp->GetShadowResource()->GetVSMSRV() : SpotLightComp->GetShadowResource()->GetSRV();
             SpotLightCount++;
             continue;
         }

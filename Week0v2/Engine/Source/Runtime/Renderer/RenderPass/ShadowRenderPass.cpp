@@ -133,46 +133,6 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
         if (ShadowResource == nullptr)
             continue;
 
-        D3D11_VIEWPORT vp = ShadowResource->GetViewport();
-        Graphics.DeviceContext->RSSetViewports(1, &vp);
-        Prepare(InViewportClient);
-        Graphics.DeviceContext->ClearDepthStencilView(ShadowResource->GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-        //Graphics.DeviceContext->ClearRenderTargetView(SpotLight->GetRTV(), ClearColor);
-        ID3D11ShaderResourceView* nullSRV =  nullptr;
-        Graphics.DeviceContext->PSSetShaderResources(0, 1, &nullSRV);
-        Graphics.DeviceContext->OMSetRenderTargets(0, nullptr, ShadowResource->GetDSV()); // 렌더 타겟 설정
-        
-        View = Light->GetViewMatrix();
-        Proj = Light->GetProjectionMatrix();
-        RenderStaticMesh(View, Proj);
-
-        //if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
-        //{
-        //    View = SpotLight->GetViewMatrix();
-        //    Proj = SpotLight->GetProjectionMatrix();
-        //    RenderStaticMesh(View, Proj);
-        //}
-        //if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
-        //{
-        //    View = DirectionalLight->GetViewMatrix();
-        //    Proj = DirectionalLight->GetProjectionMatrix();
-        //    RenderStaticMesh(View, Proj);
-        //}
-        if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
-        {
-            ID3D11RenderTargetView* RTV = ShadowResource->GetVSMRTV();
-            Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
-            GEngine->renderer.PrepareShader(TEXT("LightDepth"));
-            ID3D11ShaderResourceView* SRV = ShadowResource->GetSRV();
-            Graphics.DeviceContext->PSSetShaderResources(0, 1, &SRV);
-            Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-            ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
-            Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
-            Graphics.DeviceContext->Draw(4, 0);
-            RTV = nullptr;
-            Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
-        }
-    }
         if (PointLight)
         {
             RenderPointLightShadowMap(PointLight, ShadowResource, Graphics);
@@ -194,12 +154,42 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
                 View = SpotLight->GetViewMatrix();
                 Proj = SpotLight->GetProjectionMatrix();
                 RenderStaticMesh(View, Proj);
+                //VSM
+                if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
+                {
+                    ID3D11RenderTargetView* RTV = ShadowResource->GetVSMRTV();
+                    Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
+                    GEngine->renderer.PrepareShader(TEXT("LightDepth"));
+                    ID3D11ShaderResourceView* SRV = ShadowResource->GetSRV();
+                    Graphics.DeviceContext->PSSetShaderResources(0, 1, &SRV);
+                    Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+                    ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
+                    Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
+                    Graphics.DeviceContext->Draw(4, 0);
+                    RTV = nullptr;
+                    Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
+                }
             }
             else if (DirectionalLight)
             {
                 View = DirectionalLight->GetViewMatrix();
                 Proj = DirectionalLight->GetProjectionMatrix();
                 RenderStaticMesh(View, Proj);
+                //VSM
+                if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
+                {
+                    ID3D11RenderTargetView* RTV = ShadowResource->GetVSMRTV();
+                    Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
+                    GEngine->renderer.PrepareShader(TEXT("LightDepth"));
+                    ID3D11ShaderResourceView* SRV = ShadowResource->GetSRV();
+                    Graphics.DeviceContext->PSSetShaderResources(0, 1, &SRV);
+                    Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+                    ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
+                    Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
+                    Graphics.DeviceContext->Draw(4, 0);
+                    RTV = nullptr;
+                    Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
+                }
             }
         }
     }

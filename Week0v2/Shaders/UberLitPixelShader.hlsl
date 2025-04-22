@@ -331,7 +331,7 @@ float CalculateVSMShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4
         shadowUV.y >= 0 && shadowUV.y <= 1 &&
         worldDepth >= 0 && worldDepth <= 1)
     {
-        float bias = max(0.00001 * (1.0 - dot(Normal, -LightDir)), 0.00001);
+        float bias = max(0.000001 * (1.0 - dot(Normal, -LightDir)), 0.000001);
         float2 moments = ShadowMap.Sample(linearSampler, shadowUV);
         float mean = moments.x;
         float meanSq = moments.y;
@@ -410,8 +410,16 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float3 DirLightColor = CalculateDirectionalLight(DirLight, Normal, ViewDir, baseColor.rgb);
     if (length(DirLightColor) > 0.0)
     {
-        float dirShadow = CalculateShadow(input.worldPos, Normal, DirLight.Direction, DirLight.View, DirLight.Projection, DirectionalLightShadowMap);
-        DirLightColor *= (1 - dirShadow);
+        if (IsVSM)
+        {
+            float dirShadow = CalculateVSMShadow(input.worldPos, Normal, DirLight.Direction, DirLight.View, DirLight.Projection, DirectionalLightShadowMap);
+            DirLightColor *= (dirShadow);
+        }
+        else
+        {
+            float dirShadow = CalculateShadow(input.worldPos, Normal, DirLight.Direction, DirLight.View, DirLight.Projection, DirectionalLightShadowMap);
+            DirLightColor *= (1 - dirShadow);
+        }
     }
     TotalLight += DirLightColor;
 
