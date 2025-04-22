@@ -253,7 +253,7 @@ void StatOverlay::Render(ID3D11DeviceContext* context, UINT width, UINT height)
                 break;
             }
             // byte to mb
-            ImGui::Text("Count : %d", Info.LightCountByLightType[pair.Key]);
+            //ImGui::Text("Count : %d", Info.LightCountByLightType[pair.Key]);
             float mb = (float)pair.Value / (1024.f * 1024.f);
             ImGui::Text("Memory: %.2f MB", mb);
         }

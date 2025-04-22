@@ -1,32 +1,173 @@
 #include "ShadowResource.h"
-#include "Math/MathUtility.h"
-#include "ShadowAtlas.h"
 
-
-UINT FShadowResource::ShadowResolution = 1024; // Default shadow resolution
-
-FShadowResource::FShadowResource(FShadowAtlas* Atlas, ELightType InLightType, UINT SliceIndex)
-    : ParentAtlas(Atlas)
-    , LightType(InLightType)
-    , AtlasSliceIndex(SliceIndex)
+FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType, UINT ShadowResolution)
+    :LightType(LightType)
 {
-    SliceViewport.Width = static_cast<float>(ParentAtlas->GetViewport().Height);
-    SliceViewport.Height = static_cast<float>(ParentAtlas->GetViewport().Width);
-    SliceViewport.TopLeftX = 0;
-    SliceViewport.TopLeftY = static_cast<float>(SliceIndex) * SliceViewport.Height;
-    SliceViewport.MinDepth = 0.0f;
-    SliceViewport.MaxDepth = 1.0f;
+    switch (LightType)
+    {
+    case ELightType::DirectionalLight:
+    case ELightType::SpotLight:
+    {
+        // Texture2D 생성
+        D3D11_TEXTURE2D_DESC textureDesc = {};
+        textureDesc.Width = ShadowResolution;
+        textureDesc.Height = ShadowResolution;
+        textureDesc.MipLevels = 1;
+        textureDesc.ArraySize = 1;
+        textureDesc.Format = DXGI_FORMAT_R32_TYPELESS; // 중요: TYPELESS
+        textureDesc.MiscFlags = 0;
+        textureDesc.SampleDesc.Count = 1;
+        textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 
-    NumFaces = LightType == ELightType::PointLight ? 6 : 1;
+        HRESULT hr = Device->CreateTexture2D(&textureDesc, nullptr, &ShadowTexture);
+        if (FAILED(hr))
+        {
+            assert(TEXT("Shadow Texture creation failed"));
+            return;
+        }
+        // SRV
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = DXGI_FORMAT_R32_FLOAT; // 깊이 데이터만 읽기 위한 포맷
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MipLevels = 1;
+
+        hr = Device->CreateShaderResourceView(ShadowTexture.Get(), &srvDesc, &ShadowSRV);
+        if (FAILED(hr))
+        {
+            assert(TEXT("Shadow SRV creation failed"));
+            return;
+        }
+
+        // DSV
+        D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+        dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+        dsvDesc.Texture2D.MipSlice = 0;
+
+        ComPtr<ID3D11DepthStencilView> dsv;
+        hr = Device->CreateDepthStencilView(ShadowTexture.Get(), &dsvDesc, &dsv);
+        if (FAILED(hr))
+        {
+            assert(TEXT("Shadow DSV creation failed"));
+            return;
+        }
+        ShadowDSVs.Add(dsv);
+
+        // Viewport 설정
+        D3D11_VIEWPORT viewport = {};
+        viewport.TopLeftX = 0;
+        viewport.TopLeftY = 0;
+        viewport.Width = static_cast<FLOAT>(ShadowResolution);
+        viewport.Height = static_cast<FLOAT>(ShadowResolution);
+        viewport.MinDepth = 0.0f;
+        viewport.MaxDepth = 1.0f;
+        Viewports.Add(viewport);
+        break;
+    }
+    case ELightType::PointLight:
+    {
+        NumFaces = 6;
+        // Texture2D - Cube Array
+        D3D11_TEXTURE2D_DESC desc = {};
+        desc.Width = 1024;
+        desc.Height = 1024;
+        desc.MipLevels = 1;
+        desc.ArraySize = 6;  // 큐브맵의 6개 면
+        desc.Format = DXGI_FORMAT_R32_TYPELESS;
+        desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;  // 중요: 큐브맵으로 지정
+        desc.SampleDesc.Count = 1;
+        desc.SampleDesc.Quality = 0;
+
+
+
+        HRESULT hr = Device->CreateTexture2D(&desc, nullptr, ShadowTexture.GetAddressOf());
+        if (FAILED(hr))
+        {
+            assert(TEXT("Shadow Texture creation failed"));
+            return;
+        }
+
+        // 모든 면을 한 번에 처리하는 DSV 생성
+        D3D11_DEPTH_STENCIL_VIEW_DESC allFacesDSVDesc = {};
+        allFacesDSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        allFacesDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+        allFacesDSVDesc.Texture2DArray.MipSlice = 0;
+        allFacesDSVDesc.Texture2DArray.FirstArraySlice = 0;
+        allFacesDSVDesc.Texture2DArray.ArraySize = 6;  // 모든 면 포함
+
+        hr = Device->CreateDepthStencilView(ShadowTexture.Get(), &allFacesDSVDesc, &ShadowDSV);
+        if (FAILED(hr))
+        {
+            assert(TEXT("Shadow All Faces DSV creation failed"));
+            return;
+        }
+
+        // SRV
+         // 3. 셰이더 리소스 뷰 생성
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+        srvDesc.TextureCube.MipLevels = 1;
+        srvDesc.TextureCube.MostDetailedMip = 0;
+
+        hr = Device->CreateShaderResourceView(ShadowTexture.Get(), &srvDesc, &ShadowSRV);
+        if (FAILED(hr))
+        {
+            assert(TEXT("Shadow SRV creation failed"));
+            return;
+        }
+
+        // DSV 6 faces
+        for (UINT face = 0; face < 6; ++face)
+        {
+            D3D11_DEPTH_STENCIL_VIEW_DESC faceDSVDesc = {};
+            faceDSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
+            faceDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+            faceDSVDesc.Texture2DArray.MipSlice = 0;
+            faceDSVDesc.Texture2DArray.FirstArraySlice = face;
+            faceDSVDesc.Texture2DArray.ArraySize = 1;
+
+            ComPtr<ID3D11DepthStencilView> dsv;
+            hr = Device->CreateDepthStencilView(ShadowTexture.Get(), &faceDSVDesc, &dsv);
+            if (FAILED(hr))
+            {
+                assert(TEXT("Shadow DSV creation failed"));
+                return;
+            }
+            ShadowDSVs.Add(dsv);
+            // Viewport 설정
+            D3D11_VIEWPORT viewport = {};
+            viewport.TopLeftX = 0;
+            viewport.TopLeftY = 0;
+            viewport.Width = static_cast<FLOAT>(ShadowResolution);
+            viewport.Height = static_cast<FLOAT>(ShadowResolution);
+            viewport.MinDepth = 0.0f;
+            viewport.MaxDepth = 1.0f;
+            Viewports.Add(viewport);
+        }
+        break;
+
+
+        D3D11_SAMPLER_DESC compSampDesc = {};
+        compSampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+        compSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+        compSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+        compSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+        compSampDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+        compSampDesc.BorderColor[0] = 1.0f;
+        compSampDesc.BorderColor[1] = 1.0f;
+        compSampDesc.BorderColor[2] = 1.0f;
+        compSampDesc.BorderColor[3] = 1.0f;
+        compSampDesc.MinLOD = 0;
+        compSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    }
+    }
 }
 
 FShadowResource::~FShadowResource()
 {
-    // 아틀라스에서 이 슬라이스 해제
-    if (ParentAtlas)
-    {
-        ParentAtlas->FreeShadowSlice(AtlasSliceIndex);
-    }
     // remove this from the factory
     TArray<FShadowResource*>& ShadowResourcesArray = FShadowResourceFactory::ShadowResources[LightType];
     ShadowResourcesArray.RemoveSingle(this);
@@ -34,73 +175,78 @@ FShadowResource::~FShadowResource()
 
 size_t FShadowResource::GetEsimatedMemoryUsageInBytes() const
 {
-    if (ParentAtlas)
+    if (!ShadowTexture)
+        return 0;
+
+    D3D11_TEXTURE2D_DESC Desc;
+    ShadowTexture->GetDesc(&Desc);
+
+    size_t PixelSizeInBytes = 0;
+    switch (Desc.Format)
     {
-        return ParentAtlas->GetMemoryUsage() / ParentAtlas->GetMaxShadows();
-    }
-    return 0;
-}
-
-ID3D11ShaderResourceView* FShadowResource::GetSRV() const
-{
-    return ParentAtlas ? ParentAtlas->GetSRV() : nullptr;
-}
-
-ID3D11Texture2D* FShadowResource::GetTexture() const
-{
-    return ParentAtlas ? ParentAtlas->GetTexture() : nullptr;
-}
-
-ID3D11DepthStencilView* FShadowResource::GetDSV(int faceIndex) const
-{
-    if (!ParentAtlas || faceIndex < 0 || faceIndex >= NumFaces)
-        return nullptr;
-
-    return ParentAtlas->GetDSV();
-}
-
-D3D11_VIEWPORT FShadowResource::GetViewport(int faceIndex) const
-{
-    if (faceIndex < 0 || faceIndex >= NumFaces)
-        return {};
-
-    D3D11_VIEWPORT vp = SliceViewport;
-
-    if (LightType == ELightType::PointLight)
-    {
-        // Adjust viewport for cubemap face (simplified - may need more complex logic)
-        vp.TopLeftY += faceIndex * (vp.Height / 6);
-        vp.Height /= 6;
+    case DXGI_FORMAT_R32_FLOAT:
+    case DXGI_FORMAT_D32_FLOAT:
+    case DXGI_FORMAT_R24G8_TYPELESS:
+    case DXGI_FORMAT_R32_TYPELESS:
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+        PixelSizeInBytes = 4;
+        break;
+    case DXGI_FORMAT_R16_FLOAT:
+    case DXGI_FORMAT_D16_UNORM:
+        PixelSizeInBytes = 2;
+        break;
+    default:
+        return 0;
     }
 
-    return vp;
-}
+    size_t SizePerTex = static_cast<size_t>(Desc.Width) *
+        static_cast<size_t>(Desc.Height) *
+        PixelSizeInBytes;
 
-FShadowResource* FShadowResourceFactory::CreateShadowResource(ID3D11Device* Device, ELightType LightType)
-{
-    FShadowAtlas* atlas = FindOrCreateAtlas(Device, LightType);
-    if (!atlas)
+    // 멀티샘플링 고려
+    size_t SampleCount = FMath::Max((UINT)1, Desc.SampleDesc.Count);
+    SizePerTex *= SampleCount;
+
+    // 배열/밉맵 고려
+    size_t Total = SizePerTex * Desc.ArraySize;
+    if (Desc.MipLevels > 1)
     {
-        return nullptr;
+        // 밉맵 체인은 상위 레벨의 1/4씩 추가됨 (대략적인 추정)
+        Total += Total / 3;
     }
 
-    UINT SliceIndex = 0;
-    if (!atlas->AllocateShadowSlice(SliceIndex))
+    // 뷰 객체 메모리 추정 (대략 1KB per view)
+    const size_t ViewOverhead = 1024;
+    size_t ViewCount = 0;
+    if (ShadowSRV) ViewCount++;
+    ViewCount += ShadowDSVs.Num();
+    Total += ViewCount * ViewOverhead;
+
+    return Total;
+}
+
+FShadowResource* FShadowResourceFactory::CreateShadowResource(ID3D11Device* Device, ELightType LightType, UINT ShadowResource)
+{
+    FShadowResource* shadowResource = new FShadowResource(Device, LightType, ShadowResource);
+    if (shadowResource)
     {
-        // atlas is full, create a new one
-        atlas = FindOrCreateAtlas(Device, LightType, true);
-        if (!atlas)
+        if (ShadowResources.Contains(shadowResource->LightType))
         {
-            return nullptr;
+            ShadowResources[shadowResource->LightType].Add(shadowResource);
+        }
+        else
+        {
+            ShadowResources.Add(shadowResource->LightType, TArray<FShadowResource*>());
+            ShadowResources[shadowResource->LightType].Add(shadowResource);
         }
     }
-
-    FShadowResource* NewResource = new FShadowResource(atlas, LightType, SliceIndex);
-    ShadowResources.FindOrAdd(LightType).Add(NewResource);
-
-    return NewResource;
+    else
+    {
+        // Handle error
+        assert(TEXT("Failed to create shadow resource"));
+    }
+    return shadowResource;
 };
-
 FShadowMemoryUsageInfo FShadowResourceFactory::GetShadowMemoryUsageInfo()
 {
     FShadowMemoryUsageInfo memoryUsageInfo;
@@ -122,24 +268,3 @@ FShadowMemoryUsageInfo FShadowResourceFactory::GetShadowMemoryUsageInfo()
     return memoryUsageInfo;
 }
 
-FShadowAtlas* FShadowResourceFactory::FindOrCreateAtlas(ID3D11Device* Device, ELightType LightType, bool bForceCreateNew)
-{
-    UINT ShadowResolution = FShadowResource::ShadowResolution;
-    UINT ShadowsPerAtlas = 4;
-
-    if (!bForceCreateNew)
-    {
-        for (auto& Atlas : ShadowAtlases)
-        {
-            if (Atlas->GetCurrentAllocation() < Atlas->GetMaxShadows())
-            {
-                return Atlas;
-            }
-        }
-    }
-
-    // Create a new atlas if no existing one can be used
-    FShadowAtlas* NewAtlas = new FShadowAtlas(Device, ShadowResolution, ShadowsPerAtlas);
-    ShadowAtlases.Add(NewAtlas);
-    return NewAtlas;
-}
