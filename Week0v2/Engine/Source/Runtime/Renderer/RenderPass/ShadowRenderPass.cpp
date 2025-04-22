@@ -132,18 +132,35 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
         Graphics.DeviceContext->PSSetShaderResources(0, 1, &nullSRV);
         Graphics.DeviceContext->OMSetRenderTargets(0, nullptr, ShadowResource->GetDSV()); // 렌더 타겟 설정
         
+        View = Light->GetViewMatrix();
+        Proj = Light->GetProjectionMatrix();
+        RenderStaticMesh(View, Proj);
+
+        //if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
+        //{
+        //    View = SpotLight->GetViewMatrix();
+        //    Proj = SpotLight->GetProjectionMatrix();
+        //    RenderStaticMesh(View, Proj);
+        //}
+        //if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
+        //{
+        //    View = DirectionalLight->GetViewMatrix();
+        //    Proj = DirectionalLight->GetProjectionMatrix();
+        //    RenderStaticMesh(View, Proj);
+        //}
         if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
         {
-            View = SpotLight->GetViewMatrix();
-            Proj = SpotLight->GetProjectionMatrix();
-            RenderStaticMesh(View, Proj);
-        }
-        if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
-        {
-            //TODO : Cascade 영역 따라서 해상도 바꿔가면서 Shadow 맵 그리기
-            View = DirectionalLight->GetViewMatrix();
-            Proj = DirectionalLight->GetProjectionMatrix();
-            RenderStaticMesh(View, Proj);
+            ID3D11RenderTargetView* RTV = ShadowResource->GetVSMRTV();
+            Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
+            GEngine->renderer.PrepareShader(TEXT("LightDepth"));
+            ID3D11ShaderResourceView* SRV = ShadowResource->GetSRV();
+            Graphics.DeviceContext->PSSetShaderResources(0, 1, &SRV);
+            Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+            ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
+            Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
+            Graphics.DeviceContext->Draw(4, 0);
+            RTV = nullptr;
+            Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
         }
     }
     Graphics.DeviceContext->RSSetViewports(1, &curEditorViewportClient->GetD3DViewport());

@@ -62,6 +62,51 @@ FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType, UIN
         viewport.MinDepth = 0.0f;
         viewport.MaxDepth = 1.0f;
         Viewports.Add(viewport);
+
+        //VSM용 코드
+        D3D11_TEXTURE2D_DESC texDesc = {};
+        texDesc.Width = static_cast<UINT>(ShadowResolution);              // shadow atlas 내 타일 크기
+        texDesc.Height = static_cast<UINT>(ShadowResolution);
+        texDesc.MipLevels = 1;
+        texDesc.ArraySize = 1;
+        texDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+        texDesc.SampleDesc.Count = 1;
+        texDesc.Usage = D3D11_USAGE_DEFAULT;
+        texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+        texDesc.CPUAccessFlags = 0;
+        texDesc.MiscFlags = 0;
+
+        hr = Device->CreateTexture2D(&texDesc, nullptr, &VSMTexture);
+        if (FAILED(hr))
+        {
+            assert(TEXT("VSM Texture creation failed"));
+            return;
+        }
+
+        D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+        rtvDesc.Format = texDesc.Format;
+        rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+        rtvDesc.Texture2D.MipSlice = 0;
+        
+        hr = Device->CreateRenderTargetView(VSMTexture.Get(), &rtvDesc, &VSMRTV);
+        if (FAILED(hr))
+        {
+            assert(TEXT("VSM RTV creation failed"));
+            return;
+        }
+
+        srvDesc = {};
+        srvDesc.Format = texDesc.Format;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MipLevels = 1;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+
+        hr = Device->CreateShaderResourceView(VSMTexture.Get(), &srvDesc, &VSMSRV);
+        if (FAILED(hr))
+        {
+            assert(TEXT("VSM SRV creation failed"));
+            return;
+        }
         break;
     }
     case ELightType::PointLight:
@@ -79,8 +124,6 @@ FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType, UIN
         desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;  // 중요: 큐브맵으로 지정
         desc.SampleDesc.Count = 1;
         desc.SampleDesc.Quality = 0;
-
-
 
         HRESULT hr = Device->CreateTexture2D(&desc, nullptr, ShadowTexture.GetAddressOf());
         if (FAILED(hr))

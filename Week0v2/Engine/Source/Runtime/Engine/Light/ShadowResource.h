@@ -15,6 +15,11 @@ struct FShadowResource
     ComPtr<ID3D11DepthStencilView>ShadowDSV;   
     ELightType GetLightType() const { return LightType; }
 
+    //VSM용
+    ComPtr<ID3D11Texture2D> VSMTexture;
+    ComPtr<ID3D11RenderTargetView> VSMRTV;
+    ComPtr<ID3D11ShaderResourceView> VSMSRV;
+
     // Face의 개수. Directional/Spot Light는 1개, Point Light는 6개..  
     int NumFaces = 1;
 
@@ -39,6 +44,9 @@ struct FShadowResource
             return {};
         return Viewports[faceIndex];
     }
+
+    ID3D11RenderTargetView* GetVSMRTV() const { return VSMRTV.Get(); }
+    ID3D11ShaderResourceView* GetVSMSRV() const { return VSMSRV.Get(); }
 };
 
 struct FShadowMemoryUsageInfo

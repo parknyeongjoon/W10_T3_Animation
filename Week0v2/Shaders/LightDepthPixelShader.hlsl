@@ -11,9 +11,8 @@ float4 mainPS(VS_OUT input) : SV_Target
 {
     float depth = SceneDepthTex.Sample(pointSampler, input.uv).r;
 
-    float linearDepth = (0.1 * 100) / (100 - depth * (100 - 0.1));
-    
-    float normalized = saturate((linearDepth - 0.1) / (100 - 0.1));
+    float moment1 = depth;
+    float moment2 = depth * depth;
 
-    return float4(normalized, normalized, normalized, 1.0);
+    return float4(moment1, moment2, 0.0, 1.0);
 }

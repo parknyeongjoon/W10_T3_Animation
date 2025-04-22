@@ -243,7 +243,7 @@ float4 WorldToLight(float3 WorldPos, row_major float4x4 View, row_major float4x4
     return LightViewPos;
 }
 
-float4 CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
+float CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
 {
     float shadow = 0;
     float4 LightViewPos = WorldToLight(WorldPos, View, Projection);
@@ -273,6 +273,34 @@ float4 CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4
     }
     
     return shadow;
+}
+
+float CalculateVSMShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
+{
+    float shadow = 0;
+    float4 LightViewPos = WorldToLight(WorldPos, View, Projection);
+            
+    float2 shadowUV = LightViewPos.xy / LightViewPos.w * 0.5 + 0.5;
+    shadowUV.y = 1.0 - shadowUV.y;
+    float worldDepth = LightViewPos.z / LightViewPos.w;
+
+    if (shadowUV.x >= 0 && shadowUV.x <= 1 &&
+        shadowUV.y >= 0 && shadowUV.y <= 1 &&
+        worldDepth >= 0 && worldDepth <= 1)
+    {
+        float bias = max(0.00001 * (1.0 - dot(Normal, -LightDir)), 0.00001);
+        float2 moments = ShadowMap.Sample(linearSampler, shadowUV);
+        float mean = moments.x;
+        float meanSq = moments.y;
+        
+        float variance = meanSq - mean * mean;
+        variance = max(variance, bias);
+        
+        float d = worldDepth - mean;
+        float pMax = variance / (variance + d * d);
+        return saturate(pMax);
+    }
+    return 0;
 }
 
 PS_OUTPUT mainPS(PS_INPUT input)
@@ -361,8 +389,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
         float3 SpotLightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
         if (length(SpotLightColor) > 0.0)
         {
-             float SpotShadow = CalculateShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
-            SpotLightColor *= (1 - SpotShadow);
+            float SpotShadow = CalculateVSMShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
+            SpotLightColor *= (SpotShadow);
+            //float SpotShadow = CalculateShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
+            //SpotLightColor *= (1 - SpotShadow);
         }
         TotalLight += SpotLightColor;
     }
