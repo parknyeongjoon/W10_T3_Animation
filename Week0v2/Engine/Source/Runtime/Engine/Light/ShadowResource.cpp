@@ -5,53 +5,53 @@ FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType, UIN
 {
     switch (LightType)
     {
-    case ELightType::DirectionalLight:
-    case ELightType::SpotLight:
-    {
-        // Texture2D 생성
-        D3D11_TEXTURE2D_DESC textureDesc = {};
-        textureDesc.Width = ShadowResolution;
-        textureDesc.Height = ShadowResolution;
-        textureDesc.MipLevels = 1;
-        textureDesc.ArraySize = 1;
-        textureDesc.Format = DXGI_FORMAT_R32_TYPELESS; // 중요: TYPELESS
-        textureDesc.MiscFlags = 0;
-        textureDesc.SampleDesc.Count = 1;
-        textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-
-        HRESULT hr = Device->CreateTexture2D(&textureDesc, nullptr, &ShadowTexture);
-        if (FAILED(hr))
+        case ELightType::DirectionalLight:
+        case ELightType::SpotLight:
         {
-            assert(TEXT("Shadow Texture creation failed"));
-            return;
-        }
-        // SRV
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        srvDesc.Format = DXGI_FORMAT_R32_FLOAT; // 깊이 데이터만 읽기 위한 포맷
-        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Texture2D.MipLevels = 1;
+            // Texture2D 생성
+            D3D11_TEXTURE2D_DESC textureDesc = {};
+            textureDesc.Width = ShadowResolution;
+            textureDesc.Height = ShadowResolution;
+            textureDesc.MipLevels = 1;
+            textureDesc.ArraySize = 1;
+            textureDesc.Format = DXGI_FORMAT_R32_TYPELESS; // 중요: TYPELESS
+            textureDesc.MiscFlags = 0;
+            textureDesc.SampleDesc.Count = 1;
+            textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 
-        hr = Device->CreateShaderResourceView(ShadowTexture.Get(), &srvDesc, &ShadowSRV);
-        if (FAILED(hr))
-        {
-            assert(TEXT("Shadow SRV creation failed"));
-            return;
-        }
+            HRESULT hr = Device->CreateTexture2D(&textureDesc, nullptr, &ShadowTexture);
+            if (FAILED(hr))
+            {
+                assert(TEXT("Shadow Texture creation failed"));
+                return;
+            }
+            // SRV
+            D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Format = DXGI_FORMAT_R32_FLOAT; // 깊이 데이터만 읽기 위한 포맷
+            srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture2D.MipLevels = 1;
 
-        // DSV
-        D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-        dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
-        dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-        dsvDesc.Texture2D.MipSlice = 0;
+            hr = Device->CreateShaderResourceView(ShadowTexture.Get(), &srvDesc, &ShadowSRV);
+            if (FAILED(hr))
+            {
+                assert(TEXT("Shadow SRV creation failed"));
+                return;
+            }
 
-        ComPtr<ID3D11DepthStencilView> dsv;
-        hr = Device->CreateDepthStencilView(ShadowTexture.Get(), &dsvDesc, &dsv);
-        if (FAILED(hr))
-        {
-            assert(TEXT("Shadow DSV creation failed"));
-            return;
-        }
-        ShadowDSVs.Add(dsv);
+            // DSV
+            D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+            dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+            dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+            dsvDesc.Texture2D.MipSlice = 0;
+
+            ComPtr<ID3D11DepthStencilView> dsv;
+            hr = Device->CreateDepthStencilView(ShadowTexture.Get(), &dsvDesc, &dsv);
+            if (FAILED(hr))
+            {
+                assert(TEXT("Shadow DSV creation failed"));
+                return;
+            }
+            ShadowDSVs.Add(dsv);
 
         // Viewport 설정
         D3D11_VIEWPORT viewport = {};
@@ -111,7 +111,6 @@ FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType, UIN
     }
     case ELightType::PointLight:
     {
-        NumFaces = 6;
         // Texture2D - Cube Array
         D3D11_TEXTURE2D_DESC desc = {};
         desc.Width = 1024;
@@ -132,80 +131,66 @@ FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType, UIN
             return;
         }
 
-        // 모든 면을 한 번에 처리하는 DSV 생성
-        D3D11_DEPTH_STENCIL_VIEW_DESC allFacesDSVDesc = {};
-        allFacesDSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
-        allFacesDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-        allFacesDSVDesc.Texture2DArray.MipSlice = 0;
-        allFacesDSVDesc.Texture2DArray.FirstArraySlice = 0;
-        allFacesDSVDesc.Texture2DArray.ArraySize = 6;  // 모든 면 포함
+            // 모든 면을 한 번에 처리하는 DSV 생성
+            D3D11_DEPTH_STENCIL_VIEW_DESC allFacesDSVDesc = {};
+            allFacesDSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
+            allFacesDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+            allFacesDSVDesc.Texture2DArray.MipSlice = 0;
+            allFacesDSVDesc.Texture2DArray.FirstArraySlice = 0;
+            allFacesDSVDesc.Texture2DArray.ArraySize = 6;  // 모든 면 포함
 
-        hr = Device->CreateDepthStencilView(ShadowTexture.Get(), &allFacesDSVDesc, &ShadowDSV);
-        if (FAILED(hr))
-        {
-            assert(TEXT("Shadow All Faces DSV creation failed"));
-            return;
-        }
-
-        // SRV
-         // 3. 셰이더 리소스 뷰 생성
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-        srvDesc.TextureCube.MipLevels = 1;
-        srvDesc.TextureCube.MostDetailedMip = 0;
-
-        hr = Device->CreateShaderResourceView(ShadowTexture.Get(), &srvDesc, &ShadowSRV);
-        if (FAILED(hr))
-        {
-            assert(TEXT("Shadow SRV creation failed"));
-            return;
-        }
-
-        // DSV 6 faces
-        for (UINT face = 0; face < 6; ++face)
-        {
-            D3D11_DEPTH_STENCIL_VIEW_DESC faceDSVDesc = {};
-            faceDSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
-            faceDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-            faceDSVDesc.Texture2DArray.MipSlice = 0;
-            faceDSVDesc.Texture2DArray.FirstArraySlice = face;
-            faceDSVDesc.Texture2DArray.ArraySize = 1;
-
-            ComPtr<ID3D11DepthStencilView> dsv;
-            hr = Device->CreateDepthStencilView(ShadowTexture.Get(), &faceDSVDesc, &dsv);
+            hr = Device->CreateDepthStencilView(ShadowTexture.Get(), &allFacesDSVDesc, &ShadowDSV);
             if (FAILED(hr))
             {
-                assert(TEXT("Shadow DSV creation failed"));
+                assert(TEXT("Shadow All Faces DSV creation failed"));
                 return;
             }
-            ShadowDSVs.Add(dsv);
-            // Viewport 설정
-            D3D11_VIEWPORT viewport = {};
-            viewport.TopLeftX = 0;
-            viewport.TopLeftY = 0;
-            viewport.Width = static_cast<FLOAT>(ShadowResolution);
-            viewport.Height = static_cast<FLOAT>(ShadowResolution);
-            viewport.MinDepth = 0.0f;
-            viewport.MaxDepth = 1.0f;
-            Viewports.Add(viewport);
+
+            // SRV
+             // 3. 셰이더 리소스 뷰 생성
+            D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+            srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+            srvDesc.TextureCube.MipLevels = 1;
+            srvDesc.TextureCube.MostDetailedMip = 0;
+
+            hr = Device->CreateShaderResourceView(ShadowTexture.Get(), &srvDesc, &ShadowSRV);
+            if (FAILED(hr))
+            {
+                assert(TEXT("Shadow SRV creation failed"));
+                return;
+            }
+
+            // DSV 6 faces
+            for (UINT face = 0; face < 6; ++face)
+            {
+                D3D11_DEPTH_STENCIL_VIEW_DESC faceDSVDesc = {};
+                faceDSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
+                faceDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+                faceDSVDesc.Texture2DArray.MipSlice = 0;
+                faceDSVDesc.Texture2DArray.FirstArraySlice = face;
+                faceDSVDesc.Texture2DArray.ArraySize = 1;
+
+                ComPtr<ID3D11DepthStencilView> dsv;
+                hr = Device->CreateDepthStencilView(ShadowTexture.Get(), &faceDSVDesc, &dsv);
+                if (FAILED(hr))
+                {
+                    assert(TEXT("Shadow DSV creation failed"));
+                    return;
+                }
+                ShadowDSVs.Add(dsv);
+                // Viewport 설정
+                D3D11_VIEWPORT viewport = {};
+                viewport.TopLeftX = 0;
+                viewport.TopLeftY = 0;
+                viewport.Width = static_cast<FLOAT>(ShadowResolution);
+                viewport.Height = static_cast<FLOAT>(ShadowResolution);
+                viewport.MinDepth = 0.0f;
+                viewport.MaxDepth = 1.0f;
+                Viewports.Add(viewport);
+            }
+            break;
         }
-        break;
-
-
-        D3D11_SAMPLER_DESC compSampDesc = {};
-        compSampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-        compSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-        compSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-        compSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-        compSampDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
-        compSampDesc.BorderColor[0] = 1.0f;
-        compSampDesc.BorderColor[1] = 1.0f;
-        compSampDesc.BorderColor[2] = 1.0f;
-        compSampDesc.BorderColor[3] = 1.0f;
-        compSampDesc.MinLOD = 0;
-        compSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    }
     }
 }
 

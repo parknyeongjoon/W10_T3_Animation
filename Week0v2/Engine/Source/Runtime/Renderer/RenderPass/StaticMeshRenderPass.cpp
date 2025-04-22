@@ -42,7 +42,7 @@ FStaticMeshRenderPass::FStaticMeshRenderPass(const FName& InShaderName)
 
     D3D11_BUFFER_DESC constdesc = {};
     constdesc.ByteWidth = sizeof(FLightingConstants);
-    std::cout<< "sizeof(FLightingConstants): " << sizeof(FLightingConstants) << std::endl;
+  
     constdesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     constdesc.Usage = D3D11_USAGE_DYNAMIC;
     constdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -330,7 +330,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     FMatrix Projection = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
     FFrustum CameraFrustum = FFrustum::ExtractFrustum(View*Projection);
     ID3D11ShaderResourceView* ShadowMaps[8] = { nullptr };
-    ID3D11ShaderResourceView* ShadowCubeMap = nullptr;
+    ID3D11ShaderResourceView* ShadowCubeMap[8] = { nullptr };
     for (ULightComponentBase* Comp : LightComponents)
     {
         if (!IsLightInFrustum(Comp, CameraFrustum))
@@ -346,7 +346,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.PointLights[PointLightCount].Radius = PointLightComp->GetRadius();
             LightConstant.PointLights[PointLightCount].AttenuationFalloff = PointLightComp->GetAttenuationFalloff();
 ;
-            ShadowCubeMap = PointLightComp->GetShadowResource()->GetSRV();
+            ShadowCubeMap[PointLightCount] = PointLightComp->GetShadowResource()->GetSRV();
 
             for (int face = 0;face < 6;face++)
             {
@@ -401,7 +401,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             }
     }
 
-    Graphics.DeviceContext->PSSetShaderResources(12, 1, &ShadowCubeMap);
+    Graphics.DeviceContext->PSSetShaderResources(12, 8, ShadowCubeMap);
     Graphics.DeviceContext->PSSetShaderResources(3, 8, ShadowMaps);
     //UE_LOG(LogLevel::Error, "Point : %d, Spot : %d Dir : %d", PointLightCount, SpotLightCount, DirectionalLightCount);
     LightConstant.NumPointLights = PointLightCount;
