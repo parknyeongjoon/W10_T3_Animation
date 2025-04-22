@@ -148,6 +148,7 @@ private:
 
 public: //Camera Movement
     FVector* GetCascadeCorner(UINT CascadeIndex) { return cascadeCorners[CascadeIndex]; }
+    float GetCascadeSplit(UINT CascadeIndex) const { return cascadeSplits[CascadeIndex]; }
     void UpdateCascadeShadowArea();
     void CameraMoveForward(float _Value);
     void CameraMoveRight(float _Value);

@@ -547,8 +547,9 @@ struct FDirectionalLight
 
     FVector4 Color;
 
-    FMatrix View;
-    FMatrix Projection;
+
+    FMatrix View[CASCADE_COUNT];
+    FMatrix Projection[CASCADE_COUNT];
 };
 
 struct FPointLight

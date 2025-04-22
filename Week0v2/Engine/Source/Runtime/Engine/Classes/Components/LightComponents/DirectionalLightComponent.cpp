@@ -78,8 +78,8 @@ FMatrix UDirectionalLightComponent::GetCascadeViewMatrix(UINT CascadeIndex) cons
     }
     center /= 8.0f;
 
-    FVector lightDir = Direction.Normalize();
-    FVector up = FVector(0.0f, 1.0f, 0.0f);
+    FVector lightDir = GetForwardVector().Normalize();
+    FVector up = FVector(0.0f, 0.0f, 1.0f);
     if (abs(lightDir.Dot(up)) > 0.99f) {
         up = FVector(0.0f, 0.0f, 0.99f);
     }
@@ -105,11 +105,9 @@ FMatrix UDirectionalLightComponent::GetCascadeProjectionMatrix(UINT CascadeIndex
     FVector maxExtents = FVector(-FLT_MAX, -FLT_MAX, -FLT_MAX);
     
     for (int i = 0; i < 8; i++) {
-        FVector4 lightSpaceCorner = viewMatrix.TransformFVector4(FVector4(CascadeCorner[i], 1.0f));
-        FVector temp;
-        temp = (lightSpaceCorner.x, lightSpaceCorner.y, lightSpaceCorner.z);
-        minExtents = temp.Min(minExtents);
-        maxExtents = temp.Max(maxExtents);
+        FVector lightSpaceCorner = viewMatrix.TransformPosition(CascadeCorner[i]);
+        minExtents = lightSpaceCorner.Min(minExtents);
+        maxExtents = lightSpaceCorner.Max(maxExtents);
     }
 
     // 경계 박스의 크기 계산
