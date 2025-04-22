@@ -162,15 +162,34 @@ float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight 
     //float refDepth = clipPos.z / clipPos.w - bias;
     float bias = max(0.001 * (1.0 - dot(worldNormal, LightDirection)), 0.0001);
     float refDepth = clipPos.z / clipPos.w - bias;
-
-
-    float shadow = PointLightShadowMap[mapIndex].SampleCmp(
-        CompareSampler,
-        LightDirection, // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
-        refDepth
-    );
-
-   return shadow;
+    
+    //PCF
+    float shadow = 0.0;
+    float offsetScale = 0.003;
+    
+    for (int x = -1; x <= 1; ++x)
+    {
+        for (int y = -1; y <= 1; ++y)
+        {
+            float3 jitter = LightDirection + offsetScale *
+            (x * normalize(cross(LightDirection, float3(0, 1, 0))) + y * normalize(cross(LightDirection, float3(1, 0, 0))));
+            shadow += PointLightShadowMap[mapIndex].SampleCmp(
+            CompareSampler,
+            normalize(jitter), //주변 픽셀 방향
+            refDepth
+            );
+        }
+    }
+    shadow /= 9.0;
+    return shadow;
+    
+    //float shadow = PointLightShadowMap[mapIndex].SampleCmp(
+    //CompareSampler,
+    //LightDirection, // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
+    //refDepth
+    //);
+    //
+    //return shadow;
 }
 
 float3 CalculateDirectionalLight(  
