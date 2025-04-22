@@ -271,7 +271,11 @@ void FRenderResourceManager::UpdateConstantBuffer(ID3D11Buffer* InBuffer, const 
     const HRESULT hr = GraphicDevice->DeviceContext->Map(InBuffer, 0,D3D11_MAP_WRITE_DISCARD,0, &sub);
     if (FAILED(hr))
     {
-        assert(TEXT("Map failed"));
+        // 실패 시 메시지 박스 표시
+        std::string errorMessage = "Map failed for Constant buffer type: ";
+        errorMessage += typeid(T).name(); // T의 이름 추가
+        MessageBoxA(nullptr, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
+        return;
     }
     memcpy(sub.pData, InData, sizeof(T));
     GraphicDevice->DeviceContext->Unmap(InBuffer, 0);
@@ -297,7 +301,11 @@ void FRenderResourceManager::UpdateDynamicVertexBuffer(ID3D11Buffer* InBuffer, T
     const HRESULT hr = GraphicDevice->DeviceContext->Map(InBuffer, 0,D3D11_MAP_WRITE_DISCARD,0, &sub);
     if (FAILED(hr))
     {
-        assert(TEXT("Map failed"));
+        // 실패 시 메시지 박스 표시
+        std::string errorMessage = "Map failed for Dynamic VertexBuffer type: ";
+        errorMessage += typeid(T).name(); // T의 이름 추가
+        MessageBoxA(nullptr, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
+        return;
     }
     memcpy(sub.pData, vertices, sizeof(T) * numVertices);
     GraphicDevice->DeviceContext->Unmap(InBuffer, 0);
@@ -313,7 +321,10 @@ void FRenderResourceManager::UpdateStructuredBuffer(ID3D11Buffer* pBuffer, const
     const HRESULT hr = GraphicDevice->DeviceContext->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
     if (FAILED(hr))
     {
-        // 오류 처리 (필요 시 로그 출력)
+        // 실패 시 메시지 박스 표시
+        std::string errorMessage = "Map failed for StructuredBuffer type: ";
+        errorMessage += typeid(T).name(); // T의 이름 추가
+        MessageBoxA(nullptr, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
         return;
     }
 

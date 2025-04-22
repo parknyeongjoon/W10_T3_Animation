@@ -14,7 +14,9 @@ UDirectionalLightComponent::UDirectionalLightComponent()
     for (int i =0;i<CASCADE_COUNT;i++)
     {
         UINT temp = pow(2,4-i);
-        ShadowResource[i] = *FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight, 512 * temp);
+        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight, 512 * temp);
+        ShadowResource[i] = *resource;
+        ShadowResources.Add(resource);
     }
 }
 
@@ -22,6 +24,21 @@ UDirectionalLightComponent::UDirectionalLightComponent(const UDirectionalLightCo
     : Super(Other)
     , Direction(Other.Direction)
 {
+}
+
+UDirectionalLightComponent::~UDirectionalLightComponent()
+{
+    // release all resources
+    ShadowResource = nullptr;
+    for (int i = 0; i < ShadowResources.Num(); i++)
+    {
+        if (ShadowResources[i])
+        {
+            delete ShadowResources[i];
+            ShadowResources[i] = nullptr;
+        }
+    }
+    ShadowResources.Empty();
 }
 
 //void UDirectionalLightComponent::SetDirection(FVector _newDir)

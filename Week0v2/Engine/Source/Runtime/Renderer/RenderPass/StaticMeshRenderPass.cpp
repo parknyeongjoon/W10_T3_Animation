@@ -153,7 +153,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
 
         UpdateFlagConstant();
         
-        UpdateComputeConstants(InViewportClient);
+        //UpdateComputeConstants(InViewportClient);
         
         if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
         {
@@ -202,45 +202,45 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     Graphics.DeviceContext->PSSetShaderResources(11, 1, &nullSRV[0]);
 }
 
-void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
-{
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
-    // MVP Update
-    FComputeConstants ComputeConstants;
-    
-    FEditorViewportClient* ViewPort = dynamic_cast<FEditorViewportClient*>(InViewportClient.get());
-    
-    int screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;  // 화면 가로 픽셀 수
-    int screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;  // 화면 세로 픽셀 수
-
-    // 타일 크기 (예: 16x16 픽셀)
-    const int TILE_SIZE_X = 16;
-    const int TILE_SIZE_Y = 16;
-
-    // 타일 개수 계산
-    int numTilesX = (screenWidth + TILE_SIZE_X - 1) / TILE_SIZE_X; // 1024/16=64
-    int numTilesY = (screenHeight + TILE_SIZE_Y - 1) / TILE_SIZE_Y; // 768/16=48
-    
-    FMatrix InvView = FMatrix::Identity;
-    FMatrix InvProj = FMatrix::Identity;
-    std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
-    if (curEditorViewportClient != nullptr)
-    {
-        InvView = FMatrix::Inverse(curEditorViewportClient->GetViewMatrix());
-        InvProj = FMatrix::Inverse(curEditorViewportClient->GetProjectionMatrix());
-    }
-    
-    ComputeConstants.screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;
-    ComputeConstants.screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;
-    ComputeConstants.InverseProj = InvProj;
-    ComputeConstants.InverseView = InvView;
-    ComputeConstants.tileCountX = numTilesX;
-    ComputeConstants.tileCountY = numTilesY;
-
-    ID3D11Buffer* ComputeConstantBuffer = renderResourceManager->GetConstantBuffer(TEXT("FComputeConstants"));
-
-    renderResourceManager->UpdateConstantBuffer(ComputeConstantBuffer, &ComputeConstants);
-}
+//void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
+//{
+//    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+//    // MVP Update
+//    FComputeConstants ComputeConstants;
+//    
+//    FEditorViewportClient* ViewPort = dynamic_cast<FEditorViewportClient*>(InViewportClient.get());
+//    
+//    int screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;  // 화면 가로 픽셀 수
+//    int screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;  // 화면 세로 픽셀 수
+//
+//    // 타일 크기 (예: 16x16 픽셀)
+//    const int TILE_SIZE_X = 16;
+//    const int TILE_SIZE_Y = 16;
+//
+//    // 타일 개수 계산
+//    int numTilesX = (screenWidth + TILE_SIZE_X - 1) / TILE_SIZE_X; // 1024/16=64
+//    int numTilesY = (screenHeight + TILE_SIZE_Y - 1) / TILE_SIZE_Y; // 768/16=48
+//    
+//    FMatrix InvView = FMatrix::Identity;
+//    FMatrix InvProj = FMatrix::Identity;
+//    std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
+//    if (curEditorViewportClient != nullptr)
+//    {
+//        InvView = FMatrix::Inverse(curEditorViewportClient->GetViewMatrix());
+//        InvProj = FMatrix::Inverse(curEditorViewportClient->GetProjectionMatrix());
+//    }
+//    
+//    ComputeConstants.screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;
+//    ComputeConstants.screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;
+//    ComputeConstants.InverseProj = InvProj;
+//    ComputeConstants.InverseView = InvView;
+//    ComputeConstants.tileCountX = numTilesX;
+//    ComputeConstants.tileCountY = numTilesY;
+//
+//    ID3D11Buffer* ComputeConstantBuffer = renderResourceManager->GetConstantBuffer(TEXT("FComputeConstants"));
+//
+//    renderResourceManager->UpdateConstantBuffer(ComputeConstantBuffer, &ComputeConstants);
+//}
 
 void FStaticMeshRenderPass::CreateDummyTexture()
 {
