@@ -140,6 +140,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
         }
         if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
         {
+            //TODO : Cascade 영역 따라서 해상도 바꿔가면서 Shadow 맵 그리기
             View = DirectionalLight->GetViewMatrix();
             Proj = DirectionalLight->GetProjectionMatrix();
             RenderStaticMesh(View, Proj);
