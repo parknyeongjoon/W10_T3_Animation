@@ -67,7 +67,7 @@ public:
             bWasOpen = true;
         }
     } // Toggle() 구현 
-
+    void SetShadowFilterMode(const std::string& command);
 public:
     struct LogEntry {
         LogLevel level;

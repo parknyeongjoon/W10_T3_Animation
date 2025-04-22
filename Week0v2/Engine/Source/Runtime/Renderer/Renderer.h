@@ -59,13 +59,15 @@ public:
     void SetViewMode(EViewModeIndex evi);
     EViewModeIndex GetCurrentViewMode() const { return CurrentViewMode; }
 
+    void SetShadowFilterMode(EShadowFilterMode FilterMode) { CurrentShadowFilterMode = FilterMode; }
+    EShadowFilterMode GetShadowFilterMode() { return CurrentShadowFilterMode; }
+
 public:
     //Render Pass Demo
     
     void AddRenderObjectsToRenderPass(UWorld* InWorld) const;
     void Render(UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
     void ClearRenderObjects() const;
-
 
 public:
     void PrepareShader(FName InShaderName);
@@ -101,5 +103,6 @@ private:
 
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
     EViewModeIndex CurrentViewMode = VMI_Lit_Goroud;
+    EShadowFilterMode CurrentShadowFilterMode = EShadowFilterMode::PCF;
 };
 

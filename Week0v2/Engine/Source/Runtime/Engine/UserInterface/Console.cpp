@@ -164,6 +164,10 @@ void Console::ExecuteCommand(const std::string& command)
     else if (command.rfind("stat ", 0) == 0) { // stat 명령어 처리
         overlay.ToggleStat(command);
     }
+    else if (command.rfind("shadow_filter ", 0) == 0) //shadow filter 명령어 처리
+    {
+        SetShadowFilterMode(command);
+    }
     else {
         AddLog(LogLevel::Error, "Unknown command: %s", command.c_str());
     }
@@ -175,6 +179,18 @@ void Console::OnResize(HWND hWindow)
     GetClientRect(hWindow, &clientRect);
     width = clientRect.right - clientRect.left;
     height = clientRect.bottom - clientRect.top;
+}
+
+void Console::SetShadowFilterMode(const std::string& command)
+{
+    if (command == "shadow_filter VSM")
+    {
+        GEngine->renderer.SetShadowFilterMode(EShadowFilterMode::VSM);
+    }
+    else if (command == "shadow_filter PCF")
+    {
+        GEngine->renderer.SetShadowFilterMode(EShadowFilterMode::PCF);
+    }
 }
 
 void StatOverlay::ToggleStat(const std::string& command)

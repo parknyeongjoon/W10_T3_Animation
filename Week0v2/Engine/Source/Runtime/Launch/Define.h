@@ -245,6 +245,12 @@ enum class EDepthStencilState
     End,
 };
 
+enum EShadowFilterMode
+{
+    PCF,
+    VSM
+};
+
 struct FVertexTexture
 {
 	float x, y, z;    // Position

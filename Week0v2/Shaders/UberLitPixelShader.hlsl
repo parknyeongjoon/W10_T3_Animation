@@ -84,7 +84,8 @@ cbuffer FFlagConstants : register(b3)
 {
     uint IsLit;
     uint IsNormal;
-    float2 flagPad0;
+    uint IsVSM; 
+    float flagPad0;
 }
 
 cbuffer FSubUVConstant : register(b4)
@@ -389,10 +390,16 @@ PS_OUTPUT mainPS(PS_INPUT input)
         float3 SpotLightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
         if (length(SpotLightColor) > 0.0)
         {
-            float SpotShadow = CalculateVSMShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
-            SpotLightColor *= (SpotShadow);
-            //float SpotShadow = CalculateShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
-            //SpotLightColor *= (1 - SpotShadow);
+            if (IsVSM)
+            {
+                float SpotShadow = CalculateVSMShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
+                SpotLightColor *= (SpotShadow);
+            }
+            else
+            {
+                float SpotShadow = CalculateShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
+                SpotLightColor *= (1 - SpotShadow);
+            }
         }
         TotalLight += SpotLightColor;
     }
