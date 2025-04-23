@@ -3,6 +3,9 @@
 Texture2D Texture : register(t0);
 Texture2D NormalTexture : register(t1);
 
+// 샘플링 패턴
+static const int filterSize = 1; // 중앙을 포함한 반경 EX. (-2, -1, 0, 1, 2) -> 5x5
+
 // StructuredBuffer<uint> TileLightIndices : register(t2);
 
 static const int CASCADE_COUNT = 4;
@@ -46,6 +49,9 @@ struct FDirectionalLight
 
     row_major float4x4 View[CASCADE_COUNT];
     row_major float4x4 Projection[CASCADE_COUNT];
+    
+    uint CastShadow;
+    float3 Pad;
 };
 
 struct FPointLight
@@ -57,7 +63,8 @@ struct FPointLight
     
     float Intensity;
     float AttenuationFalloff;
-    float2 pad;
+    uint CastShadow;
+    float pad;
     
     row_major float4x4 View[6];
     row_major float4x4 Proj;
@@ -74,7 +81,8 @@ struct FSpotLight
     float InnerAngle;
     
     float OuterAngle;
-    float3 pad;
+    uint CastShadow;
+    float2 pad;
     
     row_major float4x4 View;
     row_major float4x4 Proj;
@@ -170,13 +178,13 @@ float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight 
    // PCF 파라미터 설정
     float shadowSum = 0.0;
     float numSamples = 0.0;
-    float pcfRadius = 0.001; // PCF 필터 반경 (조정 가능)
+    static const float pcfRadius = 0.001; // PCF 필터 반경 (조정 가능)
   
   // 샘플링 패턴 (5x5 필터링)
-    const int filterSize = 6; // 중앙을 포함한 반경 (-2, -1, 0, 1, 2) -> 5x5
-  
+    [unroll]
     for (int x = -filterSize; x <= filterSize; x++)
     {
+        [unroll]
         for (int y = -filterSize; y <= filterSize; y++)
         {
           // 샘플링 오프셋 벡터 계산
@@ -331,19 +339,24 @@ float CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 
         worldDepth >= 0 && worldDepth <= 1)
     {
         float bias = max(0.01 * (1.0 - dot(Normal, -LightDir)), 0.001);
-        for (int x = -1; x <= 1; ++x)
+
+        int numSamples = 0.0;
+        static uint textureWidth, textureHeight;
+        ShadowMap.GetDimensions(textureWidth, textureHeight);
+        [unroll]
+        for (int x = -filterSize; x <= filterSize; ++x)
         {
-            for (int y = -1; y <= 1; ++y)
+            [unroll]
+            for (int y = -filterSize; y <= filterSize; ++y)
             {
-                uint textureWidth, textureHeight;
-                ShadowMap.GetDimensions(textureWidth, textureHeight);
                 float2 texelSize = 1.0 / float2(textureWidth, textureHeight);
                 float2 offset = float2(x, y) * texelSize;
                 float sample = ShadowMap.Sample(pointSampler, shadowUV + offset).r;
                 shadow += (worldDepth >= sample + bias) ? 1.0 : 0.0;
+                numSamples += 1;
             }
         }
-        shadow = shadow / 9.0;
+        shadow = shadow / numSamples;
     }
     
     return shadow;
@@ -491,7 +504,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     TotalLight += EmissiveColor; // 자체 발광  
 
     float3 DirLightColor = CalculateDirectionalLight(DirLight, Normal, ViewDir, baseColor.rgb);
-    if (length(DirLightColor) > 0.0)
+    if (length(DirLightColor) > 0.0 && DirLight.CastShadow)
     {
         float dirShadow = CalculateDirectionalShadow(input.worldPos, Normal);
         DirLightColor *= (1 - dirShadow);
@@ -509,16 +522,18 @@ PS_OUTPUT mainPS(PS_INPUT input)
         //}
 
         float3 LightColor = CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);
-        
-        float Shadow = CalculatePointLightShadow(input.worldPos,input.normal, PointLights[j],j);
-        
+        float Shadow = 1.0;
+        if (length(LightColor) > 0.0 && PointLights[j].CastShadow)
+        {
+            Shadow = CalculatePointLightShadow(input.worldPos, input.normal, PointLights[j], j);
+        }
         TotalLight += LightColor * Shadow;
     }
     
     for (uint k = 0; k < NumSpotLights; ++k)
     {
         float3 SpotLightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
-        if (length(SpotLightColor) > 0.0)
+        if (length(SpotLightColor) > 0.0 && SpotLights[k].CastShadow)
         {
              float SpotShadow = CalculateShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
             SpotLightColor *= (1 - SpotShadow);

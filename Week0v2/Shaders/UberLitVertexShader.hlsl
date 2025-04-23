@@ -44,6 +44,9 @@ struct FDirectionalLight
 
     row_major float4x4 View[CASCADE_COUNT];
     row_major float4x4 Projection[CASCADE_COUNT];
+    
+    uint CastShadow;
+    float3 Pad;
 };
 
 struct FPointLight
@@ -55,7 +58,11 @@ struct FPointLight
     
     float Intensity;
     float AttenuationFalloff;
-    float2 pad;
+    uint CastShadow;
+    float pad;
+    
+    row_major float4x4 View[6];
+    row_major float4x4 Proj;
 };
 
 struct FSpotLight
@@ -69,7 +76,8 @@ struct FSpotLight
     float InnerAngle;
     
     float OuterAngle;
-    float3 pad;
+    uint CastShadow;
+    float2 pad;
     
     row_major float4x4 View;
     row_major float4x4 Proj;

@@ -334,6 +334,13 @@ void PropertyEditorPanel::Render()
         }
         ImGui::PopStyleColor();
 
+        //shadow on/off
+        bool bCastShadow = lightObj->CanCastShadows();
+        if (ImGui::Checkbox("Cast Shadow", &bCastShadow))
+        {
+            lightObj->SetCastShadows(bCastShadow);
+        }
+
         // show intensity
         float intensityVal = lightObj->GetIntensity();
         if (ImGui::SliderFloat("Intensity", &intensityVal, 0.01f, 10.0f))

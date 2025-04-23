@@ -545,6 +545,9 @@ struct FDirectionalLight
 
     FMatrix View[CASCADE_COUNT];
     FMatrix Projection[CASCADE_COUNT];
+
+    uint32 CastShadow;
+    FVector Pad;
 };
 
 struct FPointLight
@@ -556,7 +559,8 @@ struct FPointLight
 
     float Intensity;
     float AttenuationFalloff;
-    FVector2D Padd;
+    uint32 CastShadow;
+    float Padd;
 
     FMatrix PointLightView[6];
     FMatrix PointLightProj;
@@ -581,7 +585,8 @@ struct FSpotLight
     float InnerAngle;
 
     float OuterAngle;
-    FVector pad;
+    uint32 CastShadow;
+    FVector2D pad;
 
     FMatrix View;
     FMatrix Proj;
