@@ -389,11 +389,8 @@ float CalculateShadow(float3 WorldPos, float3 LightPos, float3 Normal, float3 Li
         shadowUV.y >= 0 && shadowUV.y <= 1 &&
         worldDepth >= 0 && worldDepth <= 1)
     {
-        float bias = max(0.0001 * (1.0 - dot(Normal, -LightDir)), 0.00005);
-        float dist = length(WorldPos - LightPos);
-        float distanceScale = saturate(1.0 - dist / 100.0f);
-        bias *= distanceScale;
-        bias = max(bias, 0.00001);
+        float bias = max(0.01 * (1.0 - dot(Normal, -LightDir)), 0.005);
+        bias = max(bias, 0.005);
         
         int numSamples = 0.0;
         static uint textureWidth, textureHeight;
@@ -681,17 +678,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float3 DirLightColor = CalculateDirectionalLight(DirLight, Normal, ViewDir, baseColor.rgb);
     if (length(DirLightColor) > 0.0 && DirLight.CastShadow)
     {
-        if (IsVSM)
-        {
-            float dirShadow = CalculateVSMShadow(input.worldPos, float3(0, 0, 0) - DirLight.Direction,
-            Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
-            DirLightColor *= (dirShadow);
-        }
-        else
-        {
-            float dirShadow = CalculateShadow(input.worldPos, float3(0, 0, 0) - DirLight.Direction, Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
-            DirLightColor *= (1 - dirShadow);
-        }
+        float dirShadow = CalculateShadow(input.worldPos, float3(0, 0, 0) - DirLight.Direction, Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
+        DirLightColor *= (1 - dirShadow);
     }
     TotalLight += DirLightColor;
 
@@ -708,14 +696,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
         float3 LightColor = CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);
         if (length(LightColor) > 0.0 && PointLights[j].CastShadow)
         {
-            if (IsVSM)
-            {
-                Shadow = CalculateVSMPointLightShadow(input.worldPos, input.normal, PointLights[j], PointLightVSM[j]);
-            }
-            else
-            {
-                Shadow = CalculatePointLightShadow(input.worldPos, input.normal, PointLights[j], j);
-            }
+            Shadow = CalculatePointLightShadow(input.worldPos, input.normal, PointLights[j], j);
         }
         
         TotalLight += LightColor * Shadow;
