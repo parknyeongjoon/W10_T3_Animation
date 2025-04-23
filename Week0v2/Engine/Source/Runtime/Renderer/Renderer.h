@@ -103,6 +103,6 @@ private:
 
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
     EViewModeIndex CurrentViewMode = VMI_Lit_Goroud;
-    EShadowFilterMode CurrentShadowFilterMode = EShadowFilterMode::PCF;
+    EShadowFilterMode CurrentShadowFilterMode = EShadowFilterMode::VSM;
 };
 

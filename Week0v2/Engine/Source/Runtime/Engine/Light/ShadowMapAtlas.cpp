@@ -230,3 +230,109 @@ ID3D11DepthStencilView* FShadowMapAtlas::GetDSVCube() const
 {
     return AtlasDSV_Cube.Get();
 }
+
+void FShadowMapAtlas::CreateVSMResource(ID3D11Device* Device, EAtlasType Type, int Resolution)
+{
+    if (Type == EAtlasType::SpotLight2D)
+    {
+        D3D11_TEXTURE2D_DESC texDesc = {};
+        texDesc.Width = Resolution;
+        texDesc.Height = Resolution;
+        texDesc.MipLevels = 1;
+        texDesc.ArraySize = 1;
+        texDesc.Format = DXGI_FORMAT_R32G32_FLOAT; // moment1, moment2 저장용
+        texDesc.SampleDesc.Count = 1;
+        texDesc.Usage = D3D11_USAGE_DEFAULT;
+        texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+        HRESULT hr = Device->CreateTexture2D(&texDesc, nullptr, &VSMAtlasTexture_2D);
+        if (FAILED(hr))
+        {
+            throw std::runtime_error("Failed to create VSM Atlas Texture");
+        }
+
+        // SRV
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = texDesc.Format;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MipLevels = 1;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+
+        ComPtr<ID3D11ShaderResourceView> AtlasSRV_VSM;
+        hr = Device->CreateShaderResourceView(VSMAtlasTexture_2D.Get(), &srvDesc, &VSMAtlasSRV_2D);
+        if (FAILED(hr))
+        {
+            throw std::runtime_error("Failed to create VSM Atlas SRV");
+        }
+
+        // RTV
+        D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+        rtvDesc.Format = texDesc.Format;
+        rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+        rtvDesc.Texture2D.MipSlice = 0;
+
+        hr = Device->CreateRenderTargetView(VSMAtlasTexture_2D.Get(), &rtvDesc, &VSMAtalsRTV_2D);
+        if (FAILED(hr))
+        {
+            throw std::runtime_error("Failed to create VSM Atlas RTV");
+        }
+
+        // 기본 뷰포트
+        D3D11_VIEWPORT viewport = {};
+        viewport.TopLeftX = 0;
+        viewport.TopLeftY = 0;
+        viewport.Width = static_cast<FLOAT>(Resolution);
+        viewport.Height = static_cast<FLOAT>(Resolution);
+        viewport.MinDepth = 0.0f;
+        viewport.MaxDepth = 1.0f;
+    }
+    else if (Type == EAtlasType::PointLightCube)
+    {
+        // Cubemap 텍스쳐
+        D3D11_TEXTURE2D_DESC texDesc = {};
+        texDesc.Width = Resolution;
+        texDesc.Height = Resolution;
+        texDesc.MipLevels = 1;
+        texDesc.ArraySize = 6 * 16; // 6면 * 최대 16개
+        texDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+        texDesc.SampleDesc.Count = 1;
+        texDesc.Usage = D3D11_USAGE_DEFAULT;
+        texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+        texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+
+        HRESULT hr = Device->CreateTexture2D(&texDesc, nullptr, &AtlasTexture_Cube);
+        if (FAILED(hr))
+        {
+            throw std::runtime_error("Failed to Create Atlas PointLightCube Texture");
+        }
+
+        // SRV
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
+        srvDesc.TextureCubeArray.MostDetailedMip = 0;
+        srvDesc.TextureCubeArray.MipLevels = 1;
+        srvDesc.TextureCubeArray.First2DArrayFace = 0;
+        srvDesc.TextureCubeArray.NumCubes = 16;
+
+        hr = Device->CreateShaderResourceView(AtlasTexture_Cube.Get(), &srvDesc, &AtlasSRV_Cube);
+        if (FAILED(hr))
+        {
+            throw std::runtime_error("Failed to Create Atlas PointLightCube SRV");
+        }
+
+        // 단일 DSV 생성
+        D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+        dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+        dsvDesc.Texture2DArray.MipSlice = 0;
+        dsvDesc.Texture2DArray.FirstArraySlice = 0;
+        dsvDesc.Texture2DArray.ArraySize = 16 * 6;
+
+        hr = Device->CreateDepthStencilView(AtlasTexture_Cube.Get(), &dsvDesc, &AtlasDSV_Cube);
+        if (FAILED(hr))
+        {
+            throw std::runtime_error("Failed to Create Atlas PointLightCube DSV");
+        }
+    }
+}

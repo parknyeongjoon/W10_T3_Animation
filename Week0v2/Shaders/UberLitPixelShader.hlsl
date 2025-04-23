@@ -438,7 +438,7 @@ float CalculateSpotLightShadowAtlas(FSpotLight SpotLight, float3 LightPos, float
         float dist = length(WorldPos - LightPos);
         float distanceScale = saturate(1.0 - dist / 100.0f);
         bias *= distanceScale;
-        bias = max(bias, 0.00001);
+        bias = max(bias, 0.00005);
         
         static const float texelSize = 1.0 / 1024.0; // 1024x1024 해상도 가정
         
@@ -723,7 +723,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     for (uint k = 0; k < NumSpotLights; ++k)
     {
         float3 SpotLightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
-        if (length(SpotLightColor) > 0.0)
+        if (length(SpotLightColor) > 0.0 && SpotLights[k].CastShadow)
         {
             if (IsVSM)
             {

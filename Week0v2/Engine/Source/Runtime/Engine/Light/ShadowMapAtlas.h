@@ -31,6 +31,11 @@ private:
     ComPtr<ID3D11DepthStencilView> AtlasDSV_2D;
     TArray<FAtlasSlot> Slots2D;
 
+    //VSM
+    ComPtr<ID3D11Texture2D> VSMAtlasTexture_2D = nullptr;
+    ComPtr<ID3D11ShaderResourceView> VSMAtlasSRV_2D = nullptr;
+    ComPtr<ID3D11RenderTargetView> VSMAtalsRTV_2D = nullptr;
+
     // PointLight
     ComPtr<ID3D11Texture2D> AtlasTexture_Cube;
     ComPtr<ID3D11ShaderResourceView> AtlasSRV_Cube;
@@ -45,7 +50,6 @@ public:
     void Release2DSlot(int SlotIndex);
     void Clear2DSlots();
 
-
     ID3D11DepthStencilView* GetDSV2D() const { return AtlasDSV_2D.Get(); }
     ID3D11ShaderResourceView* GetSRV2D() const { return AtlasSRV_2D.Get(); }
 
@@ -55,6 +59,12 @@ public:
 
     ID3D11DepthStencilView* GetDSVCube() const;
     ID3D11ShaderResourceView* GetSRVCube() const { return AtlasSRV_Cube.Get(); }
+
+    //VSM
+    void CreateVSMResource(ID3D11Device* Device, EAtlasType Type, int Resolution = SHADOW_ATLAS_SIZE);
+    ID3D11Texture2D* GetVSMTexture2D() { return VSMAtlasTexture_2D.Get(); }
+    ID3D11ShaderResourceView* GetVSMSRV2D() { return VSMAtlasSRV_2D.Get(); }
+    ID3D11RenderTargetView* GetVSMRTV2D() { return VSMAtalsRTV_2D.Get(); }
 
     EAtlasType GetType() const { return AtlasType; }
 };

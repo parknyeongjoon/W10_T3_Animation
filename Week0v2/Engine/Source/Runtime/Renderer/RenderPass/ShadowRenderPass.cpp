@@ -287,26 +287,35 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
         //VSM
         if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
         {
+            if (!SpotLightShadowMapAtlas->GetVSMTexture2D())
+                SpotLightShadowMapAtlas->CreateVSMResource(Graphics.Device, EAtlasType::SpotLight2D);
+            Vp.TopLeftX = 0.0f;
+            Vp.TopLeftY = 0.0f;
+            Vp.Width = SHADOW_ATLAS_SIZE;
+            Vp.Height = SHADOW_ATLAS_SIZE;
+            Vp.MinDepth = 0.0f;
+            Vp.MaxDepth = 1.0f;
+            Graphics.DeviceContext->RSSetViewports(1, &Vp);
             FLOAT ClearColor[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
-            ID3D11RenderTargetView* RTV = SpotLight->GetShadowResource()->GetVSMRTV();
+            ID3D11RenderTargetView* RTV = SpotLightShadowMapAtlas->GetVSMRTV2D();
             Graphics.DeviceContext->ClearRenderTargetView(RTV, ClearColor);
             Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
             GEngine->renderer.PrepareShader(TEXT("LightDepth"));
-            ID3D11ShaderResourceView* SRV = SpotLight->GetShadowResource()->GetSRV();
+            ID3D11ShaderResourceView* SRV = SpotLightShadowMapAtlas->GetSRV2D();
             Graphics.DeviceContext->PSSetShaderResources(0, 1, &SRV);
             Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
             ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
             Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
             Graphics.DeviceContext->Draw(4, 0);
-        }
-        if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
             Prepare(InViewportClient);
+        }
     }
     Graphics.DeviceContext->RSSetViewports(1, &curEditorViewportClient->GetD3DViewport());
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView);
     
     // 아틀라스 텍스쳐 바인딩
-    ID3D11ShaderResourceView* SpotLightAtlasSRV = SpotLightShadowMapAtlas->GetSRV2D();
+    ID3D11ShaderResourceView* SpotLightAtlasSRV = (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ?
+        SpotLightShadowMapAtlas->GetVSMSRV2D() : SpotLightShadowMapAtlas->GetSRV2D();
     Graphics.DeviceContext->PSSetShaderResources(3, 1, &SpotLightAtlasSRV);
 }
 
