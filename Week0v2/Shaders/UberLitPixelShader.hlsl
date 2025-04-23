@@ -414,14 +414,14 @@ float CalculateDirectionalShadow(float3 WorldPos, float3 Normal)
                             DirectionalLightShadowMap[1]);
     }
     // 캐스케이드 레벨 1과 2 사이의 블렌딩 영역
-    if (nonLinearDepth < DirLight.CascadeSplit1 + blend1)
-    {
-        float blendFactor = (nonLinearDepth - (DirLight.CascadeSplit1 - blend1)) / (2 * blend1);
-        return CalculateBlendedShadow(WorldPos, Normal, DirLight.Direction,
-                                    DirLight.View[1], DirLight.Projection[1], DirectionalLightShadowMap[1],
-                                    DirLight.View[2], DirLight.Projection[2], DirectionalLightShadowMap[2],
-                                    blendFactor);
-    }
+    // if (nonLinearDepth < DirLight.CascadeSplit1 + blend1)
+    // {
+    //     float blendFactor = (nonLinearDepth - (DirLight.CascadeSplit1 - blend1)) / (2 * blend1);
+    //     return CalculateBlendedShadow(WorldPos, Normal, DirLight.Direction,
+    //                                 DirLight.View[1], DirLight.Projection[1], DirectionalLightShadowMap[1],
+    //                                 DirLight.View[2], DirLight.Projection[2], DirectionalLightShadowMap[2],
+    //                                 blendFactor);
+    // }
     // 캐스케이드 레벨 2
     if (nonLinearDepth < DirLight.CascadeSplit2 - blend2)
     {
@@ -430,14 +430,14 @@ float CalculateDirectionalShadow(float3 WorldPos, float3 Normal)
                             DirectionalLightShadowMap[2]);
     }
     // 캐스케이드 레벨 2와 3 사이의 블렌딩 영역
-    if (nonLinearDepth < DirLight.CascadeSplit2 + blend2)
-    {
-        float blendFactor = (nonLinearDepth - (DirLight.CascadeSplit2 - blend2)) / (2 * blend2);
-        return CalculateBlendedShadow(WorldPos, Normal, DirLight.Direction,
-                                    DirLight.View[2], DirLight.Projection[2], DirectionalLightShadowMap[2],
-                                    DirLight.View[3], DirLight.Projection[3], DirectionalLightShadowMap[3],
-                                    blendFactor);
-    }
+    // if (nonLinearDepth < DirLight.CascadeSplit2 + blend2)
+    // {
+    //     float blendFactor = (nonLinearDepth - (DirLight.CascadeSplit2 - blend2)) / (2 * blend2);
+    //     return CalculateBlendedShadow(WorldPos, Normal, DirLight.Direction,
+    //                                 DirLight.View[2], DirLight.Projection[2], DirectionalLightShadowMap[2],
+    //                                 DirLight.View[3], DirLight.Projection[3], DirectionalLightShadowMap[3],
+    //                                 blendFactor);
+    // }
     // 캐스케이드 레벨 3 (가장 먼 레벨)
     return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
                         DirLight.View[3], DirLight.Projection[3], 

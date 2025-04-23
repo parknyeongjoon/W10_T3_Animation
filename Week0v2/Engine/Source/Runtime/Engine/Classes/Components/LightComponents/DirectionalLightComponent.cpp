@@ -49,7 +49,7 @@ UDirectionalLightComponent::~UDirectionalLightComponent()
 //    Direction = _newDir;
 //}
 const float SCENE_RADIUS = 100.0f;
-const float ZPaddingFactor = 1.2f; 
+const float ZPaddingFactor = 1.5f; 
 FMatrix UDirectionalLightComponent::GetViewMatrix() const
 {
     // 광원 위치 결정 (씬의 중심에서 반대 방향으로)
