@@ -541,6 +541,7 @@ struct FDirectionalLight
 
     FVector4 Color;
 
+    float CascadeSplit[CASCADE_COUNT];
 
     FMatrix View[CASCADE_COUNT];
     FMatrix Projection[CASCADE_COUNT];

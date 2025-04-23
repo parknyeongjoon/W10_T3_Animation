@@ -375,6 +375,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
                 LightConstant.DirLight.View[i] = DirectionalLightComp->GetCascadeViewMatrix(i);
                 LightConstant.DirLight.Projection[i] = DirectionalLightComp->GetCascadeProjectionMatrix(i);
                 DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetSRV());
+                LightConstant.DirLight.CascadeSplit[i] = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeSplit(i);
             }
 
             Graphics.DeviceContext->PSSetShaderResources(11, 4, DirectionalShadowMaps.GetData());
@@ -508,8 +509,8 @@ void FStaticMeshRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewport
     CameraConstants.CameraForward = FVector::ZeroVector;
     CameraConstants.CameraPos = curEditorViewportClient->ViewTransformPerspective.GetLocation();
     CameraConstants.ViewProjMatrix = FMatrix::Identity;
-    CameraConstants.ProjMatrix = FMatrix::Identity;
-    CameraConstants.ViewMatrix = FMatrix::Identity;
+    CameraConstants.ViewMatrix = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
+    CameraConstants.ProjMatrix = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
     CameraConstants.NearPlane = curEditorViewportClient->GetNearClip();
     CameraConstants.FarPlane = curEditorViewportClient->GetFarClip();
 

@@ -37,6 +37,11 @@ struct FDirectionalLight
     float Intensity;
     float4 Color;
 
+    float CascadeSplit0;
+    float CascadeSplit1;
+    float CascadeSplit2;
+    float CascadeSplit3;
+
     row_major float4x4 View[CASCADE_COUNT];
     row_major float4x4 Projection[CASCADE_COUNT];
 };

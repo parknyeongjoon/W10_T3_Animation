@@ -39,6 +39,10 @@ struct FDirectionalLight
     float Intensity;
     float4 Color;
 
+    float CascadeSplit0;
+    float CascadeSplit1;
+    float CascadeSplit2;
+    float CascadeSplit3;
 
     row_major float4x4 View[CASCADE_COUNT];
     row_major float4x4 Projection[CASCADE_COUNT];
@@ -285,11 +289,10 @@ float4 WorldToLight(float3 WorldPos, row_major float4x4 View, row_major float4x4
     return LightViewPos;
 }
 
-float4 CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
+float CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
 {
     float shadow = 0;
     float4 LightViewPos = WorldToLight(WorldPos, View, Projection);
-            
     float2 shadowUV = LightViewPos.xy / LightViewPos.w * 0.5 + 0.5;
     shadowUV.y = 1.0 - shadowUV.y;
     float worldDepth = LightViewPos.z / LightViewPos.w;
@@ -315,6 +318,88 @@ float4 CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4
     }
     
     return shadow;
+}
+
+// 다음 캐스케이드 레벨로의 부드러운 전환을 위한 블렌딩 함수
+float CalculateBlendedShadow(float3 WorldPos, float3 Normal, float3 LightDir, 
+                            float4x4 View1, float4x4 Proj1, Texture2D ShadowMap1,
+                            float4x4 View2, float4x4 Proj2, Texture2D ShadowMap2,
+                            float blendFactor)
+{
+    float shadow1 = CalculateShadow(WorldPos, Normal, LightDir, View1, Proj1, ShadowMap1);
+    float shadow2 = CalculateShadow(WorldPos, Normal, LightDir, View2, Proj2, ShadowMap2);
+    
+    // 선형 보간을 사용하여 두 그림자 값 블렌딩
+    return lerp(shadow1, shadow2, blendFactor);
+}
+
+// 메인 디렉셔널 그림자 계산 함수
+float CalculateDirectionalShadow(float3 WorldPos, float3 Normal)
+{
+    // 뷰 공간에서의 깊이 계산
+    float4 WorldViewPos = mul(float4(WorldPos, 1.0f), ViewMatrix);
+    float nonLinearDepth = WorldViewPos.z;
+    
+    // 블렌딩 영역의 크기 (각 캐스케이드 분할점의 % 비율)
+    const float BLEND_RATIO = 0.1; // 조정 가능한 값
+    
+    // 각 캐스케이드 레벨의 블렌딩 영역 계산
+    float blend0 = BLEND_RATIO * DirLight.CascadeSplit0;
+    float blend1 = BLEND_RATIO * DirLight.CascadeSplit1;
+    float blend2 = BLEND_RATIO * DirLight.CascadeSplit2;
+    
+    // 캐스케이드 레벨 0 (가장 가까운 레벨)
+    if (nonLinearDepth < DirLight.CascadeSplit0 - blend0)
+    {
+        return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
+                            DirLight.View[0], DirLight.Projection[0], 
+                            DirectionalLightShadowMap[0]);
+    }
+    // 캐스케이드 레벨 0과 1 사이의 블렌딩 영역
+    if (nonLinearDepth < DirLight.CascadeSplit0 + blend0)
+    {
+        float blendFactor = (nonLinearDepth - (DirLight.CascadeSplit0 - blend0)) / (2 * blend0);
+        return CalculateBlendedShadow(WorldPos, Normal, DirLight.Direction,
+                                    DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0],
+                                    DirLight.View[1], DirLight.Projection[1], DirectionalLightShadowMap[1],
+                                    blendFactor);
+    }
+    // 캐스케이드 레벨 1
+    if (nonLinearDepth < DirLight.CascadeSplit1 - blend1)
+    {
+        return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
+                            DirLight.View[1], DirLight.Projection[1], 
+                            DirectionalLightShadowMap[1]);
+    }
+    // 캐스케이드 레벨 1과 2 사이의 블렌딩 영역
+    if (nonLinearDepth < DirLight.CascadeSplit1 + blend1)
+    {
+        float blendFactor = (nonLinearDepth - (DirLight.CascadeSplit1 - blend1)) / (2 * blend1);
+        return CalculateBlendedShadow(WorldPos, Normal, DirLight.Direction,
+                                    DirLight.View[1], DirLight.Projection[1], DirectionalLightShadowMap[1],
+                                    DirLight.View[2], DirLight.Projection[2], DirectionalLightShadowMap[2],
+                                    blendFactor);
+    }
+    // 캐스케이드 레벨 2
+    if (nonLinearDepth < DirLight.CascadeSplit2 - blend2)
+    {
+        return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
+                            DirLight.View[2], DirLight.Projection[2], 
+                            DirectionalLightShadowMap[2]);
+    }
+    // 캐스케이드 레벨 2와 3 사이의 블렌딩 영역
+    if (nonLinearDepth < DirLight.CascadeSplit2 + blend2)
+    {
+        float blendFactor = (nonLinearDepth - (DirLight.CascadeSplit2 - blend2)) / (2 * blend2);
+        return CalculateBlendedShadow(WorldPos, Normal, DirLight.Direction,
+                                    DirLight.View[2], DirLight.Projection[2], DirectionalLightShadowMap[2],
+                                    DirLight.View[3], DirLight.Projection[3], DirectionalLightShadowMap[3],
+                                    blendFactor);
+    }
+    // 캐스케이드 레벨 3 (가장 먼 레벨)
+    return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
+                        DirLight.View[3], DirLight.Projection[3], 
+                        DirectionalLightShadowMap[3]);
 }
 
 PS_OUTPUT mainPS(PS_INPUT input)
@@ -379,7 +464,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float3 DirLightColor = CalculateDirectionalLight(DirLight, Normal, ViewDir, baseColor.rgb);
     if (length(DirLightColor) > 0.0)
     {
-        float dirShadow = CalculateShadow(input.worldPos, Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
+        float dirShadow = CalculateDirectionalShadow(input.worldPos, Normal);
         DirLightColor *= (1 - dirShadow);
     }
     TotalLight += DirLightColor;
@@ -415,5 +500,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float4 FinalColor = float4(TotalLight * baseColor.rgb, baseColor.a * TransparencyScalar);
     // 최종 색상 
     output.color = FinalColor;
+    
     return output;
 }
