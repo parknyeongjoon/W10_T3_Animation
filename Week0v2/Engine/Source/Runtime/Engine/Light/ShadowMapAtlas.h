@@ -34,12 +34,16 @@ private:
     // PointLight
     ComPtr<ID3D11Texture2D> AtlasTexture_Cube;
     ComPtr<ID3D11ShaderResourceView> AtlasSRV_Cube;
-    ComPtr<ID3D11DepthStencilView> AtlasDSV_Cube;
+    TArray<ComPtr<ID3D11DepthStencilView>> AtlasDSV_Cube;
 
     TArray<int> CubeSlots;
 
 public:
     FShadowMapAtlas(ID3D11Device* Device, EAtlasType Type, int Resolution = SHADOW_ATLAS_SIZE);
+
+    ID3D11Texture2D* GetTexture2D() const { return AtlasTexture_2D.Get(); }
+    ID3D11Texture2D* GetTextureCube() const { return AtlasTexture_Cube.Get(); }
+
 
     int Allocate2DSlot(int RequestedSize);
     void Release2DSlot(int SlotIndex);
@@ -53,7 +57,7 @@ public:
     void ReleaseCubeSlot(int SlotIndex);
     void ClearCubeSlots();
 
-    ID3D11DepthStencilView* GetDSVCube() const;
+    ID3D11DepthStencilView* GetDSVCube(int SlotID, int Face) const;
     ID3D11ShaderResourceView* GetSRVCube() const { return AtlasSRV_Cube.Get(); }
 
     EAtlasType GetType() const { return AtlasType; }

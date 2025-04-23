@@ -428,16 +428,20 @@ void PropertyEditorPanel::Render()
 
             // 선택된 면에 해당하는 SRV 생성 및 표시
             FShadowResource* ShadowResouce = PointLight->GetShadowResource();
-            ID3D11ShaderResourceView* CubeFaceSRV = ShadowResouce->GetCubeFaceSRV(
-                GEngine->GetEngine()->graphicDevice.Device,
-                ShadowResouce->GetTexture(),
-                selectedFace
-            );
+            if (ShadowResouce->GetAtlasSlotIndex() != -1)
+            {
+                ID3D11ShaderResourceView* CubeFaceSRV = ShadowResouce->GetCubeAtlasSRVFace(GEngine->GetEngine()->graphicDevice.Device,
+                    ShadowResouce->GetAtlasSlotIndex(), selectedFace);
 
-            ImTextureID LightDepth = reinterpret_cast<ImTextureID>(CubeFaceSRV);
-            ImVec2 imageSize(128, 128); // 필요에 따라 크기 조정
-            ImGui::Text("Shadow Map");
-            ImGui::Image(LightDepth, imageSize);
+                if (CubeFaceSRV)
+                {
+
+                    ImTextureID LightDepth = reinterpret_cast<ImTextureID>(CubeFaceSRV);
+                    ImVec2 imageSize(128, 128); // 필요에 따라 크기 조정
+                    ImGui::Text("Shadow Map");
+                    ImGui::Image(LightDepth, imageSize);
+                }
+            }
         }
 
         if (PickedComponent->IsA<USpotLightComponent>())

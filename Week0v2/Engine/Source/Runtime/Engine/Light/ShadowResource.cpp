@@ -215,6 +215,36 @@ size_t FShadowResource::GetEsimatedMemoryUsageInBytes() const
     return Total;
 }
 
+ID3D11ShaderResourceView* FShadowResource::GetCubeAtlasSRVFace(ID3D11Device* Device, int cubeIndex, int faceIndex)
+{
+    if (!ParentAtlas || ParentAtlas->GetTextureCube() == nullptr)
+        return nullptr;
+
+    if (cubeIndex >= 16 || faceIndex >= 6 || !Device)
+    {
+        return nullptr;
+    }
+
+    ID3D11Texture2D* atlasTexture = ParentAtlas->GetTextureCube();
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+    srvDesc.Texture2DArray.MostDetailedMip = 0;
+    srvDesc.Texture2DArray.MipLevels = 1;
+    srvDesc.Texture2DArray.FirstArraySlice = cubeIndex * 6 + faceIndex;
+    srvDesc.Texture2DArray.ArraySize = 1;
+
+    ID3D11ShaderResourceView* srv = nullptr;
+    HRESULT hr = Device->CreateShaderResourceView(atlasTexture, &srvDesc, &srv);
+    if (FAILED(hr))
+    {
+        throw std::runtime_error("Failed to create cube atlas SRV");
+    }
+
+    return srv;
+}
+
 void FShadowResource::BindToAtlas(FShadowMapAtlas* Atlas, int SlotIndex)
 {
     // 아틀라스에 바인딩
