@@ -7,6 +7,8 @@
 UPointLightComponent::UPointLightComponent()
 {
     ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::PointLight, 1024);
+    Radius = 25.f;
+    Intensity = 5.f;
 }
 
 UPointLightComponent::UPointLightComponent(const UPointLightComponent& Other)
@@ -14,6 +16,7 @@ UPointLightComponent::UPointLightComponent(const UPointLightComponent& Other)
     , Radius(Other.Radius)
     , AttenuationFalloff(Other.AttenuationFalloff)
 {
+    
 }
 
 UObject* UPointLightComponent::Duplicate() const
