@@ -235,6 +235,7 @@ void FShadowResource::UnbindFromAtlas()
         {
             ParentAtlas->Release2DSlot(AtlasSlotIndex);
         }
+        ParentAtlas = nullptr;
     }
 }
 
