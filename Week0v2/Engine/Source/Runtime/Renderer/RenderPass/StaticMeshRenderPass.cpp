@@ -202,6 +202,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     Graphics.DeviceContext->PSSetShaderResources(3, 8, nullSRVs);
     Graphics.DeviceContext->PSSetShaderResources(11, 4, nullSRV);
     Graphics.DeviceContext->PSSetShaderResources(15, 8, nullSRVs);
+    Graphics.DeviceContext->PSSetShaderResources(23, 8, nullSRVs);
 }
 
 //void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
@@ -333,11 +334,12 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     FFrustum CameraFrustum = FFrustum::ExtractFrustum(View*Projection);
     ID3D11ShaderResourceView* ShadowMaps[8] = { nullptr };
     ID3D11ShaderResourceView* ShadowCubeMap[8] = { nullptr };
+    ID3D11ShaderResourceView* ShadowVSMMap[8] = { nullptr };
     for (ULightComponentBase* Comp : LightComponents)
     {
         if (!IsLightInFrustum(Comp, CameraFrustum))
         {
-            continue;
+            //continue;
         }
 
         if (const UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(Comp))
@@ -353,8 +355,10 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetComponentLocation();
             LightConstant.PointLights[PointLightCount].Radius = PointLightComp->GetRadius();
             LightConstant.PointLights[PointLightCount].AttenuationFalloff = PointLightComp->GetAttenuationFalloff();
-;
+
             ShadowCubeMap[PointLightCount] = PointLightComp->GetShadowResource()->GetSRV();
+            if(GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
+                ShadowVSMMap[PointLightCount] = PointLightComp->GetShadowResource()->GetVSMSRV();
 
             for (int face = 0;face < 6;face++)
             {
@@ -425,6 +429,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             }
     }
 
+    Graphics.DeviceContext->PSSetShaderResources(23, 8, ShadowVSMMap);
     Graphics.DeviceContext->PSSetShaderResources(15, 8, ShadowCubeMap);
     Graphics.DeviceContext->PSSetShaderResources(3, 8, ShadowMaps);
     //UE_LOG(LogLevel::Error, "Point : %d, Spot : %d Dir : %d", PointLightCount, SpotLightCount, DirectionalLightCount);

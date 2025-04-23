@@ -12,6 +12,8 @@ Texture2D DirectionalLightShadowMap[CASCADE_COUNT] : register(t11);
 
 TextureCube<float> PointLightShadowMap[8] : register(t15);
 
+Texture2DArray<float2> PointLightVSM[8] : register(t23);
+
 #define MAX_POINTLIGHT_COUNT 8
 
 cbuffer FMaterialConstants : register(b0)
@@ -193,6 +195,50 @@ float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight 
     //return shadow;
 }
 
+float3 CalculateVSMPointLightShadow(float3 WorldPos, float3 Normal, FPointLight Light, Texture2DArray<float2> ShadowMap)
+{
+    float3 ToLight = WorldPos - Light.Position;
+    float3 dir = normalize(ToLight);
+    float dist = length(ToLight);
+
+    uint face = 0;
+    float3 absDir = abs(dir);
+    if (absDir.x > absDir.y && absDir.x > absDir.z)
+        face = (dir.x > 0) ? 0 : 1;
+    else if (absDir.y > absDir.z)
+        face = (dir.y > 0) ? 2 : 3;
+    else
+        face = (dir.z > 0) ? 4 : 5;
+    
+    face = 1;
+    float4 LightSpacePos = mul(float4(WorldPos, 1.0), Light.View[face]);
+    LightSpacePos = mul(LightSpacePos, Light.Proj);
+    
+    float2 uv = LightSpacePos.xy / LightSpacePos.w * 0.5 + 0.5;
+    uv.y = 1.0 - uv.y;
+
+    float worldDepth = LightSpacePos.z / LightSpacePos.w;
+
+    if (uv.x < 0 || uv.x > 1 || uv.y < 0 || uv.y > 1 || worldDepth < 0 || worldDepth > 1)
+        return 1.0;
+    
+    float bias = max(0.0001 * (1.0 - dot(Normal, dir)), 0.00005);
+    float distanceScale = saturate(1.0 - dist / Light.Radius);
+    bias *= distanceScale;
+    bias = max(bias, 0.00001);
+    float2 moments = ShadowMap.Sample(linearSampler, float3(uv, face));
+    float mean = moments.x;
+    float meanSq = moments.y;
+    float variance = meanSq - mean * mean;
+    variance = max(variance, 0.00001);
+        
+    float d = worldDepth - mean;
+    float pMax = variance / (variance + d * d);
+    float distanceFactor = distanceScale * 100;
+    pMax = pow(saturate(pMax), distanceFactor);
+    return max(saturate(pMax), worldDepth <= mean + bias);
+}
+
 float3 CalculateDirectionalLight(  
     FDirectionalLight Light,  
     float3 Normal,  
@@ -305,7 +351,7 @@ float4 WorldToLight(float3 WorldPos, row_major float4x4 View, row_major float4x4
     return LightViewPos;
 }
 
-float CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
+float CalculateShadow(float3 WorldPos, float3 LightPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
 {
     float shadow = 0;
     float4 LightViewPos = WorldToLight(WorldPos, View, Projection);
@@ -318,7 +364,11 @@ float CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 
         shadowUV.y >= 0 && shadowUV.y <= 1 && 
         worldDepth >= 0 && worldDepth <= 1)
     {
-        float bias = max(0.01 * (1.0 - dot(Normal, -LightDir)), 0.001);
+        float bias = max(0.0001 * (1.0 - dot(Normal, -LightDir)), 0.00005);
+        float dist = length(WorldPos - LightPos);
+        float distanceScale = saturate(1.0 - dist / 100.0f);
+        bias *= distanceScale;
+        bias = max(bias, 0.00001);
         for (int x = -1; x <= 1; ++x)
         {
             for (int y = -1; y <= 1; ++y)
@@ -337,7 +387,7 @@ float CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 
     return shadow;
 }
 
-float CalculateVSMShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
+float CalculateVSMShadow(float3 WorldPos, float3 LightPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
 {
     float shadow = 0;
     float4 LightViewPos = WorldToLight(WorldPos, View, Projection);
@@ -350,7 +400,11 @@ float CalculateVSMShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4
         shadowUV.y >= 0 && shadowUV.y <= 1 &&
         worldDepth >= 0 && worldDepth <= 1)
     {
-        float bias = max(0.0001 * (1.0 - dot(Normal, -LightDir)), 0.0001);
+        float bias = max(0.0001 * (1.0 - dot(Normal, -LightDir)), 0.00005);
+        float dist = length(WorldPos - LightPos);
+        float distanceScale = saturate(1.0 - dist / 100.0f);
+        bias *= distanceScale;
+        bias = max(bias, 0.00001);
         float2 moments = ShadowMap.Sample(linearSampler, shadowUV);
         float mean = moments.x;
         float meanSq = moments.y;
@@ -359,7 +413,8 @@ float CalculateVSMShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4
         
         float d = worldDepth - mean;
         float pMax = variance / (variance + d * d);
-        pMax = pow(saturate(pMax), 30.0);
+        float distanceFactor = distanceScale * 100;
+        pMax = pow(saturate(pMax), distanceFactor);
         return max(saturate(pMax), worldDepth <= mean + bias);
     }
     return 0;
@@ -429,12 +484,13 @@ PS_OUTPUT mainPS(PS_INPUT input)
     {
         if (IsVSM)
         {
-            float dirShadow = CalculateVSMShadow(input.worldPos, Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
+            float dirShadow = CalculateVSMShadow(input.worldPos, float3(0, 0, 0) - DirLight.Direction, 
+            Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
             DirLightColor *= (dirShadow);
         }
         else
         {
-            float dirShadow = CalculateShadow(input.worldPos, Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
+            float dirShadow = CalculateShadow(input.worldPos, float3(0, 0, 0) - DirLight.Direction, Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
             DirLightColor *= (1 - dirShadow);
         }
     }
@@ -451,9 +507,18 @@ PS_OUTPUT mainPS(PS_INPUT input)
         //}
 
         float3 LightColor = CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);
-        
-        float Shadow = CalculatePointLightShadow(input.worldPos,input.normal, PointLights[j],j);
-        
+        float Shadow = 1.0;
+        if (length(LightColor) > 0.0)
+        {
+            if (IsVSM)
+            {
+                Shadow = CalculateVSMPointLightShadow(input.worldPos, input.normal, PointLights[j], PointLightVSM[j]);
+            }
+            else
+            {
+                Shadow = CalculatePointLightShadow(input.worldPos, input.normal, PointLights[j], j);
+            }
+        }
         TotalLight += LightColor * Shadow;
     }
     
@@ -464,14 +529,15 @@ PS_OUTPUT mainPS(PS_INPUT input)
         {
             if (IsVSM)
             {
-                float SpotShadow = CalculateVSMShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
+                float SpotShadow = CalculateVSMShadow(input.worldPos, SpotLights[k].Position, 
+                Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
                 SpotLightColor *= (SpotShadow);
                 //output.color = float4(SpotShadow.xxx, 1.0);
                 //return output;
             }
             else
             {
-                float SpotShadow = CalculateShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
+                float SpotShadow = CalculateShadow(input.worldPos, SpotLights[k].Position, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
                 SpotLightColor *= (1 - SpotShadow);
             }
         }
