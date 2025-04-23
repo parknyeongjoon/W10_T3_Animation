@@ -221,12 +221,20 @@ D3D11_VIEWPORT& FEditorViewportClient::GetD3DViewport()
 
 void FEditorViewportClient::CalculateCascadeSplits(float NearClip, float FarClip)
 {
-    // 균등 분할 방식
-    float range = FarClip - NearClip;
+    // 지수 분할 방식
+    float lambda = 0.75f;  // 지수 분할 계수 (0: 균등 분할, 1: 완전 지수)
     
     for (int i = 0; i < CASCADE_COUNT; i++) {
         float p = (i + 1) / float(CASCADE_COUNT);
-        cascadeSplits[i] = NearClip + range * p;
+        
+        // 균등 분할 값
+        float uniformSplit = NearClip + (FarClip - NearClip) * p;
+        
+        // 지수 분할 값 (로그 스케일)
+        float exponentialSplit = NearClip * pow(FarClip / NearClip, p);
+        
+        // 람다를 사용하여 두 방식을 혼합
+        cascadeSplits[i] = lambda * exponentialSplit + (1 - lambda) * uniformSplit;
     }
 }
 

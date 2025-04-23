@@ -84,6 +84,47 @@ FMatrix JungleMath::CreateOrthoProjectionMatrix(float width, float height, float
     return Projection;
 }
 
+FMatrix JungleMath::CreateOrthoProjectionMatrix(float left, float right, float bottom, float top, float nearZ, float farZ)
+{
+    // 직교 투영 행렬 구성 (행 우선 방식)
+    // DirectX 스타일 깊이 범위(0~1)를 사용한다고 가정합니다
+    
+    float width = right - left;
+    float height = top - bottom;
+    float depth = farZ - nearZ;
+    
+    // 유효하지 않은 입력값 검사
+    if (width < 1e-6f || height < 1e-6f || depth < 1e-6f)
+    {
+        // 오류 방지를 위한 기본값 반환
+        return FMatrix::Identity;
+    }
+    
+    FMatrix result;
+    
+    result.M[0][0] = 2.0f / width;
+    result.M[0][1] = 0.0f;
+    result.M[0][2] = 0.0f;
+    result.M[0][3] = 0.0f;
+    
+    result.M[1][0] = 0.0f;
+    result.M[1][1] = 2.0f / height;
+    result.M[1][2] = 0.0f;
+    result.M[1][3] = 0.0f;
+    
+    result.M[2][0] = 0.0f;
+    result.M[2][1] = 0.0f;
+    result.M[2][2] = 1.0f / depth;
+    result.M[2][3] = 0.0f;
+    
+    result.M[3][0] = -(right + left) / width;
+    result.M[3][1] = -(top + bottom) / height;
+    result.M[3][2] = -nearZ / depth;
+    result.M[3][3] = 1.0f;
+    
+    return result;
+}
+
 FVector JungleMath::FVectorRotate(FVector& origin, const FVector& rotation)
 {
     FQuat quaternion = JungleMath::EulerToQuaternion(rotation);
