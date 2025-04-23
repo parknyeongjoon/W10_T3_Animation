@@ -4,7 +4,7 @@
 #include <wrl/client.h> 
 
 using Microsoft::WRL::ComPtr;
-
+  
 struct FShadowResource
 {
     //static ID3D11SamplerState* comparisonSampler;

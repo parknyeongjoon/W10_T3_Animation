@@ -350,17 +350,17 @@ float CalculateVSMShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4
         shadowUV.y >= 0 && shadowUV.y <= 1 &&
         worldDepth >= 0 && worldDepth <= 1)
     {
-        float bias = max(0.000001 * (1.0 - dot(Normal, -LightDir)), 0.000001);
+        float bias = max(0.0001 * (1.0 - dot(Normal, -LightDir)), 0.0001);
         float2 moments = ShadowMap.Sample(linearSampler, shadowUV);
         float mean = moments.x;
         float meanSq = moments.y;
-        
         float variance = meanSq - mean * mean;
-        variance = max(variance, bias);
+        variance = max(variance, 0.00001);
         
         float d = worldDepth - mean;
         float pMax = variance / (variance + d * d);
-        return saturate(pMax);
+        pMax = pow(saturate(pMax), 30.0);
+        return max(saturate(pMax), worldDepth <= mean + bias);
     }
     return 0;
 }
@@ -466,6 +466,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
             {
                 float SpotShadow = CalculateVSMShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
                 SpotLightColor *= (SpotShadow);
+                //output.color = float4(SpotShadow.xxx, 1.0);
+                //return output;
             }
             else
             {
