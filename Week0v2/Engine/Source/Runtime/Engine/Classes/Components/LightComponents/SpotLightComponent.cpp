@@ -62,7 +62,7 @@ USpotLightComponent::USpotLightComponent(const USpotLightComponent& Other)
     , OuterConeAngle(Other.OuterConeAngle)
     , Direction(Other.Direction)
 {
-
+    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::SpotLight, 1024);
 }
 
 USpotLightComponent::~USpotLightComponent()

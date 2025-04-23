@@ -17,6 +17,7 @@ ULightComponentBase::ULightComponentBase(const ULightComponentBase& Other)
     : Super(Other)
     , LightColor(Other.LightColor)
     , Intensity(Other.Intensity)
+    , ShadowResource(Other.ShadowResource)
 {
 }
 

@@ -24,6 +24,16 @@ UDirectionalLightComponent::UDirectionalLightComponent(const UDirectionalLightCo
     : Super(Other)
     , Direction(Other.Direction)
 {
+    // deepcopy
+    ShadowResource = new FShadowResource[CASCADE_COUNT];
+    for (int i = 0; i < CASCADE_COUNT; i++)
+    {
+        UINT temp = pow(2, 4 - i);
+        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight, 256 * temp, false);
+        ShadowResource[i] = *resource;
+        ShadowResources.Add(resource);
+    }
+
 }
 
 UDirectionalLightComponent::~UDirectionalLightComponent()

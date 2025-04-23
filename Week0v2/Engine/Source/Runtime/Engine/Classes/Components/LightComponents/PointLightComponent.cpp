@@ -16,7 +16,8 @@ UPointLightComponent::UPointLightComponent(const UPointLightComponent& Other)
     , Radius(Other.Radius)
     , AttenuationFalloff(Other.AttenuationFalloff)
 {
-    
+    // deepcopy
+    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::PointLight, 1024);
 }
 
 UObject* UPointLightComponent::Duplicate() const
