@@ -490,7 +490,7 @@ float CalculateSpotLightVSMShadowAtlas(FSpotLight SpotLight, float3 LightPos, fl
         float mean = moments.x;
         float meanSq = moments.y;
         float variance = meanSq - mean * mean;
-        variance = max(variance, 0.0001);
+        variance = max(variance, 0.00001);
         
         float d = worldDepth - mean;
         float pMax = variance / (variance + d * d);
