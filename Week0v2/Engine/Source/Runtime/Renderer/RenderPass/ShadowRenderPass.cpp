@@ -284,6 +284,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
     }
 
     // 포인트 라이트 그림자 맵 렌더링
+
     for (auto PointLight : VisiblePointLights)
     {
         FShadowResource* ShadowResource = PointLight->GetShadowResource();
