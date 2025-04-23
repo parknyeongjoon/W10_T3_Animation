@@ -334,12 +334,11 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     FFrustum CameraFrustum = FFrustum::ExtractFrustum(View*Projection);
     ID3D11ShaderResourceView* ShadowMaps[8] = { nullptr };
     ID3D11ShaderResourceView* ShadowCubeMap[8] = { nullptr };
-    ID3D11ShaderResourceView* ShadowVSMMap[8] = { nullptr };
     for (ULightComponentBase* Comp : LightComponents)
     {
         if (!IsLightInFrustum(Comp, CameraFrustum))
         {
-            //continue;
+            continue;
         }
 
         if (const UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(Comp))
@@ -358,8 +357,6 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.PointLights[PointLightCount].CastShadow = PointLightComp->CanCastShadows();
 ;
             ShadowCubeMap[PointLightCount] = PointLightComp->GetShadowResource()->GetSRV();
-            if(GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
-                ShadowVSMMap[PointLightCount] = PointLightComp->GetShadowResource()->GetVSMSRV();
 
             for (int face = 0;face < 6;face++)
             {
@@ -432,7 +429,6 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             }
     }
 
-    Graphics.DeviceContext->PSSetShaderResources(23, 8, ShadowVSMMap);
     Graphics.DeviceContext->PSSetShaderResources(15, 8, ShadowCubeMap);
     //Graphics.DeviceContext->PSSetShaderResources(3, 8, ShadowMaps);
     // !NOTE : 아틀라스 텍스쳐는 이전 패스인 ShadowRenderPass에서 바인딩한다

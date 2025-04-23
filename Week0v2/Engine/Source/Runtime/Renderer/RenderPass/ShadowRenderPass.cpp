@@ -83,33 +83,19 @@ void FShadowRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClien
     Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::ComparisonSampler), 1, &CompareSampler);
 }
 
-void FShadowRenderPass::RenderPointLightShadowMap(UPointLightComponent* PointLight, FShadowResource* ShadowResource, FGraphicsDevice& Graphics)
+void FShadowRenderPass::RenderPointLightShadowMap(UPointLightComponent* PointLight, FGraphicsDevice& Graphics)
 {
-    const FRenderer& Renderer = GEngine->renderer;
-    ID3D11Texture2D* Texture = ShadowResource->GetTexture();
-    HRESULT hr;
+    FShadowResource* Resource = PointLight->GetShadowResource();
+    if (!Resource || Resource->GetAtlasSlotIndex() == -1)
+        return;
+
+    int slotIndex = Resource->GetAtlasSlotIndex();
     // 각 면마다 렌더링
     for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
     {
-        D3D11_VIEWPORT vp = ShadowResource->GetViewport();
-        Graphics.DeviceContext->RSSetViewports(1, &vp);
-
         // 현재 면의 DSV 가져오기
-        ID3D11DepthStencilView* CurrentFaceDSV = ShadowResource->GetDSV(faceIndex);
+        ID3D11DepthStencilView* CurrentFaceDSV = PointLightShadowMapAtlas->GetDSVCube(slotIndex, faceIndex);
         Graphics.DeviceContext->ClearDepthStencilView(CurrentFaceDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        srvDesc.Format = DXGI_FORMAT_R32_FLOAT; // 깊이 데이터만 읽기 위한 포맷
-        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Texture2D.MipLevels = 1;
-        
-        ID3D11ShaderResourceView* SRV = nullptr;
-        hr = Graphics.Device->CreateShaderResourceView(Texture, &srvDesc, &SRV);
-        if (FAILED(hr))
-        {
-            assert("TEMP VSM SRV Creation Failed");
-            return;
-        }
 
         ID3D11ShaderResourceView* nullSRV = nullptr;
         Graphics.DeviceContext->PSSetShaderResources(0, 1, &nullSRV);
@@ -119,22 +105,6 @@ void FShadowRenderPass::RenderPointLightShadowMap(UPointLightComponent* PointLig
         FMatrix CubeProj= PointLight->GetProjectionMatrix();
         // 현재 면에 대한 뷰와 프로젝션 매트릭스로 렌더링
        RenderStaticMesh(CubeView, CubeProj);
-       //VSM 처리
-       if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
-       {
-           FLOAT ClearColor[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
-           ID3D11RenderTargetView* RTV = PointLight->GetShadowResource()->GetVSMRTV(faceIndex);
-           Graphics.DeviceContext->ClearRenderTargetView(RTV, ClearColor);
-           Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
-           GEngine->renderer.PrepareShader(TEXT("LightDepth"));
-           Graphics.DeviceContext->PSSetShaderResources(0, 1, &SRV);
-           Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-           ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
-           Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
-           Graphics.DeviceContext->Draw(4, 0);
-           Prepare(GEngine->GetLevelEditor()->GetActiveViewportClient());
-       }
-       SRV->Release();
     }
 }
 
@@ -166,8 +136,6 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
     //PointLightShadowMapAtlas->ClearCubeSlots();
 
     // DSV 클리어
-    Graphics.DeviceContext->ClearDepthStencilView(SpotLightShadowMapAtlas->GetDSV2D(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-    Graphics.DeviceContext->ClearDepthStencilView(PointLightShadowMapAtlas->GetDSVCube(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
     for (ULightComponentBase* Light : Lights)
     {
@@ -255,6 +223,9 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
         }
     }
 
+    // 아틀라스에 바인딩된 라이트들에 대해 렌더링
+    Graphics.DeviceContext->ClearDepthStencilView(SpotLightShadowMapAtlas->GetDSV2D(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
     for (auto SpotLight : VisibleSpotLights)
     {
         // 아틀라스에 바인딩된 라이트들에 대해 렌더링
@@ -311,6 +282,25 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
             Graphics.DeviceContext->RSSetViewports(1, &Vp);
         }
     }
+
+    // 포인트 라이트 그림자 맵 렌더링
+    for (auto PointLight : VisiblePointLights)
+    {
+        FShadowResource* ShadowResource = PointLight->GetShadowResource();
+        D3D11_VIEWPORT Vp = {};
+
+        Vp.TopLeftX = 0;
+        Vp.TopLeftY = 0;
+        Vp.Width = 1024;
+        Vp.Height = 1024;
+        Vp.MinDepth = 0.0f;
+        Vp.MaxDepth = 1.0f;
+
+        Graphics.DeviceContext->RSSetViewports(1, &Vp);
+
+        RenderPointLightShadowMap(PointLight, Graphics);
+    }
+
     Graphics.DeviceContext->RSSetViewports(1, &curEditorViewportClient->GetD3DViewport());
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView);
     
@@ -318,6 +308,8 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
     ID3D11ShaderResourceView* SpotLightAtlasSRV = (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ?
         SpotLightShadowMapAtlas->GetVSMSRV2D() : SpotLightShadowMapAtlas->GetSRV2D();
     Graphics.DeviceContext->PSSetShaderResources(3, 1, &SpotLightAtlasSRV);
+    ID3D11ShaderResourceView* PointLightAtlasSRV = PointLightShadowMapAtlas->GetSRVCube();
+    Graphics.DeviceContext->PSSetShaderResources(4, 1, &PointLightAtlasSRV);
 }
 
 void FShadowRenderPass::SetShaderResource(FShadowResource* ShadowResource)

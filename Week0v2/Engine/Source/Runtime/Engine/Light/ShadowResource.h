@@ -80,7 +80,8 @@ struct FShadowResource
         return faceSRV;
     }
 
-
+    ID3D11ShaderResourceView* GetCubeAtlasSRVFace(ID3D11Device* Device, int cubeIndex, int faceIndex);
+    
 private:
     FShadowMapAtlas* ParentAtlas = nullptr;
     int AtlasSlotIndex = -1;
@@ -90,6 +91,7 @@ public:
     int GetAtlasSlotIndex() const { return AtlasSlotIndex; }
     void BindToAtlas(FShadowMapAtlas* Atlas, int SlotIndex);
     void UnbindFromAtlas();
+    FShadowMapAtlas* GetParentAtlas() const { return ParentAtlas; }
 };
 
 struct FShadowMemoryUsageInfo

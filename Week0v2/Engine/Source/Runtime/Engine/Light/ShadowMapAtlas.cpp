@@ -107,19 +107,33 @@ FShadowMapAtlas::FShadowMapAtlas(ID3D11Device* Device, EAtlasType Type, int Reso
             throw std::runtime_error("Failed to Create Atlas PointLightCube SRV");
         }
 
-        // 단일 DSV 생성
-        D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-        dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
-        dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-        dsvDesc.Texture2DArray.MipSlice = 0;
-        dsvDesc.Texture2DArray.FirstArraySlice = 0;
-        dsvDesc.Texture2DArray.ArraySize = 16 * 6;
 
-        hr = Device->CreateDepthStencilView(AtlasTexture_Cube.Get(), &dsvDesc, &AtlasDSV_Cube);
-        if (FAILED(hr))
+        for (int lightIdx = 0; lightIdx < 16; ++lightIdx) 
         {
-            throw std::runtime_error("Failed to Create Atlas PointLightCube DSV");
+            for (int face = 0; face < 6; ++face) 
+            {
+                D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+                dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+                dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+                dsvDesc.Texture2DArray.MipSlice = 0;
+                dsvDesc.Texture2DArray.FirstArraySlice = lightIdx * 6 + face; // (라이트 인덱스 × 6) + 면 인덱스
+                dsvDesc.Texture2DArray.ArraySize = 1; // 한 번에 하나의 면만 렌더링
+
+                // DSV 생성
+                ComPtr<ID3D11DepthStencilView> dsv;
+                HRESULT hr = Device->CreateDepthStencilView(
+                    AtlasTexture_Cube.Get(),
+                    &dsvDesc,
+                    &dsv);
+
+                if (FAILED(hr)) {
+                    throw std::runtime_error("Failed to create CubeMap DSV");
+                }
+
+                AtlasDSV_Cube.Add(dsv);
+            }
         }
+
     }
 }
 
@@ -133,32 +147,6 @@ int FShadowMapAtlas::Allocate2DSlot(int RequestedSize)
             return i;
         }
     }
-
-    // LRU
-    //static TArray<int> LastUsedFrames;
-    //if (LastUsedFrames.Num() != Slots2D.Num())
-    //{
-    //    LastUsedFrames.Init(0, Slots2D.Num());
-    //}
-
-    //int OldestSlot = -1;
-    //UINT OldestFrame = UINT_MAX;
-
-    //for (int i = 0; i < Slots2D.Num(); ++i)
-    //{
-    //    if (Slots2D[i].Region.Width >= RequestedSize && LastUsedFrames[i] < OldestFrame)
-    //    {
-    //        OldestSlot = i;
-    //        OldestFrame = LastUsedFrames[i];
-    //    }
-    //}
-
-    //if (OldestSlot != -1)
-    //{
-    //    Slots2D[OldestSlot].bInUse = true;
-    //    LastUsedFrames[OldestSlot] = UEngine::GFrameCount;
-    //    return OldestSlot;
-    //}
 
     // 슬롯을 찾지 못한 경우
     return -1;
@@ -193,26 +181,6 @@ int FShadowMapAtlas::AllocateCubeSlot()
         }
     }
 
-    // LRU
-    //static TArray<int> LastUsedFrames;
-    //if (LastUsedFrames.Num() != CubeSlots.Num())
-    //{
-    //    LastUsedFrames.Init(0, CubeSlots.Num());
-    //}
-
-    //int OldestSlot = -1;
-    //UINT OldestFrame = UINT_MAX;
-
-    //for (int i = 0; i < CubeSlots.Num(); ++i)
-    //{
-    //    if (LastUsedFrames[i] < OldestFrame)
-    //    {
-    //        OldestSlot = i;
-    //        OldestFrame = LastUsedFrames[i];
-    //    }
-    //}
-
-    //return OldestSlot;
     return -1;
 }
 
@@ -226,9 +194,14 @@ void FShadowMapAtlas::ClearCubeSlots()
     CubeSlots.Empty();
 }
 
-ID3D11DepthStencilView* FShadowMapAtlas::GetDSVCube() const
+ID3D11DepthStencilView* FShadowMapAtlas::GetDSVCube(int SlotId, int Face) const
 {
-    return AtlasDSV_Cube.Get();
+    int idx = SlotId * 6 + Face;
+    if (idx < 0 || idx >= AtlasDSV_Cube.Num())
+    {
+        return nullptr;
+    }
+    return AtlasDSV_Cube[idx].Get();
 }
 
 void FShadowMapAtlas::CreateVSMResource(ID3D11Device* Device, EAtlasType Type, int Resolution)
