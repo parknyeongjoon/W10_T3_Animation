@@ -428,9 +428,21 @@ void PropertyEditorPanel::Render()
                     SpotLight->SetInnerConeAngle(InnerAngle);
                 }
             }
-            ImTextureID LightDepth = reinterpret_cast<ImTextureID>(SpotLight->GetShadowResource()->GetSRV());
-            ImGui::Text("Shadow Map");
-            ImGui::Image(LightDepth, imageSize);
+            
+
+            FShadowMapAtlas* ShadowMapAtlas = SpotLight->GetShadowResource()->GetParentAtlas();
+            if (ShadowMapAtlas)
+            {
+                ImTextureID LightDepth = reinterpret_cast<ImTextureID>(ShadowMapAtlas->GetSRV2D());
+                FVector4 UV = SpotLight->GetLightAtlasUV(); // x,y,width,height
+
+                ImVec2 uv0 = ImVec2(UV.x, UV.y);
+                ImVec2 uv1 = ImVec2(UV.x + UV.z, UV.y + UV.w);
+
+                ImGui::Text("Shadow Map");
+                ImGui::Image(LightDepth, imageSize, uv0, uv1);
+            }
+            
             bool override = Cast<USpotLightComponent>(GEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
             if (ImGui::Checkbox("Override Camera", &override))
             {

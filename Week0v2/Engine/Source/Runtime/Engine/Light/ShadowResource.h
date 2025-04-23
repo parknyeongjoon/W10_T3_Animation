@@ -51,6 +51,7 @@ public:
     int GetAtlasSlotIndex() const { return AtlasSlotIndex; }
     void BindToAtlas(FShadowMapAtlas* Atlas, int SlotIndex);
     void UnbindFromAtlas();
+    FShadowMapAtlas* GetParentAtlas() const { return ParentAtlas; }
 };
 
 struct FShadowMemoryUsageInfo
