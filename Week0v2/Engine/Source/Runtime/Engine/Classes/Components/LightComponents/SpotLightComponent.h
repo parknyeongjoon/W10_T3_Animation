@@ -74,4 +74,7 @@ public:
 public:
     virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
+
+public:
+    FVector4 GetLightAtlasUV() const;
 };

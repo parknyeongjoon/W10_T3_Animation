@@ -33,5 +33,6 @@ protected:
 
 public:
     TArray<FWorldContext>& GetWorldContexts() { return worldContexts; }
-    
+public:
+    static inline UINT GFrameCount = 0;
 };

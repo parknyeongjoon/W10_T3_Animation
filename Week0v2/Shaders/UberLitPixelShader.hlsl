@@ -10,7 +10,8 @@ static const int filterSize = 1; // 중앙을 포함한 반경 EX. (-2, -1, 0, 1
 
 static const int CASCADE_COUNT = 4;
 
-Texture2D SpotLightShadowMap[8] : register(t3);
+//Texture2D SpotLightShadowMap[8] : register(t3);
+Texture2D SpotLightAtlas : register(t3);
 Texture2D DirectionalLightShadowMap[CASCADE_COUNT] : register(t11);
 
 TextureCube<float> PointLightShadowMap[8] : register(t15);
@@ -86,6 +87,8 @@ struct FSpotLight
     
     row_major float4x4 View;
     row_major float4x4 Proj;
+    
+    float4 AtlasUV;
 };
 
 
@@ -361,6 +364,48 @@ float CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 
     
     return shadow;
 }
+float CalculateSpotLightShadowAtlas(FSpotLight SpotLight, float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection)
+{
+    float shadow = 0;
+    float4 LightViewPos = WorldToLight(WorldPos, View, Projection);
+    
+    float2 shadowUV = LightViewPos.xy / LightViewPos.w * 0.5 + 0.5;
+    shadowUV.y = 1.0 - shadowUV.y;
+    float worldDepth = LightViewPos.z / LightViewPos.w;
+    
+    float2 atlasUV = shadowUV * SpotLight.AtlasUV.zw + SpotLight.AtlasUV.xy;
+    
+    // 경계 검사
+    if (atlasUV.x >= SpotLight.AtlasUV.x &&
+       atlasUV.x <= (SpotLight.AtlasUV.x + SpotLight.AtlasUV.z) &&
+       atlasUV.y >= SpotLight.AtlasUV.y &&
+       atlasUV.y <= (SpotLight.AtlasUV.y + SpotLight.AtlasUV.w) &&
+       worldDepth >= 0 && worldDepth <= 1)
+    {
+        float bias = max(0.01 * (1.0 - dot(Normal, -LightDir)), 0.001);
+        
+        const float texelSize = 1.0 / 1024.0; // 1024x1024 해상도 가정
+        
+        [unroll]
+        for (int x = -1; x <= 1; ++x)
+        {
+            [unroll]
+            for (int y = -1; y <= 1; ++y)
+            {
+                float2 offset = float2(x, y) * texelSize;
+                float sampleDepth = SpotLightAtlas.Sample(
+                    pointSampler,
+                    atlasUV + offset
+                ).r;
+                
+                shadow += (worldDepth >= sampleDepth + bias) ? 1.0 : 0.0;
+            }
+        }
+        shadow /= 9.0; // 3x3 PCF 평균
+    }
+    
+    return shadow;
+}
 
 // 다음 캐스케이드 레벨로의 부드러운 전환을 위한 블렌딩 함수
 float CalculateBlendedShadow(float3 WorldPos, float3 Normal, float3 LightDir, 
@@ -535,7 +580,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
         float3 SpotLightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
         if (length(SpotLightColor) > 0.0 && SpotLights[k].CastShadow)
         {
-             float SpotShadow = CalculateShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
+            // float SpotShadow = CalculateShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
+            float SpotShadow = CalculateSpotLightShadowAtlas(SpotLights[k], input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj);
             SpotLightColor *= (1 - SpotShadow);
         }
         TotalLight += SpotLightColor;

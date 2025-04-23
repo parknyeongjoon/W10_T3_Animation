@@ -81,6 +81,8 @@ struct FSpotLight
     
     row_major float4x4 View;
     row_major float4x4 Proj;
+    
+    float4 AtlasUV;
 };
 
 cbuffer FLightingConstants : register(b1)

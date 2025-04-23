@@ -29,6 +29,11 @@ FShadowRenderPass::FShadowRenderPass(const FName& InShaderName)
     {
         // 에러 처리
     }
+
+    // atlas init
+    // !TODO : 아틀라스를 1개 이상 사용할 수 있도록 수정
+    SpotLightShadowMapAtlas = std::make_unique<FShadowMapAtlas>(Graphics.Device, EAtlasType::SpotLight2D);
+    PointLightShadowMapAtlas = std::make_unique<FShadowMapAtlas>(Graphics.Device, EAtlasType::PointLightCube, 1024);
 }
 
 void FShadowRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
@@ -78,16 +83,18 @@ void FShadowRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClien
     Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::ComparisonSampler), 1, &CompareSampler);
 }
 
-void FShadowRenderPass::RenderPointLightShadowMap(UPointLightComponent* PointLight, FShadowResource* ShadowResource, FGraphicsDevice& Graphics)
+void FShadowRenderPass::RenderPointLightShadowMap(UPointLightComponent* PointLight, FGraphicsDevice& Graphics)
 {
+    FShadowResource* Resource = PointLight->GetShadowResource();
+    if (!Resource || Resource->GetAtlasSlotIndex() == -1)
+        return;
+
+    int slotIndex = Resource->GetAtlasSlotIndex();
     // 각 면마다 렌더링
     for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
     {
-        D3D11_VIEWPORT vp = ShadowResource->GetViewport();
-        Graphics.DeviceContext->RSSetViewports(1, &vp);
-
         // 현재 면의 DSV 가져오기
-        ID3D11DepthStencilView* CurrentFaceDSV = ShadowResource->GetDSV(faceIndex);
+        ID3D11DepthStencilView* CurrentFaceDSV = PointLightShadowMapAtlas->GetDSVCube(slotIndex, faceIndex);
         Graphics.DeviceContext->ClearDepthStencilView(CurrentFaceDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         ID3D11ShaderResourceView* nullSRV = nullptr;
@@ -116,26 +123,82 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
     FMatrix CameraProjection = curEditorViewportClient->GetProjectionMatrix();
     FFrustum CameraFrustum = FFrustum::ExtractFrustum(CameraView * CameraProjection);
 
+    // 1. 가시성 있는 라이트를 모은다(Point, Spot), Directional은 알아서 렌더
+    // 2. 모은 라이트로 아틀라스 구성
+    // 3. 아틀라스 렌더
+
+    // 가시성 있는 광원들을 타입별로 모은다
+    TArray<UPointLightComponent*> VisiblePointLights;
+    TArray<USpotLightComponent*> VisibleSpotLights;
+
+    // 아틀라스 클리어하고간다 -> 하면안된다
+    //SpotLightShadowMapAtlas->Clear2DSlots();
+    //PointLightShadowMapAtlas->ClearCubeSlots();
+
+    // DSV 클리어
+
     for (ULightComponentBase* Light : Lights)
     {
         if (!IsLightInFrustum(Light, CameraFrustum))
         {
+            // 라이트 가시성이 없으면, 아틀라스 바인딩된 친구인지 확인하여 해제
+            Light->GetShadowResource()->UnbindFromAtlas();
             continue;
         }
 
         if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
         {
-            RenderPointLightShadowMap(PointLight, PointLight->GetShadowResource(), Graphics);
+            FShadowResource* ShadowResource = PointLight->GetShadowResource();
+            if (ShadowResource->IsInAtlas() == false)
+            {
+                int SlotIdx = PointLightShadowMapAtlas->AllocateCubeSlot();
+                if (SlotIdx != -1)
+                {
+                    ShadowResource->BindToAtlas(PointLightShadowMapAtlas.get(), SlotIdx);
+                    VisiblePointLights.Add(PointLight);
+                }
+                else
+                {
+                    // 아틀라스에 공간이 없다
+                    UE_LOG(LogLevel::Warning, TEXT("Point Light Shadow Map Atlas is full!"));
+                }
+            }
+            else
+            {
+                // 이미 아틀라스에 바인딩된 경우
+                VisiblePointLights.Add(PointLight);
+            }
         }
         else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
         {
-            SetShaderResource(SpotLight->GetShadowResource());
-            View = SpotLight->GetViewMatrix();
-            Proj = SpotLight->GetProjectionMatrix();
-            RenderStaticMesh(View, Proj);
+            FShadowResource* ShadowResource = SpotLight->GetShadowResource();
+            if (ShadowResource->IsInAtlas() == false)
+            {
+                int SlotIdx = SpotLightShadowMapAtlas->Allocate2DSlot(1024);
+                if (SlotIdx != -1)
+                {
+                    ShadowResource->BindToAtlas(SpotLightShadowMapAtlas.get(), SlotIdx);
+                    VisibleSpotLights.Add(SpotLight);
+                }
+                else
+                {
+                    // 아틀라스에 공간이 없다
+                    UE_LOG(LogLevel::Warning, TEXT("Point Light Shadow Map Atlas is full!"));
+                }
+            }
+            else
+            {
+                // 이미 아틀라스에 바인딩된 경우
+                VisibleSpotLights.Add(SpotLight);
+            }
+            
+
+            //SetShaderResource(SpotLight->GetShadowResource());
+
         }
         else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
         {
+            // Directional Light는 아틀라스 사용 안함
             for (int i=0;i<CASCADE_COUNT;i++)
             {
                 //TODO : Cascade 영역 따라서 해상도 바꿔가면서 Shadow 맵 그리기
@@ -145,11 +208,66 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
                 RenderStaticMesh(View, Proj);
             }
         }
+    }
+
+    // 아틀라스에 바인딩된 라이트들에 대해 렌더링
+    Graphics.DeviceContext->ClearDepthStencilView(SpotLightShadowMapAtlas->GetDSV2D(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    Graphics.DeviceContext->OMSetRenderTargets(0, nullptr, SpotLightShadowMapAtlas->GetDSV2D());
+
+    for (auto SpotLight : VisibleSpotLights)
+    {
+        FShadowResource* ShadowResource = SpotLight->GetShadowResource();
+        int slotIndex = ShadowResource->GetAtlasSlotIndex();
+
+        // slot index로 뷰포트 세팅해서 할당
+        D3D11_VIEWPORT Vp = {};
         
+        const int SlotsPerRow = 4;
+        const int SlotSize = 1024;
+
+        int SlotX = slotIndex % SlotsPerRow;
+        int SlotY = slotIndex / SlotsPerRow;
+
+        Vp.TopLeftX = SlotX * SlotSize;
+        Vp.TopLeftY = SlotY * SlotSize;
+        Vp.Width = SlotSize;
+        Vp.Height = SlotSize;
+        Vp.MinDepth = 0.0f;
+        Vp.MaxDepth = 1.0f;
+
+        Graphics.DeviceContext->RSSetViewports(1, &Vp);
+
+        View = SpotLight->GetViewMatrix();
+        Proj = SpotLight->GetProjectionMatrix();
+        RenderStaticMesh(View, Proj);
+    }
+
+    // 포인트 라이트 그림자 맵 렌더링
+    for (auto PointLight : VisiblePointLights)
+    {
+        FShadowResource* ShadowResource = PointLight->GetShadowResource();
+        D3D11_VIEWPORT Vp = {};
+
+        Vp.TopLeftX = 0;
+        Vp.TopLeftY = 0;
+        Vp.Width = 1024;
+        Vp.Height = 1024;
+        Vp.MinDepth = 0.0f;
+        Vp.MaxDepth = 1.0f;
+
+        Graphics.DeviceContext->RSSetViewports(1, &Vp);
+
+        RenderPointLightShadowMap(PointLight, Graphics);
     }
 
     Graphics.DeviceContext->RSSetViewports(1, &curEditorViewportClient->GetD3DViewport());
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView);
+    
+    // 아틀라스 텍스쳐 바인딩
+    ID3D11ShaderResourceView* SpotLightAtlasSRV = SpotLightShadowMapAtlas->GetSRV2D();
+    Graphics.DeviceContext->PSSetShaderResources(3, 1, &SpotLightAtlasSRV);
+    ID3D11ShaderResourceView* PointLightAtlasSRV = PointLightShadowMapAtlas->GetSRVCube();
+    Graphics.DeviceContext->PSSetShaderResources(4, 1, &PointLightAtlasSRV);
 }
 
 void FShadowRenderPass::SetShaderResource(FShadowResource* ShadowResource)

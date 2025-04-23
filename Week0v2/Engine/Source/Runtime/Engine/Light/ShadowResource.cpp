@@ -1,8 +1,13 @@
 #include "ShadowResource.h"
+#include "ShadowMapAtlas.h"
 
-FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType, UINT ShadowResolution)
+FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType, UINT ShadowResolution, bool bUseAtlas)
     :LightType(LightType)
 {
+    // 아틀라스를 사용하는 Resource의 경우에는 자원을 생성하지 않음
+    if (bUseAtlas)
+        return;
+
     switch (LightType)
     {
         case ELightType::DirectionalLight:
@@ -68,8 +73,8 @@ FShadowResource::FShadowResource(ID3D11Device* Device, ELightType LightType, UIN
         {
             // Texture2D - Cube Array
             D3D11_TEXTURE2D_DESC desc = {};
-            desc.Width = 1024;
-            desc.Height = 1024;
+            desc.Width = ShadowResolution;
+            desc.Height = ShadowResolution;
             desc.MipLevels = 1;
             desc.ArraySize = 6;  // 큐브맵의 6개 면
             desc.Format = DXGI_FORMAT_R32_TYPELESS;
@@ -210,9 +215,63 @@ size_t FShadowResource::GetEsimatedMemoryUsageInBytes() const
     return Total;
 }
 
-FShadowResource* FShadowResourceFactory::CreateShadowResource(ID3D11Device* Device, ELightType LightType, UINT ShadowResource)
+ID3D11ShaderResourceView* FShadowResource::GetCubeAtlasSRVFace(ID3D11Device* Device, int cubeIndex, int faceIndex)
 {
-    FShadowResource* shadowResource = new FShadowResource(Device, LightType, ShadowResource);
+    if (!ParentAtlas || ParentAtlas->GetTextureCube() == nullptr)
+        return nullptr;
+
+    if (cubeIndex >= 16 || faceIndex >= 6 || !Device)
+    {
+        return nullptr;
+    }
+
+    ID3D11Texture2D* atlasTexture = ParentAtlas->GetTextureCube();
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+    srvDesc.Texture2DArray.MostDetailedMip = 0;
+    srvDesc.Texture2DArray.MipLevels = 1;
+    srvDesc.Texture2DArray.FirstArraySlice = cubeIndex * 6 + faceIndex;
+    srvDesc.Texture2DArray.ArraySize = 1;
+
+    ID3D11ShaderResourceView* srv = nullptr;
+    HRESULT hr = Device->CreateShaderResourceView(atlasTexture, &srvDesc, &srv);
+    if (FAILED(hr))
+    {
+        throw std::runtime_error("Failed to create cube atlas SRV");
+    }
+
+    return srv;
+}
+
+void FShadowResource::BindToAtlas(FShadowMapAtlas* Atlas, int SlotIndex)
+{
+    // 아틀라스에 바인딩
+    ParentAtlas = Atlas;
+    AtlasSlotIndex = SlotIndex;
+}
+
+void FShadowResource::UnbindFromAtlas()
+{
+    // 아틀라스 바인딩되어있는 상태라면 바인드해제
+    if (ParentAtlas)
+    {
+        if (LightType == ELightType::PointLight)
+        {
+            ParentAtlas->ReleaseCubeSlot(AtlasSlotIndex);
+        }
+        else if (LightType == ELightType::SpotLight)
+        {
+            ParentAtlas->Release2DSlot(AtlasSlotIndex);
+        }
+        ParentAtlas = nullptr;
+    }
+}
+
+FShadowResource* FShadowResourceFactory::CreateShadowResource(ID3D11Device* Device, ELightType LightType, UINT ShadowResource, bool bUseAtlas)
+{
+    FShadowResource* shadowResource = new FShadowResource(Device, LightType, ShadowResource, bUseAtlas);
     if (shadowResource)
     {
         if (ShadowResources.Contains(shadowResource->LightType))
