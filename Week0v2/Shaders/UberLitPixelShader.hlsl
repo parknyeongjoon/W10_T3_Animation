@@ -14,7 +14,8 @@ static const int CASCADE_COUNT = 4;
 Texture2D SpotLightAtlas : register(t3);
 Texture2D DirectionalLightShadowMap[CASCADE_COUNT] : register(t11);
 
-TextureCube<float> PointLightShadowMap[8] : register(t15);
+TextureCubeArray<float> PointLightShadowMapArray : register(t4);
+//TextureCube<float> PointLightShadowMap[8] : register(t15);
 
 Texture2DArray<float2> PointLightVSM[8] : register(t23);
 
@@ -206,9 +207,9 @@ float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight 
             float3 sampleDirection = normalize(LightDirection + offset);
           
           // 샘플링
-            float shadowSample = PointLightShadowMap[mapIndex].SampleCmp(
+            float shadowSample = PointLightShadowMapArray.SampleCmp(
               CompareSampler,
-              sampleDirection,
+              float4(sampleDirection, mapIndex),
               refDepth
           );
           
