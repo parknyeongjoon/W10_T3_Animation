@@ -50,6 +50,7 @@ UDirectionalLightComponent::~UDirectionalLightComponent()
 //    Direction = _newDir;
 //}
 const float SCENE_RADIUS = 100.0f;
+const float ZPaddingFactor = 1.5f; 
 FMatrix UDirectionalLightComponent::GetViewMatrix() const
 {
     // 광원 위치 결정 (씬의 중심에서 반대 방향으로)
@@ -85,7 +86,7 @@ FMatrix UDirectionalLightComponent::GetCascadeViewMatrix(UINT CascadeIndex) cons
     }
 
     return JungleMath::CreateViewMatrix(
-        center - lightDir * SCENE_RADIUS,
+        center - lightDir * SCENE_RADIUS * ZPaddingFactor,
         center,
         up);
 }
@@ -111,24 +112,38 @@ FMatrix UDirectionalLightComponent::GetCascadeProjectionMatrix(UINT CascadeIndex
     }
 
     // 경계 박스의 크기 계산
-    float width = maxExtents.x - minExtents.x;
-    float height = maxExtents.y - minExtents.y;
+    float paddingFactor = 1.5f;
+    float width = maxExtents.x - minExtents.x * paddingFactor;
+    float height = maxExtents.y - minExtents.y * paddingFactor;
     float nearPlane, farPlane;
 
+    // 중심점 계산
+    float centerX = (maxExtents.x + minExtents.x) * 0.5f;
+    float centerY = (maxExtents.y + minExtents.y) * 0.5f;
+    
+    // 새로운 경계 계산
+    float halfWidth = width * 0.5f;
+    float halfHeight = height * 0.5f;
+    float newMinX = centerX - halfWidth;
+    float newMaxX = centerX + halfWidth;
+    float newMinY = centerY - halfHeight;
+    float newMaxY = centerY + halfHeight;
+    
     // 정밀도를 위해 z 근평면과 원평면을 조정
     if (minExtents.z < 0) {
-        nearPlane = minExtents.z * 1.1f;
+        nearPlane = minExtents.z * ZPaddingFactor;
     } else {
-        nearPlane = minExtents.z * 0.9f;
+        nearPlane = minExtents.z / ZPaddingFactor;
     }
 
     if (maxExtents.z < 0) {
-        farPlane = maxExtents.z * 0.9f;
+        farPlane = maxExtents.z / ZPaddingFactor;
     } else {
-        farPlane = maxExtents.z * 1.1f;
+        farPlane = maxExtents.z * ZPaddingFactor;
     }
 
-    return JungleMath::CreateOrthoProjectionMatrix(width,height, nearPlane, farPlane);
+    return JungleMath::CreateOrthoProjectionMatrix(newMinX, newMaxX, 
+        newMinY, newMaxY, nearPlane, farPlane);
 }
 
 UObject* UDirectionalLightComponent::Duplicate() const

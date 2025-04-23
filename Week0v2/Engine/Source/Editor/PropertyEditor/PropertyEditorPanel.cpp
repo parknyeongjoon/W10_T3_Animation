@@ -368,6 +368,15 @@ void PropertyEditorPanel::Render()
                     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
                 }
             }
+            ImTextureID LightDepth1 = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()[1].GetSRV());
+            ImGui::Text("Shadow Map");
+            ImGui::Image(LightDepth1, imageSize);
+            ImTextureID LightDepth2 = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()[2].GetSRV());
+            ImGui::Text("Shadow Map");
+            ImGui::Image(LightDepth2, imageSize);
+            ImTextureID LightDepth3 = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()[3].GetSRV());
+            ImGui::Text("Shadow Map");
+            ImGui::Image(LightDepth3, imageSize);
 
             // ImTextureID LightTexture = reinterpret_cast<ImTextureID>(DirectionalLight->GetLightMap()->TextureSRV);
             //
