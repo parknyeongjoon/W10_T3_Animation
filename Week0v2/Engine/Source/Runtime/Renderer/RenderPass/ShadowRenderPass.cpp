@@ -237,29 +237,28 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
                 Proj = DirectionalLight->GetCascadeProjectionMatrix(i);
                 RenderStaticMesh(View, Proj);
                 //VSM
-                if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
-                {
-                    FLOAT ClearColor[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
-                    ID3D11RenderTargetView* RTV = DirectionalLight->GetShadowResource()[i].GetVSMRTV();
-                    Graphics.DeviceContext->ClearRenderTargetView(RTV, ClearColor);
-                    Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
-                    GEngine->renderer.PrepareShader(TEXT("LightDepth"));
-                    ID3D11ShaderResourceView* SRV = DirectionalLight->GetShadowResource()[i].GetSRV();
-                    Graphics.DeviceContext->PSSetShaderResources(0, 1, &SRV);
-                    Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-                    ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
-                    Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
-                    Graphics.DeviceContext->Draw(4, 0);
-                }
+                //if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
+                //{
+                //    FLOAT ClearColor[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
+                //    ID3D11RenderTargetView* RTV = DirectionalLight->GetShadowResource()[i].GetVSMRTV();
+                //    Graphics.DeviceContext->ClearRenderTargetView(RTV, ClearColor);
+                //    Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
+                //    GEngine->renderer.PrepareShader(TEXT("LightDepth"));
+                //    ID3D11ShaderResourceView* SRV = DirectionalLight->GetShadowResource()[i].GetSRV();
+                //    Graphics.DeviceContext->PSSetShaderResources(0, 1, &SRV);
+                //    Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+                //    ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
+                //    Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
+                //    Graphics.DeviceContext->Draw(4, 0);
+                //}
             }
         }
     }
 
-    // 아틀라스에 바인딩된 라이트들에 대해 렌더링
-    Graphics.DeviceContext->OMSetRenderTargets(0, nullptr, SpotLightShadowMapAtlas->GetDSV2D());
-
     for (auto SpotLight : VisibleSpotLights)
     {
+        // 아틀라스에 바인딩된 라이트들에 대해 렌더링
+        Graphics.DeviceContext->OMSetRenderTargets(0, nullptr, SpotLightShadowMapAtlas->GetDSV2D());
         FShadowResource* ShadowResource = SpotLight->GetShadowResource();
         int slotIndex = ShadowResource->GetAtlasSlotIndex();
 
@@ -289,13 +288,14 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
         {
             if (!SpotLightShadowMapAtlas->GetVSMTexture2D())
                 SpotLightShadowMapAtlas->CreateVSMResource(Graphics.Device, EAtlasType::SpotLight2D);
-            Vp.TopLeftX = 0.0f;
-            Vp.TopLeftY = 0.0f;
-            Vp.Width = SHADOW_ATLAS_SIZE;
-            Vp.Height = SHADOW_ATLAS_SIZE;
-            Vp.MinDepth = 0.0f;
-            Vp.MaxDepth = 1.0f;
-            Graphics.DeviceContext->RSSetViewports(1, &Vp);
+            D3D11_VIEWPORT VSMVp = {};
+            VSMVp.TopLeftX = 0.0f;
+            VSMVp.TopLeftY = 0.0f;
+            VSMVp.Width = SHADOW_ATLAS_SIZE;
+            VSMVp.Height = SHADOW_ATLAS_SIZE;
+            VSMVp.MinDepth = 0.0f;
+            VSMVp.MaxDepth = 1.0f;
+            Graphics.DeviceContext->RSSetViewports(1, &VSMVp);
             FLOAT ClearColor[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
             ID3D11RenderTargetView* RTV = SpotLightShadowMapAtlas->GetVSMRTV2D();
             Graphics.DeviceContext->ClearRenderTargetView(RTV, ClearColor);
@@ -308,6 +308,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
             Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
             Graphics.DeviceContext->Draw(4, 0);
             Prepare(InViewportClient);
+            Graphics.DeviceContext->RSSetViewports(1, &Vp);
         }
     }
     Graphics.DeviceContext->RSSetViewports(1, &curEditorViewportClient->GetD3DViewport());

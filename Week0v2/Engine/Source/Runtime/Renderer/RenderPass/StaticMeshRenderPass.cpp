@@ -385,14 +385,12 @@ void FStaticMeshRenderPass::UpdateLightConstants()
                 LightConstant.DirLight.View[i] = DirectionalLightComp->GetCascadeViewMatrix(i);
                 LightConstant.DirLight.Projection[i] = DirectionalLightComp->GetCascadeProjectionMatrix(i);
                 LightConstant.DirLight.CascadeSplit[i] = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeSplit(i);
-                if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
-                {
-                    DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetVSMSRV());
-                }
-                else
-                {
-                    DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetSRV());
-                }
+                ID3D11ShaderResourceView* DirectionalLightSRV = DirectionalLightComp->GetShadowResource()[i].GetSRV();
+                //if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
+                //{
+                //    DirectionalLightSRV = DirectionalLightComp->GetShadowResource()[i].GetVSMSRV();
+                //}
+                DirectionalShadowMaps.Add(DirectionalLightSRV);
             }
             Graphics.DeviceContext->PSSetShaderResources(11, 4, DirectionalShadowMaps.GetData());
             continue;
