@@ -349,6 +349,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetComponentLocation();
             LightConstant.PointLights[PointLightCount].Radius = PointLightComp->GetRadius();
             LightConstant.PointLights[PointLightCount].AttenuationFalloff = PointLightComp->GetAttenuationFalloff();
+            LightConstant.PointLights[PointLightCount].CastShadow = PointLightComp->CanCastShadows();
 ;
             ShadowCubeMap[PointLightCount] = PointLightComp->GetShadowResource()->GetSRV();
 
@@ -368,13 +369,15 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.DirLight.Color = DirectionalLightComp->GetLightColor();
             LightConstant.DirLight.Intensity = DirectionalLightComp->GetIntensity();
             LightConstant.DirLight.Direction = DirectionalLightComp->GetForwardVector();
-            
+            LightConstant.DirLight.CastShadow = DirectionalLightComp->CanCastShadows();
+
             TArray<ID3D11ShaderResourceView*> DirectionalShadowMaps;
             for (int i=0;i<CASCADE_COUNT;i++)
             {
                 LightConstant.DirLight.View[i] = DirectionalLightComp->GetCascadeViewMatrix(i);
                 LightConstant.DirLight.Projection[i] = DirectionalLightComp->GetCascadeProjectionMatrix(i);
                 DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetSRV());
+                LightConstant.DirLight.CascadeSplit[i] = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeSplit(i);
             }
 
             Graphics.DeviceContext->PSSetShaderResources(11, 4, DirectionalShadowMaps.GetData());
@@ -397,6 +400,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.SpotLights[SpotLightCount].OuterAngle = SpotLightComp->GetOuterConeAngle();
             LightConstant.SpotLights[SpotLightCount].View = (SpotLightComp->GetViewMatrix());
             LightConstant.SpotLights[SpotLightCount].Proj = (SpotLightComp->GetProjectionMatrix());
+            LightConstant.SpotLights[SpotLightCount].CastShadow = SpotLightComp->CanCastShadows();
             LightConstant.SpotLights[SpotLightCount].AtlasUVTransform = SpotLightComp->GetLightAtlasUV();
             ShadowMaps[SpotLightCount] = SpotLightComp->GetShadowResource()->GetSRV();
             SpotLightCount++;
@@ -510,8 +514,8 @@ void FStaticMeshRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewport
     CameraConstants.CameraForward = FVector::ZeroVector;
     CameraConstants.CameraPos = curEditorViewportClient->ViewTransformPerspective.GetLocation();
     CameraConstants.ViewProjMatrix = FMatrix::Identity;
-    CameraConstants.ProjMatrix = FMatrix::Identity;
-    CameraConstants.ViewMatrix = FMatrix::Identity;
+    CameraConstants.ViewMatrix = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
+    CameraConstants.ProjMatrix = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
     CameraConstants.NearPlane = curEditorViewportClient->GetNearClip();
     CameraConstants.FarPlane = curEditorViewportClient->GetFarClip();
 

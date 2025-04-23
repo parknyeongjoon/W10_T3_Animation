@@ -3,6 +3,9 @@
 Texture2D Texture : register(t0);
 Texture2D NormalTexture : register(t1);
 
+// 샘플링 패턴
+static const int filterSize = 1; // 중앙을 포함한 반경 EX. (-2, -1, 0, 1, 2) -> 5x5
+
 // StructuredBuffer<uint> TileLightIndices : register(t2);
 
 static const int CASCADE_COUNT = 4;
@@ -40,9 +43,16 @@ struct FDirectionalLight
     float Intensity;
     float4 Color;
 
+    float CascadeSplit0;
+    float CascadeSplit1;
+    float CascadeSplit2;
+    float CascadeSplit3;
 
     row_major float4x4 View[CASCADE_COUNT];
     row_major float4x4 Projection[CASCADE_COUNT];
+    
+    uint CastShadow;
+    float3 Pad;
 };
 
 struct FPointLight
@@ -54,7 +64,8 @@ struct FPointLight
     
     float Intensity;
     float AttenuationFalloff;
-    float2 pad;
+    uint CastShadow;
+    float pad;
     
     row_major float4x4 View[6];
     row_major float4x4 Proj;
@@ -71,7 +82,8 @@ struct FSpotLight
     float InnerAngle;
     
     float OuterAngle;
-    float3 pad;
+    uint CastShadow;
+    float2 pad;
     
     row_major float4x4 View;
     row_major float4x4 Proj;
@@ -145,9 +157,9 @@ struct PS_OUTPUT
 float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight PointLight,int mapIndex)
 {
     float4 WoldPos4 = float4(worldPos, 1.0f);
-    
+  
     float3 LightDirection = normalize(worldPos - PointLight.Position);
-    
+  
     float3 LightDirectionAbs = abs(LightDirection); // 절대값 각 축 크기 구함.
     int face;
     if (LightDirectionAbs.x >= LightDirectionAbs.y && LightDirectionAbs.x >= LightDirectionAbs.z) 
@@ -156,24 +168,53 @@ float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight 
         face = LightDirection.y > 0 ? 2 : 3; // +Y, -Y
     else
         face = LightDirection.z > 0 ? 4 : 5; // +Z, -Z
-    
+  
     float4 LightViewPos = mul(WoldPos4, PointLight.View[face]); // 월드 → 라이트(큐브 face) 공간
-    float4 clipPos = mul(LightViewPos,PointLight.Proj); // 라이트 공간 -> Clip space
+    float4 clipPos = mul(LightViewPos, PointLight.Proj); // 라이트 공간 -> Clip space
 
-    //FIXME : bias 적용
-    // NDC 깊이 (0~1) 추출
-    //float refDepth = clipPos.z / clipPos.w - bias;
+  //FIXME : bias 적용
+  // NDC 깊이 (0~1) 추출
+  //float refDepth = clipPos.z / clipPos.w - bias;
     float bias = max(0.001 * (1.0 - dot(worldNormal, LightDirection)), 0.0001);
     float refDepth = clipPos.z / clipPos.w - bias;
 
-
-    float shadow = PointLightShadowMap[mapIndex].SampleCmp(
-        CompareSampler,
-        LightDirection, // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
-        refDepth
-    );
-
-   return shadow;
+   // PCF 파라미터 설정
+    float shadowSum = 0.0;
+    float numSamples = 0.0;
+    static const float pcfRadius = 0.001; // PCF 필터 반경 (조정 가능)
+  
+  // 샘플링 패턴 (5x5 필터링)
+    [unroll]
+    for (int x = -filterSize; x <= filterSize; x++)
+    {
+        [unroll]
+        for (int y = -filterSize; y <= filterSize; y++)
+        {
+          // 샘플링 오프셋 벡터 계산
+            float3 offset = float3(0, 0, 0);
+            if (face == 0 || face == 1) // X축 면
+                offset = float3(0, x * pcfRadius, y * pcfRadius);
+            else if (face == 2 || face == 3) // Y축 면
+                offset = float3(x * pcfRadius, 0, y * pcfRadius);
+            else // Z축 면
+                offset = float3(x * pcfRadius, y * pcfRadius, 0);
+          
+          // 오프셋을 적용한 샘플링 방향
+            float3 sampleDirection = normalize(LightDirection + offset);
+          
+          // 샘플링
+            float shadowSample = PointLightShadowMap[mapIndex].SampleCmp(
+              CompareSampler,
+              sampleDirection,
+              refDepth
+          );
+          
+            shadowSum += shadowSample;
+            numSamples += 1.0;
+        }
+    }
+  
+    return shadowSum / numSamples;
 }
 
 float3 CalculateDirectionalLight(  
@@ -288,11 +329,10 @@ float4 WorldToLight(float3 WorldPos, row_major float4x4 View, row_major float4x4
     return LightViewPos;
 }
 
-float4 CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
+float CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
 {
     float shadow = 0;
     float4 LightViewPos = WorldToLight(WorldPos, View, Projection);
-            
     float2 shadowUV = LightViewPos.xy / LightViewPos.w * 0.5 + 0.5;
     shadowUV.y = 1.0 - shadowUV.y;
     float worldDepth = LightViewPos.z / LightViewPos.w;
@@ -302,19 +342,24 @@ float4 CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4
         worldDepth >= 0 && worldDepth <= 1)
     {
         float bias = max(0.01 * (1.0 - dot(Normal, -LightDir)), 0.001);
-        for (int x = -1; x <= 1; ++x)
+
+        int numSamples = 0.0;
+        static uint textureWidth, textureHeight;
+        ShadowMap.GetDimensions(textureWidth, textureHeight);
+        [unroll]
+        for (int x = -filterSize; x <= filterSize; ++x)
         {
-            for (int y = -1; y <= 1; ++y)
+            [unroll]
+            for (int y = -filterSize; y <= filterSize; ++y)
             {
-                uint textureWidth, textureHeight;
-                ShadowMap.GetDimensions(textureWidth, textureHeight);
                 float2 texelSize = 1.0 / float2(textureWidth, textureHeight);
                 float2 offset = float2(x, y) * texelSize;
                 float sample = ShadowMap.Sample(pointSampler, shadowUV + offset).r;
                 shadow += (worldDepth >= sample + bias) ? 1.0 : 0.0;
+                numSamples += 1;
             }
         }
-        shadow = shadow / 9.0;
+        shadow = shadow / numSamples;
     }
     
     return shadow;
@@ -360,6 +405,88 @@ float CalculateSpotLightShadowAtlas(FSpotLight SpotLight, float3 WorldPos, float
     }
     
     return shadow;
+}
+
+// 다음 캐스케이드 레벨로의 부드러운 전환을 위한 블렌딩 함수
+float CalculateBlendedShadow(float3 WorldPos, float3 Normal, float3 LightDir, 
+                            float4x4 View1, float4x4 Proj1, Texture2D ShadowMap1,
+                            float4x4 View2, float4x4 Proj2, Texture2D ShadowMap2,
+                            float blendFactor)
+{
+    float shadow1 = CalculateShadow(WorldPos, Normal, LightDir, View1, Proj1, ShadowMap1);
+    float shadow2 = CalculateShadow(WorldPos, Normal, LightDir, View2, Proj2, ShadowMap2);
+    
+    // 선형 보간을 사용하여 두 그림자 값 블렌딩
+    return lerp(shadow1, shadow2, blendFactor);
+}
+
+// 메인 디렉셔널 그림자 계산 함수
+float CalculateDirectionalShadow(float3 WorldPos, float3 Normal)
+{
+    // 뷰 공간에서의 깊이 계산
+    float4 WorldViewPos = mul(float4(WorldPos, 1.0f), ViewMatrix);
+    float nonLinearDepth = WorldViewPos.z;
+    
+    // 블렌딩 영역의 크기 (각 캐스케이드 분할점의 % 비율)
+    const float BLEND_RATIO = 0.1; // 조정 가능한 값
+    
+    // 각 캐스케이드 레벨의 블렌딩 영역 계산
+    float blend0 = BLEND_RATIO * DirLight.CascadeSplit0;
+    float blend1 = BLEND_RATIO * DirLight.CascadeSplit1;
+    float blend2 = BLEND_RATIO * DirLight.CascadeSplit2;
+    
+    // 캐스케이드 레벨 0 (가장 가까운 레벨)
+    if (nonLinearDepth < DirLight.CascadeSplit0 - blend0)
+    {
+        return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
+                            DirLight.View[0], DirLight.Projection[0], 
+                            DirectionalLightShadowMap[0]);
+    }
+    // 캐스케이드 레벨 0과 1 사이의 블렌딩 영역
+    if (nonLinearDepth < DirLight.CascadeSplit0 + blend0)
+    {
+        float blendFactor = (nonLinearDepth - (DirLight.CascadeSplit0 - blend0)) / (2 * blend0);
+        return CalculateBlendedShadow(WorldPos, Normal, DirLight.Direction,
+                                    DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0],
+                                    DirLight.View[1], DirLight.Projection[1], DirectionalLightShadowMap[1],
+                                    blendFactor);
+    }
+    // 캐스케이드 레벨 1
+    if (nonLinearDepth < DirLight.CascadeSplit1 - blend1)
+    {
+        return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
+                            DirLight.View[1], DirLight.Projection[1], 
+                            DirectionalLightShadowMap[1]);
+    }
+    // 캐스케이드 레벨 1과 2 사이의 블렌딩 영역
+    if (nonLinearDepth < DirLight.CascadeSplit1 + blend1)
+    {
+        float blendFactor = (nonLinearDepth - (DirLight.CascadeSplit1 - blend1)) / (2 * blend1);
+        return CalculateBlendedShadow(WorldPos, Normal, DirLight.Direction,
+                                    DirLight.View[1], DirLight.Projection[1], DirectionalLightShadowMap[1],
+                                    DirLight.View[2], DirLight.Projection[2], DirectionalLightShadowMap[2],
+                                    blendFactor);
+    }
+    // 캐스케이드 레벨 2
+    if (nonLinearDepth < DirLight.CascadeSplit2 - blend2)
+    {
+        return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
+                            DirLight.View[2], DirLight.Projection[2], 
+                            DirectionalLightShadowMap[2]);
+    }
+    // 캐스케이드 레벨 2와 3 사이의 블렌딩 영역
+    if (nonLinearDepth < DirLight.CascadeSplit2 + blend2)
+    {
+        float blendFactor = (nonLinearDepth - (DirLight.CascadeSplit2 - blend2)) / (2 * blend2);
+        return CalculateBlendedShadow(WorldPos, Normal, DirLight.Direction,
+                                    DirLight.View[2], DirLight.Projection[2], DirectionalLightShadowMap[2],
+                                    DirLight.View[3], DirLight.Projection[3], DirectionalLightShadowMap[3],
+                                    blendFactor);
+    }
+    // 캐스케이드 레벨 3 (가장 먼 레벨)
+    return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
+                        DirLight.View[3], DirLight.Projection[3], 
+                        DirectionalLightShadowMap[3]);
 }
 
 PS_OUTPUT mainPS(PS_INPUT input)
@@ -422,9 +549,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
     TotalLight += EmissiveColor; // 자체 발광  
 
     float3 DirLightColor = CalculateDirectionalLight(DirLight, Normal, ViewDir, baseColor.rgb);
-    if (length(DirLightColor) > 0.0)
+    if (length(DirLightColor) > 0.0 && DirLight.CastShadow)
     {
-        float dirShadow = CalculateShadow(input.worldPos, Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
+        float dirShadow = CalculateDirectionalShadow(input.worldPos, Normal);
         DirLightColor *= (1 - dirShadow);
     }
     TotalLight += DirLightColor;
@@ -440,16 +567,18 @@ PS_OUTPUT mainPS(PS_INPUT input)
         //}
 
         float3 LightColor = CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);
-        
-        float Shadow = CalculatePointLightShadow(input.worldPos,input.normal, PointLights[j],j);
-        
+        float Shadow = 1.0;
+        if (length(LightColor) > 0.0 && PointLights[j].CastShadow)
+        {
+            Shadow = CalculatePointLightShadow(input.worldPos, input.normal, PointLights[j], j);
+        }
         TotalLight += LightColor * Shadow;
     }
     
     for (uint k = 0; k < NumSpotLights; ++k)
     {
         float3 SpotLightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
-        if (length(SpotLightColor) > 0.0)
+        if (length(SpotLightColor) > 0.0 && SpotLights[k].CastShadow)
         {
             // float SpotShadow = CalculateShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
             float SpotShadow = CalculateSpotLightShadowAtlas(SpotLights[k], input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj);
@@ -461,5 +590,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float4 FinalColor = float4(TotalLight * baseColor.rgb, baseColor.a * TransparencyScalar);
     // 최종 색상 
     output.color = FinalColor;
+    
     return output;
 }

@@ -66,7 +66,7 @@ void FRenderResourceManager::LoadStates()
     samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
     samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
     samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-    samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS; // 그림자 맵 비교에 적합한 LESS
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL; // 그림자 맵 비교에 적합한 LESS
     samplerDesc.BorderColor[0] = 1.0f;
     samplerDesc.BorderColor[1] = 1.0f;
     samplerDesc.BorderColor[2] = 1.0f;

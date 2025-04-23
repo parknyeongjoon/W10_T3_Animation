@@ -41,6 +41,35 @@ struct FShadowResource
             return {};
         return Viewports[faceIndex];
     }
+    ID3D11ShaderResourceView* GetCubeFaceSRV(
+        ID3D11Device* device,
+        ID3D11Texture2D* cubeTexture,
+        UINT faceIndex)  // 0 ~ 5
+    {
+        if (faceIndex >= 6 || faceIndex<0) {
+            assert(!"Invalid cube face index (0~5 only)");
+            return nullptr;
+        }
+
+        // SRV 설정
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = DXGI_FORMAT_R32_FLOAT; // 원본이 R32_TYPELESS일 때 대응
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+        srvDesc.Texture2DArray.MostDetailedMip = 0;
+        srvDesc.Texture2DArray.MipLevels = 1;
+        srvDesc.Texture2DArray.FirstArraySlice = faceIndex;
+        srvDesc.Texture2DArray.ArraySize = 1;
+
+        ID3D11ShaderResourceView* faceSRV = nullptr;
+        HRESULT hr = device->CreateShaderResourceView(cubeTexture, &srvDesc, &faceSRV);
+        if (FAILED(hr)) {
+            assert(!"Failed to create cube face SRV");
+            return nullptr;
+        }
+
+        return faceSRV;
+    }
+
 
 private:
     FShadowMapAtlas* ParentAtlas = nullptr;
