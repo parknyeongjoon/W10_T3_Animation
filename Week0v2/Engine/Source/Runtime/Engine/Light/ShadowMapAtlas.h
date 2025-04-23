@@ -71,4 +71,6 @@ public:
     ID3D11RenderTargetView* GetVSMRTV2D() { return VSMAtalsRTV_2D.Get(); }
 
     EAtlasType GetType() const { return AtlasType; }
+
+    size_t GetEstimatedMemoryUsageInBytes(ELightType lightType);
 };

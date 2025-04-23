@@ -252,14 +252,23 @@ void StatOverlay::Render(ID3D11DeviceContext* context, UINT width, UINT height)
     {
         FShadowMemoryUsageInfo Info = FShadowResourceFactory::GetShadowMemoryUsageInfo();
         ImGui::Text("Shadow Memory Usage Info:");
-        float total = (float)Info.TotalMemoryUsage / (1024.f * 1024.f);
+        size_t pointlightAtlasMemory = UEditorEngine::renderer.GetAtlasMemoryUsage(ELightType::PointLight);
+        size_t spotlightAtlasMemory = UEditorEngine::renderer.GetAtlasMemoryUsage(ELightType::SpotLight);
+        ImGui::Text("PointLight Atlas Memory Usage : %.2f MB", (float)pointlightAtlasMemory / (1024.f * 1024.f));
+        ImGui::Text("SpotLight Atlas Memory Usage : %.2f MB", (float)spotlightAtlasMemory / (1024.f * 1024.f));
+
+        float total = (float)(Info.TotalMemoryUsage + pointlightAtlasMemory + spotlightAtlasMemory) / (1024.f * 1024.f);
         ImGui::Text("Total Memory: %.2f MB", total);
         for (const auto& pair : Info.MemoryUsageByLightType)
         {
             switch (pair.Key)
             {
             case ELightType::DirectionalLight:
+            {
                 ImGui::Text("%d Directional Light", Info.LightCountByLightType[pair.Key] / 4); // cascade때문에 4개 
+                float mb = (float)pair.Value / (1024.f * 1024.f);
+                ImGui::Text("Memory: %.2f MB", mb);
+            }
                 break;
             case ELightType::PointLight:
                 ImGui::Text("%d Point Light", Info.LightCountByLightType[pair.Key]);
@@ -268,8 +277,6 @@ void StatOverlay::Render(ID3D11DeviceContext* context, UINT width, UINT height)
                 ImGui::Text("%d Spot Light", Info.LightCountByLightType[pair.Key]);
                 break;
             }
-            float mb = (float)pair.Value / (1024.f * 1024.f);
-            ImGui::Text("Memory: %.2f MB", mb);
         }
     }
 

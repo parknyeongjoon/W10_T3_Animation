@@ -338,6 +338,19 @@ void FShadowRenderPass::UpdateCameraConstant(FMatrix Model, FMatrix View, FMatri
     renderResourceManager->UpdateConstantBuffer(CameraConstantBuffer, &CameraConstants);
 }
 
+FShadowMapAtlas* FShadowRenderPass::GetShadowMapAtlas(ELightType LightType) const
+{
+    if (LightType == ELightType::PointLight)
+    {
+        return PointLightShadowMapAtlas.get();
+    }
+    else if (LightType == ELightType::SpotLight)
+    {
+        return SpotLightShadowMapAtlas.get();
+    }
+    return nullptr;
+}
+
 bool FShadowRenderPass::IsLightInFrustum(ULightComponentBase* LightComponent, const FFrustum& CameraFrustum) const
 {
     if (Cast<UDirectionalLightComponent>(LightComponent))

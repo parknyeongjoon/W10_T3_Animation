@@ -167,6 +167,10 @@ FShadowResource::~FShadowResource()
 
 size_t FShadowResource::GetEsimatedMemoryUsageInBytes() const
 {
+    // 아틀라스가 있을 경우 아틀라스의 메모리 크기를 반환한다. 한 번만 호출함
+    if (ParentAtlas)
+        return ParentAtlas->GetEstimatedMemoryUsageInBytes(LightType);
+
     if (!ShadowTexture)
         return 0;
 
@@ -413,7 +417,14 @@ FShadowMemoryUsageInfo FShadowResourceFactory::GetShadowMemoryUsageInfo()
         size_t count = 0;
         for (const FShadowResource* shadowResource : shadowResources)
         {
-            totalMemory += shadowResource->GetEsimatedMemoryUsageInBytes();
+            if (lightType == ELightType::DirectionalLight)
+            {
+                totalMemory += shadowResource->GetEsimatedMemoryUsageInBytes();
+            }
+            /*else
+            {
+                totalMemory = shadowResource->GetEsimatedMemoryUsageInBytes();
+            }*/
             count++;
         }
         memoryUsageInfo.TotalMemoryUsage += totalMemory;
