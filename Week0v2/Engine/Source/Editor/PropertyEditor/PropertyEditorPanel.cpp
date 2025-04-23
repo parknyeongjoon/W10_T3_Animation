@@ -353,9 +353,6 @@ void PropertyEditorPanel::Render()
         {
             // direction
             UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(PickedComponent);
-            ImTextureID LightDepth = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()->GetSRV());
-            ImGui::Text("Shadow Map");
-            ImGui::Image(LightDepth, imageSize);
             bool override = Cast<UDirectionalLightComponent>(GEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
             if (ImGui::Checkbox("Override Camera", &override))
             {
@@ -368,6 +365,9 @@ void PropertyEditorPanel::Render()
                     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
                 }
             }
+            ImTextureID LightDepth = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()->GetSRV());
+            ImGui::Text("Shadow Map");
+            ImGui::Image(LightDepth, imageSize);
             ImTextureID LightDepth1 = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()[1].GetSRV());
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth1, imageSize);

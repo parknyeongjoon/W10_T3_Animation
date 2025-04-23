@@ -196,10 +196,13 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         }
     }
 
-    ID3D11ShaderResourceView* nullSRV[8] = { nullptr };
-    Graphics.DeviceContext->PSSetShaderResources(2, 1, &nullSRV[0]); //쓰고 해제 나중에 이쁘게 뺴기
-    Graphics.DeviceContext->PSSetShaderResources(3, 8, nullSRV);
-    Graphics.DeviceContext->PSSetShaderResources(11, 1, &nullSRV[0]);
+    ID3D11ShaderResourceView* nullSRVs[8] = { nullptr };
+    ID3D11ShaderResourceView* nullSRV[4] = { nullptr };
+    Graphics.DeviceContext->PSSetShaderResources(2, 1, &nullSRVs[0]); //쓰고 해제 나중에 이쁘게 뺴기
+    Graphics.DeviceContext->PSSetShaderResources(3, 8, nullSRVs);
+    Graphics.DeviceContext->PSSetShaderResources(11, 4, nullSRV);
+    Graphics.DeviceContext->PSSetShaderResources(15, 8, nullSRVs);
+    Graphics.DeviceContext->PSSetShaderResources(23, 8, nullSRVs);
 }
 
 //void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
@@ -312,6 +315,8 @@ void FStaticMeshRenderPass::UpdateFlagConstant()
 
     FlagConstant.IsNormal = GEngine->renderer.bIsNormal;
 
+    FlagConstant.IsVSM = GEngine->renderer.GetShadowFilterMode();
+
     renderResourceManager->UpdateConstantBuffer(TEXT("FFlagConstants"), &FlagConstant);
 }
 
@@ -376,10 +381,14 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             {
                 LightConstant.DirLight.View[i] = DirectionalLightComp->GetCascadeViewMatrix(i);
                 LightConstant.DirLight.Projection[i] = DirectionalLightComp->GetCascadeProjectionMatrix(i);
-                DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetSRV());
                 LightConstant.DirLight.CascadeSplit[i] = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeSplit(i);
+                ID3D11ShaderResourceView* DirectionalLightSRV = DirectionalLightComp->GetShadowResource()[i].GetSRV();
+                //if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
+                //{
+                //    DirectionalLightSRV = DirectionalLightComp->GetShadowResource()[i].GetVSMSRV();
+                //}
+                DirectionalShadowMaps.Add(DirectionalLightSRV);
             }
-
             Graphics.DeviceContext->PSSetShaderResources(11, 4, DirectionalShadowMaps.GetData());
             continue;
         }
@@ -402,7 +411,8 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.SpotLights[SpotLightCount].Proj = (SpotLightComp->GetProjectionMatrix());
             LightConstant.SpotLights[SpotLightCount].CastShadow = SpotLightComp->CanCastShadows();
             LightConstant.SpotLights[SpotLightCount].AtlasUVTransform = SpotLightComp->GetLightAtlasUV();
-            ShadowMaps[SpotLightCount] = SpotLightComp->GetShadowResource()->GetSRV();
+            ShadowMaps[SpotLightCount] = (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ? 
+                SpotLightComp->GetShadowResource()->GetVSMSRV() : SpotLightComp->GetShadowResource()->GetSRV();
             SpotLightCount++;
             continue;
         }
@@ -514,8 +524,8 @@ void FStaticMeshRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewport
     CameraConstants.CameraForward = FVector::ZeroVector;
     CameraConstants.CameraPos = curEditorViewportClient->ViewTransformPerspective.GetLocation();
     CameraConstants.ViewProjMatrix = FMatrix::Identity;
-    CameraConstants.ViewMatrix = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
-    CameraConstants.ProjMatrix = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
+    CameraConstants.ProjMatrix = FMatrix::Identity;
+    CameraConstants.ViewMatrix = FMatrix::Identity;
     CameraConstants.NearPlane = curEditorViewportClient->GetNearClip();
     CameraConstants.FarPlane = curEditorViewportClient->GetFarClip();
 
