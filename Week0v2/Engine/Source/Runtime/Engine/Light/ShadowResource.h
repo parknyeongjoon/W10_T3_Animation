@@ -5,6 +5,8 @@
 
 using Microsoft::WRL::ComPtr;
 
+class FShadowMapAtlas; 
+
 struct FShadowResource
 {
     //static ID3D11SamplerState* comparisonSampler;
@@ -21,7 +23,7 @@ struct FShadowResource
     ELightType LightType;
 
     FShadowResource() = default;
-    FShadowResource(ID3D11Device* Device, ELightType LightType, UINT ShadowResolution);
+    FShadowResource(ID3D11Device* Device, ELightType LightType, UINT ShadowResolution, bool bUseAtlas);
     ~FShadowResource();
 
     size_t GetEsimatedMemoryUsageInBytes() const;
@@ -68,6 +70,16 @@ struct FShadowResource
         return faceSRV;
     }
 
+
+private:
+    FShadowMapAtlas* ParentAtlas = nullptr;
+    int AtlasSlotIndex = -1;
+
+public:
+    bool IsInAtlas() const { return ParentAtlas != nullptr; }
+    int GetAtlasSlotIndex() const { return AtlasSlotIndex; }
+    void BindToAtlas(FShadowMapAtlas* Atlas, int SlotIndex);
+    void UnbindFromAtlas();
 };
 
 struct FShadowMemoryUsageInfo
@@ -81,6 +93,6 @@ class FShadowResourceFactory
 {
 public:
     static inline TMap<ELightType, TArray<FShadowResource*>> ShadowResources;
-    static FShadowResource* CreateShadowResource(ID3D11Device* Device, ELightType LightType, UINT ShadowResource);
+    static FShadowResource* CreateShadowResource(ID3D11Device* Device, ELightType LightType, UINT ShadowResource, bool bUseAtlas = true);
     static FShadowMemoryUsageInfo GetShadowMemoryUsageInfo();
 };

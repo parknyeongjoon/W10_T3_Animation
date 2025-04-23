@@ -401,6 +401,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.SpotLights[SpotLightCount].View = (SpotLightComp->GetViewMatrix());
             LightConstant.SpotLights[SpotLightCount].Proj = (SpotLightComp->GetProjectionMatrix());
             LightConstant.SpotLights[SpotLightCount].CastShadow = SpotLightComp->CanCastShadows();
+            LightConstant.SpotLights[SpotLightCount].AtlasUVTransform = SpotLightComp->GetLightAtlasUV();
             ShadowMaps[SpotLightCount] = SpotLightComp->GetShadowResource()->GetSRV();
             SpotLightCount++;
             continue;
@@ -419,7 +420,8 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     }
 
     Graphics.DeviceContext->PSSetShaderResources(15, 8, ShadowCubeMap);
-    Graphics.DeviceContext->PSSetShaderResources(3, 8, ShadowMaps);
+    //Graphics.DeviceContext->PSSetShaderResources(3, 8, ShadowMaps);
+    // !NOTE : 아틀라스 텍스쳐는 이전 패스인 ShadowRenderPass에서 바인딩한다
     //UE_LOG(LogLevel::Error, "Point : %d, Spot : %d Dir : %d", PointLightCount, SpotLightCount, DirectionalLightCount);
     LightConstant.NumPointLights = PointLightCount;
     LightConstant.NumSpotLights = SpotLightCount;
@@ -512,8 +514,8 @@ void FStaticMeshRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewport
     CameraConstants.CameraForward = FVector::ZeroVector;
     CameraConstants.CameraPos = curEditorViewportClient->ViewTransformPerspective.GetLocation();
     CameraConstants.ViewProjMatrix = FMatrix::Identity;
-    CameraConstants.ViewMatrix = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
-    CameraConstants.ProjMatrix = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
+    CameraConstants.ProjMatrix = FMatrix::Identity;
+    CameraConstants.ViewMatrix = FMatrix::Identity;
     CameraConstants.NearPlane = curEditorViewportClient->GetNearClip();
     CameraConstants.FarPlane = curEditorViewportClient->GetFarClip();
 

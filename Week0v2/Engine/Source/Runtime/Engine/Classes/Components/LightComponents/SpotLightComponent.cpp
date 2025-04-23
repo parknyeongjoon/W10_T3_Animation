@@ -138,3 +138,17 @@ void USpotLightComponent::LoadAndConstruct(const FActorComponentInfo& Info)
     InnerConeAngle = PointLightInfo.InnerConeAngle;
     OuterConeAngle = PointLightInfo.OuterConeAngle;
 }
+
+FVector4 USpotLightComponent::GetLightAtlasUV() const
+{
+    if (!ShadowResource || ShadowResource->GetAtlasSlotIndex() == -1)
+        return FVector4();
+
+    int AtlasSlotIndex = ShadowResource->GetAtlasSlotIndex();
+    return FVector4(
+        (AtlasSlotIndex % 4) * 0.25f,
+        (AtlasSlotIndex / 4) * 0.25f,
+        0.25f,
+        0.25f
+    );
+}

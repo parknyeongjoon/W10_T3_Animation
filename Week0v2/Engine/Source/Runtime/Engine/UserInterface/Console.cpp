@@ -243,17 +243,15 @@ void StatOverlay::Render(ID3D11DeviceContext* context, UINT width, UINT height)
             switch (pair.Key)
             {
             case ELightType::DirectionalLight:
-                ImGui::Text("Directional Light");
+                ImGui::Text("%d Directional Light", Info.LightCountByLightType[pair.Key] / 4); // cascade때문에 4개 
                 break;
             case ELightType::PointLight:
-                ImGui::Text("Point Light");
+                ImGui::Text("%d Point Light", Info.LightCountByLightType[pair.Key]);
                 break;
             case ELightType::SpotLight:
-                ImGui::Text("Spot Light");
+                ImGui::Text("%d Spot Light", Info.LightCountByLightType[pair.Key]);
                 break;
             }
-            // byte to mb
-            //ImGui::Text("Count : %d", Info.LightCountByLightType[pair.Key]);
             float mb = (float)pair.Value / (1024.f * 1024.f);
             ImGui::Text("Memory: %.2f MB", mb);
         }
