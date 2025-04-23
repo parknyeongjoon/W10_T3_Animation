@@ -723,17 +723,17 @@ PS_OUTPUT mainPS(PS_INPUT input)
     for (uint k = 0; k < NumSpotLights; ++k)
     {
         float3 SpotLightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
-        if (length(SpotLightColor) > 0.0 && SpotLights[k].CastShadow)
+        if (length(SpotLightColor) > 0.0)
         {
             if (IsVSM)
             {
-                float SpotShadow = CalculateSpotLightVSMShadowAtlas(SpotLights[k], input.worldPos, SpotLights[k].Position,
+                float SpotShadow = CalculateSpotLightVSMShadowAtlas(SpotLights[k], SpotLights[k].Position, input.worldPos,
                 Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj);
                 SpotLightColor *= (SpotShadow);
             }
             else
             {
-                float SpotShadow = CalculateSpotLightShadowAtlas(SpotLights[k], input.worldPos, SpotLights[k].Position, 
+                float SpotShadow = CalculateSpotLightShadowAtlas(SpotLights[k], SpotLights[k].Position, input.worldPos,
                 Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj);
                 SpotLightColor *= (1 - SpotShadow);
             }
