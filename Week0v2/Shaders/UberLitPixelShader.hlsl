@@ -484,7 +484,7 @@ float CalculateSpotLightVSMShadowAtlas(FSpotLight SpotLight, float3 LightPos, fl
         float distanceScale = saturate(1.0 - dist / 100.0f);
         bias *= distanceScale;
         bias = max(bias, 0.00005);
-        float2 moments = SpotLightAtlas.Sample(pointSampler, atlasUV).rg;
+        float2 moments = SpotLightAtlas.Sample(linearSampler, atlasUV).rg;
         float mean = moments.x;
         float meanSq = moments.y;
         float variance = meanSq - mean * mean;
