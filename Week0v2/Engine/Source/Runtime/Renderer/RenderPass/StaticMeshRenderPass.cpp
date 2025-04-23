@@ -385,8 +385,6 @@ void FStaticMeshRenderPass::UpdateLightConstants()
                 LightConstant.DirLight.View[i] = DirectionalLightComp->GetCascadeViewMatrix(i);
                 LightConstant.DirLight.Projection[i] = DirectionalLightComp->GetCascadeProjectionMatrix(i);
                 LightConstant.DirLight.CascadeSplit[i] = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeSplit(i);
-            }
-
                 if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
                 {
                     DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetVSMSRV());

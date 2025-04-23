@@ -77,7 +77,6 @@ struct FShadowResource
 
         return faceSRV;
     }
-    }
 };
 
 struct FShadowMemoryUsageInfo
