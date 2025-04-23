@@ -146,9 +146,9 @@ struct PS_OUTPUT
 float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight PointLight,int mapIndex)
 {
     float4 WoldPos4 = float4(worldPos, 1.0f);
-    
+  
     float3 LightDirection = normalize(worldPos - PointLight.Position);
-    
+  
     float3 LightDirectionAbs = abs(LightDirection); // 절대값 각 축 크기 구함.
     int face;
     if (LightDirectionAbs.x >= LightDirectionAbs.y && LightDirectionAbs.x >= LightDirectionAbs.z) 
@@ -157,24 +157,53 @@ float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight 
         face = LightDirection.y > 0 ? 2 : 3; // +Y, -Y
     else
         face = LightDirection.z > 0 ? 4 : 5; // +Z, -Z
-    
+  
     float4 LightViewPos = mul(WoldPos4, PointLight.View[face]); // 월드 → 라이트(큐브 face) 공간
-    float4 clipPos = mul(LightViewPos,PointLight.Proj); // 라이트 공간 -> Clip space
+    float4 clipPos = mul(LightViewPos, PointLight.Proj); // 라이트 공간 -> Clip space
 
-    //FIXME : bias 적용
-    // NDC 깊이 (0~1) 추출
-    //float refDepth = clipPos.z / clipPos.w - bias;
+  //FIXME : bias 적용
+  // NDC 깊이 (0~1) 추출
+  //float refDepth = clipPos.z / clipPos.w - bias;
     float bias = max(0.001 * (1.0 - dot(worldNormal, LightDirection)), 0.0001);
     float refDepth = clipPos.z / clipPos.w - bias;
 
-
-    float shadow = PointLightShadowMap[mapIndex].SampleCmp(
-        CompareSampler,
-        LightDirection, // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
-        refDepth
-    );
-
-   return shadow;
+   // PCF 파라미터 설정
+    float shadowSum = 0.0;
+    float numSamples = 0.0;
+    float pcfRadius = 0.001; // PCF 필터 반경 (조정 가능)
+  
+  // 샘플링 패턴 (5x5 필터링)
+    const int filterSize = 6; // 중앙을 포함한 반경 (-2, -1, 0, 1, 2) -> 5x5
+  
+    for (int x = -filterSize; x <= filterSize; x++)
+    {
+        for (int y = -filterSize; y <= filterSize; y++)
+        {
+          // 샘플링 오프셋 벡터 계산
+            float3 offset = float3(0, 0, 0);
+            if (face == 0 || face == 1) // X축 면
+                offset = float3(0, x * pcfRadius, y * pcfRadius);
+            else if (face == 2 || face == 3) // Y축 면
+                offset = float3(x * pcfRadius, 0, y * pcfRadius);
+            else // Z축 면
+                offset = float3(x * pcfRadius, y * pcfRadius, 0);
+          
+          // 오프셋을 적용한 샘플링 방향
+            float3 sampleDirection = normalize(LightDirection + offset);
+          
+          // 샘플링
+            float shadowSample = PointLightShadowMap[mapIndex].SampleCmp(
+              CompareSampler,
+              sampleDirection,
+              refDepth
+          );
+          
+            shadowSum += shadowSample;
+            numSamples += 1.0;
+        }
+    }
+  
+    return shadowSum / numSamples;
 }
 
 float3 CalculateDirectionalLight(  

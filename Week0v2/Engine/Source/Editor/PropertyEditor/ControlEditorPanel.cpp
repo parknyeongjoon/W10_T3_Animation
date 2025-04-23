@@ -287,6 +287,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             { "Shapes", "Sphere",          OBJ_SPHERE },
             { "Shapes", "Car (Dodge)",     OBJ_CAR },
             { "Shapes", "SkySphere",       OBJ_SKYSPHERE},
+            { "Shapes", "Yeoul",           OBJ_YEOUL},
 
             // ✨ 효과
             { "Effects", "Particle",       OBJ_PARTICLE },
@@ -424,6 +425,16 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/Dodge/Dodge.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Dodge.obj"));
+                    SpawnedActor = TempActor;
+                    break;
+                }
+                case OBJ_YEOUL:
+                {
+                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                    TempActor->SetActorLabel(TEXT("OBJ_YEOUL"));
+                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                    FManagerOBJ::CreateStaticMesh("Assets/Yeoul/yeoul.obj");
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"yeoul.obj"));
                     SpawnedActor = TempActor;
                     break;
                 }

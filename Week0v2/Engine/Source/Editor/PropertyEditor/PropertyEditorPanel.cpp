@@ -398,7 +398,37 @@ void PropertyEditorPanel::Render()
                 //    PointLight->SetAttenuationFallOff(attenuationVal);
                 //}
             }
-            ImTextureID LightDepth = reinterpret_cast<ImTextureID>(PointLight->GetShadowResource()->GetSRV());
+
+            static int selectedFace = 0;
+            static const char* faceNames[] = {
+                "+X (Right)", "-X (Left)",
+                "+Y (Top)",   "-Y (Bottom)",
+                "+Z (Front)", "-Z (Back)"
+            };
+
+            ImGui::Text("Cube Map Face");
+            if (ImGui::BeginCombo("Face", faceNames[selectedFace])) {
+                for (int i = 0; i < 6; i++) {
+                    bool isSelected = (selectedFace == i);
+                    if (ImGui::Selectable(faceNames[i], isSelected)) {
+                        selectedFace = i;
+                    }
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+
+            // 선택된 면에 해당하는 SRV 생성 및 표시
+            FShadowResource* ShadowResouce = PointLight->GetShadowResource();
+            ID3D11ShaderResourceView* CubeFaceSRV = ShadowResouce->GetCubeFaceSRV(
+                GEngine->GetEngine()->graphicDevice.Device,
+                ShadowResouce->GetTexture(),
+                selectedFace
+            );
+
+            ImTextureID LightDepth = reinterpret_cast<ImTextureID>(CubeFaceSRV);
+            ImVec2 imageSize(128, 128); // 필요에 따라 크기 조정
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth, imageSize);
         }
