@@ -196,10 +196,13 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         }
     }
 
-    ID3D11ShaderResourceView* nullSRV[8] = { nullptr };
-    Graphics.DeviceContext->PSSetShaderResources(2, 1, &nullSRV[0]); //쓰고 해제 나중에 이쁘게 뺴기
-    Graphics.DeviceContext->PSSetShaderResources(3, 8, nullSRV);
-    Graphics.DeviceContext->PSSetShaderResources(11, 1, &nullSRV[0]);
+    ID3D11ShaderResourceView* nullSRVs[8] = { nullptr };
+    ID3D11ShaderResourceView* nullSRV[4] = { nullptr };
+    Graphics.DeviceContext->PSSetShaderResources(2, 1, &nullSRVs[0]); //쓰고 해제 나중에 이쁘게 뺴기
+    Graphics.DeviceContext->PSSetShaderResources(3, 8, nullSRVs);
+    Graphics.DeviceContext->PSSetShaderResources(11, 4, nullSRV);
+    Graphics.DeviceContext->PSSetShaderResources(15, 8, nullSRVs);
+    Graphics.DeviceContext->PSSetShaderResources(23, 8, nullSRVs);
 }
 
 //void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
@@ -312,6 +315,8 @@ void FStaticMeshRenderPass::UpdateFlagConstant()
 
     FlagConstant.IsNormal = GEngine->renderer.bIsNormal;
 
+    FlagConstant.IsVSM = GEngine->renderer.GetShadowFilterMode();
+
     renderResourceManager->UpdateConstantBuffer(TEXT("FFlagConstants"), &FlagConstant);
 }
 
@@ -329,11 +334,12 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     FFrustum CameraFrustum = FFrustum::ExtractFrustum(View*Projection);
     ID3D11ShaderResourceView* ShadowMaps[8] = { nullptr };
     ID3D11ShaderResourceView* ShadowCubeMap[8] = { nullptr };
+    ID3D11ShaderResourceView* ShadowVSMMap[8] = { nullptr };
     for (ULightComponentBase* Comp : LightComponents)
     {
         if (!IsLightInFrustum(Comp, CameraFrustum))
         {
-            continue;
+            //continue;
         }
 
         if (const UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(Comp))
@@ -352,6 +358,8 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.PointLights[PointLightCount].CastShadow = PointLightComp->CanCastShadows();
 ;
             ShadowCubeMap[PointLightCount] = PointLightComp->GetShadowResource()->GetSRV();
+            if(GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
+                ShadowVSMMap[PointLightCount] = PointLightComp->GetShadowResource()->GetVSMSRV();
 
             for (int face = 0;face < 6;face++)
             {
@@ -376,10 +384,16 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             {
                 LightConstant.DirLight.View[i] = DirectionalLightComp->GetCascadeViewMatrix(i);
                 LightConstant.DirLight.Projection[i] = DirectionalLightComp->GetCascadeProjectionMatrix(i);
-                DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetSRV());
                 LightConstant.DirLight.CascadeSplit[i] = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeSplit(i);
+                if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
+                {
+                    DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetVSMSRV());
+                }
+                else
+                {
+                    DirectionalShadowMaps.Add(DirectionalLightComp->GetShadowResource()[i].GetSRV());
+                }
             }
-
             Graphics.DeviceContext->PSSetShaderResources(11, 4, DirectionalShadowMaps.GetData());
             continue;
         }
@@ -402,7 +416,8 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.SpotLights[SpotLightCount].Proj = (SpotLightComp->GetProjectionMatrix());
             LightConstant.SpotLights[SpotLightCount].CastShadow = SpotLightComp->CanCastShadows();
             LightConstant.SpotLights[SpotLightCount].AtlasUVTransform = SpotLightComp->GetLightAtlasUV();
-            ShadowMaps[SpotLightCount] = SpotLightComp->GetShadowResource()->GetSRV();
+            ShadowMaps[SpotLightCount] = (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ? 
+                SpotLightComp->GetShadowResource()->GetVSMSRV() : SpotLightComp->GetShadowResource()->GetSRV();
             SpotLightCount++;
             continue;
         }
@@ -419,6 +434,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             }
     }
 
+    Graphics.DeviceContext->PSSetShaderResources(23, 8, ShadowVSMMap);
     Graphics.DeviceContext->PSSetShaderResources(15, 8, ShadowCubeMap);
     //Graphics.DeviceContext->PSSetShaderResources(3, 8, ShadowMaps);
     // !NOTE : 아틀라스 텍스쳐는 이전 패스인 ShadowRenderPass에서 바인딩한다

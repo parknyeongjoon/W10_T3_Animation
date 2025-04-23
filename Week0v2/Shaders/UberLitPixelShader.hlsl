@@ -16,6 +16,8 @@ Texture2D DirectionalLightShadowMap[CASCADE_COUNT] : register(t11);
 
 TextureCube<float> PointLightShadowMap[8] : register(t15);
 
+Texture2DArray<float2> PointLightVSM[8] : register(t23);
+
 #define MAX_POINTLIGHT_COUNT 8
 
 cbuffer FMaterialConstants : register(b0)
@@ -107,7 +109,8 @@ cbuffer FFlagConstants : register(b3)
 {
     uint IsLit;
     uint IsNormal;
-    float2 flagPad0;
+    uint IsVSM; 
+    float flagPad0;
 }
 
 cbuffer FSubUVConstant : register(b4)
@@ -215,6 +218,50 @@ float CalculatePointLightShadow(float3 worldPos,float3 worldNormal, FPointLight 
     }
   
     return shadowSum / numSamples;
+}
+
+float3 CalculateVSMPointLightShadow(float3 WorldPos, float3 Normal, FPointLight Light, Texture2DArray<float2> ShadowMap)
+{
+    float3 ToLight = WorldPos - Light.Position;
+    float3 dir = normalize(ToLight);
+    float dist = length(ToLight);
+
+    uint face = 0;
+    float3 absDir = abs(dir);
+    if (absDir.x > absDir.y && absDir.x > absDir.z)
+        face = (dir.x > 0) ? 0 : 1;
+    else if (absDir.y > absDir.z)
+        face = (dir.y > 0) ? 2 : 3;
+    else
+        face = (dir.z > 0) ? 4 : 5;
+    
+    face = 1;
+    float4 LightSpacePos = mul(float4(WorldPos, 1.0), Light.View[face]);
+    LightSpacePos = mul(LightSpacePos, Light.Proj);
+    
+    float2 uv = LightSpacePos.xy / LightSpacePos.w * 0.5 + 0.5;
+    uv.y = 1.0 - uv.y;
+
+    float worldDepth = LightSpacePos.z / LightSpacePos.w;
+
+    if (uv.x < 0 || uv.x > 1 || uv.y < 0 || uv.y > 1 || worldDepth < 0 || worldDepth > 1)
+        return 1.0;
+    
+    float bias = max(0.0001 * (1.0 - dot(Normal, dir)), 0.00005);
+    float distanceScale = saturate(1.0 - dist / Light.Radius);
+    bias *= distanceScale;
+    bias = max(bias, 0.00001);
+    float2 moments = ShadowMap.Sample(linearSampler, float3(uv, face));
+    float mean = moments.x;
+    float meanSq = moments.y;
+    float variance = meanSq - mean * mean;
+    variance = max(variance, 0.00001);
+        
+    float d = worldDepth - mean;
+    float pMax = variance / (variance + d * d);
+    float distanceFactor = distanceScale * 100;
+    pMax = pow(saturate(pMax), distanceFactor);
+    return max(saturate(pMax), worldDepth <= mean + bias);
 }
 
 float3 CalculateDirectionalLight(  
@@ -329,7 +376,7 @@ float4 WorldToLight(float3 WorldPos, row_major float4x4 View, row_major float4x4
     return LightViewPos;
 }
 
-float CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
+float CalculateShadow(float3 WorldPos, float3 LightPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
 {
     float shadow = 0;
     float4 LightViewPos = WorldToLight(WorldPos, View, Projection);
@@ -337,15 +384,20 @@ float CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 
     shadowUV.y = 1.0 - shadowUV.y;
     float worldDepth = LightViewPos.z / LightViewPos.w;
 
-    if(shadowUV.x >= 0 && shadowUV.x <= 1 &&
-        shadowUV.y >= 0 && shadowUV.y <= 1 && 
+    if (shadowUV.x >= 0 && shadowUV.x <= 1 &&
+        shadowUV.y >= 0 && shadowUV.y <= 1 &&
         worldDepth >= 0 && worldDepth <= 1)
     {
-        float bias = max(0.01 * (1.0 - dot(Normal, -LightDir)), 0.001);
-
+        float bias = max(0.0001 * (1.0 - dot(Normal, -LightDir)), 0.00005);
+        float dist = length(WorldPos - LightPos);
+        float distanceScale = saturate(1.0 - dist / 100.0f);
+        bias *= distanceScale;
+        bias = max(bias, 0.00001);
+        
         int numSamples = 0.0;
         static uint textureWidth, textureHeight;
         ShadowMap.GetDimensions(textureWidth, textureHeight);
+        
         [unroll]
         for (int x = -filterSize; x <= filterSize; ++x)
         {
@@ -361,10 +413,10 @@ float CalculateShadow(float3 WorldPos, float3 Normal, float3 LightDir, float4x4 
         }
         shadow = shadow / numSamples;
     }
-    
     return shadow;
 }
-float CalculateSpotLightShadowAtlas(FSpotLight SpotLight, float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection)
+
+float CalculateSpotLightShadowAtlas(FSpotLight SpotLight, float3 LightPos, float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection)
 {
     float shadow = 0;
     float4 LightViewPos = WorldToLight(WorldPos, View, Projection);
@@ -382,15 +434,19 @@ float CalculateSpotLightShadowAtlas(FSpotLight SpotLight, float3 WorldPos, float
        atlasUV.y <= (SpotLight.AtlasUV.y + SpotLight.AtlasUV.w) &&
        worldDepth >= 0 && worldDepth <= 1)
     {
-        float bias = max(0.01 * (1.0 - dot(Normal, -LightDir)), 0.001);
+        float bias = max(0.0001 * (1.0 - dot(Normal, -LightDir)), 0.00005);
+        float dist = length(WorldPos - LightPos);
+        float distanceScale = saturate(1.0 - dist / 100.0f);
+        bias *= distanceScale;
+        bias = max(bias, 0.00001);
         
-        const float texelSize = 1.0 / 1024.0; // 1024x1024 해상도 가정
+        static const float texelSize = 1.0 / 1024.0; // 1024x1024 해상도 가정
         
         [unroll]
-        for (int x = -1; x <= 1; ++x)
+        for (int x = -filterSize; x <= filterSize; ++x)
         {
             [unroll]
-            for (int y = -1; y <= 1; ++y)
+            for (int y = -filterSize; y <= filterSize; ++y)
             {
                 float2 offset = float2(x, y) * texelSize;
                 float sampleDepth = SpotLightAtlas.Sample(
@@ -407,14 +463,54 @@ float CalculateSpotLightShadowAtlas(FSpotLight SpotLight, float3 WorldPos, float
     return shadow;
 }
 
+float CalculateSpotLightVSMShadowAtlas(FSpotLight SpotLight, float3 LightPos, float3 WorldPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection)
+{
+    float shadow = 0;
+    float4 LightViewPos = WorldToLight(WorldPos, View, Projection);
+    
+    float2 shadowUV = LightViewPos.xy / LightViewPos.w * 0.5 + 0.5;
+    shadowUV.y = 1.0 - shadowUV.y;
+    float worldDepth = LightViewPos.z / LightViewPos.w;
+    
+    float2 atlasUV = shadowUV * SpotLight.AtlasUV.zw + SpotLight.AtlasUV.xy;
+    
+    // 경계 검사
+    if (atlasUV.x >= SpotLight.AtlasUV.x &&
+       atlasUV.x <= (SpotLight.AtlasUV.x + SpotLight.AtlasUV.z) &&
+       atlasUV.y >= SpotLight.AtlasUV.y &&
+       atlasUV.y <= (SpotLight.AtlasUV.y + SpotLight.AtlasUV.w) &&
+       worldDepth >= 0 && worldDepth <= 1)
+    {
+        float bias = max(0.0001 * (1.0 - dot(Normal, -LightDir)), 0.00005);
+        float dist = length(WorldPos - LightPos);
+        float distanceScale = saturate(1.0 - dist / 100.0f);
+        bias *= distanceScale;
+        bias = max(bias, 0.00001);
+        float2 moments = SpotLightAtlas.Sample(pointSampler, atlasUV).rg;
+        float mean = moments.x;
+        float meanSq = moments.y;
+        float variance = meanSq - mean * mean;
+        variance = max(variance, 0.00001);
+        
+        float d = worldDepth - mean;
+        float pMax = variance / (variance + d * d);
+        float distanceFactor = distanceScale * 100;
+        pMax = pow(saturate(pMax), distanceFactor);
+        return max(saturate(pMax), worldDepth <= mean + bias);
+    }
+    return 0;
+}
+
 // 다음 캐스케이드 레벨로의 부드러운 전환을 위한 블렌딩 함수
 float CalculateBlendedShadow(float3 WorldPos, float3 Normal, float3 LightDir, 
                             float4x4 View1, float4x4 Proj1, Texture2D ShadowMap1,
                             float4x4 View2, float4x4 Proj2, Texture2D ShadowMap2,
                             float blendFactor)
 {
-    float shadow1 = CalculateShadow(WorldPos, Normal, LightDir, View1, Proj1, ShadowMap1);
-    float shadow2 = CalculateShadow(WorldPos, Normal, LightDir, View2, Proj2, ShadowMap2);
+    float shadow1 = CalculateShadow(WorldPos, float3(0, 0, 0) - LightDir,
+    Normal, LightDir, View1, Proj1, ShadowMap1);
+    float shadow2 = CalculateShadow(WorldPos, float3(0, 0, 0) - LightDir, 
+    Normal, LightDir, View2, Proj2, ShadowMap2);
     
     // 선형 보간을 사용하여 두 그림자 값 블렌딩
     return lerp(shadow1, shadow2, blendFactor);
@@ -438,7 +534,7 @@ float CalculateDirectionalShadow(float3 WorldPos, float3 Normal)
     // 캐스케이드 레벨 0 (가장 가까운 레벨)
     if (nonLinearDepth < DirLight.CascadeSplit0 - blend0)
     {
-        return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
+        return CalculateShadow(WorldPos, float3(0, 0, 0) - DirLight.Direction, Normal, DirLight.Direction,
                             DirLight.View[0], DirLight.Projection[0], 
                             DirectionalLightShadowMap[0]);
     }
@@ -454,7 +550,8 @@ float CalculateDirectionalShadow(float3 WorldPos, float3 Normal)
     // 캐스케이드 레벨 1
     if (nonLinearDepth < DirLight.CascadeSplit1 - blend1)
     {
-        return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
+        return CalculateShadow(WorldPos, float3(0, 0, 0) - DirLight.Direction, 
+                            Normal, DirLight.Direction,
                             DirLight.View[1], DirLight.Projection[1], 
                             DirectionalLightShadowMap[1]);
     }
@@ -470,7 +567,7 @@ float CalculateDirectionalShadow(float3 WorldPos, float3 Normal)
     // 캐스케이드 레벨 2
     if (nonLinearDepth < DirLight.CascadeSplit2 - blend2)
     {
-        return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
+        return CalculateShadow(WorldPos, float3(0, 0, 0) - DirLight.Direction, Normal, DirLight.Direction,
                             DirLight.View[2], DirLight.Projection[2], 
                             DirectionalLightShadowMap[2]);
     }
@@ -484,9 +581,42 @@ float CalculateDirectionalShadow(float3 WorldPos, float3 Normal)
                                     blendFactor);
     }
     // 캐스케이드 레벨 3 (가장 먼 레벨)
-    return CalculateShadow(WorldPos, Normal, DirLight.Direction, 
+    return CalculateShadow(WorldPos, float3(0, 0, 0) - DirLight.Direction, Normal, DirLight.Direction,
                         DirLight.View[3], DirLight.Projection[3], 
                         DirectionalLightShadowMap[3]);
+}
+
+float CalculateVSMShadow(float3 WorldPos, float3 LightPos, float3 Normal, float3 LightDir, float4x4 View, float4x4 Projection, Texture2D ShadowMap)
+{
+    float shadow = 0;
+    float4 LightViewPos = WorldToLight(WorldPos, View, Projection);
+            
+    float2 shadowUV = LightViewPos.xy / LightViewPos.w * 0.5 + 0.5;
+    shadowUV.y = 1.0 - shadowUV.y;
+    float worldDepth = LightViewPos.z / LightViewPos.w;
+
+    if (shadowUV.x >= 0 && shadowUV.x <= 1 &&
+        shadowUV.y >= 0 && shadowUV.y <= 1 &&
+        worldDepth >= 0 && worldDepth <= 1)
+    {
+        float bias = max(0.0001 * (1.0 - dot(Normal, -LightDir)), 0.00005);
+        float dist = length(WorldPos - LightPos);
+        float distanceScale = saturate(1.0 - dist / 100.0f);
+        bias *= distanceScale;
+        bias = max(bias, 0.00001);
+        float2 moments = ShadowMap.Sample(linearSampler, shadowUV);
+        float mean = moments.x;
+        float meanSq = moments.y;
+        float variance = meanSq - mean * mean;
+        variance = max(variance, 0.00001);
+        
+        float d = worldDepth - mean;
+        float pMax = variance / (variance + d * d);
+        float distanceFactor = distanceScale * 100;
+        pMax = pow(saturate(pMax), distanceFactor);
+        return max(saturate(pMax), worldDepth <= mean + bias);
+    }
+    return 0;
 }
 
 PS_OUTPUT mainPS(PS_INPUT input)
@@ -547,12 +677,20 @@ PS_OUTPUT mainPS(PS_INPUT input)
     if (IsSelectedActor == 1)
         TotalLight = TotalLight * 10.0f;
     TotalLight += EmissiveColor; // 자체 발광  
-
     float3 DirLightColor = CalculateDirectionalLight(DirLight, Normal, ViewDir, baseColor.rgb);
     if (length(DirLightColor) > 0.0 && DirLight.CastShadow)
     {
-        float dirShadow = CalculateDirectionalShadow(input.worldPos, Normal);
-        DirLightColor *= (1 - dirShadow);
+        if (IsVSM)
+        {
+            float dirShadow = CalculateVSMShadow(input.worldPos, float3(0, 0, 0) - DirLight.Direction,
+            Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
+            DirLightColor *= (dirShadow);
+        }
+        else
+        {
+            float dirShadow = CalculateShadow(input.worldPos, float3(0, 0, 0) - DirLight.Direction, Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
+            DirLightColor *= (1 - dirShadow);
+        }
     }
     TotalLight += DirLightColor;
 
@@ -565,13 +703,20 @@ PS_OUTPUT mainPS(PS_INPUT input)
         //{
         //    break;
         //}
-
-        float3 LightColor = CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);
         float Shadow = 1.0;
+        float3 LightColor = CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb);
         if (length(LightColor) > 0.0 && PointLights[j].CastShadow)
         {
-            Shadow = CalculatePointLightShadow(input.worldPos, input.normal, PointLights[j], j);
+            if (IsVSM)
+            {
+                Shadow = CalculateVSMPointLightShadow(input.worldPos, input.normal, PointLights[j], PointLightVSM[j]);
+            }
+            else
+            {
+                Shadow = CalculatePointLightShadow(input.worldPos, input.normal, PointLights[j], j);
+            }
         }
+        
         TotalLight += LightColor * Shadow;
     }
     
@@ -580,9 +725,18 @@ PS_OUTPUT mainPS(PS_INPUT input)
         float3 SpotLightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb);
         if (length(SpotLightColor) > 0.0 && SpotLights[k].CastShadow)
         {
-            // float SpotShadow = CalculateShadow(input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj, SpotLightShadowMap[k]);
-            float SpotShadow = CalculateSpotLightShadowAtlas(SpotLights[k], input.worldPos, Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj);
-            SpotLightColor *= (1 - SpotShadow);
+            if (IsVSM)
+            {
+                float SpotShadow = CalculateSpotLightVSMShadowAtlas(SpotLights[k], input.worldPos, SpotLights[k].Position,
+                Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj);
+                SpotLightColor *= (SpotShadow);
+            }
+            else
+            {
+                float SpotShadow = CalculateSpotLightShadowAtlas(SpotLights[k], input.worldPos, SpotLights[k].Position, 
+                Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj);
+                SpotLightColor *= (1 - SpotShadow);
+            }
         }
         TotalLight += SpotLightColor;
     }
