@@ -260,3 +260,37 @@ void FShadowMapAtlas::CreateVSMResource(ID3D11Device* Device, EAtlasType Type, i
         viewport.MaxDepth = 1.0f;
     }
 }
+
+size_t FShadowMapAtlas::GetEstimatedMemoryUsageInBytes(ELightType lightType)
+{
+    if (lightType == ELightType::PointLight)
+    {
+        // 포인트 라이트 (CubeMap Array)
+        if (!AtlasTexture_Cube)
+            return 0;
+
+        D3D11_TEXTURE2D_DESC desc;
+        AtlasTexture_Cube->GetDesc(&desc);
+
+        // R32_TYPELESS 포맷: 픽셀당 4바이트
+        const size_t bytesPerPixel = 4;
+
+        // 전체 메모리 계산: 너비 × 높이 × 픽셀당 바이트 × 배열 크기(6면 × 16개)
+        return static_cast<size_t>(desc.Width) * desc.Height * bytesPerPixel * desc.ArraySize;
+    }
+    else if (lightType == ELightType::SpotLight || lightType == ELightType::DirectionalLight)
+    {
+        // 스팟/방향성 라이트 (2D 아틀라스)
+        if (!AtlasTexture_2D)
+            return 0;
+
+        D3D11_TEXTURE2D_DESC desc;
+        AtlasTexture_2D->GetDesc(&desc);
+
+        // R32_TYPELESS 포맷: 픽셀당 4바이트
+        const size_t bytesPerPixel = 4;
+
+        // 전체 메모리 계산: 너비 × 높이 × 픽셀당 바이트 × 배열 크기(1)
+        return static_cast<size_t>(desc.Width) * desc.Height * bytesPerPixel * desc.ArraySize;
+    }
+}

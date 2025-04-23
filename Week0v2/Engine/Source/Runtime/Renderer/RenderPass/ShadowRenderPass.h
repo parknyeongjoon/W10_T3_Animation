@@ -44,4 +44,7 @@ private:
 private:
     std::unique_ptr<FShadowMapAtlas> SpotLightShadowMapAtlas = nullptr;
     std::unique_ptr<FShadowMapAtlas> PointLightShadowMapAtlas = nullptr;
+
+public:
+    FShadowMapAtlas* GetShadowMapAtlas(ELightType LightType) const;
 };

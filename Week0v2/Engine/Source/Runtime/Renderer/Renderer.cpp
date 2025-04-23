@@ -397,3 +397,8 @@ void FRenderer::MappingIB(const FName InObjectName, const FName InIBName, const 
     }
     VBIBTopologyMappings[InObjectName]->MappingIndexBuffer(InIBName, InNumIndices);
 }
+
+size_t FRenderer::GetAtlasMemoryUsage(ELightType lightType) const
+{
+    return ShadowRenderPass->GetShadowMapAtlas(lightType)->GetEstimatedMemoryUsageInBytes(lightType);
+}

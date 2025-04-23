@@ -86,6 +86,8 @@ private:
     TMap<FName, std::shared_ptr<FVBIBTopologyMapping>> VBIBTopologyMappings;
 public:
     FRenderResourceManager* GetResourceManager() const { return RenderResourceManager; }
+public:
+    size_t GetAtlasMemoryUsage(ELightType lightType) const;
 private:
     FRenderResourceManager* RenderResourceManager = nullptr;
 
