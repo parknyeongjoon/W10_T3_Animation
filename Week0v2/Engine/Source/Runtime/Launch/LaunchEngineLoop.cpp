@@ -1,4 +1,4 @@
-﻿#include "LaunchEngineLoop.h"
+#include "LaunchEngineLoop.h"
 
 #include "EditorEngine.h"
 #include "Engine/Engine.h"
@@ -152,6 +152,8 @@ void FEngineLoop::Tick()
             deltaSeconds = (endTime.QuadPart - startTime.QuadPart) * 1000.0 / frequency.QuadPart;
         }
         while (deltaSeconds < targetFrameTime);
+
+        UEngine::GFrameCount++;
     }
 }
 

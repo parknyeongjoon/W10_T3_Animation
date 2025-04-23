@@ -584,6 +584,7 @@ struct FSpotLight
 
     FMatrix View;
     FMatrix Proj;
+    FVector4 AtlasUVTransform;
 };
 
 struct FIntRect

@@ -3,9 +3,9 @@
 #include "Windows/D3D11RHI/GraphicDevice.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 #include <Components/LightComponents/SpotLightComponent.h>
+#include "Light/ShadowMapAtlas.h"
 
 class UPointLightComponent;
-
 struct FLightCameraConstant
 {
     FMatrix Model;
@@ -39,4 +39,9 @@ private:
     void UpdateCameraConstant(FMatrix Model, FMatrix View, FMatrix Proj) const;
     bool bRender = false;
     ID3D11Buffer* CameraConstantBuffer;
+
+    // atlas
+private:
+    std::unique_ptr<FShadowMapAtlas> SpotLightShadowMapAtlas = nullptr;
+    std::unique_ptr<FShadowMapAtlas> PointLightShadowMapAtlas = nullptr;
 };
