@@ -9,7 +9,7 @@ struct VS_OUT
 
 float4 mainPS(VS_OUT input) : SV_Target
 {
-    float depth = SceneDepthTex.Sample(pointSampler, input.uv).r;
+    float depth = SceneDepthTex.Sample(linearSampler, input.uv).r;
 
     float moment1 = depth;
     //float dx = ddx(moment1);

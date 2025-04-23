@@ -275,7 +275,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
             ID3D11ShaderResourceView* SRV = SpotLightShadowMapAtlas->GetSRV2D();
             Graphics.DeviceContext->PSSetShaderResources(0, 1, &SRV);
             Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-            ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
+            ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Linear);
             Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
             Graphics.DeviceContext->Draw(4, 0);
             Prepare(InViewportClient);
