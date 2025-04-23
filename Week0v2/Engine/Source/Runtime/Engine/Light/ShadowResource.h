@@ -19,7 +19,6 @@ struct FShadowResource
     ComPtr<ID3D11Texture2D> VSMTexture;
     TArray< ComPtr<ID3D11RenderTargetView>> VSMRTV;
     ComPtr<ID3D11ShaderResourceView> VSMSRV;
-    //TArray<ComPtr<ID3D11ShaderResourceView>> PointLightVSMSRVs;
 
     // Face의 개수. Directional/Spot Light는 1개, Point Light는 6개..  
     int NumFaces = 1;
@@ -49,7 +48,36 @@ struct FShadowResource
     void CreateVSMResources(ID3D11Device* Device, ELightType LightType, UINT ShadowResolution);
     ID3D11RenderTargetView* GetVSMRTV(int face = 0) const { return VSMRTV[face].Get(); }
     ID3D11ShaderResourceView* GetVSMSRV() const { return VSMSRV.Get(); }
-    //ID3D11ShaderResourceView* GetPointLigjtVSMSRV(int face) const { return PointLightVSMSRVs[face].Get(); }
+
+    ID3D11ShaderResourceView* GetCubeFaceSRV(
+        ID3D11Device* device,
+        ID3D11Texture2D* cubeTexture,
+        UINT faceIndex)  // 0 ~ 5
+    {
+        if (faceIndex >= 6 || faceIndex<0) {
+            assert(!"Invalid cube face index (0~5 only)");
+            return nullptr;
+        }
+
+        // SRV 설정
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = DXGI_FORMAT_R32_FLOAT; // 원본이 R32_TYPELESS일 때 대응
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+        srvDesc.Texture2DArray.MostDetailedMip = 0;
+        srvDesc.Texture2DArray.MipLevels = 1;
+        srvDesc.Texture2DArray.FirstArraySlice = faceIndex;
+        srvDesc.Texture2DArray.ArraySize = 1;
+
+        ID3D11ShaderResourceView* faceSRV = nullptr;
+        HRESULT hr = device->CreateShaderResourceView(cubeTexture, &srvDesc, &faceSRV);
+        if (FAILED(hr)) {
+            assert(!"Failed to create cube face SRV");
+            return nullptr;
+        }
+
+        return faceSRV;
+    }
+    }
 };
 
 struct FShadowMemoryUsageInfo
