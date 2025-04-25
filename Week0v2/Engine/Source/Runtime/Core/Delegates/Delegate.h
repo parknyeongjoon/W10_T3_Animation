@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <functional>
 #include "Core/Container/Map.h"
+#include "UObject/Object.h"
 
 #define FUNC_DECLARE_DELEGATE(DelegateName, ReturnType, ...) \
 	using DelegateName = TDelegate<ReturnType(__VA_ARGS__)>;
@@ -8,6 +9,8 @@
 #define FUNC_DECLARE_MULTICAST_DELEGATE(MulticastDelegateName, ReturnType, ...) \
 	using MulticastDelegateName = TMulticastDelegate<ReturnType(__VA_ARGS__)>;
 
+
+class UObject;
 
 class FDelegateHandle
 {
@@ -52,7 +55,7 @@ public:
 	}
 };
 
-template <typename Signature>
+template <typename Signiture>
 class TDelegate;
 
 template <typename ReturnType, typename... ParamTypes>
@@ -62,6 +65,41 @@ class TDelegate<ReturnType(ParamTypes...)>
 	FuncType Func;
 
 public:
+    template <typename T, typename FunctorType>
+        requires std::derived_from<T, UObject>
+    void BindUObject(T* Object, FunctorType&& Functor)
+	{
+	    if (!Object || Object->GetName() == "Destroyed")
+	    {
+	        UnBind();
+	        return;
+	    }
+
+        void* ObjectPtr = Object;
+        
+        Func = [ObjectPtr, Function = std::forward<FunctorType>(Functor)](ParamTypes... Params) -> ReturnType
+        {
+            T* CurrentObject = static_cast<T*>(ObjectPtr);
+            
+            if (CurrentObject && CurrentObject->GetName() != "Destroyed")
+            {
+                return (CurrentObject->*Function)(std::forward<ParamTypes>(Params)...);
+            }
+
+            return ReturnType();
+        };
+	}
+
+    template <typename FunctorType>
+    void BindStatic(FunctorType&& Functor)
+    {
+        Func = [StaticFunction = std::forward<FunctorType>(Functor)](ParamTypes... Params) -> ReturnType
+        {
+            // 함수 호출 시 매개변수 전달
+            return StaticFunction(std::forward<ParamTypes>(Params)...);
+        };
+    }
+    
 	template <typename FunctorType>
 	void BindLambda(FunctorType&& InFunctor)
 	{
@@ -116,6 +154,48 @@ class TMulticastDelegate<ReturnType(ParamTypes...)>
 	TMap<FDelegateHandle, FuncType> DelegateHandles;
 
 public:
+    template <class T, typename FunctorType>
+        requires std::derived_from<T, UObject>
+    FDelegateHandle AddUObject(T* Object, FunctorType&& Functor)
+    {
+        if (!Object || Object->GetName() == "Destroyed")
+        {
+            return FDelegateHandle();
+        }
+
+        FDelegateHandle DelegateHandle = FDelegateHandle::CreateHandle();
+    
+        // std::forward를 사용하여 Functor를 AutoForwarder로 전달
+        auto AutoForwarder = [ObjectPtr = Object, Func = std::forward<FunctorType>(Functor)](ParamTypes... Params)
+        {
+            if (ObjectPtr && ObjectPtr->GetName() != "Destroyed")
+            {
+                (ObjectPtr->*Func)(std::forward<ParamTypes>(Params)...);
+            }
+        };
+    
+        DelegateHandles.Add(DelegateHandle, std::move(AutoForwarder));
+    
+        return DelegateHandle;
+    }
+
+    // 정적 함수를 멀티캐스트 델리게이트에 바인딩
+    template <typename FunctorType>
+    FDelegateHandle AddStatic(FunctorType&& Functor)
+    {
+        FDelegateHandle DelegateHandle = FDelegateHandle::CreateHandle();
+    
+        // std::forward를 사용하여 Functor를 AutoForwarder로 전달
+        auto AutoForwarder = [Func = std::forward<FunctorType>(Functor)](ParamTypes... Params)
+        {
+            Func(std::forward<ParamTypes>(Params)...);
+        };
+    
+        DelegateHandles.Add(DelegateHandle, std::move(AutoForwarder));
+    
+        return DelegateHandle;
+    }
+    
 	template <typename FunctorType, typename... Args>
 	FDelegateHandle AddLambda(FunctorType&& InFunctor, Args&&... InArgs)
 	{

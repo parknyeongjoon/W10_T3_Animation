@@ -55,7 +55,7 @@ private:
 
 public:
     UObject();
-    virtual ~UObject() = default;
+    virtual ~UObject();
 
     UWorld* GetWorld();
     ;
