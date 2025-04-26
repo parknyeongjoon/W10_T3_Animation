@@ -7,7 +7,7 @@ class UStaticMeshComponent;
 class ADodge : public AStaticMeshActor
 {
     DECLARE_CLASS(ADodge, AStaticMeshActor)
-    DECLARE_DELEGATE(TEST_DELIGATE)
+    DECLARE_MULTICAST_DELEGATE(TEST_DELIGATE)
 public:
     ADodge();
     ADodge(const ADodge& Other);

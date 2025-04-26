@@ -19,14 +19,14 @@ ADodge::ADodge(const ADodge& Other)
 void ADodge::BeginPlay()
 {
     Super::BeginPlay();
-    TestDelegate.BindLambda([this]{SetActorLocation(GetActorLocation() + FVector(1,0,0));});
-    TestDelegate.BindUObject(this, &ADodge::test);
+    TestDelegate.AddLambda([this]{SetActorLocation(GetActorLocation() + FVector(0.01,0,0));});
+    TestDelegate.AddUObject(this, &ADodge::test);
 }
 
 void ADodge::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-    TestDelegate.Execute();
+    TestDelegate.Broadcast();
 }
 
 void ADodge::Destroyed()
@@ -46,7 +46,8 @@ bool ADodge::Destroy()
 
 void ADodge::test()
 {
-    Destroy();
+    SetActorRotation(GetActorRotation() + FVector(0.001,0,0));
+    // Destroy();
 }
 
 UObject* ADodge::Duplicate() const
