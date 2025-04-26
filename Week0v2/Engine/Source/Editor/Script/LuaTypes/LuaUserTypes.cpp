@@ -85,8 +85,17 @@ void LuaTypes::FBindLua<FVector>::Bind(sol::table& Table)
         sol::meta_function::equal_to, &FVector::operator==,
         sol::meta_function::addition, &FVector::operator+,
         sol::meta_function::subtraction, [](const FVector& A, const FVector& B) { return A - B; },
-        sol::meta_function::multiplication, [](const FVector& A, const FVector& B) { return A * B; },
+        sol::meta_function::multiplication, sol::overload(
+            [](const FVector& v, float f) -> FVector { 
+                return v * f;
+            },
+            [](float f, const FVector& v) -> FVector {
+                return v * f;
+            },
+            [](const FVector& A, const FVector& B) { return A * B; }
+        ) ,
         sol::meta_function::division, [](const FVector& A, const FVector& B) { return A / B; },
+        
 
         // Utility functions
         //LUA_BIND_MEMBER(&FVector::Length),
@@ -263,5 +272,42 @@ void LuaTypes::FBindLua<ALuaActor>::Bind(sol::table& Table)
 
         LUA_BIND_MEMBER(&ALuaActor::Destroy),
         LUA_BIND_MEMBER(&ALuaActor::IsActorBeingDestroyed)
+    );
+}
+
+void LuaTypes::FBindLua<AActor>::Bind(sol::table& Table)
+{
+    Table.Lua_NewUserType(
+        AActor,
+
+        // UObject 메서드
+        LUA_BIND_MEMBER(&AActor::Duplicate),
+        LUA_BIND_MEMBER(&AActor::GetFName),
+        LUA_BIND_MEMBER(&AActor::GetName),
+        //LUA_BIND_MEMBER(&ALuaActor::GetOuter),
+        LUA_BIND_MEMBER(&AActor::GetWorld),
+        LUA_BIND_MEMBER(&AActor::GetUUID),
+        LUA_BIND_MEMBER(&AActor::GetClass),
+
+        // AActor 메서드
+        LUA_BIND_MEMBER(&AActor::GetActorLocation),
+        LUA_BIND_MEMBER(&AActor::GetActorRotation),
+        LUA_BIND_MEMBER(&AActor::GetActorScale),
+
+        LUA_BIND_MEMBER(&AActor::GetActorForwardVector),
+        LUA_BIND_MEMBER(&AActor::GetActorRightVector),
+        LUA_BIND_MEMBER(&AActor::GetActorUpVector),
+
+        LUA_BIND_MEMBER(&AActor::SetActorLocation),
+        LUA_BIND_MEMBER(&AActor::SetActorRotation),
+        LUA_BIND_MEMBER(&AActor::SetActorScale),
+
+        LUA_BIND_MEMBER(&AActor::GetRootComponent),
+        LUA_BIND_MEMBER(&AActor::SetRootComponent),
+        LUA_BIND_MEMBER(&AActor::GetOwner),
+        LUA_BIND_MEMBER(&AActor::SetOwner),
+
+        LUA_BIND_MEMBER(&AActor::Destroy),
+        LUA_BIND_MEMBER(&AActor::IsActorBeingDestroyed)
     );
 }

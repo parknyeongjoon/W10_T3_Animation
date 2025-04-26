@@ -26,6 +26,8 @@ public:
     // 리소스를 정리하고, 잠재적으로 Lua 상태를 닫습니다 (RAII가 처리).
     void Shutdown();
 
+    void BeginPlay();
+
     // --- 스크립트 관리 ---
     /**
      * @brief 주어진 스크립트 경로에 대한 Lua 함수 테이블을 가져옵니다.
@@ -39,6 +41,8 @@ public:
     // --- Lua 상태 접근 ---
     // 내부 Lua 상태에 대한 참조를 가져옵니다.
     sol::state& GetLuaState();
+    const FString& GetScriptsBasePath() const { return ScriptsBasePath; }
+    const FString& GetTemplateLuaPath() const { return TemplateLuaPath; }
 
 private:
     // --- 싱글톤을 위한 private 생성자 ---
@@ -49,6 +53,7 @@ private:
     std::unordered_map<FString, sol::table> LoadedScriptTables; // 로드된 스크립트 함수 테이블 캐시
 
     FString ScriptsBasePath = "Assets/Scripts/"; // 예시 경로
+    FString TemplateLuaPath = "Assets/Scripts/DefaultActor.lua"; // 템플릿 파일 경로 (하드코딩 또는 설정 파일에서 로드)
 
     // --- 헬퍼 함수 ---
     // 공통 C++ 타입 및 함수를 Lua에 바인딩합니다.

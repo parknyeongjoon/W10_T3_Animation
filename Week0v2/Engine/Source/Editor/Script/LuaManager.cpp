@@ -73,6 +73,12 @@ void FLuaManager::Shutdown()
     std::cout << "FLuaManager 종료됨." << std::endl;
 }
 
+void FLuaManager::BeginPlay()
+{
+    //파이 모드 들어갈때 캐쉬테이블 초기화
+    LoadedScriptTables.clear();
+}
+
 //// --- 스크립트 관리 ---
 sol::table FLuaManager::GetOrLoadScriptTable(const FString& ScriptPath) // FString이 std::string이라고 가정
 {
@@ -166,19 +172,19 @@ void FLuaManager::BindCoreTypes()
 {
     sol::table Ns = LuaState.create_named_table("Engine");
 
-    // Math Types
-    // LuaTypes::FBindLua<FColor>::Bind(Ns);
-    // LuaTypes::FBindLua<FLinearColor>::Bind(Ns);
-    // LuaTypes::FBindLua<FVector>::Bind(Ns);
-    // LuaTypes::FBindLua<FVector2D>::Bind(Ns);
-    // LuaTypes::FBindLua<FVector4>::Bind(Ns);
-    // LuaTypes::FBindLua<FRotator>::Bind(Ns);
-    // LuaTypes::FBindLua<FQuat>::Bind(Ns);
-    // LuaTypes::FBindLua<FMatrix>::Bind(Ns);
+     //Math Types
+     LuaTypes::FBindLua<FColor>::Bind(Ns);
+     LuaTypes::FBindLua<FLinearColor>::Bind(Ns);
+     LuaTypes::FBindLua<FVector>::Bind(Ns);
+     LuaTypes::FBindLua<FVector2D>::Bind(Ns);
+     LuaTypes::FBindLua<FVector4>::Bind(Ns);
+     LuaTypes::FBindLua<FRotator>::Bind(Ns);
+     LuaTypes::FBindLua<FQuat>::Bind(Ns);
+     LuaTypes::FBindLua<FMatrix>::Bind(Ns);
 
     // Object Types
-    //LuaTypes::FBindLua<ALuaActor>::Bind(Ns);
-
+    LuaTypes::FBindLua<ALuaActor>::Bind(Ns);
+    LuaTypes::FBindLua<AActor>::Bind(Ns);
 
     generateStubs(LuaState);
 }

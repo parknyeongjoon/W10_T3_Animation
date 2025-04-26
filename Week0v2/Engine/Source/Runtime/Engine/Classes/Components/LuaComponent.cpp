@@ -18,6 +18,24 @@ ULuaComponent::~ULuaComponent()
 {
 }
 
+UObject* ULuaComponent::Duplicate() const
+{
+    ULuaComponent* NewComp = FObjectFactory::ConstructObjectFrom<ULuaComponent>(this);
+    NewComp->DuplicateSubObjects(this);
+    NewComp->PostDuplicate();
+    return NewComp;
+}
+
+void ULuaComponent::DuplicateSubObjects(const UObject* Source)
+{
+    Super::DuplicateSubObjects(Source);
+}
+
+void ULuaComponent::PostDuplicate()
+{
+    Super::PostDuplicate();
+}
+
 void ULuaComponent::InitializeComponent()
 {
     Super::InitializeComponent();
@@ -30,12 +48,12 @@ void ULuaComponent::TickComponent(float DeltaTime)
     if (LuaFunctionTick.valid())
     {
         sol::state& lua = FLuaManager::Get().GetLuaState();
-        lua["obj"] = GetOwner(); // 컨텍스트 설정
-        lua["comp"] = this;     // 컨텍스트 설정
+        lua["Actor"] = GetOwner(); // 컨텍스트 설정
+        //lua["comp"] = this;     // 컨텍스트 설정
         sol::protected_function_result result = LuaFunctionTick(DeltaTime);
         // 오류 처리...
-        lua["obj"] = sol::lua_nil;
-        lua["comp"] = sol::lua_nil; // 컨텍스트 해제
+        lua["Actor"] = sol::lua_nil;
+        //lua["comp"] = sol::lua_nil; // 컨텍스트 해제
     }
 }
 
@@ -71,8 +89,7 @@ void ULuaComponent::BeginPlay()
                 }
 
                 sol::protected_function_result result = LuaFunctionBeginPlay();
-                lua["obj"] = sol::lua_nil;
-                lua["comp"] = sol::lua_nil;
+                lua["Actor"] = sol::lua_nil;
         } else {
             // 스크립트 로드 실패 처리
         }
