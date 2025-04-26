@@ -4,6 +4,7 @@
 #include "Engine/Engine.h"
 #include "Renderer/Renderer.h"
 #include "Engine/ResourceManager.h"
+#include "Script/LuaManager.h"
 
 
 class FSceneMgr;
@@ -44,6 +45,7 @@ public:
     static FGraphicsDevice graphicDevice;
     static FRenderer renderer;
     static FResourceManager resourceMgr;
+    static FLuaManager luaManager;
     
     HWND hWnd;
     ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;

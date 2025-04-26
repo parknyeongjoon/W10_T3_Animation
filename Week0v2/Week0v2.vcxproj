@@ -182,6 +182,7 @@
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\PropertyEditorPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\ShowFlags.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\ViewportTypePanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\Script\LuaManager.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorViewportClient.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\PrimitiveBatch.cpp" />
@@ -302,6 +303,7 @@
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\PropertyEditorPanel.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\ShowFlags.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\ViewportTypePanel.h" />
+    <ClInclude Include="Engine\Source\Editor\Script\LuaManager.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorPanel.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorViewportClient.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.h" />

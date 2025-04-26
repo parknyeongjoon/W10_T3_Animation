@@ -7,7 +7,7 @@
 #include "UObject/ObjectFactory.h"
 #include "UObject/ObjectMacros.h"
 #include "ActorInfo.h"
-
+#include <sol/sol.hpp>
 
 class UActorComponent;
 
@@ -20,12 +20,15 @@ public:
     AActor(const AActor& Other);
     /** Actor가 게임에 배치되거나 스폰될 때 호출됩니다. */
     virtual void BeginPlay();
+    sol::protected_function LuaFunctionBeginPlay;
 
     /** 매 Tick마다 호출됩니다. */
     virtual void Tick(float DeltaTime);
+    sol::protected_function LuaFunctionTick;
 
     /** Actor가 제거될 때 호출됩니다. */
     virtual void Destroyed();
+    sol::protected_function LuaFunctionDestroyed;
 
     /**
      * 액터가 게임 플레이를 종료할 때 호출되는 함수입니다.
@@ -34,6 +37,7 @@ public:
      * @note Destroyed와는 다른점은, EndPlay는 레벨 전환, 게임 종료, 또는 Destroy() 호출 시 항상 실행됩니다.
      */
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
+    sol::protected_function LuaFunctionEndPlay;
 
 public:
     /** 이 Actor를 제거합니다. */
@@ -132,6 +136,14 @@ private:
     /** 에디터상에 보이는 Actor의 이름 */
     FString ActorLabel;
 #endif
+
+
+public:
+    // 이 액터 인스턴스가 사용할 Lua 스크립트 파일 경로
+    FString LuaScriptPath = TEXT("Scripts/DefaultActor.lua"); // TODO:; LuaScriptPath 초기화
+
+
+    sol::protected_function LuaOnOverlapFunction;
 };
 
 

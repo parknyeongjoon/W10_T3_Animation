@@ -1,6 +1,8 @@
 #include "Actor.h"
 
+#include "EditorEngine.h"
 #include "Engine/World.h"
+#include "Script/LuaManager.h"
 
 AActor::AActor(const AActor& Other)
     : UObject(Other),
@@ -11,6 +13,52 @@ AActor::AActor(const AActor& Other)
 }
 void AActor::BeginPlay()
 {
+    try {
+        sol::state& lua = GetEngine()->luaManager.Lua;
+        // 액터 인스턴스의 스크립트 경로 사용
+        sol::load_result loadResult = lua.load_file(*LuaScriptPath);
+
+        if (loadResult.valid()) {
+            // 스크립트 로드 성공, 결과는 함수(청크)
+            sol::protected_function scriptChunk = loadResult;
+
+            // 청크를 실행하여 내부 함수들을 정의 (필요시 테이블 등으로 감싸서 관리)
+            // 또는 바로 함수들을 찾아서 저장
+            // 여기서는 스크립트 파일이 전역으로 함수를 정의한다고 가정
+            sol::protected_function_result scriptResult = scriptChunk(); // 스크립트 실행하여 함수 정의
+
+            if (scriptResult.valid()) {
+                // 필요한 함수들을 찾아서 멤버 변수에 저장
+                sol::table globalTable = lua.globals();
+                LuaFunctionBeginPlay = globalTable["BeginPlay"]; // 스크립트에 정의된 함수 찾기
+                LuaFunctionTick = globalTable["Tick"];
+                LuaOnOverlapFunction = globalTable["OnOverlap"];
+                // ...
+
+                // BeginPlay 함수가 존재하면 즉시 실행
+                if (LuaFunctionBeginPlay.valid()) {
+                    lua["obj"] = this; // 컨텍스트 설정
+                    sol::protected_function_result beginPlayResult = LuaFunctionBeginPlay();
+                    if (!beginPlayResult.valid()) {
+                        sol::error err = beginPlayResult;
+                        std::cerr << "Error running BeginPlay in " << *LuaScriptPath << ": " << err.what() << std::endl;
+                    }
+                    lua["obj"] = sol::lua_nil; // 컨텍스트 해제 (필요시)
+                }
+            } else {
+                sol::error err = scriptResult;
+                std::cerr << "Error executing script chunk from " << *LuaScriptPath << ": " << err.what() << std::endl;
+            }
+        } else {
+            sol::error err = loadResult;
+
+
+
+            std::cerr << "Error loading script file " << *LuaScriptPath << ": " << err.what() << std::endl;
+        }
+    } catch (const sol::error& e) {
+        std::cerr << "Exception loading/running script " << *LuaScriptPath << ": " << e.what() << std::endl;
+    }
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
     const auto CopyComponents = OwnedComponents;
     for (UActorComponent* Comp : CopyComponents)
@@ -21,6 +69,23 @@ void AActor::BeginPlay()
 
 void AActor::Tick(float DeltaTime)
 {
+    sol::state& lua = GetEngine()->luaManager.Lua;
+    
+    if (LuaFunctionTick.valid()) {
+        try {
+            lua["obj"] = this; // 현재 액터 인스턴스를 obj로 설정
+            sol::protected_function_result tickResult = LuaFunctionTick(DeltaTime); // 저장된 Tick 함수 호출
+            if (!tickResult.valid()) {
+                sol::error err = tickResult;
+                std::cerr << "Error running Tick in " << *LuaScriptPath << ": " << err.what() << std::endl;
+                // 에러 발생 시 해당 함수 비활성화 고려
+                // LuaTickFunction = sol::lua_nil;
+            }
+            lua["obj"] = sol::lua_nil;
+        } catch (const sol::error& e) {
+            std::cerr << "Exception running Tick in " << *LuaScriptPath << ": " << e.what() << std::endl;
+        }
+    }
     if (!RootComponent) return;
     // TODO: 임시로 Actor에서 Tick 돌리기
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
