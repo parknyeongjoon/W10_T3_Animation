@@ -137,10 +137,12 @@ void UPrimitiveComponent::NotifyHit(HitResult Hit) const
 
 void UPrimitiveComponent::NotifyBeginOverlap(const UPrimitiveComponent* OtherComponent) const
 {
+    UE_LOG(LogLevel::Display, TEXT("%s begin overlap with %s"), *GetName(), *OtherComponent->GetName());
 }
 
 void UPrimitiveComponent::NotifyEndOverlap(const UPrimitiveComponent* OtherComponent) const
 {
+    UE_LOG(LogLevel::Display, TEXT("%s end overlap with %s"), *GetName(), *OtherComponent->GetName());
 }
 
 bool UPrimitiveComponent::MoveComponent(const FVector& Delta)

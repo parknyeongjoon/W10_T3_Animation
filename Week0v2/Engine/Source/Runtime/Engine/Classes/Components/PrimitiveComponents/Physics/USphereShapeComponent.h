@@ -15,6 +15,11 @@ public:
     void SetRadius(float InRadius) { Radius = InRadius; }
     float GetRadius() const { return Radius; }
 
+    void UpdateBroadAABB() override;
+
+    virtual bool TestOverlaps(const UShapeComponent* OtherShape) const override;
+    virtual bool NarrowPhaseCollisionCheck(const UShapeComponent* OtherShape) const override;
+
 private:
     float Radius;
 };

@@ -18,6 +18,9 @@ public:
     void SetHalfHeight(float InHeight) { CapsuleHalfHeight = InHeight; }
     float GetHalfHeight() const { return CapsuleHalfHeight; }
 
+    virtual bool TestOverlaps(const UShapeComponent* OtherShape) const override;
+    virtual bool NarrowPhaseCollisionCheck(const UShapeComponent* OtherShape) const override;
+
 public:
 
 

@@ -17,7 +17,7 @@ UShapeComponent::UShapeComponent(const UShapeComponent& Other)
     , bDrawOnlyIfSelected(Other.bDrawOnlyIfSelected)
     , PrevLocation(Other.GetPrevLocation())
     , PrevRotation(Other.GetPrevRotation())
-    , PrevScale(Other.GetPrevScale)
+    , PrevScale(Other.GetPrevScale())
 {
 }
 
@@ -30,12 +30,14 @@ void UShapeComponent::InitializeComponent()
     Super::InitializeComponent();
 
     bDrawOnlyIfSelected = true;
+    BroadAABB = FBoundingBox(FVector(-1, -1, -1), FVector(1, 1, 1));
 
     UEditorEngine::CollisionManager.Register(this);
 }
 
 void UShapeComponent::TickComponent(float DeltaTime)
 {
+    Super::TickComponent(DeltaTime);
 }
 
 UObject* UShapeComponent::Duplicate() const
@@ -65,9 +67,4 @@ bool UShapeComponent::TestOverlaps(const UShapeComponent* OtherShape) const
 bool UShapeComponent::BroadPhaseCollisionCheck(const UShapeComponent* OtherShape) const
 {
     return BroadAABB.IntersectAABB(OtherShape->GetBroadAABB());
-}
-
-bool UShapeComponent::NarrowPhaseCollisionCheck(const UShapeComponent* OtherShape) const
-{
-    return false;
 }

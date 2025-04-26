@@ -18,6 +18,7 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
 
+    // Getter, Setter
     FLinearColor GetShapeColor() const { return ShapeColor; }
     void SetShapeColor(const FLinearColor& InColor) { ShapeColor = InColor; }
     FBoundingBox GetBroadAABB() const { return BroadAABB; }
@@ -30,10 +31,14 @@ public:
 
     virtual bool TestOverlaps(const UShapeComponent* OtherShape) const;
     virtual bool BroadPhaseCollisionCheck(const UShapeComponent* OtherShape) const;
-    virtual bool NarrowPhaseCollisionCheck(const UShapeComponent* OtherShape) const;
+    virtual bool NarrowPhaseCollisionCheck(const UShapeComponent* OtherShape) const { return false; }
 
 protected:
     virtual void UpdateBroadAABB() {}
+
+    FVector PrevLocation;
+    FRotator PrevRotation;
+    FVector PrevScale;
 
 protected:
     FBoundingBox BroadAABB;
@@ -41,10 +46,6 @@ protected:
 private:
     FLinearColor ShapeColor;
     bool bDrawOnlyIfSelected;
-
-    FVector PrevLocation;
-    FRotator PrevRotation;
-    FVector PrevScale;
 };
 
  

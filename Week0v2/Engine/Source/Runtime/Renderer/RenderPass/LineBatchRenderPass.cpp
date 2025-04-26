@@ -68,8 +68,13 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
     VBIBTopologyMappingInfo->Bind();
 
     const uint32 vertexCountPerInstance = 2;
-    const uint32 instanceCount = GridParameters.GridCount + 3 + (PrimitveBatch.GetBoundingBoxes().Num() * 12) + (PrimitveBatch.GetCones().Num() * (2 * PrimitveBatch.GetConeSegmentCount())
-        + (PrimitveBatch.GetSpheres().Num() * 3 * 32) + (PrimitveBatch.GetLines().Num() * 2) + (12 * PrimitveBatch.GetOrientedBoundingBoxes().Num()));
+    const uint32 instanceCount = GridParameters.GridCount + 3 +
+        (PrimitveBatch.GetBoundingBoxes().Num() * 12) +
+        (PrimitveBatch.GetCones().Num() * (2 * PrimitveBatch.GetConeSegmentCount()) +
+            (PrimitveBatch.GetSpheres().Num() * 3 * 32) + 
+            (PrimitveBatch.GetLines().Num() * 2) +
+            (12 * PrimitveBatch.GetOrientedBoundingBoxes().Num()));
+
     Graphics.DeviceContext->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
 
     PrimitveBatch.ClearBatchPrimitives();

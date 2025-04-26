@@ -68,7 +68,7 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
             LocalGizmo->Tick(deltaSeconds);
     }
     // SpawnActor()에 의해 Actor가 생성된 경우, 여기서 BeginPlay 호출
-    if (tickType == LEVELTICK_All)
+    if (tickType == LEVELTICK_All || true)
     {
         for (AActor* Actor : Level->PendingBeginPlayActors)
         {

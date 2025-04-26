@@ -21,6 +21,7 @@ void UBoxShapeComponent::InitializeComponent()
 
     BoxExtent = FVector::OneVector;
     BroadAABB = FBoundingBox(FVector(-1, -1, -1), FVector(1, 1, 1));
+    UpdateBroadAABB();
 }
 
 void UBoxShapeComponent::TickComponent(float DeltaTime)
@@ -46,7 +47,7 @@ void UBoxShapeComponent::UpdateBroadAABB()
 {
     FVector Center = GetComponentLocation();
     FVector Scale = GetComponentScale();
-    FVector Extent = BoxExtent * Scale * 0.5f;
+    FVector Extent = BoxExtent * Scale /** 0.5f*/;
 
     FVector LocalCorners[8] =
     {
@@ -95,5 +96,5 @@ bool UBoxShapeComponent::TestOverlaps(const UShapeComponent* OtherShape) const
 bool UBoxShapeComponent::NarrowPhaseCollisionCheck(const UShapeComponent* OtherShape) const
 {
     // 임시로 AABB로 처리
-    return BroadPhaseCollisionCheck(OtherShape);
+    return true;
 }
