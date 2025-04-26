@@ -17,7 +17,7 @@ UShapeComponent::UShapeComponent(const UShapeComponent& Other)
     , bDrawOnlyIfSelected(Other.bDrawOnlyIfSelected)
     , PrevLocation(Other.GetPrevLocation())
     , PrevRotation(Other.GetPrevRotation())
-    , PrevScale(Other.GetPrevScale)
+    , PrevScale(Other.GetPrevScale())
 {
 }
 

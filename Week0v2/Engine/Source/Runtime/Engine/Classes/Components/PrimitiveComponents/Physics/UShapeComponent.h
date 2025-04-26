@@ -1,5 +1,6 @@
 #pragma once
 #include "Components/PrimitiveComponents/PrimitiveComponent.h"
+#include "Math/Vector.h"
 #include "Math/Color.h"
 
 class UShapeComponent : public UPrimitiveComponent
@@ -37,14 +38,14 @@ protected:
 
 protected:
     FBoundingBox BroadAABB;
+    FVector PrevLocation;
+    FRotator PrevRotation;
+    FVector PrevScale;
 
 private:
     FLinearColor ShapeColor;
     bool bDrawOnlyIfSelected;
 
-    FVector PrevLocation;
-    FRotator PrevRotation;
-    FVector PrevScale;
 };
 
  
