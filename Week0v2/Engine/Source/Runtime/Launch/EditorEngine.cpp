@@ -18,7 +18,9 @@ class ULevel;
 
 FGraphicsDevice UEditorEngine::graphicDevice;
 FRenderer UEditorEngine::renderer;
-FResourceManager UEditorEngine::resourceMgr;
+FResourceManager UEditorEngine::ResourceManager;
+FCollisionManager UEditorEngine::CollisionManager;
+// EditorEngine.cpp
 
 UEditorEngine::UEditorEngine()
     : hWnd(nullptr)
@@ -29,7 +31,6 @@ UEditorEngine::UEditorEngine()
 {
 }
 
-
 int32 UEditorEngine::Init(HWND hwnd)
 {
     /* must be initialized before window. */
@@ -38,9 +39,9 @@ int32 UEditorEngine::Init(HWND hwnd)
     renderer.Initialize(&graphicDevice);
     UIMgr = new UImGuiManager;
     UIMgr->Initialize(hWnd, graphicDevice.Device, graphicDevice.DeviceContext);
-    resourceMgr.Initialize(&renderer, &graphicDevice);
+    ResourceManager.Initialize(&renderer, &graphicDevice);
+    CollisionManager.Initialize();
 
-    
     FWorldContext EditorContext;
     EditorContext.WorldType = EWorldType::Editor;
     EditorContext.thisCurrentWorld = FObjectFactory::ConstructObject<UWorld>();
@@ -54,7 +55,6 @@ int32 UEditorEngine::Init(HWND hwnd)
     EditorContext.WorldType = EWorldType::PIE;
     worldContexts.Add(PIEContext);
     
-    
     LevelEditor = new SLevelEditor();
     LevelEditor->Initialize();
     
@@ -67,7 +67,6 @@ int32 UEditorEngine::Init(HWND hwnd)
 
     return 0;
 }
-
 
 void UEditorEngine::Render()
 {
@@ -96,9 +95,16 @@ void UEditorEngine::Render()
 void UEditorEngine::Tick(float deltaSeconds)
 {
     GWorld->Tick(levelType, deltaSeconds);
+
+    if (GWorld->WorldType == EWorldType::PIE)
+    {
+        CollisionManager.UpdateCollision(deltaSeconds);
+    }
+    
     Input();
     // GWorld->Tick(LEVELTICK_All, deltaSeconds);
     LevelEditor->Tick(deltaSeconds);
+
     Render();
     
     UIMgr->BeginFrame();
@@ -203,7 +209,8 @@ void UEditorEngine::Exit()
     UIMgr->Shutdown();
     delete UIMgr;
     delete SceneMgr;
-    resourceMgr.Release(&renderer);
+    ResourceManager.Release(&renderer);
+    CollisionManager.Release();
     renderer.Release();
     graphicDevice.Release();
 }

@@ -544,7 +544,7 @@ void ControlEditorPanel::CreateFlagButton() const
 
 void ControlEditorPanel::CreateShaderHotReloadButton(const ImVec2 ButtonSize) const
 {
-    ID3D11ShaderResourceView* IconTextureSRV = GEngine->resourceMgr.GetTexture(L"Assets/Texture/HotReload.png")->TextureSRV;
+    ID3D11ShaderResourceView* IconTextureSRV = GEngine->ResourceManager.GetTexture(L"Assets/Texture/HotReload.png")->TextureSRV;
     const ImTextureID textureID = reinterpret_cast<ImTextureID>(IconTextureSRV); // 실제 사용되는 텍스처 SRV
     if (ImGui::ImageButton("btn1", textureID, ButtonSize))
     {

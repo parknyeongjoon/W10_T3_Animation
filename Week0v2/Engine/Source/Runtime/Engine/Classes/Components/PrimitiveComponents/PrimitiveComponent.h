@@ -2,6 +2,8 @@
 #include "Engine/Source/Runtime/Engine/Classes/Components/SceneComponent.h"
 #include "Serialization/Archive.h"
 
+struct HitResult;
+
 struct FPrimitiveComponentInfo : FSceneComponentInfo
 {
     DECLARE_ACTORCOMPONENT_INFO(FPrimitiveComponentInfo);
@@ -58,6 +60,14 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
 
+    // Physics - Collision
+    bool IsGenerateOverlapEvents() const { return bGenerateOverlapEvents; }
+    void SetGenerateOverlapEvents(bool bInGenerateOverlapEvents) { bGenerateOverlapEvents = bInGenerateOverlapEvents; }
+
+    virtual void NotifyHit(HitResult Hit) const;
+    virtual void NotifyBeginOverlap(const UPrimitiveComponent* OtherComponent) const;
+    virtual void NotifyEndOverlap(const UPrimitiveComponent* OtherComponent) const;
+
     bool MoveComponent(const FVector& Delta) override;
     FVector ComponentVelocity;
 
@@ -68,5 +78,8 @@ public:
     FName GetVBIBTopologyMappingName() const { return VBIBTopologyMappingName; }
 protected:
     FName VBIBTopologyMappingName;
+
+private:
+    bool bGenerateOverlapEvents = true;
 };
 

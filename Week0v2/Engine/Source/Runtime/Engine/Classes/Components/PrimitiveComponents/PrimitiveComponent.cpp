@@ -3,6 +3,8 @@
 #include "GameFramework/Actor.h"
 #include "UObject/ObjectFactory.h"
 
+#include "Physics/FCollisionManager.h"
+
 UPrimitiveComponent::UPrimitiveComponent()
     : Super()
 {
@@ -127,6 +129,18 @@ void UPrimitiveComponent::DuplicateSubObjects(const UObject* Source)
 void UPrimitiveComponent::PostDuplicate()
 {
     USceneComponent::PostDuplicate();
+}
+
+void UPrimitiveComponent::NotifyHit(HitResult Hit) const
+{
+}
+
+void UPrimitiveComponent::NotifyBeginOverlap(const UPrimitiveComponent* OtherComponent) const
+{
+}
+
+void UPrimitiveComponent::NotifyEndOverlap(const UPrimitiveComponent* OtherComponent) const
+{
 }
 
 bool UPrimitiveComponent::MoveComponent(const FVector& Delta)
