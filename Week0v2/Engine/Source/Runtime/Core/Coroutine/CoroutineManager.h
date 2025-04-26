@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include "Container/Array.h"
 #include "IEnumerator.h"
 
 class FCoroutineManager
@@ -13,5 +13,5 @@ public:
     void CleanupCoroutines();
 
 private:
-    std::vector<IEnumerator*> Coroutines;
+    TArray<IEnumerator*> Coroutines;
 };

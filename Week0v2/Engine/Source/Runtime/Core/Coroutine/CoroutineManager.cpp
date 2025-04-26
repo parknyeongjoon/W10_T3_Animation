@@ -3,7 +3,7 @@
 
 void FCoroutineManager::StartCoroutine(IEnumerator* Coroutine)
 {
-    Coroutines.push_back(Coroutine);
+    Coroutines.Add(Coroutine);
 }
 
 void FCoroutineManager::Tick(float DeltaTime)
@@ -25,10 +25,7 @@ void FCoroutineManager::Tick(float DeltaTime)
 
 void FCoroutineManager::CleanupCoroutines()
 {
-    Coroutines.erase(
-        std::remove(Coroutines.begin(), Coroutines.end(), nullptr),
-        Coroutines.end()
-    );
+    Coroutines.Remove(nullptr);
 }
 
 FCoroutineManager::~FCoroutineManager()
@@ -37,5 +34,5 @@ FCoroutineManager::~FCoroutineManager()
     {
         delete Coroutine;
     }
-    Coroutines.clear();
+    Coroutines.Empty();
 }

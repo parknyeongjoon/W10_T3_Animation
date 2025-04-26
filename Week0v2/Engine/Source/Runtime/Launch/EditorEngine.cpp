@@ -93,18 +93,13 @@ int32 UEditorEngine::Init(HWND hwnd)
 
     DECLARE_DELEGATE(TEST_DELEGATE, void);
     TEST_DELEGATE delegate;
+
     delegate.BindLambda([coroutineFunc] {
         sol::coroutine Co(coroutineFunc.lua_state(), coroutineFunc);
         FLuaCoroutine* NewCoroutine = new FLuaCoroutine(Co);
         GEngine->CoroutineManager.StartCoroutine(NewCoroutine);
         });
     delegate.Execute();
-    // Coroutine 생성
-    //sol::coroutine co(lua.lua_state(), coroutineFunc);
-    //FLuaCoroutine* luaCoroutine = new FLuaCoroutine(co);
-
-    // CoroutineManager에 등록
-    //CoroutineManager.StartCoroutine(luaCoroutine);
     //Test Code.
 
     return 0;
