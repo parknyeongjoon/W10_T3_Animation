@@ -19,6 +19,10 @@ cbuffer FPrimitiveCounts : register(b2)
     int SphereCount;
     int ConeCount; // 렌더링할 cone의 개수
     int LineCount;
+    int CapsuleCount; 
+    float pad1;
+    float pad2;
+    float pad3;
 };
 
 struct FBoundingBoxData
@@ -40,6 +44,15 @@ struct FConeData
     
     int ConeSegmentCount; // 원뿔 밑면 분할 수
     float pad[3];
+};
+
+struct FCapsuleData
+{
+    float3 Center;
+    float Radius;
+    float3 UpVector;
+    float HalfHeight;
+    float4 Color;
 };
 
 struct FOrientedBoxCornerData
@@ -68,6 +81,7 @@ StructuredBuffer<FConeData> g_ConeData : register(t4);
 StructuredBuffer<FOrientedBoxCornerData> g_OrientedBoxes : register(t5);
 StructuredBuffer<FSphereData> g_SphereData : register(t6);
 StructuredBuffer<FLineData> g_LineData : register(t7);
+StructuredBuffer<FCapsuleData> g_Capsules : register(t8);
 
 static const int BB_EdgeIndices[12][2] =
 {
@@ -309,6 +323,80 @@ float3 ComputeLinePosition(uint globalInstanceID, uint vertexID)
 }
 
 /////////////////////////////////////////////////////////////////////////
+// Capsule
+/////////////////////////////////////////////////////////////////////////
+float3 ComputeCapsulePosition(uint globalInstanceID, uint vertexID)
+{
+    // Capsule 하나를 여러 선분으로 분해해서 그린다
+    // (실린더 Body + 위/아래 Hemisphere)
+
+    const uint NumSegments = 16; // 기본 세그먼트
+    const float PI = 3.14159265359f;
+
+    uint capsuleIndex = globalInstanceID / (NumSegments * 6);
+    uint localID = globalInstanceID % (NumSegments * 6);
+
+    FCapsuleData capsule = g_Capsules[capsuleIndex];
+
+    float3 Up = normalize(capsule.UpVector);
+    float3 Right = normalize(cross(Up, float3(0, 0, 1)));
+    if (length(Right) < 0.01)
+    {
+        Right = float3(1, 0, 0);
+    }
+    float3 Forward = normalize(cross(Right, Up));
+
+    // 기본 축: Up, Right, Forward 만들기
+
+    float3 baseCenterTop = capsule.Center + Up * capsule.HalfHeight;
+    float3 baseCenterBottom = capsule.Center - Up * capsule.HalfHeight;
+
+    if (localID < NumSegments)
+    {
+        // 위쪽 원 (Top circle)
+        float angle0 = (localID) * (2.0f * PI / NumSegments);
+        float angle1 = (localID + 1) * (2.0f * PI / NumSegments);
+
+        float3 p0 = baseCenterTop + capsule.Radius * (cos(angle0) * Right + sin(angle0) * Forward);
+        float3 p1 = baseCenterTop + capsule.Radius * (cos(angle1) * Right + sin(angle1) * Forward);
+
+        return (vertexID == 0) ? p0 : p1;
+    }
+    else if (localID < NumSegments * 2)
+    {
+        // 아래쪽 원 (Bottom circle)
+        uint idx = localID - NumSegments;
+        float angle0 = (idx) * (2.0f * PI / NumSegments);
+        float angle1 = (idx + 1) * (2.0f * PI / NumSegments);
+
+        float3 p0 = baseCenterBottom + capsule.Radius * (cos(angle0) * Right + sin(angle0) * Forward);
+        float3 p1 = baseCenterBottom + capsule.Radius * (cos(angle1) * Right + sin(angle1) * Forward);
+
+        return (vertexID == 0) ? p0 : p1;
+    }
+    else if (localID < NumSegments * 4)
+    {
+        // 세로선 (위->아래 Cylinder)
+        uint idx = (localID - NumSegments * 2);
+
+        float angle = (idx) * (2.0f * PI / NumSegments);
+
+        float3 offset = capsule.Radius * (cos(angle) * Right + sin(angle) * Forward);
+
+        float3 p0 = baseCenterTop + offset;
+        float3 p1 = baseCenterBottom + offset;
+
+        return (vertexID == 0) ? p0 : p1;
+    }
+    else
+    {
+        // 반구 아크는 생략! (지금 버전은 심플 기본 캡슐)
+        return capsule.Center;
+    }
+}
+
+
+/////////////////////////////////////////////////////////////////////////
 // 메인 버텍스 셰이더
 /////////////////////////////////////////////////////////////////////////
 PS_INPUT mainVS(VS_INPUT input)
@@ -337,8 +425,12 @@ PS_INPUT mainVS(VS_INPUT input)
     // 3) 선 구간 시작 지점
     uint lineInstanceStart = sphereInstanceStart + sphereInstCnt;
     // 4) 그 다음(=선 구간의 끝)이 곧 OBB 시작 지점
-    uint obbStart = lineInstanceStart + lineInstCnt;
-
+    uint obbInstanceStart = lineInstanceStart + lineInstCnt;
+    uint obbInstanceCount = 12 * BoundingBoxCount; // OBB도 12 edges per box
+    
+    uint capsuleInstanceStart = obbInstanceStart + obbInstanceCount;
+    uint capsuleInstanceCount = CapsuleCount * (16 * 6); // 
+    
     // 이제 instanceID를 기준으로 분기
     if (input.instanceID < gridLineCount)
     {
@@ -398,13 +490,21 @@ PS_INPUT mainVS(VS_INPUT input)
         uint lineIndex = lineInstanceID / 2;
         color = g_LineData[lineIndex].Color;
     }
-    else
+    else if (input.instanceID < capsuleInstanceStart)
     {
         uint obbLocalID = input.instanceID - obbStart;
         uint obbIndex = obbLocalID / 12;
         uint edgeIndex = obbLocalID % 12;
 
         pos = ComputeOrientedBoxPosition(obbIndex, edgeIndex, input.vertexID);
+        color = float4(0.4, 1.0, 0.4, 1.0);
+    }
+    else
+    {
+        uint capsuleLocalID = input.instanceID - capsuleInstanceStart;
+        pos = ComputeCapsulePosition(capsuleLocalID, input.vertexID);
+        uint capsuleIndex = capsuleLocalID / (16 * 6);
+        
         color = float4(0.4, 1.0, 0.4, 1.0); // 예시: 연두색
     }
 

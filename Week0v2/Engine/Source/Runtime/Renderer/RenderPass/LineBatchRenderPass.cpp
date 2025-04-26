@@ -11,6 +11,7 @@
 #include "Components/LightComponents/PointLightComponent.h"
 #include "Components/LightComponents/SpotLightComponent.h"
 #include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 class USpotLightComponent;
 extern UEditorEngine* GEngine;
 
@@ -42,7 +43,20 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
                 UPrimitiveBatch::GetInstance().AddAABB(Box, Center, ModelMatrix);
 
             }
+            if (UCapsuleShapeComponent* pCapsuleShapeComponent = Cast<UCapsuleShapeComponent>(actorComp))
+            {
+                FVector Center = pCapsuleShapeComponent->GetComponentLocation();
+                FVector UpVector = pCapsuleShapeComponent->GetUpVector(); // 컴포넌트의 월드 Up 방향
+                FVector4 Color = FVector4(0.4f,1.0f,0.4f,1.0f); // ShapeColor 사용
+                float CapsuleHalfHeight = pCapsuleShapeComponent->GetHalfHeight();
+                float CapsuleRaidus = pCapsuleShapeComponent->GetRadius();
+                //const FBoundingBox& Box = pShapeComponent->GetBroadAABB();
+                //FMatrix ModelMatrix = pShapeComponent->GetWorldMatrix();
+                //FVector Center = pShapeComponent->GetComponentLocation();
 
+                UPrimitiveBatch::GetInstance().AddCapsule(Center, UpVector, CapsuleHalfHeight, CapsuleRaidus,Color);
+
+            }
         }
     }
 }
@@ -78,6 +92,7 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
     PrimitiveCounts.BoundingBoxCount = PrimitveBatch.GetBoundingBoxes().Num();
     PrimitiveCounts.SphereCount = PrimitveBatch.GetSpheres().Num();
     PrimitiveCounts.LineCount = PrimitveBatch.GetLines().Num();
+    PrimitiveCounts.CapsuleCount = PrimitveBatch.GetCapsules().Num();
     renderResourceManager->UpdateConstantBuffer(TEXT("FPrimitiveCounts"), &PrimitiveCounts);
 
     const std::shared_ptr<FVBIBTopologyMapping> VBIBTopologyMappingInfo = Renderer.GetVBIBTopologyMapping(VBIBTopologyMappingName);
@@ -103,7 +118,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView); // 렌더 타겟 설정
 
-    for (AActor* actor :GEngine->GetWorld()->GetSelectedActors() )    
+    for (AActor* actor : GEngine->GetWorld()->GetSelectedActors())
     {
         ALight* Light = Cast<ALight>(actor);
         if (Light)
@@ -114,7 +129,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                 if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Comp))
                 {
                     const FMatrix Model = SpotLight->GetWorldMatrix();
-                    if (SpotLight->GetOuterConeAngle() > 0) 
+                    if (SpotLight->GetOuterConeAngle() > 0)
                     {
                         UPrimitiveBatch::GetInstance().AddCone(
                             SpotLight->GetComponentLocation(),
@@ -172,11 +187,14 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     Graphics.DeviceContext->VSSetShaderResources(6, 1, &FSphereSRV);
     ID3D11ShaderResourceView* FLineSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Line"));
     Graphics.DeviceContext->VSSetShaderResources(7, 1, &FLineSRV);
+    ID3D11ShaderResourceView* FCapsuleSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Capsule"));
+    Graphics.DeviceContext->VSSetShaderResources(8, 1, &FCapsuleSRV);
 }
 
 void FLineBatchRenderPass::ClearRenderObjects()
 {
     ShapeComponents.Empty();
+    CapsuleShapeComponents.Empty();
 }
 
 void FLineBatchRenderPass::UpdateBatchResources()
@@ -240,7 +258,7 @@ void FLineBatchRenderPass::UpdateBatchResources()
             ID3D11ShaderResourceView* SBSRV = nullptr;
             SB = renderResourceManager->CreateStructuredBuffer<FSphere>(static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedSphereCapacity()));
             SBSRV = renderResourceManager->CreateBufferSRV(SB, static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedSphereCapacity()));
-            
+
             renderResourceManager->AddOrSetSRVStructuredBuffer(TEXT("Sphere"), SB);
             renderResourceManager->AddOrSetSRVStructuredBufferSRV(TEXT("Sphere"), SBSRV);
         }
@@ -254,9 +272,9 @@ void FLineBatchRenderPass::UpdateBatchResources()
     }
 
     {
-        if (UPrimitiveBatch::GetInstance().GetLines().Num() > UPrimitiveBatch::GetInstance().GetAllocatedLineCapacity())
+        if (PrimitveBatch.GetLines().Num() > PrimitveBatch.GetAllocatedLineCapacity())
         {
-            UPrimitiveBatch::GetInstance().SetAllocatedLineCapacity(UPrimitiveBatch::GetInstance().GetLines().Num());
+            PrimitveBatch.SetAllocatedLineCapacity(PrimitveBatch.GetLines().Num());
 
             ID3D11Buffer* SB = nullptr;
             ID3D11ShaderResourceView* SBSRV = nullptr;
@@ -272,6 +290,28 @@ void FLineBatchRenderPass::UpdateBatchResources()
         if (SB != nullptr && SBSRV != nullptr)
         {
             renderResourceManager->UpdateStructuredBuffer(SB, UPrimitiveBatch::GetInstance().GetLines());
+        }
+    }
+    {
+        int32 CapsulesNum = PrimitveBatch.GetCapsules().Num();
+        if (CapsulesNum > PrimitveBatch.GetAllocatedCapsuleCapacity())
+        {
+            PrimitveBatch.SetAllocatedCapsuleCapacity(CapsulesNum);
+
+            ID3D11Buffer* SB = nullptr;
+            ID3D11ShaderResourceView* SBSRV = nullptr;
+            SB = renderResourceManager->CreateStructuredBuffer<FCapsule>(static_cast<uint32>(PrimitveBatch.GetAllocatedCapsuleCapacity()));
+            SBSRV = renderResourceManager->CreateBufferSRV(SB, static_cast<uint32>(PrimitveBatch.GetAllocatedCapsuleCapacity()));
+
+            renderResourceManager->AddOrSetSRVStructuredBuffer(TEXT("Capsule"), SB);
+            renderResourceManager->AddOrSetSRVStructuredBufferSRV(TEXT("Capsule"), SBSRV);
+        }
+
+        ID3D11Buffer* SB = renderResourceManager->GetSRVStructuredBuffer(TEXT("Capsule"));
+        ID3D11ShaderResourceView* SBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Capsule"));
+        if (SB != nullptr && SBSRV != nullptr)
+        {
+            renderResourceManager->UpdateStructuredBuffer(SB, PrimitveBatch.GetCapsules());
         }
     }
 

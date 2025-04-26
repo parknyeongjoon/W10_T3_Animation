@@ -22,7 +22,7 @@ public:
 
 
 private:
-    float CapsuleHalfHeight;
-    float CapsuleRaidus;
+    float CapsuleHalfHeight = 50.0f;
+    float CapsuleRaidus = 25.0f;
 };
 
