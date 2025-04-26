@@ -34,6 +34,6 @@ namespace LuaTypes
     template <> struct FBindLua<FMatrix>      { static void Bind(sol::table& Table); };
 
     // Object Types
-    template <> struct FBindLua<ALuaActor>    { static void Bind(sol::table& Table); };
+    //template <> struct FBindLua<ALuaActor>    { static void Bind(sol::table& Table); };
     template <> struct FBindLua<AActor>    { static void Bind(sol::table& Table); };
 }

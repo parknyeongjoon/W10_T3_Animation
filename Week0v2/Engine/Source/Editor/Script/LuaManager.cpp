@@ -183,7 +183,7 @@ void FLuaManager::BindCoreTypes()
      LuaTypes::FBindLua<FMatrix>::Bind(Ns);
 
     // Object Types
-    LuaTypes::FBindLua<ALuaActor>::Bind(Ns);
+    //LuaTypes::FBindLua<ALuaActor>::Bind(Ns);
     LuaTypes::FBindLua<AActor>::Bind(Ns);
 
     generateStubs(LuaState);

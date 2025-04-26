@@ -238,42 +238,42 @@ void LuaTypes::FBindLua<FMatrix>::Bind(sol::table& Table)
     );
 }
 
-void LuaTypes::FBindLua<ALuaActor>::Bind(sol::table& Table)
-{
-    Table.Lua_NewUserType(
-        ALuaActor,
-
-        // UObject 메서드
-        LUA_BIND_MEMBER(&ALuaActor::Duplicate),
-        LUA_BIND_MEMBER(&ALuaActor::GetFName),
-        LUA_BIND_MEMBER(&ALuaActor::GetName),
-        //LUA_BIND_MEMBER(&ALuaActor::GetOuter),
-        LUA_BIND_MEMBER(&ALuaActor::GetWorld),
-        LUA_BIND_MEMBER(&ALuaActor::GetUUID),
-        LUA_BIND_MEMBER(&ALuaActor::GetClass),
-
-        // AActor 메서드
-        LUA_BIND_MEMBER(&ALuaActor::GetActorLocation),
-        LUA_BIND_MEMBER(&ALuaActor::GetActorRotation),
-        LUA_BIND_MEMBER(&ALuaActor::GetActorScale),
-
-        LUA_BIND_MEMBER(&ALuaActor::GetActorForwardVector),
-        LUA_BIND_MEMBER(&ALuaActor::GetActorRightVector),
-        LUA_BIND_MEMBER(&ALuaActor::GetActorUpVector),
-
-        LUA_BIND_MEMBER(&ALuaActor::SetActorLocation),
-        LUA_BIND_MEMBER(&ALuaActor::SetActorRotation),
-        LUA_BIND_MEMBER(&ALuaActor::SetActorScale),
-
-        LUA_BIND_MEMBER(&ALuaActor::GetRootComponent),
-        LUA_BIND_MEMBER(&ALuaActor::SetRootComponent),
-        LUA_BIND_MEMBER(&ALuaActor::GetOwner),
-        LUA_BIND_MEMBER(&ALuaActor::SetOwner),
-
-        LUA_BIND_MEMBER(&ALuaActor::Destroy),
-        LUA_BIND_MEMBER(&ALuaActor::IsActorBeingDestroyed)
-    );
-}
+// void LuaTypes::FBindLua<ALuaActor>::Bind(sol::table& Table)
+// {
+//     Table.Lua_NewUserType(
+//         ALuaActor,
+//
+//         // UObject 메서드
+//         LUA_BIND_MEMBER(&ALuaActor::Duplicate),
+//         LUA_BIND_MEMBER(&ALuaActor::GetFName),
+//         LUA_BIND_MEMBER(&ALuaActor::GetName),
+//         //LUA_BIND_MEMBER(&ALuaActor::GetOuter),
+//         LUA_BIND_MEMBER(&ALuaActor::GetWorld),
+//         LUA_BIND_MEMBER(&ALuaActor::GetUUID),
+//         LUA_BIND_MEMBER(&ALuaActor::GetClass),
+//
+//         // AActor 메서드
+//         LUA_BIND_MEMBER(&ALuaActor::GetActorLocation),
+//         LUA_BIND_MEMBER(&ALuaActor::GetActorRotation),
+//         LUA_BIND_MEMBER(&ALuaActor::GetActorScale),
+//
+//         LUA_BIND_MEMBER(&ALuaActor::GetActorForwardVector),
+//         LUA_BIND_MEMBER(&ALuaActor::GetActorRightVector),
+//         LUA_BIND_MEMBER(&ALuaActor::GetActorUpVector),
+//
+//         LUA_BIND_MEMBER(&ALuaActor::SetActorLocation),
+//         LUA_BIND_MEMBER(&ALuaActor::SetActorRotation),
+//         LUA_BIND_MEMBER(&ALuaActor::SetActorScale),
+//
+//         LUA_BIND_MEMBER(&ALuaActor::GetRootComponent),
+//         LUA_BIND_MEMBER(&ALuaActor::SetRootComponent),
+//         LUA_BIND_MEMBER(&ALuaActor::GetOwner),
+//         LUA_BIND_MEMBER(&ALuaActor::SetOwner),
+//
+//         LUA_BIND_MEMBER(&ALuaActor::Destroy),
+//         LUA_BIND_MEMBER(&ALuaActor::IsActorBeingDestroyed)
+//     );
+// }
 
 void LuaTypes::FBindLua<AActor>::Bind(sol::table& Table)
 {

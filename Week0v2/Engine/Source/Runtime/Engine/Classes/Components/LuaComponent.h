@@ -42,7 +42,7 @@ public:
     /** 이 컴포넌트를 제거합니다. */
     virtual void DestroyComponent();
 
-    sol::table LuaData;
+    //sol::table LuaData;
 
 private:
     // Lua 함수 포인터들 (AActor 대신 컴포넌트가 소유)

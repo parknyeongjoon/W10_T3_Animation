@@ -78,10 +78,10 @@ void ULuaComponent::BeginPlay()
             LuaOnOverlapFunction = ScriptTable["OnOverlap"];
             // ...
 
-            // 컴포넌트의 LuaData 초기화
-            if (!LuaData.valid()) {
-                LuaData = lua.create_table();
-            }
+            // // 컴포넌트의 LuaData 초기화
+            // if (!LuaData.valid()) {
+            //     LuaData = lua.create_table();
+            // }
 
             // Lua의 BeginPlay 호출 (컨텍스트 설정 주의!)
             if (LuaFunctionBeginPlay.valid()) {
