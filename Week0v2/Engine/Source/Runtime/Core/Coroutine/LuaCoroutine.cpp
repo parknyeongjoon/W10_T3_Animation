@@ -14,7 +14,6 @@ FLuaCoroutine::~FLuaCoroutine()
         WaitObject = nullptr;
     }
 }
-
 bool FLuaCoroutine::MoveNext(float DeltaTime)
 {
     if (bMarkedForDeletion)
@@ -43,8 +42,17 @@ bool FLuaCoroutine::MoveNext(float DeltaTime)
         {
             WaitObject = yielded.as<FWaitUntil*>();
         }
+        else if (yielded.is<FWaitForFrames*>())
+        {
+            WaitObject = yielded.as<FWaitForFrames*>();
+        }
+        else if (yielded.is<FWaitWhile*>())
+        {
+            WaitObject = yielded.as<FWaitWhile*>();
+        }
         else
         {
+            std::cout << "[MoveNext] Unknown yield type, terminating coroutine." << std::endl;
             bMarkedForDeletion = true;
         }
         return true;
@@ -53,6 +61,7 @@ bool FLuaCoroutine::MoveNext(float DeltaTime)
     bMarkedForDeletion = true;
     return false;
 }
+
 
 IWaitObject* FLuaCoroutine::GetCurrent() const
 {

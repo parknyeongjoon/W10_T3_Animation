@@ -4,8 +4,9 @@
 #include "Engine/Engine.h"
 #include "Renderer/Renderer.h"
 #include "Engine/ResourceManager.h"
+#include "Coroutine/CoroutineManager.h"
 
-
+#include <sol/sol.hpp>
 class FSceneMgr;
 class UnrealEd;
 class UImGuiManager;
@@ -44,6 +45,10 @@ public:
     static FGraphicsDevice graphicDevice;
     static FRenderer renderer;
     static FResourceManager resourceMgr;
+
+
+    FCoroutineManager CoroutineManager;
+    sol::state lua;
     
     HWND hWnd;
     ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;
