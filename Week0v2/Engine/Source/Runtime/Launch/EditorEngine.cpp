@@ -15,11 +15,13 @@
 #include "BaseGizmos/TransformGizmo.h"
 #include "Coroutine/LuaCoroutine.h"
 #include "Coroutine/WaitObjects.h"
+#include "Delegates/DelegateCombination.h"
 class ULevel;
 
 FGraphicsDevice UEditorEngine::graphicDevice;
 FRenderer UEditorEngine::renderer;
 FResourceManager UEditorEngine::resourceMgr;
+FCoroutineManager UEditorEngine::CoroutineManager;
 
 UEditorEngine::UEditorEngine()
     : hWnd(nullptr)
@@ -31,25 +33,6 @@ UEditorEngine::UEditorEngine()
     , LevelEditor(nullptr)
     , UnrealEditor(nullptr)
 {
-}
-
-void RegisterWaitHelpers(sol::state& lua)
-{
-    // 1. 원본 C++ 클래스 등록
-    lua.new_usertype<FWaitForSeconds>("FWaitForSeconds",
-        sol::constructors<FWaitForSeconds(float)>());
-    lua.new_usertype<FWaitForFrames>("FWaitForFrames",
-        sol::constructors<FWaitForFrames(int32_t)>());
-    lua.new_usertype<FWaitUntil>("FWaitUntil",
-        sol::constructors<FWaitUntil(sol::function)>());
-    lua.new_usertype<FWaitWhile>("FWaitWhile",
-        sol::constructors<FWaitWhile(sol::function)>());
-
-    // 2. Lua용 간단한 함수 등록
-    lua["WaitForSeconds"] = [](float seconds) { return new FWaitForSeconds(seconds); };
-    lua["WaitForFrames"] = [](int32_t frames) { return new FWaitForFrames(frames); };
-    lua["WaitUntil"] = [](sol::function condition) { return new FWaitUntil(condition); };
-    lua["WaitWhile"] = [](sol::function condition) { return new FWaitWhile(condition); };
 }
 
 int32 UEditorEngine::Init(HWND hwnd)
@@ -87,6 +70,7 @@ int32 UEditorEngine::Init(HWND hwnd)
     
     SceneMgr = new FSceneMgr();
 
+    //Test Code. TODO Delete This
     lua.open_libraries(sol::lib::base, sol::lib::coroutine, sol::lib::os);
 
     // Wait Helper 등록
@@ -107,13 +91,21 @@ int32 UEditorEngine::Init(HWND hwnd)
         return 1;
     }
 
+    DECLARE_DELEGATE(TEST_DELEGATE, void);
+    TEST_DELEGATE delegate;
+    delegate.BindLambda([coroutineFunc] {
+        sol::coroutine Co(coroutineFunc.lua_state(), coroutineFunc);
+        FLuaCoroutine* NewCoroutine = new FLuaCoroutine(Co);
+        GEngine->CoroutineManager.StartCoroutine(NewCoroutine);
+        });
+    delegate.Execute();
     // Coroutine 생성
-    sol::coroutine co(lua.lua_state(), coroutineFunc);
-    FLuaCoroutine* luaCoroutine = new FLuaCoroutine(co);
+    //sol::coroutine co(lua.lua_state(), coroutineFunc);
+    //FLuaCoroutine* luaCoroutine = new FLuaCoroutine(co);
 
     // CoroutineManager에 등록
-    CoroutineManager.StartCoroutine(luaCoroutine);
-
+    //CoroutineManager.StartCoroutine(luaCoroutine);
+    //Test Code.
 
     return 0;
 }
@@ -163,9 +155,11 @@ void UEditorEngine::Tick(float deltaSeconds)
 
     graphicDevice.SwapBuffer();
     FVector CurRotation = GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetRotation();
-   
+
+    //Test Code. TODO Delete This
     CoroutineManager.Tick(deltaSeconds);
     CoroutineManager.CleanupCoroutines();
+    //Test Code.
 }
 
 float UEditorEngine::GetAspectRatio(IDXGISwapChain* swapChain) const

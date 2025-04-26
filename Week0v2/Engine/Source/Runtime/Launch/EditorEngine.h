@@ -46,10 +46,12 @@ public:
     static FRenderer renderer;
     static FResourceManager resourceMgr;
 
-
-    FCoroutineManager CoroutineManager;
+    //Test Code. TODO Delete This
+    static FCoroutineManager CoroutineManager;
     sol::state lua;
-    
+    //Test Code.
+
+
     HWND hWnd;
     ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;
 private:

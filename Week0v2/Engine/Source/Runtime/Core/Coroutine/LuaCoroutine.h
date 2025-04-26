@@ -17,3 +17,5 @@ private:
     IWaitObject* WaitObject = nullptr;
     bool bMarkedForDeletion = false;
 };
+
+void RegisterWaitHelpers(sol::state& lua);

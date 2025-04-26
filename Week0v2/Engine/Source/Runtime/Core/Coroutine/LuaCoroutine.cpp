@@ -67,3 +67,22 @@ IWaitObject* FLuaCoroutine::GetCurrent() const
 {
     return WaitObject;
 }
+
+void RegisterWaitHelpers(sol::state& lua)
+{
+    // 1. 원본 C++ 클래스 등록
+    lua.new_usertype<FWaitForSeconds>("FWaitForSeconds",
+        sol::constructors<FWaitForSeconds(float)>());
+    lua.new_usertype<FWaitForFrames>("FWaitForFrames",
+        sol::constructors<FWaitForFrames(int32_t)>());
+    lua.new_usertype<FWaitUntil>("FWaitUntil",
+        sol::constructors<FWaitUntil(sol::function)>());
+    lua.new_usertype<FWaitWhile>("FWaitWhile",
+        sol::constructors<FWaitWhile(sol::function)>());
+
+    // 2. Lua용 간단한 함수 등록
+    lua["WaitForSeconds"] = [](float seconds) { return new FWaitForSeconds(seconds); };
+    lua["WaitForFrames"] = [](int32_t frames) { return new FWaitForFrames(frames); };
+    lua["WaitUntil"] = [](sol::function condition) { return new FWaitUntil(condition); };
+    lua["WaitWhile"] = [](sol::function condition) { return new FWaitWhile(condition); };
+}
