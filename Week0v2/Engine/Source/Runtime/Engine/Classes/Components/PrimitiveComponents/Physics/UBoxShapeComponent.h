@@ -16,6 +16,11 @@ public:
     void SetBoxExtent(const FVector& InExtent) { BoxExtent = InExtent; }
     FVector GetBoxExtent() const { return BoxExtent; }
 
+    void UpdateBroadAABB() override;
+
+    virtual bool TestOverlaps(const UShapeComponent* OtherShape) const override;
+    virtual bool NarrowPhaseCollisionCheck(const UShapeComponent* OtherShape) const override;
+
 private:
     FVector BoxExtent;
 };

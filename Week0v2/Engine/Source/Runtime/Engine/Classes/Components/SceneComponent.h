@@ -74,7 +74,7 @@ public:
     FMatrix GetTranslationMatrix() const;
     FMatrix GetWorldMatrix() const;
 
-    FBoundingBox GetBoundingBox() { return AABB; }
+    FBoundingBox GetBoundingBox() const { return AABB; }
     void SetBoundingBox(const FBoundingBox& InAABB) { AABB = InAABB; }
 protected:
     FVector RelativeLocation;

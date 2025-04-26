@@ -94,7 +94,7 @@ void ULightComponentBase::TickComponent(float DeltaTime)
 
 int ULightComponentBase::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
 {
-    bool res =AABB.Intersect(rayOrigin, rayDirection, pfNearHitDistance);
+    bool res =AABB.IntersectRay(rayOrigin, rayDirection, pfNearHitDistance);
     return res;
 }
 

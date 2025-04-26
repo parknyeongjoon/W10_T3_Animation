@@ -1,11 +1,23 @@
 #include "UShapeComponent.h"
 #include "Launch/EditorEngine.h"
+#include "Components/SceneComponent.h"
 
 UShapeComponent::UShapeComponent()
+    : ShapeColor(FLinearColor::Green)
+    , bDrawOnlyIfSelected(true)
+    , PrevLocation(FVector::ZeroVector)
+    , PrevRotation(FRotator(0, 0, 0))
+    , PrevScale(FVector::OneVector)
 {
 }
 
 UShapeComponent::UShapeComponent(const UShapeComponent& Other)
+    : UPrimitiveComponent(Other)
+    , ShapeColor(Other.ShapeColor)
+    , bDrawOnlyIfSelected(Other.bDrawOnlyIfSelected)
+    , PrevLocation(Other.GetPrevLocation())
+    , PrevRotation(Other.GetPrevRotation())
+    , PrevScale(Other.GetPrevScale)
 {
 }
 
@@ -16,6 +28,8 @@ UShapeComponent::~UShapeComponent()
 void UShapeComponent::InitializeComponent()
 {
     Super::InitializeComponent();
+
+    bDrawOnlyIfSelected = true;
 
     UEditorEngine::CollisionManager.Register(this);
 }
@@ -50,7 +64,7 @@ bool UShapeComponent::TestOverlaps(const UShapeComponent* OtherShape) const
 
 bool UShapeComponent::BroadPhaseCollisionCheck(const UShapeComponent* OtherShape) const
 {
-    return false;
+    return BroadAABB.IntersectAABB(OtherShape->GetBroadAABB());
 }
 
 bool UShapeComponent::NarrowPhaseCollisionCheck(const UShapeComponent* OtherShape) const

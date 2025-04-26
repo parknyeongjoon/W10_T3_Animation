@@ -96,10 +96,12 @@ void UEditorEngine::Tick(float deltaSeconds)
 {
     GWorld->Tick(levelType, deltaSeconds);
 
-    if (GWorld->WorldType == EWorldType::PIE)
-    {
-        CollisionManager.UpdateCollision(deltaSeconds);
-    }
+    //if (GWorld->WorldType == EWorldType::PIE)
+    //{
+    //    CollisionManager.UpdateCollision(deltaSeconds);
+    //}
+
+    CollisionManager.UpdateCollision(deltaSeconds);
     
     Input();
     // GWorld->Tick(LEVELTICK_All, deltaSeconds);

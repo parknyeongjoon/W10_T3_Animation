@@ -24,7 +24,7 @@ UPrimitiveComponent::~UPrimitiveComponent()
 
 void UPrimitiveComponent::InitializeComponent()
 {
-    // Super::InitializeComponent();
+     Super::InitializeComponent();
 }
 
 void UPrimitiveComponent::TickComponent(float DeltaTime)

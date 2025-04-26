@@ -28,7 +28,6 @@ struct OverlapResult
 };
 
 using FComponentPair = TPair<const UPrimitiveComponent*, const UPrimitiveComponent*>;
-using FComponentPairArray = TArray<FComponentPair>;
 
 class FCollisionManager
 {
@@ -69,8 +68,8 @@ private:
     TArray<const UPrimitiveComponent*> RegisteredComponents;
 
     // Overlap 이벤트 판정을 위한 이전/현재 프레임 상태
-    FComponentPairArray PreviousOverlaps;
-    FComponentPairArray CurrentOverlaps;
+    TArray<FComponentPair> PreviousOverlaps;
+    TArray<FComponentPair> CurrentOverlaps;
 
     // 알림 대기 중인 이벤트 저장
     TArray<HitResult> PendingHitResults;
