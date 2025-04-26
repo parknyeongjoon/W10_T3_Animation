@@ -49,6 +49,7 @@ public:
     //Test Code. TODO Delete This
     static FCoroutineManager CoroutineManager;
     sol::state lua;
+    void TestCoroutine();
     //Test Code.
 
 

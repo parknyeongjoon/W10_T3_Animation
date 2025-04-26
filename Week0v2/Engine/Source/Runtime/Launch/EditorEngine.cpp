@@ -70,37 +70,7 @@ int32 UEditorEngine::Init(HWND hwnd)
     
     SceneMgr = new FSceneMgr();
 
-    //Test Code. TODO Delete This
-    lua.open_libraries(sol::lib::base, sol::lib::coroutine, sol::lib::os);
-
-    // Wait Helper 등록
-    RegisterWaitHelpers(lua);
-
-    // Lua 스크립트 로드
-    if (lua.script_file("my_coroutine.lua").valid() == false)
-    {
-        std::cout << "Failed to load my_coroutine.lua" << std::endl;
-        return 1;
-    }
-
-    // my_coroutine 함수 가져오기
-    sol::function coroutineFunc = lua["my_coroutine"];
-    if (!coroutineFunc.valid())
-    {
-        std::cout << "Failed to find my_coroutine function" << std::endl;
-        return 1;
-    }
-
-    DECLARE_DELEGATE(TEST_DELEGATE, void);
-    TEST_DELEGATE delegate;
-
-    delegate.BindLambda([coroutineFunc] {
-        sol::coroutine Co(coroutineFunc.lua_state(), coroutineFunc);
-        FLuaCoroutine* NewCoroutine = new FLuaCoroutine(Co);
-        GEngine->CoroutineManager.StartCoroutine(NewCoroutine);
-        });
-    delegate.Execute();
-    //Test Code.
+    //TestCoroutine();
 
     return 0;
 }
@@ -274,4 +244,40 @@ void UEditorEngine::ResizeGizmo()
             }
         }
     }
+}
+
+void UEditorEngine::TestCoroutine()
+{
+
+    //Test Code. TODO Delete This
+    lua.open_libraries(sol::lib::base, sol::lib::coroutine, sol::lib::os);
+
+    // Wait Helper 등록
+    RegisterWaitHelpers(lua);
+
+    // Lua 스크립트 로드
+    if (lua.script_file("my_coroutine.lua").valid() == false)
+    {
+        std::cout << "Failed to load my_coroutine.lua" << std::endl;
+        return;
+    }
+
+    // my_coroutine 함수 가져오기
+    sol::function coroutineFunc = lua["my_coroutine"];
+    if (!coroutineFunc.valid())
+    {
+        std::cout << "Failed to find my_coroutine function" << std::endl;
+        return;
+    }
+
+    DECLARE_DELEGATE(TEST_DELEGATE, void);
+    TEST_DELEGATE delegate;
+
+    delegate.BindLambda([coroutineFunc] {
+        sol::coroutine Co(coroutineFunc.lua_state(), coroutineFunc);
+        FLuaCoroutine* NewCoroutine = new FLuaCoroutine(Co);
+        GEngine->CoroutineManager.StartCoroutine(NewCoroutine);
+        });
+    delegate.Execute();
+    //Test Code.
 }
