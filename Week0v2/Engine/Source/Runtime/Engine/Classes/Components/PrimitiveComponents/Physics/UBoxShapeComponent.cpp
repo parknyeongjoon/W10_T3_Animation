@@ -2,12 +2,14 @@
 #include "Math/JungleMath.h"
 
 UBoxShapeComponent::UBoxShapeComponent()
-
+    : UShapeComponent()
+    , BoxExtent(FVector::OneVector) // Default box extent
 {
 }
 
 UBoxShapeComponent::UBoxShapeComponent(const UBoxShapeComponent& Other)
-
+    : UShapeComponent(Other)
+    , BoxExtent(Other.BoxExtent) 
 {
 }
 
@@ -19,8 +21,6 @@ void UBoxShapeComponent::InitializeComponent()
 {
     Super::InitializeComponent();
 
-    BoxExtent = FVector::OneVector;
-    BroadAABB = FBoundingBox(FVector(-1, -1, -1), FVector(1, 1, 1));
     UpdateBroadAABB();
 }
 
@@ -29,18 +29,18 @@ void UBoxShapeComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
 
     // 현재 Transform
-    const FVector CurLocation = GetComponentLocation();
-    const FRotator CurRotation = GetComponentRotation();
-    const FVector CurScale = GetComponentScale();
+    //const FVector CurLocation = GetComponentLocation();
+    //const FRotator CurRotation = GetComponentRotation();
+    //const FVector CurScale = GetComponentScale();
 
-    if (PrevLocation != CurLocation || PrevRotation != CurRotation || PrevScale != CurScale)
-    {
-        UpdateBroadAABB();
-     
-        PrevLocation = CurLocation;
-        PrevRotation = CurRotation;
-        PrevScale = CurScale;
-    }
+    //if (PrevLocation != CurLocation || PrevRotation != CurRotation || PrevScale != CurScale)
+    //{
+    //    UpdateBroadAABB();
+    // 
+    //    PrevLocation = CurLocation;
+    //    PrevRotation = CurRotation;
+    //    PrevScale = CurScale;
+    //}
 }
 
 void UBoxShapeComponent::UpdateBroadAABB()

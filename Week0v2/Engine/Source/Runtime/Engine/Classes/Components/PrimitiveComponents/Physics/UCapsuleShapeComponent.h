@@ -18,11 +18,10 @@ public:
     void SetHalfHeight(float InHeight) { CapsuleHalfHeight = InHeight; }
     float GetHalfHeight() const { return CapsuleHalfHeight; }
 
+    virtual void UpdateBroadAABB() override;
+
     virtual bool TestOverlaps(const UShapeComponent* OtherShape) const override;
     virtual bool NarrowPhaseCollisionCheck(const UShapeComponent* OtherShape) const override;
-
-public:
-
 
 private:
     float CapsuleHalfHeight;

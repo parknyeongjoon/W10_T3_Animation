@@ -8,7 +8,7 @@ class UBoxShapeComponent : public UShapeComponent
 public:
     UBoxShapeComponent();
     UBoxShapeComponent(const UBoxShapeComponent& Other);
-    ~UBoxShapeComponent() override;
+    virtual ~UBoxShapeComponent() override;
 
     void InitializeComponent() override;
     void TickComponent(float DeltaTime) override;
@@ -16,7 +16,7 @@ public:
     void SetBoxExtent(const FVector& InExtent) { BoxExtent = InExtent; }
     FVector GetBoxExtent() const { return BoxExtent; }
 
-    void UpdateBroadAABB() override;
+    virtual void UpdateBroadAABB() override;
 
     virtual bool TestOverlaps(const UShapeComponent* OtherShape) const override;
     virtual bool NarrowPhaseCollisionCheck(const UShapeComponent* OtherShape) const override;

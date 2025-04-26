@@ -38,6 +38,19 @@ void UShapeComponent::InitializeComponent()
 void UShapeComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+
+    const FVector CurLocation = GetComponentLocation();
+    const FRotator CurRotation = GetComponentRotation();
+    const FVector CurScale = GetComponentScale();
+
+    if (PrevLocation != CurLocation || PrevRotation != CurRotation || PrevScale != CurScale)
+    {
+        UpdateBroadAABB();
+
+        PrevLocation = CurLocation;
+        PrevRotation = CurRotation;
+        PrevScale = CurScale;
+    }
 }
 
 UObject* UShapeComponent::Duplicate() const

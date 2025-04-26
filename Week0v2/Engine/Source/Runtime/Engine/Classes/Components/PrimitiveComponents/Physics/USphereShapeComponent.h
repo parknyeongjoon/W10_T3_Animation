@@ -7,7 +7,7 @@ class USphereShapeComponent : public UShapeComponent
 public:
     USphereShapeComponent();
     USphereShapeComponent(const USphereShapeComponent& Other);
-    ~USphereShapeComponent() override;
+    virtual ~USphereShapeComponent() override;
 
     void InitializeComponent() override;
     void TickComponent(float DeltaTime) override;
@@ -15,7 +15,7 @@ public:
     void SetRadius(float InRadius) { Radius = InRadius; }
     float GetRadius() const { return Radius; }
 
-    void UpdateBroadAABB() override;
+    virtual void UpdateBroadAABB() override;
 
     virtual bool TestOverlaps(const UShapeComponent* OtherShape) const override;
     virtual bool NarrowPhaseCollisionCheck(const UShapeComponent* OtherShape) const override;

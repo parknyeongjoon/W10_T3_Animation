@@ -33,8 +33,6 @@ void UBillboardComponent::InitializeComponent()
 	CreateQuadTextureVertexBuffer();
 }
 
-
-
 void UBillboardComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
