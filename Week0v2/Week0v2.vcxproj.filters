@@ -357,7 +357,6 @@
     <ClInclude Include="Engine\Source\Runtime\Serialization\FWindowsBinHelper.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\ActorInfo.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ActorComponentInfo.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBallActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\MovementComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\ProjectileMovementComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\RotatingMovementComponent.h" />
@@ -408,6 +407,13 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\ResourceManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowResource.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\ADodge.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBall.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\IEnumerator.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\IWaitObject.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -502,7 +508,6 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Color.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Serialization\Archive.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBallActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\MovementComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\ProjectileMovementComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\RotatingMovementComponent.cpp" />
@@ -551,6 +556,11 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\ResourceManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowResource.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\ADodge.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBall.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />
