@@ -22,3 +22,23 @@ public:
 private:
     sol::function Condition;
 };
+
+class FWaitForFrames : public IWaitObject
+{
+public:
+    explicit FWaitForFrames(int32_t InFrameCount);
+    virtual bool IsReady(float DeltaTime) override;
+
+private:
+    int32_t RemainingFrames;
+};
+
+class FWaitWhile : public IWaitObject
+{
+public:
+    explicit FWaitWhile(sol::function ConditionFunc);
+    virtual bool IsReady(float DeltaTime) override;
+
+private:
+    sol::function Condition;
+};
