@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include "CString.h"
 #include "ContainerAllocator.h"
@@ -50,7 +51,7 @@ class FString
 {
 public:
     using ElementType = TCHAR;
-
+    using PathType = std::filesystem::path;
 private:
     using BaseStringType = std::basic_string<
         ElementType,
@@ -74,7 +75,21 @@ public:
     FString& operator=(FString&&) = default;
 
     FString(BaseStringType InString) : PrivateString(std::move(InString)) {}
+    
+    /**
+     * @brief FString을 std::filesystem::path로 암시적 변환을 허용하는 연산자입니다.
+     * @return 내부 문자열 데이터로 생성된 std::filesystem::path 객체.
+     */
+    operator PathType() const
+    {
+        // PrivateString (std::basic_string<TCHAR>)을 사용하여
+        // std::filesystem::path 객체를 생성하여 반환합니다.
+        // std::filesystem::path는 std::string과 std::wstring 모두로부터 생성 가능합니다.
+        return PathType(PrivateString);
+    }
 
+    friend std::ostream& operator<<(std::ostream& os, const FString& str);
+    friend std::wostream& operator<<(std::wostream& wos, const FString& str);
 #if USE_WIDECHAR
 private:
     static std::wstring ConvertToWideChar(const ANSICHAR* NarrowStr);
@@ -365,5 +380,46 @@ inline FString::ElementType* GetData(FString& String)
 inline const FString::ElementType* GetData(const FString& String)
 {
     return String.PrivateString.data();
+}
+
+/**
+ * @brief FString 객체를 표준 바이트 스트림(std::ostream)에 출력합니다.
+ *        USE_WIDECHAR 가 정의된 경우, 내부 와이드 문자열을 (UTF-8) 좁은 문자열로 변환하여 출력합니다.
+ * @param os 출력 스트림 객체 (예: std::cout, std::cerr).
+ * @param str 출력할 FString 객체.
+ * @return 연쇄 출력을 위한 스트림 참조.
+ */
+inline std::ostream& operator<<(std::ostream& os, const FString& str)
+{
+#if USE_WIDECHAR
+    // FString이 wchar_t 기반일 때, std::ostream(char 기반)에 출력하기 위해
+    // UTF-8 인코딩의 std::string으로 변환합니다. (ToAnsiString 함수 활용)
+    os << str.ToAnsiString();
+#else
+    // FString이 char 기반일 때 (PrivateString이 std::string), 바로 출력 가능합니다.
+    // operator*()를 사용하거나 PrivateString에 직접 접근합니다.
+    os << str.PrivateString; // 또는 os << *str;
+#endif
+    return os; // 연쇄적인 출력을 위해 스트림 반환
+}
+
+/**
+ * @brief FString 객체를 표준 와이드 스트림(std::wostream)에 출력합니다.
+ *        USE_WIDECHAR 가 정의되지 않은 경우, 내부 좁은 문자열을 와이드 문자열로 변환하여 출력합니다.
+ * @param wos 와이드 출력 스트림 객체 (예: std::wcout).
+ * @param str 출력할 FString 객체.
+ * @return 연쇄 출력을 위한 스트림 참조.
+ */
+inline std::wostream& operator<<(std::wostream& wos, const FString& str)
+{
+#if USE_WIDECHAR
+    // FString이 wchar_t 기반일 때, std::wostream에 바로 출력 가능합니다.
+    wos << str.PrivateString; // 또는 wos << *str;
+#else
+    // FString이 char 기반일 때, std::wostream(wchar_t 기반)에 출력하기 위해
+    // 와이드 문자열(std::wstring)으로 변환합니다. (ToWideString 함수 활용)
+    wos << str.ToWideString();
+#endif
+    return wos; // 연쇄적인 출력을 위해 스트림 반환
 }
 

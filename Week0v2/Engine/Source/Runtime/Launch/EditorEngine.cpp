@@ -40,6 +40,8 @@ int32 UEditorEngine::Init(HWND hwnd)
     UIMgr->Initialize(hWnd, graphicDevice.Device, graphicDevice.DeviceContext);
     resourceMgr.Initialize(&renderer, &graphicDevice);
 
+
+    FLuaManager::Get().Initialize();
     
     FWorldContext EditorContext;
     EditorContext.WorldType = EWorldType::Editor;
@@ -205,6 +207,8 @@ void UEditorEngine::Exit()
     delete SceneMgr;
     resourceMgr.Release(&renderer);
     renderer.Release();
+
+    FLuaManager::Get().Shutdown();
     graphicDevice.Release();
 }
 

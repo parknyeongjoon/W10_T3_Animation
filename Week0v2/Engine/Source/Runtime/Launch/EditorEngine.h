@@ -4,6 +4,7 @@
 #include "Engine/Engine.h"
 #include "Renderer/Renderer.h"
 #include "Engine/ResourceManager.h"
+#include "Script/LuaManager.h"
 
 
 class FSceneMgr;
