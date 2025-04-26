@@ -19,7 +19,6 @@ class ULevel;
 FGraphicsDevice UEditorEngine::graphicDevice;
 FRenderer UEditorEngine::renderer;
 FResourceManager UEditorEngine::resourceMgr;
-FLuaManager UEditorEngine::luaManager;
 
 UEditorEngine::UEditorEngine()
     : hWnd(nullptr)
@@ -41,8 +40,8 @@ int32 UEditorEngine::Init(HWND hwnd)
     UIMgr->Initialize(hWnd, graphicDevice.Device, graphicDevice.DeviceContext);
     resourceMgr.Initialize(&renderer, &graphicDevice);
 
-    luaManager.Initialize();
 
+    FLuaManager::Get().Initialize();
     
     FWorldContext EditorContext;
     EditorContext.WorldType = EWorldType::Editor;
@@ -208,7 +207,8 @@ void UEditorEngine::Exit()
     delete SceneMgr;
     resourceMgr.Release(&renderer);
     renderer.Release();
-    luaManager.Release();
+
+    FLuaManager::Get().Shutdown();
     graphicDevice.Release();
 }
 

@@ -20,15 +20,12 @@ public:
     AActor(const AActor& Other);
     /** Actor가 게임에 배치되거나 스폰될 때 호출됩니다. */
     virtual void BeginPlay();
-    sol::protected_function LuaFunctionBeginPlay;
 
     /** 매 Tick마다 호출됩니다. */
     virtual void Tick(float DeltaTime);
-    sol::protected_function LuaFunctionTick;
 
     /** Actor가 제거될 때 호출됩니다. */
     virtual void Destroyed();
-    sol::protected_function LuaFunctionDestroyed;
 
     /**
      * 액터가 게임 플레이를 종료할 때 호출되는 함수입니다.
@@ -138,12 +135,7 @@ private:
 #endif
 
 
-public:
-    // 이 액터 인스턴스가 사용할 Lua 스크립트 파일 경로
-    FString LuaScriptPath = TEXT("Scripts/DefaultActor.lua"); // TODO:; LuaScriptPath 초기화
 
-
-    sol::protected_function LuaOnOverlapFunction;
 };
 
 
