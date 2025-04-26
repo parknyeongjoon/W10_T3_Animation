@@ -111,7 +111,7 @@ void FCollisionManager::BroadPhaseCollisionCheck(float DeltaTime)
             {
                 if (ShapeA->BroadPhaseCollisionCheck(ShapeB))
                 {
-                    BroadPhaseOverlapPairs.Add(MakeTuple(ShapeA, ShapeB));
+                    //BroadPhaseOverlapPairs.Add(TPair(ShapeA, ShapeB));
                 }
             }
         }
