@@ -10,7 +10,7 @@
 
 #include "Components/LightComponents/PointLightComponent.h"
 #include "Components/LightComponents/SpotLightComponent.h"
-
+#include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
 class USpotLightComponent;
 extern UEditorEngine* GEngine;
 
@@ -27,8 +27,24 @@ FLineBatchRenderPass::FLineBatchRenderPass(const FName& InShaderName)
     VBIBTopologyMappingName = TEXT("LineBatch");
 }
 
-void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InLevel)
+void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
+    for (const AActor* actor : InWorld->GetActors())
+    {
+        for (const UActorComponent* actorComp : actor->GetComponents())
+        {
+            if (UShapeComponent* pShapeComponent = Cast<UShapeComponent>(actorComp))
+            {
+                const FBoundingBox& Box = pShapeComponent->GetBroadAABB();
+                FMatrix ModelMatrix = pShapeComponent->GetWorldMatrix();
+                FVector Center = pShapeComponent->GetComponentLocation();
+
+                UPrimitiveBatch::GetInstance().AddAABB(Box, Center, ModelMatrix);
+
+            }
+
+        }
+    }
 }
 
 void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
@@ -156,6 +172,11 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     Graphics.DeviceContext->VSSetShaderResources(6, 1, &FSphereSRV);
     ID3D11ShaderResourceView* FLineSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Line"));
     Graphics.DeviceContext->VSSetShaderResources(7, 1, &FLineSRV);
+}
+
+void FLineBatchRenderPass::ClearRenderObjects()
+{
+    ShapeComponents.Empty();
 }
 
 void FLineBatchRenderPass::UpdateBatchResources()
