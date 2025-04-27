@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/EngineTypes.h"
+#include "Misc/Guid.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
@@ -21,9 +22,10 @@ class UActorComponent : public UObject
 
 private:
     friend class AActor;
+    friend class FActorComponentInfo;
 
 public:
-    UActorComponent() = default;
+    UActorComponent();
     UActorComponent(const UActorComponent& Other);
 
     /** AActor가 World에 Spawn되어 BeginPlay이전에 호출됩니다. */
@@ -86,12 +88,17 @@ protected:
     /**월드에 등록되었을 때 호출되는 함수*/
     virtual void OnRegister();
     virtual void OnUnregister();
-
-public:
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo();
-    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
-
+    
 protected:
+    FGuid ComponentID; // 고유 ID 저장
+public:
+    FGuid GetComponentID() const { return ComponentID; }
+    
+    virtual std::unique_ptr<FActorComponentInfo> GetComponentInfo();
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
+protected:
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo);
+    
     /** Tick을 지원하는 컴포넌트인지 여부 */
     uint8 bCanEverTick : 1;
 

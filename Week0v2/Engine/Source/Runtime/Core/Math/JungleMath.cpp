@@ -187,6 +187,81 @@ FVector JungleMath::QuaternionToEuler(const FQuat& quat)
     euler.x = RadToDeg(atan2(sinRoll, cosRoll));
     return euler;
 }
+
+FVector JungleMath::ClosestPointOnSegment(const FVector& A, const FVector& B, const FVector& Point)
+{
+    FVector AB = B - A;
+    float t = (Point - A).Dot(AB) / AB.Dot(AB);
+    t = FMath::Clamp(t, 0.0f, 1.0f);
+    return A + AB * t;
+}
+
+void JungleMath::FindClosestPointsBetweenSegments(const FVector& P1, const FVector& Q1, const FVector& P2, const FVector& Q2, FVector& ClosestP1, FVector& ClosestP2)
+{
+    FVector d1 = Q1 - P1; // 세그먼트 1 방향
+    FVector d2 = Q2 - P2; // 세그먼트 2 방향
+    FVector r = P1 - P2;
+
+    float a = d1.Dot(d1);
+    float e = d2.Dot(d2);
+    float f = d2.Dot(r);
+
+    float s, t;
+
+    if (a <= 1e-6f && e <= 1e-6f)
+    {
+        // 둘 다 포인트
+        s = t = 0.0f;
+    }
+    else if (a <= 1e-6f)
+    {
+        // 첫 번째 세그먼트가 포인트
+        s = 0.0f;
+        t = FMath::Clamp(f / e, 0.0f, 1.0f);
+    }
+    else
+    {
+        float c = d1.Dot(r);
+        if (e <= 1e-6f)
+        {
+            // 두 번째 세그먼트가 포인트
+            t = 0.0f;
+            s = FMath::Clamp(-c / a, 0.0f, 1.0f);
+        }
+        else
+        {
+            // 둘 다 세그먼트
+            float b = d1.Dot(d2);
+            float denom = a * e - b * b;
+
+            if (fabs(denom) > 1e-6f)
+            {
+                s = FMath::Clamp((b * f - c * e) / denom, 0.0f, 1.0f);
+            }
+            else
+            {
+                s = 0.0f;
+            }
+
+            t = (b * s + f) / e;
+
+            if (t < 0.0f)
+            {
+                t = 0.0f;
+                s = FMath::Clamp(-c / a, 0.0f, 1.0f);
+            }
+            else if (t > 1.0f)
+            {
+                t = 1.0f;
+                s = FMath::Clamp((b - c) / a, 0.0f, 1.0f);
+            }
+        }
+    }
+
+    ClosestP1 = P1 + d1 * s;
+    ClosestP2 = P2 + d2 * t;
+}
+
 FVector JungleMath::FVectorRotate(FVector& origin, const FRotator& InRotation)
 {
     return InRotation.ToQuaternion().RotateVector(origin);

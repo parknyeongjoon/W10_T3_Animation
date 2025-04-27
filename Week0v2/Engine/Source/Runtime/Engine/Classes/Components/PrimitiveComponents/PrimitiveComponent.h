@@ -2,6 +2,8 @@
 #include "Engine/Source/Runtime/Engine/Classes/Components/SceneComponent.h"
 #include "Serialization/Archive.h"
 
+struct HitResult;
+
 struct FPrimitiveComponentInfo : FSceneComponentInfo
 {
     DECLARE_ACTORCOMPONENT_INFO(FPrimitiveComponentInfo);
@@ -14,15 +16,7 @@ struct FPrimitiveComponentInfo : FSceneComponentInfo
         , VBIBTopologyMappingName(TEXT(""))
     {
         InfoType = TEXT("FPrimitiveComponentInfo");
-        ComponentType = TEXT("UPrimitiveComponent");
-    }
-
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FSceneComponentInfo::Copy(Other);
-        FPrimitiveComponentInfo& OtherPrimitive = static_cast<FPrimitiveComponentInfo&>(Other);
-        OtherPrimitive.ComponentVelocity = ComponentVelocity;
-        OtherPrimitive.VBIBTopologyMappingName = VBIBTopologyMappingName;
+        ComponentClass = TEXT("UPrimitiveComponent");
     }
 
     virtual void Serialize(FArchive& ar) const override
@@ -58,15 +52,28 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
 
+    // Physics - Collision
+    bool IsGenerateOverlapEvents() const { return bGenerateOverlapEvents; }
+    void SetGenerateOverlapEvents(bool bInGenerateOverlapEvents) { bGenerateOverlapEvents = bInGenerateOverlapEvents; }
+
+    virtual void NotifyHit(HitResult Hit) const;
+    virtual void NotifyBeginOverlap(const UPrimitiveComponent* OtherComponent) const;
+    virtual void NotifyEndOverlap(const UPrimitiveComponent* OtherComponent) const;
+
     bool MoveComponent(const FVector& Delta) override;
     FVector ComponentVelocity;
 
 public:
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
 public:
     FName GetVBIBTopologyMappingName() const { return VBIBTopologyMappingName; }
 protected:
     FName VBIBTopologyMappingName;
+
+private:
+    bool bGenerateOverlapEvents = true;
 };
 

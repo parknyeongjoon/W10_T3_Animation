@@ -9,16 +9,10 @@ struct FRotatingMovementComponentInfo : public FMovementComponentInfo
         : FMovementComponentInfo()
     {
         InfoType = TEXT("FRotatingMovementComponentInfo");
-        ComponentType = TEXT("URotatingMovementComponent");
+        ComponentClass = TEXT("URotatingMovementComponent");
     }
 
     FVector RotationRate;
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FMovementComponentInfo::Copy(Other);
-        FRotatingMovementComponentInfo& RotatingMovementInfo = static_cast<FRotatingMovementComponentInfo&>(Other);
-        RotatingMovementInfo.RotationRate = RotationRate;
-    }
 
     virtual void Serialize(FArchive& ar) const override
     {
@@ -52,8 +46,10 @@ public:
     UObject* Duplicate() const override;
     void DuplicateSubObjects(const UObject* Source) override;
     void PostDuplicate() override;
+    
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
 
 public:
-    std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     void LoadAndConstruct(const FActorComponentInfo& Info) override;
 };

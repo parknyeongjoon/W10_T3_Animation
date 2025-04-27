@@ -4,7 +4,7 @@
 ALight::ALight()
     : Super()
 {
-    BillboardComponent = AddComponent<UBillboardComponent>();
+    BillboardComponent = AddComponent<UBillboardComponent>(EComponentOrigin::Constructor);
 }
 
 ALight::ALight(const ALight& Other)
@@ -64,7 +64,7 @@ void ALight::PostDuplicate()
     Super::PostDuplicate();
 }
 
-void ALight::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
+void ALight::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray)
 {
     Super::LoadAndConstruct(InfoArray);
 }

@@ -149,16 +149,24 @@ void UProjectileMovementComponent::PostDuplicate()
     UMovementComponent::PostDuplicate();
 }
 
-std::shared_ptr<FActorComponentInfo> UProjectileMovementComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> UProjectileMovementComponent::GetComponentInfo()
 {
-    std::shared_ptr<FProjectileMovementComponentInfo> Info = std::make_shared<FProjectileMovementComponentInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
+    auto Info = std::make_unique<FProjectileMovementComponentInfo>();
+    SaveComponentInfo(*Info);
+    
+    return Info;
+}
+
+
+void UProjectileMovementComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FProjectileMovementComponentInfo* Info = static_cast<FProjectileMovementComponentInfo*>(&OutInfo);
+    Super::SaveComponentInfo(*Info);
     Info->InitialSpeed = InitialSpeed;
     Info->MaxSpeed = MaxSpeed;
     Info->bRotationFollowsVelocity = bRotationFollowsVelocity;
     Info->bInitialVelocityInLocalSpace = bInitialVelocityInLocalSpace;
     Info->ProjectileGravityScale = ProjectileGravityScale;
-    return Info;
 }
 
 void UProjectileMovementComponent::LoadAndConstruct(const FActorComponentInfo& Info)

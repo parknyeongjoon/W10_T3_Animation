@@ -96,15 +96,23 @@ void UParticleSubUVComp::SetRowColumnCount(int _cellsPerRow, int _cellsPerColumn
 	CreateSubUVVertexBuffer();
 }
 
-std::shared_ptr<FActorComponentInfo> UParticleSubUVComp::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> UParticleSubUVComp::GetComponentInfo()
 {
-    std::shared_ptr<FParticleSubUVCompInfo> Info = std::make_shared<FParticleSubUVCompInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
+    auto Info = std::make_unique<FParticleSubUVCompInfo>();
+    SaveComponentInfo(*Info);
+    
+    return Info;
+}
+
+void UParticleSubUVComp::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+
+    FParticleSubUVCompInfo* Info = static_cast<FParticleSubUVCompInfo*>(&OutInfo);
+    Super::SaveComponentInfo(*Info);
 
     Info->CellsPerRow = CellsPerRow;
     Info->CellsPerColumn = CellsPerColumn;
 
-    return Info;
 }
 
 void UParticleSubUVComp::LoadAndConstruct(const FActorComponentInfo& Info)

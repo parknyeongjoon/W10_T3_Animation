@@ -111,6 +111,10 @@ struct alignas(16) FPrimitiveCounts
     int SphereCount; // offset: 4, size: 4
     int ConeCount; // offset: 8, size: 4
     int LineCount; // offset: 12, size: 4
+    int CapsuleCount;
+    int OBBCount;
+    float pad1;
+    float pad2;
 };
 
 struct alignas(16) FSubUVConstant

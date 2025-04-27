@@ -8,6 +8,7 @@
 #include <type_traits>
 
 
+
 class FArchive
 {
 	friend class FWindowsBinHelper;
@@ -248,6 +249,14 @@ public:
 		InValue.Deserialize(*this);
 		return *this;
 	}
+    template<typename T, typename = decltype(std::declval<const T&>().Serialize(std::declval<FArchive&>()))> // const T& 확인
+    FArchive& operator<<(const T& InValue) // const T& 로 수정
+    {
+	    InValue.Serialize(*this); // InValue가 const이므로 Serialize도 const여야 함
+	    return *this;
+    }
+
+
 #pragma endregion
 };
 

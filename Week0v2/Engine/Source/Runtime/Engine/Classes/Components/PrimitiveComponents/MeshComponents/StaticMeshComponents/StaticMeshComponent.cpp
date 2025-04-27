@@ -72,7 +72,7 @@ void UStaticMeshComponent::GetUsedMaterials(TArray<UMaterial*>& Out) const
 
 int UStaticMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
 {
-    if (!AABB.Intersect(rayOrigin, rayDirection, pfNearHitDistance)) return 0;
+    if (!AABB.IntersectRay(rayOrigin, rayDirection, pfNearHitDistance)) return 0;
     int nIntersections = 0;
     if (staticMesh == nullptr) return 0;
 
@@ -119,6 +119,7 @@ int UStaticMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayD
     return nIntersections;
 }
 
+
 void UStaticMeshComponent::SetStaticMesh(UStaticMesh* value)
 { 
     staticMesh = value;
@@ -127,13 +128,20 @@ void UStaticMeshComponent::SetStaticMesh(UStaticMesh* value)
     VBIBTopologyMappingName = staticMesh->GetRenderData()->DisplayName;
 }
 
-std::shared_ptr<FActorComponentInfo> UStaticMeshComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> UStaticMeshComponent::GetComponentInfo()
 {
-    std::shared_ptr<FStaticMeshComponentInfo> Info = std::make_shared<FStaticMeshComponentInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
+    auto Info = std::make_unique<FStaticMeshComponentInfo>();
+    SaveComponentInfo(*Info);
+    
+    return Info;
+}
+
+void UStaticMeshComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FStaticMeshComponentInfo* Info = static_cast<FStaticMeshComponentInfo*>(&OutInfo);
+    Super::SaveComponentInfo(*Info);
 
     Info->StaticMeshPath = staticMesh->GetRenderData()->PathName;
-    return Info;
 }
 void UStaticMeshComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 {

@@ -14,23 +14,13 @@ struct FProjectileMovementComponentInfo : public FMovementComponentInfo
         , ProjectileGravityScale(0.f)
     {
         InfoType = TEXT("FProjectileMovementComponentInfo");
-        ComponentType = TEXT("UProjectileMovementComponent");
+        ComponentClass = TEXT("UProjectileMovementComponent");
     }
     float InitialSpeed;
     float MaxSpeed;
     bool bRotationFollowsVelocity;
     bool bInitialVelocityInLocalSpace;
     float ProjectileGravityScale;
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FMovementComponentInfo::Copy(Other);
-        FProjectileMovementComponentInfo& ProjectileMovementInfo = static_cast<FProjectileMovementComponentInfo&>(Other);
-        ProjectileMovementInfo.InitialSpeed = InitialSpeed;
-        ProjectileMovementInfo.MaxSpeed = MaxSpeed;
-        ProjectileMovementInfo.bRotationFollowsVelocity = bRotationFollowsVelocity;
-        ProjectileMovementInfo.bInitialVelocityInLocalSpace = bInitialVelocityInLocalSpace;
-        ProjectileMovementInfo.ProjectileGravityScale = ProjectileGravityScale;
-    }
 
     virtual void Serialize(FArchive& ar) const override
     {
@@ -77,8 +67,9 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
     
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
 public:
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
 
 public:

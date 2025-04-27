@@ -3,6 +3,8 @@
 #include "GameFramework/Actor.h"
 #include "UObject/ObjectFactory.h"
 
+#include "Physics/FCollisionManager.h"
+
 UPrimitiveComponent::UPrimitiveComponent()
     : Super()
 {
@@ -22,13 +24,12 @@ UPrimitiveComponent::~UPrimitiveComponent()
 
 void UPrimitiveComponent::InitializeComponent()
 {
-    // Super::InitializeComponent();
+     Super::InitializeComponent();
 }
 
 void UPrimitiveComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
-    
 }
 
 int UPrimitiveComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
@@ -129,6 +130,20 @@ void UPrimitiveComponent::PostDuplicate()
     USceneComponent::PostDuplicate();
 }
 
+void UPrimitiveComponent::NotifyHit(HitResult Hit) const
+{
+}
+
+void UPrimitiveComponent::NotifyBeginOverlap(const UPrimitiveComponent* OtherComponent) const
+{
+    UE_LOG(LogLevel::Display, TEXT("%s begin overlap with %s"), *GetName(), *OtherComponent->GetName());
+}
+
+void UPrimitiveComponent::NotifyEndOverlap(const UPrimitiveComponent* OtherComponent) const
+{
+    UE_LOG(LogLevel::Display, TEXT("%s end overlap with %s"), *GetName(), *OtherComponent->GetName());
+}
+
 bool UPrimitiveComponent::MoveComponent(const FVector& Delta)
 {
     if (!GetOwner()) return false;
@@ -139,19 +154,27 @@ bool UPrimitiveComponent::MoveComponent(const FVector& Delta)
     return true;
 }
 
-std::shared_ptr<FActorComponentInfo> UPrimitiveComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> UPrimitiveComponent::GetComponentInfo()
 {
-    std::shared_ptr<FPrimitiveComponentInfo> Info = std::make_shared<FPrimitiveComponentInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
-
-    Info->AABB = AABB;
-
+    auto Info = std::make_unique<FPrimitiveComponentInfo>();
+    SaveComponentInfo(*Info);
+    
     return Info;
+}
+
+void UPrimitiveComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FPrimitiveComponentInfo* Info = static_cast<FPrimitiveComponentInfo*>(&OutInfo);
+    Super::SaveComponentInfo(*Info);
+    Info->ComponentVelocity = ComponentVelocity;
+    Info->VBIBTopologyMappingName = VBIBTopologyMappingName;
+    
 }
 
 void UPrimitiveComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 {
     Super::LoadAndConstruct(Info);
     const FPrimitiveComponentInfo* PrimitiveInfo = static_cast<const FPrimitiveComponentInfo*>(&Info);
-    AABB = PrimitiveInfo->AABB;
+    ComponentVelocity = PrimitiveInfo->ComponentVelocity;
+    VBIBTopologyMappingName = PrimitiveInfo->VBIBTopologyMappingName;
 }

@@ -442,12 +442,12 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
 
 bool FLoaderOBJ::CreateTextureFromFile(const FWString& Filename)
 {
-    if (UEditorEngine::resourceMgr.GetTexture(Filename))
+    if (UEditorEngine::ResourceManager.GetTexture(Filename))
     {
         return true;
     }
 
-    HRESULT hr = UEditorEngine::resourceMgr.LoadTextureFromFile(UEditorEngine::graphicDevice.Device, UEditorEngine::graphicDevice.DeviceContext, Filename.c_str());
+    HRESULT hr = UEditorEngine::ResourceManager.LoadTextureFromFile(UEditorEngine::graphicDevice.Device, UEditorEngine::graphicDevice.DeviceContext, Filename.c_str());
 
     if (FAILED(hr))
     {
@@ -671,9 +671,9 @@ bool FManagerOBJ::LoadStaticMeshFromBinary(const FWString& FilePath, OBJ::FStati
     {
         for (const FWString& Texture : Textures)
         {
-            if (UEditorEngine::resourceMgr.GetTexture(Texture) == nullptr)
+            if (UEditorEngine::ResourceManager.GetTexture(Texture) == nullptr)
             {
-                UEditorEngine::resourceMgr.LoadTextureFromFile(UEditorEngine::graphicDevice.Device, UEditorEngine::graphicDevice.DeviceContext, Texture.c_str());
+                UEditorEngine::ResourceManager.LoadTextureFromFile(UEditorEngine::graphicDevice.Device, UEditorEngine::graphicDevice.DeviceContext, Texture.c_str());
             }
         }
     }

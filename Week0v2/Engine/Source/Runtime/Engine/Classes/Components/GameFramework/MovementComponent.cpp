@@ -90,17 +90,24 @@ void UMovementComponent::PostDuplicate()
     UActorComponent::PostDuplicate();
 }
 
-std::shared_ptr<FActorComponentInfo> UMovementComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> UMovementComponent::GetComponentInfo()
 {
-    std::shared_ptr<FMovementComponentInfo> Info = std::make_shared<FMovementComponentInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
+    auto Info = std::make_unique<FMovementComponentInfo>();
+    SaveComponentInfo(*Info);
+    
+    return Info;
+}
+
+void UMovementComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FMovementComponentInfo* Info = static_cast<FMovementComponentInfo*>(&OutInfo);
+    Super::SaveComponentInfo(*Info);
 
     Info->bUpdateOnlyIfRendered = bUpdateOnlyIfRendered;
     Info->bAutoUpdateTickRegistration = bAutoUpdateTickRegistration;
     Info->bAutoRegisterUpdatedComponent = bAutoRegisterUpdatedComponent;
     Info->Velocity = Velocity;
 
-    return Info;
 }
 
 void UMovementComponent::LoadAndConstruct(const FActorComponentInfo& Info)

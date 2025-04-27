@@ -74,25 +74,24 @@ inline void FEditorStateManager::SetState(EEditorState NewState)
                 GEngine->levelType = LEVELTICK_All;
                 return;
             }
-        GEngine->PreparePIE();           // 추후 Prepare에 실패했을 때 고려 할 수 있어야 할듯
+        GEngine->PreparePIE();      // 추후 Prepare에 실패했을 때 고려 할 수 있어야 할듯
         SetState(EEditorState::Playing);
         return;
 
-    case EEditorState::Playing:
-        // auto Transition
+    case EEditorState::Playing:     // auto Transition
             
         GEngine->StartPIE();
         break;
 
-    case EEditorState::Paused:              // Connect to pause button
+    case EEditorState::Paused:      // Connect to pause button
         GEngine->PausedPIE();
         break;
 
-    case EEditorState::Resuming:            // Connect to resume button
+    case EEditorState::Resuming:    // Connect to resume button
         GEngine->ResumingPIE();
         break;
 
-    case EEditorState::Stopped:             // Connect to stop button
+    case EEditorState::Stopped:     // Connect to stop button
         GEngine->StopPIE();
         SetState(EEditorState::Editing);
         return;
