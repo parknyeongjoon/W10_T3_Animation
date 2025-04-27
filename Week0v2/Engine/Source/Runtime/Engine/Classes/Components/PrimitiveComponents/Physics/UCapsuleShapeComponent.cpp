@@ -215,7 +215,7 @@ bool UCapsuleShapeComponent::CollisionCheckWithCapsule(const UCapsuleShapeCompon
     FVector BottomB = CenterB - UpB * HalfHeightB;
 
     // 두 세그먼트 사이 최근접 점 찾기
-    FVector ClosestA, ClosestB;
+    FVector ClosestA, ClosestB;  
     JungleMath::FindClosestPointsBetweenSegments(BottomA, TopA, BottomB, TopB, ClosestA, ClosestB);
 
     FVector d = ClosestA - ClosestB;

@@ -31,7 +31,7 @@ private:
     bool CollisionCheckWithCapsule(const UCapsuleShapeComponent* OtherCapsule) const;
 
 private:
-    float CapsuleHalfHeight = 50.0f;
-    float CapsuleRaidus = 25.0f;
+    float CapsuleHalfHeight;
+    float CapsuleRaidus;
 };
 
