@@ -4,7 +4,7 @@
 AExponentialHeightFogActor::AExponentialHeightFogActor()
     :Super()
 {
-    FogComponent = AddComponent<UHeightFogComponent>();
+    FogComponent = AddComponent<UHeightFogComponent>(EComponentOrigin::Constructor);
 }
 
 AExponentialHeightFogActor::AExponentialHeightFogActor(const AExponentialHeightFogActor& Other)
@@ -62,7 +62,7 @@ void AExponentialHeightFogActor::PostDuplicate()
     Super::PostDuplicate();
 }
 
-void AExponentialHeightFogActor::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
+void AExponentialHeightFogActor::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray)
 {
     Super::LoadAndConstruct(InfoArray);
 }

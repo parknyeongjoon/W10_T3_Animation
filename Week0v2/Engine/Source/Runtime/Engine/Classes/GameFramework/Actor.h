@@ -6,14 +6,16 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectFactory.h"
 #include "UObject/ObjectMacros.h"
+#include <sol/sol.hpp>
 #include "ActorInfo.h"
-
 
 class UActorComponent;
 
 class AActor : public UObject
 {
     DECLARE_CLASS(AActor, UObject)
+
+    
 
 public:
     AActor() = default;
@@ -34,6 +36,7 @@ public:
      * @note Destroyed와는 다른점은, EndPlay는 레벨 전환, 게임 종료, 또는 Destroy() 호출 시 항상 실행됩니다.
      */
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
+    sol::protected_function LuaFunctionEndPlay;
 
 public:
     /** 이 Actor를 제거합니다. */
@@ -52,7 +55,7 @@ public:
      */
     template <typename T>
         requires std::derived_from<T, UActorComponent>
-    T* AddComponent(EComponentOrigin Origin = EComponentOrigin::Constructor);
+    T* AddComponent(EComponentOrigin Origin);
 
     // 클래스 정보를 바탕으로 컴포넌트를 새로 추가.
     UActorComponent* AddComponentByClass(UClass* ComponentClass, EComponentOrigin Origin);
@@ -95,7 +98,7 @@ public:
     virtual void PostDuplicate() override;
 
 public:
-    virtual void LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray);
+    virtual void LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray);
     virtual FActorInfo GetActorInfo();
 
 public:
@@ -132,6 +135,9 @@ private:
     /** 에디터상에 보이는 Actor의 이름 */
     FString ActorLabel;
 #endif
+
+
+
 };
 
 

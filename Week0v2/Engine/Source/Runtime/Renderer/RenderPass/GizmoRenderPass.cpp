@@ -175,7 +175,7 @@ void FGizmoRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialI
     
     if (MaterialInfo.bHasTexture == true)
     {
-        const std::shared_ptr<FTexture> texture = GEngine->resourceMgr.GetTexture(MaterialInfo.DiffuseTexturePath);
+        const std::shared_ptr<FTexture> texture = GEngine->ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
         Graphics.DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
         ID3D11SamplerState* linearSampler = renderResourceManager->GetSamplerState(ESamplerType::Linear);
         Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &linearSampler);

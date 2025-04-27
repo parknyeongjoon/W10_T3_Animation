@@ -371,7 +371,7 @@
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\PixelShader.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\Shader.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.h" />
-    <ClInclude Include="FEditorStateManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\FEditorStateManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\PrimitiveDrawEditor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\ExponentialHeightFog.h" />
@@ -414,6 +414,16 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Physics\FCollisionManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UShapeComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UBoxShapeComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\USphereShapeComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UCapsuleShapeComponent.h" />
+    <ClInclude Include="Engine\Source\Editor\Script\LuaActor.h" />
+    <ClInclude Include="Engine\Source\Editor\Script\LuaManager.h" />
+    <ClInclude Include="Engine\Source\Editor\Script\LuaTypes\LuaUserTypes.h" />
+    <ClInclude Include="Engine\Source\Editor\Script\LuaUtils\LuaStub.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\LuaComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -522,7 +532,7 @@
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\PixelShader.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\Shader.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.cpp" />
-    <ClCompile Include="FEditorStateManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\FEditorStateManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\PrimitiveDrawEditor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\ExponentialHeightFog.cpp" />
@@ -556,6 +566,15 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\ResourceManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowResource.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Physics\FCollisionManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UShapeComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UBoxShapeComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\USphereShapeComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UCapsuleShapeComponent.cpp" />
+    <ClCompile Include="Engine\Source\Editor\Script\LuaActor.cpp" />
+    <ClCompile Include="Engine\Source\Editor\Script\LuaManager.cpp" />
+    <ClCompile Include="Engine\Source\Editor\Script\LuaTypes\LuaUserTypes.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\LuaComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\ADodge.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBall.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.cpp" />

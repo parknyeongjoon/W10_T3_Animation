@@ -293,7 +293,7 @@ struct FBoundingBox
 	float pad;
 	FVector max; // Maximum extents
 	float pad1;
-    bool Intersect(const FVector& rayOrigin, const FVector& rayDir, float& outDistance)
+    bool IntersectRay(const FVector& rayOrigin, const FVector& rayDir, float& outDistance) const
     {
         float tmin = -FLT_MAX;
         float tmax = FLT_MAX;
@@ -368,6 +368,12 @@ struct FBoundingBox
 
         return true;
     }
+    bool IntersectAABB(FBoundingBox Other) const
+    {
+        return (min.x <= Other.max.x && max.x >= Other.min.x) &&
+            (min.y <= Other.max.y && max.y >= Other.min.y) &&
+            (min.z <= Other.max.z && max.z >= Other.min.z);
+    }
     void Serialize(FArchive& Ar) const
     {
         Ar << min << max;
@@ -403,6 +409,16 @@ struct FLine
     float pad;
     FVector4 Color;
 };
+
+struct FCapsule
+{
+    FVector Center;
+    float Radius;
+    FVector UpVector;
+    float HalfHeight;
+    FVector4 Color;
+};
+
 struct FPlane
 {
     // 평면 방정식: Ax + By + Cz + D = 0

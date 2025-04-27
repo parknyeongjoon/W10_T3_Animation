@@ -80,6 +80,7 @@ struct FColor
     static const FColor Turquoise;
     static const FColor Silver;
     static const FColor Emerald;
+    static const FColor Gray;
 };
 
 struct FLinearColor

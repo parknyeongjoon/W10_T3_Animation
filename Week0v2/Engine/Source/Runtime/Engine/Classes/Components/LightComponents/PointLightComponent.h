@@ -14,15 +14,7 @@ struct FPointLightComponentInfo : public FLightComponentInfo
         , AttenuationFalloff(0.01f)
     {
         InfoType = TEXT("FPointLightComponentInfo");
-        ComponentType = TEXT("UPointLightComponent");
-    }
-
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FLightComponentInfo::Copy(Other);
-        FPointLightComponentInfo& PointLightInfo = static_cast<FPointLightComponentInfo&>(Other);
-        PointLightInfo.Radius = Radius;
-        PointLightInfo.AttenuationFalloff = AttenuationFalloff;
+        ComponentClass = TEXT("UPointLightComponent");
     }
 
     virtual void Serialize(FArchive& ar) const override
@@ -63,7 +55,9 @@ public:
     FMatrix GetProjectionMatrix() const override;
 
 public:
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 };

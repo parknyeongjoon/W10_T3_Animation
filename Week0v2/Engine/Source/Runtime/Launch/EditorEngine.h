@@ -4,9 +4,10 @@
 #include "Engine/Engine.h"
 #include "Renderer/Renderer.h"
 #include "Engine/ResourceManager.h"
+#include "Physics/FCollisionManager.h"
+#include "Script/LuaManager.h"
 #include "Coroutine/CoroutineManager.h"
 
-#include <sol/sol.hpp>
 class FSceneMgr;
 class UnrealEd;
 class UImGuiManager;
@@ -44,10 +45,9 @@ private:
 public:
     static FGraphicsDevice graphicDevice;
     static FRenderer renderer;
-    static FResourceManager resourceMgr;
+    static FResourceManager ResourceManager;
+    static FCollisionManager CollisionManager;
     static FCoroutineManager CoroutineManager;
-
-
     HWND hWnd;
     ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;
 private:

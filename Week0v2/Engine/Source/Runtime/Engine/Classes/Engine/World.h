@@ -4,6 +4,7 @@
 #include "EngineTypes.h"
 #include "Level.h"
 #include "Container/Set.h"
+#include "Serialization/FWindowsBinHelper.h"
 #include "UObject/ObjectFactory.h"
 #include "UObject/ObjectMacros.h"
 
@@ -32,6 +33,8 @@ public:
     void Tick(ELevelTick tickType, float deltaSeconds);
     void Release();
     void ReloadScene(const FString& FileName);
+    void LoadScene(const FString& FileName);
+    void SaveScene(const FString& FileName);
     void ClearScene();
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* SourceObj) override;
@@ -82,6 +85,7 @@ private:
     USceneComponent* pickingGizmo = nullptr;
     AEditorPlayer* EditorPlayer = nullptr;
 public:
+    
     EWorldType::Type WorldType = EWorldType::None;
     const TArray<AActor*>& GetActors() const { return Level->GetActors(); }
     ULevel* GetLevel() const { return Level; }
@@ -112,6 +116,15 @@ public:
     void BeginPlay();
     static UWorld* DuplicateWorldForPIE(UWorld* world);
 };
+
+inline void UWorld::SaveScene(const FString& FileName)
+{
+    FArchive ar;
+    ar << *this;
+
+    FWindowsBinHelper::SaveToBin(FileName, ar);
+}
+
 // UWorld* GWorld = nullptr;
 
 template <typename T>

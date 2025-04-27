@@ -25,6 +25,9 @@ private:
     void RenderForMaterial(UStaticMeshComponent* StaticMeshComp);
     void RenderMaterialView(UMaterial* Material);
     void RenderCreateMaterialView();
+
+    void RenderForLua(class ULuaComponent* LuaComponent);
+    void RenderShapeProperty(AActor* PickedActor);
 private:
     float Width = 0, Height = 0;
     FVector Location = FVector(0, 0, 0);

@@ -13,13 +13,7 @@ struct FStaticMeshComponentInfo : public FPrimitiveComponentInfo
         , StaticMeshPath(L"")
     {
         InfoType = TEXT("FStaticMeshComponentInfo");
-        ComponentType = TEXT("UStaticMeshComponent");
-    }
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FPrimitiveComponentInfo::Copy(Other);
-        FStaticMeshComponentInfo& StaticMeshComponentInfo = static_cast<FStaticMeshComponentInfo&>(Other);
-        StaticMeshComponentInfo.StaticMeshPath = StaticMeshPath;
+        ComponentClass = TEXT("UStaticMeshComponent");
     }
 
     virtual void Serialize(FArchive& ar) const override
@@ -61,7 +55,9 @@ public:
     UStaticMesh* GetStaticMesh() const { return staticMesh; }
     void SetStaticMesh(UStaticMesh* value);
 
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo();
+    
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 protected:

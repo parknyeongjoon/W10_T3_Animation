@@ -368,6 +368,8 @@ void FRenderer::AddRenderObjectsToRenderPass(UWorld* InWorld) const
     GizmoRenderPass->AddRenderObjectsToRenderPass(InWorld);
     EditorIconRenderPass->AddRenderObjectsToRenderPass(InWorld);
     ShadowRenderPass->AddRenderObjectsToRenderPass(InWorld);
+
+    LineBatchRenderPass->AddRenderObjectsToRenderPass(InWorld);
 }
 
 void FRenderer::MappingVSPSInputLayout(const FName InShaderProgramName, FName VSName, FName PSName, FName InInputLayoutName)

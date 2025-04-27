@@ -17,6 +17,10 @@
 #include <Actors/ExponentialHeightFog.h>
 #include <UObject/UObjectIterator.h>
 
+#include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 #include "Components/PrimitiveComponents/UParticleSubUVComp.h"
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
@@ -113,7 +117,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 
         if (ImGui::MenuItem("New Scene"))
         {
-            GEngine->GetWorld()->ReloadScene("NewScene.scene");
+            GEngine->GetWorld()->ReloadScene("Assets/Scenes/NewScene.scene");
         }
 
         if (ImGui::MenuItem("Load Scene"))
@@ -144,12 +148,13 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
             }
 
             // TODO: Save Scene
-            int i = 1;
-            FArchive ar;
+            //int i = 1;
+            //FArchive ar;
             UWorld World = *GEngine->GetWorld();
-            ar << World;
-
-            FWindowsBinHelper::SaveToBin(FileName, ar);
+            World.SaveScene(FileName);
+            // ar << World;
+            //
+            // FWindowsBinHelper::SaveToBin(FileName, ar);
 
             tinyfd_messageBox("알림", "저장되었습니다.", "ok", "info", 1);
         }
@@ -285,6 +290,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             // 🔷 셰이프
             { "Shapes", "Cube",            OBJ_CUBE },
             { "Shapes", "Sphere",          OBJ_SPHERE },
+            { "Shapes", "Capsule",         OBJ_CAPSULE },
             { "Shapes", "Car (Dodge)",     OBJ_CAR },
             { "Shapes", "SkySphere",       OBJ_SKYSPHERE},
             { "Shapes", "Yeoul",           OBJ_YEOUL},
@@ -325,26 +331,42 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 case OBJ_ACTOR:
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_ACTOR"));
-                    SpawnedActor->AddComponent<USceneComponent>();
+                    SpawnedActor->AddComponent<USceneComponent>(EComponentOrigin::Editor);
                     break;
-                    // 🔷 셰이프
+                    //  셰이프
                 case OBJ_CUBE:
                 {
                     AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    TempActor->SetActorLabel(TEXT("OBJ_CUBE"));
+                    TempActor->SetActorLabel(TEXT("Cube"));
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
+                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Cube.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
+                    TempActor->AddComponent<UBoxShapeComponent>(EComponentOrigin::Editor);
+
                     SpawnedActor = TempActor;
                     break;
                 }
                 case OBJ_SPHERE:
                 {
                     AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    TempActor->SetActorLabel(TEXT("OBJ_SPHERE"));
+                    TempActor->SetActorLabel(TEXT("Sphere"));
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    FManagerOBJ::CreateStaticMesh("Assets/apple_mid.obj");
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"apple_mid.obj"));
+                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Sphere.obj");
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Sphere.obj"));
+                    TempActor->AddComponent<USphereShapeComponent>(EComponentOrigin::Editor);
+
+                    SpawnedActor = TempActor;
+                    break;
+                }
+                case OBJ_CAPSULE:
+                {
+                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                    TempActor->SetActorLabel(TEXT("Capsule"));
+                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Capsule.obj");
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
+                    TempActor->AddComponent<UCapsuleShapeComponent>(EComponentOrigin::Editor);
+
                     SpawnedActor = TempActor;
                     break;
                 }
@@ -385,7 +407,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_PARTICLE"));
-                    UParticleSubUVComp* Particle = SpawnedActor->AddComponent<UParticleSubUVComp>();
+                    UParticleSubUVComp* Particle = SpawnedActor->AddComponent<UParticleSubUVComp>(EComponentOrigin::Editor);
                     Particle->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
                     Particle->SetRowColumnCount(6, 6);
                     Particle->SetRelativeScale(FVector(10.0f, 10.0f, 10.0f));
@@ -396,7 +418,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_TEXT"));
-                    UTextComponent* Text = SpawnedActor->AddComponent<UTextComponent>();
+                    UTextComponent* Text = SpawnedActor->AddComponent<UTextComponent>(EComponentOrigin::Editor);
                     Text->SetTexture(L"Assets/Texture/font.png");
                     Text->SetRowColumnCount(106, 106);
                     Text->SetText(L"안녕하세요 Jungle 1");
@@ -544,7 +566,7 @@ void ControlEditorPanel::CreateFlagButton() const
 
 void ControlEditorPanel::CreateShaderHotReloadButton(const ImVec2 ButtonSize) const
 {
-    ID3D11ShaderResourceView* IconTextureSRV = GEngine->resourceMgr.GetTexture(L"Assets/Texture/HotReload.png")->TextureSRV;
+    ID3D11ShaderResourceView* IconTextureSRV = GEngine->ResourceManager.GetTexture(L"Assets/Texture/HotReload.png")->TextureSRV;
     const ImTextureID textureID = reinterpret_cast<ImTextureID>(IconTextureSRV); // 실제 사용되는 텍스처 SRV
     if (ImGui::ImageButton("btn1", textureID, ButtonSize))
     {

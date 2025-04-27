@@ -1,44 +1,52 @@
 #pragma once
 #include "Container/String.h"
+#include "Components/ActorComponent.h"
 #include "Container/Array.h"
 #include "Math/Vector.h"
-#include "Serialization/Archive.h"
-#include "Components/ActorComponent.h"
 #include "Math/Quat.h"
+#include "Serialization/Archive.h"
 #include <functional>
 #include <memory>
+
 
 // 액터 컴포넌트의 직렬화/역직렬화에 필요한 메타데이터 구조체
 struct FActorComponentInfo
 {
+    DECLARE_ACTORCOMPONENT_INFO(FActorComponentInfo);
+    
     FString InfoType;
-    FString ComponentType;
-
     EComponentOrigin Origin;
-    bool bIsRoot;
-    // ctor
-    FActorComponentInfo()
-        : InfoType(TEXT("FActorComponentInfo")), ComponentType(TEXT("UActorComponent")), Origin(EComponentOrigin::Constructor), bIsRoot(false) {
-    }
+    
+    FGuid ComponentID;
+    
+    FString ComponentClass;
+    FString ComponentName;
+    FString ComponentOwner;
 
-    // other의 데이터를 이 객체의 데이터로 복사합니다.
-    virtual void Copy(FActorComponentInfo& Other)
-    {
-        //Other.InfoType = InfoType;
-        //Other.ComponentType = ComponentType;
-        Other.Origin = Origin;
-        Other.bIsRoot = bIsRoot;
-    }
+    bool bTickEnabled;
+    bool bIsActive;
+    bool bAutoActive;
+    bool bIsRoot;
+
+    
+    FActorComponentInfo()
+        : InfoType(TEXT("FActorComponentInfo")), ComponentClass(TEXT("")), Origin(EComponentOrigin::None), bIsRoot(false),
+    bTickEnabled(true), bIsActive(false), bAutoActive(false), ComponentID() 
+    {}
+    
+    virtual ~FActorComponentInfo() = default;
 
     virtual void Serialize(FArchive& ar) const
     {
-        ar << InfoType << ComponentType << (int)Origin << bIsRoot;
+        ar << InfoType << ComponentClass << (int)Origin  << ComponentName << ComponentOwner << bTickEnabled << bIsActive << bAutoActive << bIsRoot;
+        ar << ComponentID.A << ComponentID.B << ComponentID.C << ComponentID.D;
     }
 
     virtual void Deserialize(FArchive& ar)
     {
-        int iOrigin;
-        ar >> InfoType >> ComponentType >> iOrigin >> bIsRoot;
+        int iOrigin  = 0;
+        ar >> InfoType >> ComponentClass >> iOrigin >> ComponentName >> ComponentOwner >> bTickEnabled >> bIsActive >> bAutoActive>> bIsRoot;
+        ar >> ComponentID.A >> ComponentID.B >> ComponentID.C >> ComponentID.D;
         Origin = static_cast<EComponentOrigin>(iOrigin);
     }
 
@@ -52,7 +60,7 @@ struct FActorComponentInfo
         ar >> InfoType;
     }
 
-    using BaseFactoryFunc = std::function<std::shared_ptr<FActorComponentInfo>()>;
+    using BaseFactoryFunc = std::function<std::unique_ptr<FActorComponentInfo>()>;
 
     inline static TMap<FString, BaseFactoryFunc>& GetFactoryMap()
     {

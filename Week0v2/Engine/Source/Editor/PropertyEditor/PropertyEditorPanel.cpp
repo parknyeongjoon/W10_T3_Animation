@@ -11,6 +11,7 @@
 #include <Math/JungleMath.h>
 #include <UObject/UObjectIterator.h>
 
+#include "Components/LuaComponent.h"
 #include "Components/LightComponents/DirectionalLightComponent.h"
 #include "Components/LightComponents/PointLightComponent.h"
 #include "Components/LightComponents/SpotLightComponent.h"
@@ -19,12 +20,29 @@
 #include "Components/PrimitiveComponents/UParticleSubUVComp.h"
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/CubeComp.h"
+#include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 
 #include "LevelEditor/SLevelEditor.h"
+#include "tinyfiledialogs/tinyfiledialogs.h"
 #include "UnrealEd/EditorViewportClient.h"
+#include <windows.h> // 기본적인 Windows API 포함
+#include <shellapi.h> // ShellExecute 관련 함수 정의 포함
+#include <filesystem> // C++17 filesystem 사용
 
 void PropertyEditorPanel::Render()
 {
+    // TODO PickedComponent 패널에서 뺴기 우선 임시용으로 배치
+    if ((GetAsyncKeyState(VK_DELETE) & 0x8000))
+    {
+        if (PickedComponent != nullptr)
+        {
+            PickedComponent->DestroyComponent();
+            PickedComponent = nullptr;
+        }
+    }
     /* Pre Setup */
     float PanelWidth = (Width) * 0.2f - 6.0f;
     float PanelHeight = (Height) * 0.65f;
@@ -50,8 +68,8 @@ void PropertyEditorPanel::Render()
     /* Render Start */
     ImGui::Begin("Detail", nullptr, PanelFlags);
 
+    AActor* PickedActor = nullptr;
     AEditorPlayer* player = GEngine->GetWorld()->GetEditorPlayer();
-    AActor* PickedActor = nullptr; 
     if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
             PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
 
@@ -63,6 +81,7 @@ void PropertyEditorPanel::Render()
         if (ImGui::TreeNodeEx("Components", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow))
         {
             const TArray<UActorComponent*>& AllComponents = PickedActor->GetComponents();
+            
             for (UActorComponent* Component : AllComponents)
             {
                 if (USceneComponent* SceneComp = Cast<USceneComponent>(Component))
@@ -180,14 +199,20 @@ void PropertyEditorPanel::Render()
 
                 if (ImGui::Selectable("ProjectileMovementComponent"))
                 {
-                    UProjectileMovementComponent* ProjectileComp = PickedActor->AddComponent<UProjectileMovementComponent>();
+                    UProjectileMovementComponent* ProjectileComp = PickedActor->AddComponent<UProjectileMovementComponent>(EComponentOrigin::Editor);
                     PickedComponent = ProjectileComp;
                 }
 
                 if (ImGui::Selectable("RotatingMovementComponent"))
                 {
-                    URotatingMovementComponent* RotatingComponent = PickedActor->AddComponent<URotatingMovementComponent>();
+                    URotatingMovementComponent* RotatingComponent = PickedActor->AddComponent<URotatingMovementComponent>(EComponentOrigin::Editor);
                     PickedComponent = RotatingComponent;
+                }
+                
+                if (ImGui::Selectable("LuaComponent"))
+                {
+                    ULuaComponent* LuaComponent = PickedActor->AddComponent<ULuaComponent>(EComponentOrigin::Editor);
+                    PickedComponent = LuaComponent;
                 }
 
                 ImGui::EndPopup();
@@ -203,6 +228,12 @@ void PropertyEditorPanel::Render()
             // 다른 액터를 픽한 것 -> PickedComponent를 PickedActor의 RootComponent로 바꿔준다
             PickedComponent = PickedActor->GetRootComponent();
         }
+    }
+    
+    if (PickedActor && PickedComponent && PickedComponent->IsA<ULuaComponent>())
+    {
+        ULuaComponent* LuaComp = Cast<ULuaComponent>(PickedComponent);
+        RenderForLua(LuaComp);
     }
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
@@ -696,6 +727,8 @@ void PropertyEditorPanel::Render()
         }
     }
 
+    RenderShapeProperty(PickedActor);
+
     ImGui::End();
 
 
@@ -1112,6 +1145,285 @@ void PropertyEditorPanel::RenderCreateMaterialView()
 
     ImGui::End();
 }
+
+void PropertyEditorPanel::RenderForLua(ULuaComponent* LuaComponent)
+{
+     ULuaComponent* LuaComp = Cast<ULuaComponent>(PickedComponent); // Lua 컴포넌트로 캐스팅
+
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.15f, 0.1f, 1.0f)); // Lua 컴포넌트용 색상 (예시)
+    if (ImGui::TreeNodeEx("Lua Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        // --- 스크립트 경로 표시 및 찾아보기 ---
+        char scriptPathBuffer[1024]; // ImGui InputText용 버퍼
+        // LuaComp->LuaScriptPath가 std::string 이라고 가정
+        errno_t err = strncpy_s(
+            scriptPathBuffer,                 // 1. 대상 버퍼 포인터
+            sizeof(scriptPathBuffer),         // 2. 대상 버퍼의 *전체 크기* (null 문자 포함)
+            *LuaComp->LuaScriptPath,   // 3. 원본 문자열 포인터
+            _TRUNCATE                         // 4. 복사할 최대 문자 수 (또는 _TRUNCATE)
+                                              //    _TRUNCATE는 버퍼 크기에 맞게 복사하고 null 종료, 넘치면 잘라냄
+        );
+
+        if (err != 0) {
+            // 오류 처리 (예: 버퍼가 너무 작거나 다른 문제 발생 시)
+            std::cerr << "strncpy_s failed with error code: " << err << std::endl;
+            scriptPathBuffer[0] = '\0'; // 안전하게 빈 문자열로 만듦
+        }
+        ImGui::Text("Script Path:");
+        ImGui::SameLine();
+        // 경로를 InputText로 표시 (읽기 전용, 복사 가능)
+        ImGui::PushItemWidth(-FLT_MIN); // 너비 최대로
+        ImGui::InputText("##LuaScriptPath", scriptPathBuffer, sizeof(scriptPathBuffer), ImGuiInputTextFlags_ReadOnly);
+        ImGui::PopItemWidth();
+
+        if (ImGui::Button("Browse..."))
+        {
+            // tinyfd를 사용하여 Lua 스크립트 파일 열기 대화상자 표시
+            char const* lFilterPatterns[1] = { "*.lua" };
+            const char* selectedFilePath = tinyfd_openFileDialog(
+                "Select Lua Script",                      // 대화상자 제목
+                *FLuaManager::Get().GetScriptsBasePath(), // 기본 경로 (스크립트 폴더)
+                1,                                       // 필터 개수
+                lFilterPatterns,                         // 필터 패턴 (".lua")
+                "Lua Script (*.lua)",                    // 필터 설명
+                0                                        // 다중 선택 비활성화
+            );
+            
+             if (selectedFilePath != nullptr) // 사용자가 파일을 선택했다면
+            {
+                // 선택된 전체 경로
+                std::string selectedFullPath = selectedFilePath;
+
+                // (선택 사항) 스크립트 기본 경로 기준 상대 경로로 변환
+                std::string relativePathStr = selectedFullPath; // 기본값은 전체 경로
+                try {
+                    std::filesystem::path fullPath(selectedFullPath);
+                    std::filesystem::path absoluteBasePath = std::filesystem::absolute(FLuaManager::Get().GetScriptsBasePath());
+
+                    std::filesystem::path relativePath = std::filesystem::relative(fullPath, absoluteBasePath);
+                    
+                    if (!relativePath.empty() && relativePath.native().find(L"..") != 0) { // L".." 은 Windows wchar_t 기준
+                        // 성공적으로 상대 경로를 얻었고, 상위 경로가 아님
+                        // generic_string()을 사용하여 플랫폼 독립적인 '/' 구분자로 변환
+                        relativePathStr = relativePath.generic_string();
+                        std::cout << "Calculated Relative Path: " << relativePathStr << std::endl;
+                    } else {
+                        // 상대 경로가 비었거나 ".." 로 시작하는 경우 (즉, basePath 외부에 있음)
+                        std::cerr << "Warning: Selected script is outside the project's script base path hierarchy. Using absolute path." << std::endl;
+                        // relativePathStr는 이미 selectedFullPath (절대 경로)로 초기화되어 있음
+                        // 필요하다면 여기서 fullPath.generic_string() 등을 사용해 경로 형식을 통일할 수 있습니다.
+                        relativePathStr = fullPath.generic_string(); // 일관성을 위해 '/' 사용 절대 경로
+                    }
+                } catch (const std::exception& e) {
+                     std::cerr << "Error calculating relative path: " << e.what() << ". Using full path." << std::endl;
+                    relativePathStr = std::filesystem::path(selectedFullPath).generic_string();
+                }
+
+
+                LuaComp->LuaScriptPath = relativePathStr; // 선택된 경로(상대 또는 전체)로 업데이트
+
+                // 중요: 스크립트 경로가 변경되었으므로 컴포넌트를 다시 초기화하거나
+                // 스크립트를 다시 로드하는 로직 호출 필요
+                // 예: LuaComp->ReloadScript(); 또는 LuaComp->InitializeComponent();
+                std::cout << "LuaComponent: Script path changed. Need to reload script: " << LuaComp->LuaScriptPath << std::endl; // 임시 로그
+            }
+            // 사용자가 취소하면 selectedFilePath는 nullptr이므로 아무 작업도 하지 않음
+        }
+
+        ImGui::Separator(); // 구분선
+
+        // --- 새 스크립트 생성 ---
+        if (ImGui::Button("Create New Script..."))
+        {
+            ImGui::OpenPopup("Create Lua Script");
+        }
+
+        // "Create Lua Script" 팝업 정의
+        if (ImGui::BeginPopupModal("Create Lua Script", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            static char newScriptNameBuffer[128] = "NewActorScript";
+            ImGui::InputText("Script Name (.lua)", newScriptNameBuffer, sizeof(newScriptNameBuffer));
+            ImGui::Separator();
+
+            if (ImGui::Button("Create", ImVec2(120, 0)))
+            {
+                std::string filename = newScriptNameBuffer;
+                if (!filename.empty())
+                {
+                    // '.lua' 확장자 추가 (이미 있다면 중복 방지)
+                    if (filename.rfind(".lua") == std::string::npos) {
+                        filename += ".lua";
+                    }
+
+                    // 스크립트 저장 경로 조합
+                    FString scriptsBasePath = FLuaManager::Get().GetScriptsBasePath();
+                    FString templatePath = FLuaManager::Get().GetTemplateLuaPath();
+                    FString ScriptsReleativePath = scriptsBasePath + filename;
+
+                    // 파일이 이미 존재하는지 확인 (선택 사항)
+                    if (std::filesystem::exists(ScriptsReleativePath)) {
+                         tinyfd_messageBox("Error", "A script with this name already exists!", "ok", "error", 1);
+                    } else {
+                        // 1. 템플릿 파일 복사
+                        bool copied = false;
+                        try {
+                            std::ifstream src(*templatePath, std::ios::binary);
+                            std::ofstream dst(*ScriptsReleativePath, std::ios::binary);
+                            if (src && dst) {
+                               dst << src.rdbuf();
+                               copied = true;
+                            } else {
+                                if (!src) std::cerr << "Error: Template file not found or couldn't be opened: " << templatePath << std::endl;
+                                if (!dst) std::cerr << "Error: Could not create destination file: " << ScriptsReleativePath << std::endl;
+                            }
+                        } catch (const std::exception& e) {
+                             std::cerr << "Error copying template: " << e.what() << std::endl;
+                        }
+                        
+                        if (copied)
+                        {
+                            std::cout << "Created new script: " << ScriptsReleativePath << std::endl;
+                            // 2. 컴포넌트의 경로 업데이트 (상대 경로로 저장)
+                            LuaComp->LuaScriptPath = filename;
+                            std::filesystem::path basePath(FLuaManager::Get().GetScriptsBasePath());
+                            std::filesystem::path absolutePath = std::filesystem::absolute(basePath / ScriptsReleativePath);
+                            std::string fullPath = absolutePath.string();
+
+                            // 3. 생성된 스크립트 편집기로 열기 (OpenExternalEditor 함수 사용)
+                            ShellExecuteA(NULL, "open", fullPath.c_str(), NULL, NULL, SW_SHOWNORMAL);
+                            
+                            // 4. 중요: 컴포넌트 다시 초기화/스크립트 로드
+                            // 예: LuaComp->ReloadScript(); 또는 LuaComp->InitializeComponent();
+                            std::cout << "LuaComponent: New script created. Need to reload script: " << LuaComp->LuaScriptPath << std::endl; // 임시 로그
+
+                            ImGui::CloseCurrentPopup();
+                        }
+                        else
+                        {
+                            tinyfd_messageBox("Error", "Failed to create the script file. Check permissions or template file path.", "ok", "error", 1);
+                            std::cerr << "Failed to copy template Lua file from " << templatePath << " to " << ScriptsReleativePath << std::endl;
+                        }
+                    }
+                } else {
+                    tinyfd_messageBox("Warning", "Please enter a name for the script.", "ok", "warning", 1);
+                }
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+            ImGui::EndPopup();
+        }
+
+        ImGui::SameLine(); // 생성 버튼 옆에 편집 버튼 배치
+
+        // --- 스크립트 편집 ---
+        // 스크립트 경로가 있을 때만 활성화
+        bool hasScript = !LuaComp->LuaScriptPath.IsEmpty();
+        ImGui::BeginDisabled(!hasScript); // 경로 없으면 비활성화 시작
+
+        if (ImGui::Button("Edit Script"))
+        {
+            // 스크립트 전체 경로 계산 (상대 경로일 수 있으므로 기본 경로와 조합)
+            FString fullPath;
+            try {
+                // LuaScriptPath가 절대 경로인지 간단히 확인 (더 견고한 방법 필요할 수 있음)
+                std::filesystem::path scriptPathObj(LuaComp->LuaScriptPath);
+                if (scriptPathObj.is_absolute()) {
+                    fullPath = LuaComp->LuaScriptPath;
+                } else {
+                    // 상대 경로라면 기준 경로와 조합하여 절대 경로 생성
+                    std::filesystem::path basePath(FLuaManager::Get().GetScriptsBasePath());
+                    std::filesystem::path absolutePath = std::filesystem::absolute(basePath / scriptPathObj);
+                    fullPath = absolutePath.string();
+                }
+            } catch(const std::exception& e) {
+                 // 경로 오류 발생 시 fallback
+                 std::cerr << "Path error for Edit Script: " << e.what() << std::endl;
+                 fullPath = FLuaManager::Get().GetScriptsBasePath() + LuaComp->LuaScriptPath; // 기본 조합 시도
+            }
+
+
+            if (std::filesystem::exists(fullPath)) {
+                ShellExecuteA(NULL, "open", *fullPath, NULL, NULL, SW_SHOWNORMAL);
+            } else {
+                 tinyfd_messageBox("Error", "Script file not found at the specified path.", "ok", "error", 1);
+                 std::cerr << "Edit Script Error: File not found at " << fullPath << std::endl;
+            }
+        }
+
+        ImGui::EndDisabled(); // 비활성화 종료
+
+        // (선택 사항) 스크립트 로드 상태 표시
+        // std::string status = LuaComp->GetScriptStatus(); // 컴포넌트가 상태 문자열 반환 가정
+        // ImGui::Text("Status: %s", status.c_str());
+
+        ImGui::TreePop(); // 트리 닫기
+    }
+    ImGui::PopStyleColor(); // 스타일 복원
+}
+
+void PropertyEditorPanel::RenderShapeProperty(AActor* PickedActor)
+{
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UBoxShapeComponent>())
+    {
+        UBoxShapeComponent* ShapeComp = Cast<UBoxShapeComponent>(PickedComponent);
+
+        if (ImGui::TreeNodeEx("BoxShapeComponent", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            FVector BoxExtent = ShapeComp->GetBoxExtent();
+
+            if (FImGuiWidget::DrawVec3Control("BoxExtent", BoxExtent, 0, 10))
+            {
+                ShapeComp->SetBoxExtent(BoxExtent);
+            }
+
+            ImGui::TreePop();
+        }
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<USphereShapeComponent>())
+    {
+        USphereShapeComponent* ShapeComp = Cast<USphereShapeComponent>(PickedComponent);
+
+        if (ImGui::TreeNodeEx("SphereShapeComponent", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            float Radius = ShapeComp->GetRadius();
+
+            if (ImGui::SliderFloat("Radius", &Radius, 0.0f, 100.0f))
+            {
+                ShapeComp->SetRadius(Radius);
+            }
+
+            ImGui::TreePop();
+        }
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UCapsuleShapeComponent>())
+    {
+        UCapsuleShapeComponent* ShapeComp = Cast<UCapsuleShapeComponent>(PickedComponent);
+
+        if (ImGui::TreeNodeEx("CapsuleShapeComponent", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            float CapsuleRaidus = ShapeComp->GetRadius();
+
+            if (ImGui::SliderFloat("CapsuleRaidus", &CapsuleRaidus, 0.0f, 100.0f))
+            {
+                ShapeComp->SetRadius(CapsuleRaidus);
+            }
+
+            float CapsuleHalfHeight = ShapeComp->GetHalfHeight();
+
+            if (ImGui::SliderFloat("CapsuleHalfHeight", &CapsuleHalfHeight, 0.0f, 100.0f))
+            {
+                ShapeComp->SetHalfHeight(CapsuleHalfHeight);
+            }
+
+            ImGui::TreePop();
+        }
+    }
+
+}
+
 
 void PropertyEditorPanel::OnResize(HWND hWnd)
 {

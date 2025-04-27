@@ -68,6 +68,12 @@ public:
     FName GetFName() const { return NamePrivate; }
     FString GetName() const { return NamePrivate.ToString(); }
 
+    //TODO 이름 바꾸면 FNAME을 키값으로 하는 자료구조 모두 반영해야됨
+    void SetFName(const FName& Name)
+    {
+        NamePrivate = Name;
+    }
+
     uint32 GetUUID() const { return UUID; }
     uint32 GetInternalIndex() const { return InternalIndex; }
 

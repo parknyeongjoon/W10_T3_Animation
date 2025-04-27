@@ -1,6 +1,8 @@
 #include "Actor.h"
 
+#include "EditorEngine.h"
 #include "Engine/World.h"
+#include "Script/LuaManager.h"
 
 AActor::AActor(const AActor& Other)
     : UObject(Other),
@@ -11,6 +13,7 @@ AActor::AActor(const AActor& Other)
 }
 void AActor::BeginPlay()
 {
+
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
     const auto CopyComponents = OwnedComponents;
     for (UActorComponent* Comp : CopyComponents)
@@ -21,6 +24,7 @@ void AActor::BeginPlay()
 
 void AActor::Tick(float DeltaTime)
 {
+
     if (!RootComponent) return;
     // TODO: 임시로 Actor에서 Tick 돌리기
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
@@ -120,7 +124,10 @@ bool AActor::SetRootComponent(USceneComponent* NewRootComponent)
             USceneComponent* OldRootComponent = RootComponent;
             RootComponent = NewRootComponent;
 
-            OldRootComponent->SetupAttachment(RootComponent);
+            if (OldRootComponent)
+            {
+                OldRootComponent->SetupAttachment(RootComponent);
+            }
         }
         return true;
     }
@@ -279,7 +286,7 @@ void AActor::PostDuplicate()
     // Override in subclasses if needed
 }
 
-void AActor::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
+void AActor::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray)
 {
     // 생성자를 통해 만들어진 컴포넌트들은 이미 생성이 되어있는 상태
     // ActorComponentInfo의 ComponentOrigin을 보고 Constructor가 아니면 추가적으로 생성
@@ -289,7 +296,7 @@ void AActor::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>
         // 생성자에서 자동으로 생성되는 컴포넌트는 무시한다
         if (Info->Origin == EComponentOrigin::Constructor) continue;
 
-        UClass* ComponentClass = UClassRegistry::Get().FindClassByName(Info->ComponentType);
+        UClass* ComponentClass = UClassRegistry::Get().FindClassByName(Info->ComponentClass);
         if (ComponentClass)
         {
             UActorComponent* NewComp = AddComponentByClass(ComponentClass, EComponentOrigin::Serialized);
@@ -302,18 +309,6 @@ void AActor::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>
         UE_LOG(LogLevel::Error, "InfoArray.Num() != Components.Num()");
         return;
     }
-    //
-    //TArray<std::shared_ptr<FActorComponentInfo>> ComponentInfos;
-    //for (const auto& Info : InfoArray)
-    //{
-    //    FActorComponentInfo::BaseFactoryFunc* FactoryFunc = FActorComponentInfo::GetFactoryMap().Find(Info->InfoType);
-    //    if (FactoryFunc)
-    //    {
-    //        // 실제 인스턴스
-    //        std::shared_ptr<FActorComponentInfo> NewInfo = (*FactoryFunc)();
-    //        ComponentInfos.Add(std::move(NewInfo));
-    //    }
-    //}
     for (int i = 0; i < InfoArray.Num(); i++)
     {
         OwnedComponents[i]->LoadAndConstruct(*InfoArray[i]);
@@ -328,7 +323,9 @@ FActorInfo AActor::GetActorInfo()
     {
         if (Component)
         {
-            ActorInfo.ComponentInfos.Add(Component->GetActorComponentInfo());
+            // Component->GetComponentInfo()가 반환하는 unique_ptr의 소유권을
+            // TArray 내부로 이동(move)시킵니다.
+            ActorInfo.ComponentInfos.Add(std::move(Component->GetComponentInfo()));
         }
     }
     return ActorInfo;

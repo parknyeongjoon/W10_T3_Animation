@@ -25,7 +25,7 @@ void UWorld::InitWorld()
     // TODO: Load Scene
     Level = FObjectFactory::ConstructObject<ULevel>();
     PreLoadResources();
-    CreateBaseObject();
+    LoadScene("Assets/Scenes/AutoSave.Scene");
 }
 
 void UWorld::LoadLevel(const FString& LevelName)
@@ -71,8 +71,9 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
             LocalGizmo->Tick(deltaSeconds);
     }
     // SpawnActor()에 의해 Actor가 생성된 경우, 여기서 BeginPlay 호출
-    if (tickType == LEVELTICK_All)
+    if (tickType == LEVELTICK_All || true)
     {
+        FLuaManager::Get().BeginPlay();
         for (AActor* Actor : Level->PendingBeginPlayActors)
         {
             Actor->BeginPlay();
@@ -90,6 +91,7 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
 
 void UWorld::Release()
 {
+    SaveScene("Assets/Scenes/AutoSave.Scene");
 	for (AActor* Actor : Level->GetActors())
 	{
 		Actor->EndPlay(EEndPlayReason::WorldTransition);
@@ -148,6 +150,15 @@ void UWorld::ReloadScene(const FString& FileName)
 {
 
     ClearScene(); // 기존 오브젝트 제거
+    CreateBaseObject();
+    FArchive ar;
+    FWindowsBinHelper::LoadFromBin(FileName, ar);
+
+    ar >> *this;
+}
+
+void UWorld::LoadScene(const FString& FileName)
+{
     CreateBaseObject();
     FArchive ar;
     FWindowsBinHelper::LoadFromBin(FileName, ar);
@@ -220,6 +231,7 @@ bool UWorld::DestroyActor(AActor* ThisActor)
     return true;
 }
 
+
 void UWorld::SetPickingGizmo(UObject* Object)
 {
 	pickingGizmo = Cast<USceneComponent>(Object);
@@ -231,7 +243,7 @@ void UWorld::Serialize(FArchive& ar) const
     ar << ActorCount;
     for (AActor* Actor : Level->GetActors())
     {
-        FActorInfo ActorInfo = Actor->GetActorInfo();
+        FActorInfo ActorInfo = (Actor->GetActorInfo());
         ar << ActorInfo;
     }
 }
@@ -255,6 +267,8 @@ void UWorld::Deserialize(FArchive& ar)
             }
         }
     }
+    Level->PostLoad();
+    
 }
 
 /*************************임시******************************/

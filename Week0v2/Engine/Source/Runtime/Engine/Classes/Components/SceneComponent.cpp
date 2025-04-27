@@ -4,6 +4,8 @@
 #include "UObject/ObjectFactory.h"
 #include "ActorComponentInfo.h"
 
+
+
 USceneComponent::USceneComponent() :RelativeLocation(FVector(0.f, 0.f, 0.f)), RelativeRotation(FVector(0.f, 0.f, 0.f)), RelativeScale(FVector(1.f, 1.f, 1.f))
 {
 }
@@ -27,6 +29,28 @@ void USceneComponent::InitializeComponent()
 void USceneComponent::TickComponent(float DeltaTime)
 {
 	Super::TickComponent(DeltaTime);
+}
+
+void USceneComponent::DestroyComponent()
+{
+    TArray<USceneComponent*> ChildrenToDestroy = AttachChildren;
+    
+    for (USceneComponent* Child : ChildrenToDestroy)
+    {
+        // 자식 포인터가 유효한지 확인 (필수)
+        if (Child)
+        {
+            Child->DestroyComponent(); // 재귀 호출
+        }
+    }
+    if (AttachParent)
+    {
+        // 부모의 자식 목록에서 현재 컴포넌트 제거
+        AttachParent->AttachChildren.Remove(this);
+        // AttachParent = nullptr; // 어차피 파괴될 것이므로 필수는 아님
+    }
+
+    Super::DestroyComponent();
 }
 
 
@@ -138,7 +162,7 @@ FMatrix USceneComponent::GetScaleMatrix() const
 
 FMatrix USceneComponent::GetRotationMatrix() const
 {
-    FMatrix RotationMat = FMatrix::GetRotationMatrix(RelativeRotation);
+    FMatrix RotationMat = FMatrix::GetRotationMatrix(RelativeRotation.ToQuaternion());
     if (AttachParent)
     {
         FMatrix ParentRotationMat = AttachParent->GetRotationMatrix();
@@ -177,51 +201,7 @@ FMatrix USceneComponent::GetWorldMatrix() const
     }
     return ScaleMat * RTMat;
 }
-//
-// FMatrix USceneComponent::GetComponentTransform() const
-// {
-//     if (AttachParent)
-//     {
-//         return GetRelativeTransform() * AttachParent->GetComponentTransform();
-//     }
-//     else
-//     {
-//         return GetRelativeTransform();
-//     }
-// }
-//
-// FMatrix USceneComponent::GetComponentTranslateMatrix() const
-// {
-//     FMatrix LocMat = FMatrix::CreateTranslationMatrix(RelativeLocation);
-//     if (AttachParent)
-//     {
-//         FMatrix ParentLocMat = AttachParent->GetComponentTranslateMatrix();
-//         LocMat = LocMat * ParentLocMat;
-//     }
-//     return LocMat;
-// }
-//
-// FMatrix USceneComponent::GetComponentRotationMatrix() const
-// {
-//     FMatrix RotMat = FMatrix::CreateRotationMatrix(RelativeRotation.Roll, RelativeRotation.Pitch, RelativeRotation.Yaw);
-//     if (AttachParent)
-//     {
-//         FMatrix ParentRotMat = AttachParent->GetComponentRotationMatrix();
-//         RotMat = RotMat * ParentRotMat;
-//     }
-//     return RotMat;
-// }
-//
-// FMatrix USceneComponent::GetComponentScaleMatrix() const
-// {
-//     FMatrix ScaleMat = FMatrix::CreateScaleMatrix(RelativeScale3D.x, RelativeScale3D.y, RelativeScale3D.z);
-//     if (AttachParent)
-//     {
-//         FMatrix ParentScaleMat = AttachParent->GetComponentScaleMatrix();
-//         ScaleMat = ScaleMat * ParentScaleMat;
-//     }
-//     return ScaleMat;
-// }
+
 
 void USceneComponent::SetupAttachment(USceneComponent* InParent)
 {
@@ -275,18 +255,32 @@ void USceneComponent::DuplicateSubObjects(const UObject* Source)
 
 void USceneComponent::PostDuplicate() {}
 
-std::shared_ptr<FActorComponentInfo> USceneComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> USceneComponent::GetComponentInfo()
 {
-    std::shared_ptr<FSceneComponentInfo> Info = std::make_shared<FSceneComponentInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
-
-    Info->InfoType = GetClass()->GetName();
-    Info->RelativeLocation = RelativeLocation;
-    Info->RelativeRotation = RelativeRotation;
-    Info->RelativeScale3D = RelativeScale;
-
-    // !TODO : AttachedParent
+    auto Info = std::make_unique<FSceneComponentInfo>();
+    SaveComponentInfo(*Info);
+    
     return Info;
+}
+
+void USceneComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FSceneComponentInfo& Info = static_cast<FSceneComponentInfo&>(OutInfo);
+    Super::SaveComponentInfo(Info);
+    Info.RelativeLocation = RelativeLocation;
+    Info.RelativeRotation = RelativeRotation;
+    Info.RelativeScale3D = RelativeScale;
+    Info.AABB = AABB;
+
+    // 부모 ID 저장
+    if (AttachParent)
+    {
+        Info.ParentComponentID = AttachParent->GetComponentID(); // 부모의 ID 가져오기
+    }
+    else
+    {
+        Info.ParentComponentID = FGuid(); // 부모 없음을 표시 (기본 Guid)
+    }
 }
 
 void USceneComponent::LoadAndConstruct(const FActorComponentInfo& Info)
@@ -296,4 +290,8 @@ void USceneComponent::LoadAndConstruct(const FActorComponentInfo& Info)
     RelativeLocation = SceneInfo.RelativeLocation;
     RelativeRotation = SceneInfo.RelativeRotation;
     RelativeScale = SceneInfo.RelativeScale3D;
+    AABB = SceneInfo.AABB;
+
+    // 부모 ID를 임시 변수에 저장
+    PendingAttachParentID = SceneInfo.ParentComponentID;
 }
