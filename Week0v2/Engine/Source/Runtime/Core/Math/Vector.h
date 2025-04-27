@@ -11,31 +11,31 @@ struct FMath;
 #include "Serialization/Archive.h"
 struct FVector2D
 {
-	float x,y;
-	FVector2D(float _x = 0, float _y = 0) : x(_x), y(_y) {}
+    float x, y;
+    FVector2D(float _x = 0, float _y = 0) : x(_x), y(_y) {}
 
-	FVector2D operator+(const FVector2D& rhs) const
-	{
-		return FVector2D(x + rhs.x, y + rhs.y);
-	}
-	FVector2D operator-(const FVector2D& rhs) const
-	{
-		return FVector2D(x - rhs.x, y - rhs.y);
-	}
-	FVector2D operator*(float rhs) const
-	{
-		return FVector2D(x * rhs, y * rhs);
-	}
-	FVector2D operator/(float rhs) const
-	{
-		return FVector2D(x / rhs, y / rhs);
-	}
-	FVector2D& operator+=(const FVector2D& rhs)
-	{
-		x += rhs.x;
-		y += rhs.y;
-		return *this;
-	}
+    FVector2D operator+(const FVector2D& rhs) const
+    {
+        return FVector2D(x + rhs.x, y + rhs.y);
+    }
+    FVector2D operator-(const FVector2D& rhs) const
+    {
+        return FVector2D(x - rhs.x, y - rhs.y);
+    }
+    FVector2D operator*(float rhs) const
+    {
+        return FVector2D(x * rhs, y * rhs);
+    }
+    FVector2D operator/(float rhs) const
+    {
+        return FVector2D(x / rhs, y / rhs);
+    }
+    FVector2D& operator+=(const FVector2D& rhs)
+    {
+        x += rhs.x;
+        y += rhs.y;
+        return *this;
+    }
 
     void Serialize(FArchive& Ar) const
     {
@@ -68,6 +68,29 @@ struct FVector
     FVector& operator/=(float Scalar);
 
     FVector operator-() const;
+
+    // 인덱스 접근 연산자 추가
+    float& operator[](int Index)
+    {
+        switch (Index)
+        {
+        case 0: return x;
+        case 1: return y;
+        case 2: return z;
+        default: throw std::out_of_range("FVector index out of range");
+        }
+    }
+
+    float operator[](int Index) const
+    {
+        switch (Index)
+        {
+        case 0: return x;
+        case 1: return y;
+        case 2: return z;
+        default: throw std::out_of_range("FVector index out of range");
+        }
+    }
 
     // 벡터 내적
     float Dot(const FVector& other) const {
@@ -123,6 +146,13 @@ struct FVector
         return result;
     }
 
+    float MaxValue() const
+    {
+        float result = x >= y ? x : y;
+        result = result >= z ? result : z;
+        return result;
+    }
+
     bool operator==(const FVector& other) const {
         return (x == other.x && y == other.y && z == other.z);
     }
@@ -147,7 +177,7 @@ struct FVector
         if (VSq > MaxSize * MaxSize)
         {
             const float Scale = MaxSize * FMath::InvSqrt(VSq);
-            return {x * Scale, y * Scale, z * Scale};
+            return { x * Scale, y * Scale, z * Scale };
         }
         else
         {
@@ -163,11 +193,11 @@ struct FVector
     {
         Ar >> x >> y >> z;
     }
-    bool IsNearlyZero(float Tolerance= KINDA_SMALL_NUMBER) const
+    bool IsNearlyZero(float Tolerance = KINDA_SMALL_NUMBER) const
     {
         return FMath::Abs(x) <= Tolerance &&
-               FMath::Abs(y) <= Tolerance &&
-               FMath::Abs(z) <= Tolerance;
+            FMath::Abs(y) <= Tolerance &&
+            FMath::Abs(z) <= Tolerance;
     }
     static const FVector ZeroVector;
     static const FVector OneVector;

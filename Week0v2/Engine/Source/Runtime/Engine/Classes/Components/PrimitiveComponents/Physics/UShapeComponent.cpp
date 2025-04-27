@@ -23,6 +23,7 @@ UShapeComponent::UShapeComponent(const UShapeComponent& Other)
 
 UShapeComponent::~UShapeComponent()
 {
+    UEditorEngine::CollisionManager.Unregister(this);
 }
 
 void UShapeComponent::InitializeComponent()
