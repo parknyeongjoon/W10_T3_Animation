@@ -126,7 +126,7 @@ void UBillboardComponent::CreateQuadTextureVertexBuffer()
 
 std::unique_ptr<FActorComponentInfo> UBillboardComponent::GetComponentInfo()
 {
-    auto Info = std::make_unique<FActorComponentInfo>();
+    auto Info = std::make_unique<FBillboardComponentInfo>();
     SaveComponentInfo(*Info);
     
     return Info;
