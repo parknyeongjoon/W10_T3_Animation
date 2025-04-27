@@ -29,18 +29,6 @@ struct FSceneComponentInfo : public FActorComponentInfo
     }
     
 
-
-
-    // virtual void Copy(FActorComponentInfo& Other) override
-    // {
-    //     FActorComponentInfo::Copy(Other);
-    //     FSceneComponentInfo& OtherScene = static_cast<FSceneComponentInfo&>(Other);
-    //     OtherScene.RelativeLocation = RelativeLocation;
-    //     OtherScene.RelativeRotation = RelativeRotation;
-    //     OtherScene.RelativeScale3D = RelativeScale3D;
-    //     OtherScene.AABB = AABB;
-    // }
-
     virtual void Serialize(FArchive& ar) const override
     {
         FActorComponentInfo::Serialize(ar);

@@ -36,13 +36,13 @@ struct FActorComponentInfo
 
     virtual void Serialize(FArchive& ar) const
     {
-        ar << InfoType << ComponentClass << (int)Origin << ComponentName << ComponentOwner << bIsRoot;
+        ar << InfoType << ComponentClass << (int)Origin << ComponentName << ComponentOwner << bTickEnabled << bIsActive << bAutoActive << bIsRoot;
     }
 
     virtual void Deserialize(FArchive& ar)
     {
         int iOrigin;
-        ar >> InfoType >> ComponentClass >> iOrigin >> ComponentName >> ComponentOwner >> bIsRoot;
+        ar >> InfoType >> ComponentClass >> iOrigin >> ComponentName >> ComponentOwner >> bTickEnabled >> bIsActive >> bAutoActive>> bIsRoot;
         Origin = static_cast<EComponentOrigin>(iOrigin);
     }
 

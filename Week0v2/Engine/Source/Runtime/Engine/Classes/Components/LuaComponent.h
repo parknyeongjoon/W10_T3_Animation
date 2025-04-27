@@ -7,6 +7,35 @@
 #include "ActorComponentInfo.h"
 #include "Math/Rotator.h"
 
+struct FLuaComponentInfo : public FActorComponentInfo
+{
+    DECLARE_ACTORCOMPONENT_INFO(FLuaComponentInfo);
+    
+    FString LuaScriptPath;
+    
+
+    FLuaComponentInfo()
+        : FActorComponentInfo()
+        , LuaScriptPath(TEXT(""))
+    {
+        InfoType = TEXT("FLuaComponentInfo");
+    }
+    
+
+    virtual void Serialize(FArchive& ar) const override
+    {
+        FActorComponentInfo::Serialize(ar);
+        ar << LuaScriptPath;
+    }
+
+    virtual void Deserialize(FArchive& ar) override
+    {
+        FActorComponentInfo::Deserialize(ar);
+        ar >> LuaScriptPath;
+    }
+};
+
+
 class ULuaComponent : public UActorComponent
 {
     DECLARE_CLASS(ULuaComponent, UActorComponent)
@@ -41,6 +70,10 @@ public:
 
     /** 이 컴포넌트를 제거합니다. */
     virtual void DestroyComponent();
+
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
+    void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
     //sol::table LuaData;
 
