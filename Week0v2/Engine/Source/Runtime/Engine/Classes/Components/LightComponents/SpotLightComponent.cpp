@@ -120,15 +120,23 @@ FMatrix USpotLightComponent::GetProjectionMatrix() const
     );
 }
 
-std::shared_ptr<FActorComponentInfo> USpotLightComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> USpotLightComponent::GetComponentInfo()
 {
-    std::shared_ptr<FSpotlightComponentInfo> Info = std::make_shared<FSpotlightComponentInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
+    auto Info = std::make_unique<FSpotlightComponentInfo>();
+    SaveComponentInfo(*Info);
+    
+    return Info;
+}
+
+
+void USpotLightComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FSpotlightComponentInfo* Info = static_cast<FSpotlightComponentInfo*>(&OutInfo);
+    Super::SaveComponentInfo(*Info);
 
     Info->InnerConeAngle = InnerConeAngle;
     Info->OuterConeAngle = OuterConeAngle;
 
-    return Info;
 }
 
 void USpotLightComponent::LoadAndConstruct(const FActorComponentInfo& Info)

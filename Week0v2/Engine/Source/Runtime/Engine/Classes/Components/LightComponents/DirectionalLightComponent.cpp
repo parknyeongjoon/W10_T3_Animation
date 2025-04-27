@@ -177,12 +177,20 @@ void UDirectionalLightComponent::PostDuplicate()
 {
 }
 
-std::shared_ptr<FActorComponentInfo> UDirectionalLightComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> UDirectionalLightComponent::GetComponentInfo()
 {
-    std::shared_ptr<FDirectionalLightComponentInfo> Info = std::make_shared<FDirectionalLightComponentInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
-    Info->Direction = Direction;
+    auto Info = std::make_unique<FDirectionalLightComponentInfo>();
+    SaveComponentInfo(*Info);
+    
     return Info;
+}
+
+void UDirectionalLightComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FDirectionalLightComponentInfo* Info = static_cast<FDirectionalLightComponentInfo*>(&OutInfo);
+    Super::SaveComponentInfo(*Info);
+    
+    Info->Direction = Direction;
 }
 
 void UDirectionalLightComponent::LoadAndConstruct(const FActorComponentInfo& Info)

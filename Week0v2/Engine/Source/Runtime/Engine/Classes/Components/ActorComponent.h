@@ -21,6 +21,7 @@ class UActorComponent : public UObject
 
 private:
     friend class AActor;
+    friend class FActorComponentInfo;
 
 public:
     UActorComponent() = default;
@@ -88,10 +89,11 @@ protected:
     virtual void OnUnregister();
 
 public:
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo();
+    virtual std::unique_ptr<FActorComponentInfo> GetComponentInfo();
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
-
 protected:
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo);
+    
     /** Tick을 지원하는 컴포넌트인지 여부 */
     uint8 bCanEverTick : 1;
 

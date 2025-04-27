@@ -8,18 +8,33 @@
 #include <functional>
 #include <memory>
 
+
 // 액터 컴포넌트의 직렬화/역직렬화에 필요한 메타데이터 구조체
 struct FActorComponentInfo
 {
+    DECLARE_ACTORCOMPONENT_INFO(FActorComponentInfo);
+    
     FString InfoType;
-    FString ComponentType;
-
     EComponentOrigin Origin;
+    
+    FString ComponentClass;
+    FString ComponentName;
+    FString ComponentOwner;
+
+    bool bTickEnabled;
+    bool bIsActive;
+    bool bAutoActive;
     bool bIsRoot;
-    // ctor
+    
+    
     FActorComponentInfo()
-        : InfoType(TEXT("FActorComponentInfo")), ComponentType(TEXT("UActorComponent")), Origin(EComponentOrigin::Constructor), bIsRoot(false) {
-    }
+        : InfoType(TEXT("FActorComponentInfo")), ComponentClass(TEXT("")), Origin(EComponentOrigin::None), bIsRoot(false),
+    bTickEnabled(true), bIsActive(false), bAutoActive(false)
+    {}
+    
+
+    
+    virtual ~FActorComponentInfo() = default;
 
     // other의 데이터를 이 객체의 데이터로 복사합니다.
     virtual void Copy(FActorComponentInfo& Other)
@@ -30,15 +45,17 @@ struct FActorComponentInfo
         Other.bIsRoot = bIsRoot;
     }
 
+
+
     virtual void Serialize(FArchive& ar) const
     {
-        ar << InfoType << ComponentType << (int)Origin << bIsRoot;
+        ar << InfoType << ComponentClass << (int)Origin << bIsRoot;
     }
 
     virtual void Deserialize(FArchive& ar)
     {
         int iOrigin;
-        ar >> InfoType >> ComponentType >> iOrigin >> bIsRoot;
+        ar >> InfoType >> ComponentClass >> iOrigin >> bIsRoot;
         Origin = static_cast<EComponentOrigin>(iOrigin);
     }
 
@@ -52,7 +69,7 @@ struct FActorComponentInfo
         ar >> InfoType;
     }
 
-    using BaseFactoryFunc = std::function<std::shared_ptr<FActorComponentInfo>()>;
+    using BaseFactoryFunc = std::function<std::unique_ptr<FActorComponentInfo>()>;
 
     inline static TMap<FString, BaseFactoryFunc>& GetFactoryMap()
     {

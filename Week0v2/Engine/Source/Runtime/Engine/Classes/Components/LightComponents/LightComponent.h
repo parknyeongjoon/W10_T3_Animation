@@ -18,7 +18,7 @@ struct FLightComponentInfo : public FLightComponentBaseInfo
         , ShadowSharpen(0.0f)
     {
         InfoType = TEXT("FLightComponentInfo");
-        ComponentType = TEXT("ULightComponent");
+        ComponentClass = TEXT("ULightComponent");
     }
 
     virtual void Copy(FActorComponentInfo& Other) override
@@ -88,6 +88,9 @@ public:
     UObject* Duplicate() const override;
     void DuplicateSubObjects(const UObject* Source) override;
     void PostDuplicate() override;
-    std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+
+    
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     void LoadAndConstruct(const FActorComponentInfo& Info) override;
 };

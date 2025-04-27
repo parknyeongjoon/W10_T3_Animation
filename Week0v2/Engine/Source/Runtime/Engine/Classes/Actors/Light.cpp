@@ -64,7 +64,7 @@ void ALight::PostDuplicate()
     Super::PostDuplicate();
 }
 
-void ALight::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
+void ALight::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray)
 {
     Super::LoadAndConstruct(InfoArray);
 }

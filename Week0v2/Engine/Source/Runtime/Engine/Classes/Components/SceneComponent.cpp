@@ -4,6 +4,8 @@
 #include "UObject/ObjectFactory.h"
 #include "ActorComponentInfo.h"
 
+
+
 USceneComponent::USceneComponent() :RelativeLocation(FVector(0.f, 0.f, 0.f)), RelativeRotation(FVector(0.f, 0.f, 0.f)), RelativeScale(FVector(1.f, 1.f, 1.f))
 {
 }
@@ -275,18 +277,22 @@ void USceneComponent::DuplicateSubObjects(const UObject* Source)
 
 void USceneComponent::PostDuplicate() {}
 
-std::shared_ptr<FActorComponentInfo> USceneComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> USceneComponent::GetComponentInfo()
 {
-    std::shared_ptr<FSceneComponentInfo> Info = std::make_shared<FSceneComponentInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
-
-    Info->RelativeLocation = RelativeLocation;
-    Info->RelativeRotation = RelativeRotation;
-    Info->RelativeScale3D = RelativeScale;
-    Info->AABB = AABB;
-
-    // !TODO : AttachedParent
+    auto Info = std::make_unique<FSceneComponentInfo>();
+    SaveComponentInfo(*Info);
+    
     return Info;
+}
+
+void USceneComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FSceneComponentInfo& Info = static_cast<FSceneComponentInfo&>(OutInfo);
+    Super::SaveComponentInfo(Info);
+    Info.RelativeLocation = RelativeLocation;
+    Info.RelativeRotation = RelativeRotation;
+    Info.RelativeScale3D = RelativeScale;
+    Info.AABB = AABB;
 }
 
 void USceneComponent::LoadAndConstruct(const FActorComponentInfo& Info)

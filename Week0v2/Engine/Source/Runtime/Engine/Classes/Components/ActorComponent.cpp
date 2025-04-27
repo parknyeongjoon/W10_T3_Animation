@@ -116,17 +116,33 @@ void UActorComponent::OnUnregister()
     Deactivate();
 }
 
-std::shared_ptr<FActorComponentInfo> UActorComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> UActorComponent::GetComponentInfo()
 {
-    std::shared_ptr<FActorComponentInfo> Info = std::make_shared<FActorComponentInfo>();
-    Info->Origin = ComponentOrigin;
-    Info->bIsRoot = GetOwner() && (GetOwner()->GetRootComponent() == this);
+    auto Info = std::make_unique<FActorComponentInfo>();
+    SaveComponentInfo(*Info);
+    
     return Info;
+}
+
+void UActorComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    OutInfo.Origin = ComponentOrigin;
+    OutInfo.ComponentClass = GetClass()->GetName();
+    OutInfo.ComponentName = GetName();
+    OutInfo.ComponentOwner = GetOwner() ? GetOwner()->GetName() : (TEXT("None"));
+    OutInfo.bIsActive = bIsActive;
+    OutInfo.bAutoActive = bAutoActive;
+    OutInfo.bTickEnabled = bTickEnabled;
+    OutInfo.bIsRoot = GetOwner() && (GetOwner()->GetRootComponent() == this);
 }
 
 void UActorComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 {
     ComponentOrigin = Info.Origin;
+    SetFName(Info.ComponentName);
+    bIsActive = Info.bIsActive;
+    bAutoActive = Info.bAutoActive;
+    bTickEnabled = Info.bTickEnabled;
 }
 
 void UActorComponent::RegisterComponent()

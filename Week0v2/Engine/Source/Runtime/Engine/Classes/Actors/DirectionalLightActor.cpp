@@ -60,7 +60,7 @@ void ADirectionalLightActor::PostDuplicate()
     Super::PostDuplicate();
 }
 
-void ADirectionalLightActor::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
+void ADirectionalLightActor::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray)
 {
     Super::LoadAndConstruct(InfoArray);
 }

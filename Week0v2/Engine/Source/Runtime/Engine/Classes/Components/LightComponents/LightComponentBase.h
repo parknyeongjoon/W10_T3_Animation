@@ -22,7 +22,7 @@ struct FLightComponentBaseInfo : public FSceneComponentInfo
         , bCastShadows(false)
     {
         InfoType = TEXT("FLightComponentBaseInfo");
-        ComponentType = TEXT("ULightComponentBase");
+        ComponentClass = TEXT("ULightComponentBase");
     }
 
     virtual void Copy(FActorComponentInfo& Other) override
@@ -93,7 +93,7 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
     
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 protected:

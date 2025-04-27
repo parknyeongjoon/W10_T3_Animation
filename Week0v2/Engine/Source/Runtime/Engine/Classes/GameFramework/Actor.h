@@ -6,14 +6,16 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectFactory.h"
 #include "UObject/ObjectMacros.h"
-#include "ActorInfo.h"
 #include <sol/sol.hpp>
+#include "ActorInfo.h"
 
 class UActorComponent;
 
 class AActor : public UObject
 {
     DECLARE_CLASS(AActor, UObject)
+
+    
 
 public:
     AActor() = default;
@@ -96,7 +98,7 @@ public:
     virtual void PostDuplicate() override;
 
 public:
-    virtual void LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray);
+    virtual void LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray);
     virtual FActorInfo GetActorInfo();
 
 public:

@@ -71,7 +71,7 @@ void AFireBall::PostDuplicate()
     Super::PostDuplicate();
 }
 
-void AFireBall::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
+void AFireBall::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray)
 {
     AActor::LoadAndConstruct(InfoArray);
 }

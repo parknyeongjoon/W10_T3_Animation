@@ -5,6 +5,8 @@
 #include "ActorComponentInfo.h"
 #include "Math/Rotator.h"
 
+class USceneComponent;
+
 struct FSceneComponentInfo : public FActorComponentInfo
 {
     DECLARE_ACTORCOMPONENT_INFO(FSceneComponentInfo);
@@ -13,6 +15,7 @@ struct FSceneComponentInfo : public FActorComponentInfo
     FRotator RelativeRotation;
     FVector RelativeScale3D;
     FBoundingBox AABB;
+    
 
     FSceneComponentInfo()
         : FActorComponentInfo()
@@ -22,18 +25,21 @@ struct FSceneComponentInfo : public FActorComponentInfo
         , AABB(FBoundingBox(FVector::ZeroVector, FVector::ZeroVector))
     {
         InfoType = TEXT("FSceneComponentInfo");
-        ComponentType = TEXT("USceneComponent");
+        //ComponentClass = TEXT("USceneComponent");
     }
+    
 
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FActorComponentInfo::Copy(Other);
-        FSceneComponentInfo& OtherScene = static_cast<FSceneComponentInfo&>(Other);
-        OtherScene.RelativeLocation = RelativeLocation;
-        OtherScene.RelativeRotation = RelativeRotation;
-        OtherScene.RelativeScale3D = RelativeScale3D;
-        OtherScene.AABB = AABB;
-    }
+
+
+    // virtual void Copy(FActorComponentInfo& Other) override
+    // {
+    //     FActorComponentInfo::Copy(Other);
+    //     FSceneComponentInfo& OtherScene = static_cast<FSceneComponentInfo&>(Other);
+    //     OtherScene.RelativeLocation = RelativeLocation;
+    //     OtherScene.RelativeRotation = RelativeRotation;
+    //     OtherScene.RelativeScale3D = RelativeScale3D;
+    //     OtherScene.AABB = AABB;
+    // }
 
     virtual void Serialize(FArchive& ar) const override
     {
@@ -51,6 +57,7 @@ struct FSceneComponentInfo : public FActorComponentInfo
 class USceneComponent : public UActorComponent
 {
     DECLARE_CLASS(USceneComponent, UActorComponent)
+    friend class FSceneComponentInfo;
 
 public:
     USceneComponent();
@@ -109,7 +116,8 @@ public:
 
 public:
     virtual bool MoveComponent(const FVector& Delta) { return false; }
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 private:

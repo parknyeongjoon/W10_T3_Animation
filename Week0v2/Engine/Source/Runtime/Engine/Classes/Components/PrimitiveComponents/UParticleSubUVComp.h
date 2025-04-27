@@ -13,7 +13,7 @@ struct FParticleSubUVCompInfo : public FBillboardComponentInfo
         , CellsPerColumn(1)
     {
         InfoType = TEXT("FParticleSubUVCompInfo");
-        ComponentType = TEXT("UParticleSubUVComp");
+        ComponentClass = TEXT("UParticleSubUVComp");
     }
 
     virtual void Copy(FActorComponentInfo& Other) override
@@ -57,7 +57,8 @@ public:
     //UINT numTextVertices;
 
 public:
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo();
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 protected:

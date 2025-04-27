@@ -9,7 +9,7 @@ struct FMovementComponentInfo : public FActorComponentInfo
         : FActorComponentInfo()
     {
         InfoType = TEXT("FMovementComponentInfo");
-        ComponentType = TEXT("UMovementComponent");
+        ComponentClass = TEXT("UMovementComponent");
     }
 
     bool bUpdateOnlyIfRendered;
@@ -96,8 +96,10 @@ public:
     virtual void PostDuplicate() override;
 
 public:
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
-    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
+    
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 };
 

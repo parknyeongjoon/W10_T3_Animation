@@ -12,7 +12,7 @@ struct FTextComponentInfo : public FBillboardComponentInfo
         , Text(L"")
     {
         InfoType = TEXT("FTextComponentInfo");
-        ComponentType = TEXT("UText");
+        ComponentClass = TEXT("UText");
     }
     virtual void Copy(FActorComponentInfo& Other) override
     {
@@ -56,10 +56,12 @@ public:
     TArray<FVertexTexture> vertexTextureArr;
 
 public:    
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
-    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
+    
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
 
 protected:
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
     FWString text;
 

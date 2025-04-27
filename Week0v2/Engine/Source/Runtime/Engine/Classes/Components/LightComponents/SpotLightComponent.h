@@ -16,7 +16,7 @@ struct FSpotlightComponentInfo : public FLightComponentBaseInfo
         , Direction(FVector(0.0f, 0.0f, -1.0f))
     {
         InfoType = TEXT("FSpotLightComponentInfo");
-        ComponentType = TEXT("USpotLightComponent");
+        ComponentClass = TEXT("USpotLightComponent");
     }
 
     virtual void Copy(FActorComponentInfo& Other) override
@@ -72,7 +72,9 @@ public:
     FMatrix GetProjectionMatrix() const override;
 
 public:
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 public:

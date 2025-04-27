@@ -8,7 +8,7 @@ struct FSphereComponentInfo : public FStaticMeshComponentInfo
         : FStaticMeshComponentInfo()
     {
         InfoType = TEXT("FSphereComponentInfo");
-        ComponentType = TEXT("USphereComp");
+        ComponentClass = TEXT("USphereComp");
     }
     virtual void Copy(FActorComponentInfo& Other) override
     {

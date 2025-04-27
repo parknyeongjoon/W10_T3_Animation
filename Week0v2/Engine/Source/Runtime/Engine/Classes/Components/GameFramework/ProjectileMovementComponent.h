@@ -14,7 +14,7 @@ struct FProjectileMovementComponentInfo : public FMovementComponentInfo
         , ProjectileGravityScale(0.f)
     {
         InfoType = TEXT("FProjectileMovementComponentInfo");
-        ComponentType = TEXT("UProjectileMovementComponent");
+        ComponentClass = TEXT("UProjectileMovementComponent");
     }
     float InitialSpeed;
     float MaxSpeed;
@@ -77,8 +77,9 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
     
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
 public:
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
 
 public:

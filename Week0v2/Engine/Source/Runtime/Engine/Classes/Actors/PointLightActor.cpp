@@ -58,7 +58,7 @@ void APointLightActor::PostDuplicate()
     Super::PostDuplicate();
 }
 
-void APointLightActor::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
+void APointLightActor::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray)
 {
     Super::LoadAndConstruct(InfoArray);
 }
