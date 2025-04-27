@@ -63,14 +63,14 @@ void UPrimitiveBatch::AddAABB(const FBoundingBox& localAABB, const FVector& cent
     };
 
     FVector worldVertices[8];
-    worldVertices[0] = center + FMatrix::TransformVector(localVertices[0], modelMatrix);
+    worldVertices[0] = modelMatrix.TransformPosition(localVertices[0]);
 
     FVector min = worldVertices[0], max = worldVertices[0];
 
     // 첫 번째 값을 제외한 나머지 버텍스를 변환하고 min/max 계산
     for (int i = 1; i < 8; ++i)
     {
-        worldVertices[i] = center + FMatrix::TransformVector(localVertices[i], modelMatrix);
+        worldVertices[i] = modelMatrix.TransformPosition(localVertices[i]);
 
         min.x = (worldVertices[i].x < min.x) ? worldVertices[i].x : min.x;
         min.y = (worldVertices[i].y < min.y) ? worldVertices[i].y : min.y;
@@ -103,7 +103,7 @@ void UPrimitiveBatch::AddOBB(const FBoundingBox& localAABB, const FVector& cente
     FOBB faceBB;
     for (int32 i = 0; i < 8; ++i) {
         // 모델 매트릭스로 점을 변환 후, center를 더해준다.
-        faceBB.corners[i] =  center + FMatrix::TransformVector(localVertices[i], modelMatrix);
+        faceBB.corners[i] =  modelMatrix.TransformPosition(localVertices[i]);
     }
 
     OrientedBoundingBoxes.Add(faceBB);
