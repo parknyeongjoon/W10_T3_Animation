@@ -409,6 +409,16 @@ struct FLine
     float pad;
     FVector4 Color;
 };
+
+struct FCapsule
+{
+    FVector Center;
+    float Radius;
+    FVector UpVector;
+    float HalfHeight;
+    FVector4 Color;
+};
+
 struct FPlane
 {
     // 평면 방정식: Ax + By + Cz + D = 0

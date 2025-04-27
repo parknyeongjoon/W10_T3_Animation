@@ -331,7 +331,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     SpawnedActor->SetActorLabel(TEXT("OBJ_ACTOR"));
                     SpawnedActor->AddComponent<USceneComponent>();
                     break;
-                    // 🔷 셰이프
+                    //  셰이프
                 case OBJ_CUBE:
                 {
                     AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
@@ -340,6 +340,8 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
                     TempActor->AddComponent<UBoxShapeComponent>();
+                    TempActor->AddComponent<UCapsuleShapeComponent>();
+                    TempActor->AddComponent<USphereShapeComponent>();
 
                     SpawnedActor = TempActor;
                     break;

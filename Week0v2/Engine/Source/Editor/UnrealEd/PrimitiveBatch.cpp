@@ -142,3 +142,15 @@ void UPrimitiveBatch::AddLine(const FVector& StartPos, const FVector& Direction,
     Lines.Add(Line);
 }
 
+void UPrimitiveBatch::AddCapsule(const FVector& Center, const FVector& UpVector, float HalfHeight, float Radius, const FVector4& Color)
+{
+    FCapsule capsule;
+    capsule.Center = Center;
+    capsule.UpVector = UpVector;
+    capsule.HalfHeight = HalfHeight;
+    capsule.Radius = Radius;
+    capsule.Color = Color;
+    Capsules.Add(capsule);
+}
+
+

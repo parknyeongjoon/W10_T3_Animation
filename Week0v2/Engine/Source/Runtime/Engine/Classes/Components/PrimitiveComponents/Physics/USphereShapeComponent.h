@@ -32,6 +32,6 @@ private:
     bool CollisionCheckWithCapsule(const UCapsuleShapeComponent* OtherCapsule) const;
 
 private:
-    float Radius;
+    float Radius=10.0f;
 };
 
