@@ -290,6 +290,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             // 🔷 셰이프
             { "Shapes", "Cube",            OBJ_CUBE },
             { "Shapes", "Sphere",          OBJ_SPHERE },
+            { "Shapes", "Capsule",         OBJ_CAPSULE },
             { "Shapes", "Car (Dodge)",     OBJ_CAR },
             { "Shapes", "SkySphere",       OBJ_SKYSPHERE},
             { "Shapes", "Yeoul",           OBJ_YEOUL},
@@ -357,6 +358,18 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     TempActor->AddComponent<UCapsuleShapeComponent>();
 
                     SpawnedActor = TempActor;
+                    break;
+                }
+                case OBJ_CAPSULE:
+                {
+                    //AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                    //TempActor->SetActorLabel(TEXT("OBJ_CAPSULE"));
+                    //UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                    //FManagerOBJ::CreateStaticMesh("Assets/Capsule.obj");
+                    //MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
+                    //TempActor->AddComponent<UCapsuleShapeComponent>();
+
+                    //SpawnedActor = TempActor;
                     break;
                 }
                 case OBJ_SKYSPHERE:
