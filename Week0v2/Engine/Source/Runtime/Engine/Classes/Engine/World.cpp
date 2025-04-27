@@ -52,7 +52,9 @@ void UWorld::CreateBaseObject()
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
 
-    SpawnActor<ADodge>();
+    AActor* Dodge1 = SpawnActor<ADodge>();
+    AActor* Dodge2 = SpawnActor<ADodge>();
+    Dodge2->SetActorScale(FVector(0.5f, 0.5f, 0.5f));
 }
 
 void UWorld::ReleaseBaseObject()

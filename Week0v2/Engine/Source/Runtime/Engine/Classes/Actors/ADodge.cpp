@@ -1,6 +1,7 @@
 ﻿#include "ADodge.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 #include "Engine/FLoaderOBJ.h"
+#include "Engine/World.h"
 
 ADodge::ADodge()
     : Super()
@@ -19,8 +20,8 @@ ADodge::ADodge(const ADodge& Other)
 void ADodge::BeginPlay()
 {
     Super::BeginPlay();
-    TestDelegate.AddLambda([this]{SetActorLocation(GetActorLocation() + FVector(0.01,0,0));});
     TestDelegate.AddUObject(this, &ADodge::test);
+    TestDelegate.AddLambda([this]{SetActorLocation(GetActorLocation() + FVector(0.1,0,0));});
 }
 
 void ADodge::Tick(float DeltaTime)
@@ -46,7 +47,7 @@ bool ADodge::Destroy()
 
 void ADodge::test()
 {
-    SetActorRotation(GetActorRotation() + FVector(0.001,0,0));
+    SetActorRotation(GetActorRotation() + FVector(0.01,0,0));
     // Destroy();
 }
 
@@ -66,6 +67,7 @@ void ADodge::DuplicateSubObjects(const UObject* Source)
 void ADodge::PostDuplicate()
 {
     Super::PostDuplicate();
+    // TestDelegate = TestDelegate.DuplicateDelegate<>(GetLevel());
 }
 
 void ADodge::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
