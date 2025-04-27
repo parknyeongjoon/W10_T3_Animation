@@ -40,7 +40,7 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
                 FMatrix ModelMatrix = pShapeComponent->GetWorldMatrix();
                 FVector Center = pShapeComponent->GetComponentLocation();
 
-                UPrimitiveBatch::GetInstance().AddAABB(Box, Center, ModelMatrix);
+                //UPrimitiveBatch::GetInstance().AddAABB(Box, Center, ModelMatrix);
 
             }
             if (UCapsuleShapeComponent* pCapsuleShapeComponent = Cast<UCapsuleShapeComponent>(actorComp))
@@ -50,9 +50,6 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
                 FVector4 Color = FVector4(0.4f,1.0f,0.4f,1.0f); // ShapeColor 사용
                 float CapsuleHalfHeight = pCapsuleShapeComponent->GetHalfHeight();
                 float CapsuleRaidus = pCapsuleShapeComponent->GetRadius();
-                //const FBoundingBox& Box = pShapeComponent->GetBroadAABB();
-                //FMatrix ModelMatrix = pShapeComponent->GetWorldMatrix();
-                //FVector Center = pShapeComponent->GetComponentLocation();
 
                 UPrimitiveBatch::GetInstance().AddCapsule(Center, UpVector, CapsuleHalfHeight, CapsuleRaidus,Color);
 
@@ -99,9 +96,29 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
     VBIBTopologyMappingInfo->Bind();
 
     const uint32 vertexCountPerInstance = 2;
-    const uint32 instanceCount = GridParameters.GridCount + 3 + (PrimitveBatch.GetBoundingBoxes().Num() * 12) + (PrimitveBatch.GetCones().Num() * (2 * PrimitveBatch.GetConeSegmentCount())
-        + (PrimitveBatch.GetSpheres().Num() * 3 * 32) + (PrimitveBatch.GetLines().Num() * 2) + (12 * PrimitveBatch.GetOrientedBoundingBoxes().Num()));
+
+    const uint32 NumSegmentsCircle = 16;
+    const uint32 NumVerticalLines = 4;
+    const uint32 NumHemisphereSegments = 8;
+
+    const uint32 capsuleInstancePerCapsule =
+        (NumSegmentsCircle * 2) + // Top/Bottom Circle
+        NumVerticalLines +        // 세로선 4개
+        (NumHemisphereSegments * 2) + // Top 반구 (0°/180°, 90°/270°)
+        (NumHemisphereSegments * 2);  // Bottom 반구 (0°/180°, 90°/270°)
+
+    const uint32 instanceCount =
+        GridParameters.GridCount +
+        3 +
+        (PrimitveBatch.GetBoundingBoxes().Num() * 12) +
+        (PrimitveBatch.GetCones().Num() * (2 * PrimitveBatch.GetConeSegmentCount())) +
+        (PrimitveBatch.GetSpheres().Num() * 3 * 32) +
+        (PrimitveBatch.GetLines().Num() * 2) +
+        (12 * PrimitveBatch.GetOrientedBoundingBoxes().Num()) +
+        (PrimitveBatch.GetCapsules().Num() * capsuleInstancePerCapsule);
+
     Graphics.DeviceContext->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
+
 
     PrimitveBatch.ClearBatchPrimitives();
 }

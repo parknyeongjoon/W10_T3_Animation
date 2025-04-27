@@ -413,9 +413,9 @@ struct FLine
 struct FCapsule
 {
     FVector Center;
+    float Radius;
     FVector UpVector;
     float HalfHeight;
-    float Radius;
     FVector4 Color;
 };
 

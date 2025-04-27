@@ -25,7 +25,7 @@ public:
     void AddLine(const FVector& StartPos, const FVector& Direction, const float Length, const FVector4& Color);
     void AddCapsule(const FVector& Center, const FVector& UpVector, float HalfHeight, float Radius, const FVector4& Color);
 
-    void ClearBatchPrimitives() { BoundingBoxes.Empty(); OrientedBoundingBoxes.Empty(); Cones.Empty(); Spheres.Empty(); Lines.Empty(); }
+    void ClearBatchPrimitives() { BoundingBoxes.Empty(); OrientedBoundingBoxes.Empty(); Cones.Empty(); Spheres.Empty(); Lines.Empty(); Capsules.Empty(); }
     
     // 복사 생성자 및 대입 연산자 삭제
     UPrimitiveBatch(const UPrimitiveBatch&) = delete;
