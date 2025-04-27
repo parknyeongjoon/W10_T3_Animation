@@ -39,17 +39,17 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
         {
             if (UShapeComponent* pShapeComponent = Cast<UShapeComponent>(actorComp))
             {
-                const FBoundingBox& Box = pShapeComponent->GetBroadAABB();
-                FMatrix ModelMatrix = pShapeComponent->GetWorldMatrix();
+               const FBoundingBox& Box = pShapeComponent->GetBroadAABB();
+                FMatrix ModelMatrix = pShapeComponent->GetOwner()->GetRootComponent()->GetWorldMatrix();
                 FVector Center = pShapeComponent->GetComponentLocation();
 
-                PrimitveBatch.AddAABB(Box, Center, ModelMatrix);
+                PrimitveBatch.AddAABB(Box, Center, FMatrix::Identity);
 
             }
             if (UCapsuleShapeComponent* pCapsuleShapeComponent = Cast<UCapsuleShapeComponent>(actorComp))
             {
                 FVector Center = pCapsuleShapeComponent->GetComponentLocation();
-                FVector UpVector = pCapsuleShapeComponent->GetUpVector();
+                FVector UpVector = pCapsuleShapeComponent->GetOwner()->GetRootComponent()->GetUpVector();
                 FVector4 Color = FVector4(0.4f,1.0f,0.4f,1.0f);
                 float CapsuleHalfHeight = pCapsuleShapeComponent->GetHalfHeight();
                 float CapsuleRaidus = pCapsuleShapeComponent->GetRadius();
@@ -71,7 +71,7 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
             {
                 FVector BoxExtent = pBoxShapeComponent->GetBoxExtent();
                 FVector Center = pBoxShapeComponent->GetComponentLocation();
-                FMatrix WorldMatrix = pBoxShapeComponent->GetWorldMatrix();
+                FMatrix WorldMatrix = pBoxShapeComponent->GetOwner()->GetRootComponent()->GetWorldMatrix();
 
                 FBoundingBox localAABB;
                 localAABB.min = FVector(-BoxExtent.x, -BoxExtent.y, -BoxExtent.z);
