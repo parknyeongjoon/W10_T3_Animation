@@ -104,8 +104,8 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
     const uint32 capsuleInstancePerCapsule =
         (NumSegmentsCircle * 2) + // Top/Bottom Circle
         NumVerticalLines +        // 세로선 4개
-        (NumHemisphereSegments * 2) + // Top 반구 (0°/180°, 90°/270°)
-        (NumHemisphereSegments * 2);  // Bottom 반구 (0°/180°, 90°/270°)
+        (NumHemisphereSegments * 4) + // Top 반구 (0°/180°, 90°/270°)
+        (NumHemisphereSegments * 4);  // Bottom 반구 (0°/180°, 90°/270°)
 
     const uint32 instanceCount =
         GridParameters.GridCount +

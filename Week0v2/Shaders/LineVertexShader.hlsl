@@ -325,20 +325,16 @@ float3 ComputeLinePosition(uint globalInstanceID, uint vertexID)
 /////////////////////////////////////////////////////////////////////////
 // Capsule
 /////////////////////////////////////////////////////////////////////////
-float3 HemispherePoint(float Radius, float3 Right, float3 Forward, float3 Up, float theta, float phi)
-{
-    return Radius * (cos(theta) * (cos(phi) * Right + sin(phi) * Forward) + sin(theta) * Up);
-}
-
 float3 ComputeCapsulePosition(uint globalInstanceID, uint vertexID)
 {
     const uint NumSegmentsCircle = 16; // 원 둘레 분할 수
     const uint NumVerticalLines = 4; // 세로 선 4개 (상하좌우)
-    const uint NumHemisphereSegments = 8; // 반구 아치 세그먼트 수 (0°-180°, 90°-270° 각각)
+    const uint NumHemisphereSegments = 8; // 반구 아치 세그먼트 수 (각 방향마다)
 
     const float PI = 3.14159265359f;
 
-    const uint perCapsuleInstanceCount = (NumSegmentsCircle * 2) + NumVerticalLines + (NumHemisphereSegments * 2) * 2;
+    const uint perCapsuleInstanceCount = (NumSegmentsCircle * 2) + NumVerticalLines + (NumHemisphereSegments * 4) * 2;
+    // Top Hemisphere 4개 + Bottom Hemisphere 4개
 
     uint capsuleIndex = globalInstanceID / perCapsuleInstanceCount;
     uint localID = globalInstanceID % perCapsuleInstanceCount;
@@ -352,9 +348,6 @@ float3 ComputeCapsulePosition(uint globalInstanceID, uint vertexID)
 
     float3 topCenter = capsule.Center + Up * capsule.HalfHeight;
     float3 bottomCenter = capsule.Center - Up * capsule.HalfHeight;
-
-    float3 topHemisphereCenter = topCenter + Up * capsule.Radius;
-    float3 bottomHemisphereCenter = bottomCenter - Up * capsule.Radius;
 
     if (localID < NumSegmentsCircle)
     {
@@ -383,7 +376,7 @@ float3 ComputeCapsulePosition(uint globalInstanceID, uint vertexID)
     else if (localID < NumSegmentsCircle * 2 + NumVerticalLines)
     {
         // Vertical Lines (4개)
-        uint idx = localID - NumSegmentsCircle * 2;
+        uint idx = localID - (NumSegmentsCircle * 2);
 
         float angle = (idx) * (PI * 0.5f); // 0°, 90°, 180°, 270°
 
@@ -394,18 +387,25 @@ float3 ComputeCapsulePosition(uint globalInstanceID, uint vertexID)
 
         return (vertexID == 0) ? p0 : p1;
     }
-    else if (localID < NumSegmentsCircle * 2 + NumVerticalLines + (NumHemisphereSegments * 2))
+    else if (localID < NumSegmentsCircle * 2 + NumVerticalLines + (NumHemisphereSegments * 4))
     {
         // Top Hemisphere
         uint idx = localID - (NumSegmentsCircle * 2 + NumVerticalLines);
-        uint group = idx / NumHemisphereSegments; // 0: 0°-180°, 1: 90°-270°
+        uint group = idx / NumHemisphereSegments; // 0: 0°, 1: 90°, 2: 180°, 3: 270°
         uint seg = idx % NumHemisphereSegments;
 
-        float phi = (group == 0) ? 0.0f : (PI * 0.5f); // 0° or 90°
-        float oppositePhi = phi + PI; // 180° or 270°
+        float phi;
+        if (group == 0)
+            phi = 0.0f; // 0도
+        else if (group == 1)
+            phi = PI * 0.5f; // 90도
+        else if (group == 2)
+            phi = PI; // 180도
+        else
+            phi = PI * 1.5f; // 270도
 
-        float theta0 = (seg) * (PI * 0.5f) / NumHemisphereSegments;
-        float theta1 = (seg + 1) * (PI * 0.5f) / NumHemisphereSegments;
+        float theta0 = (seg) * (PI * 0.5f / NumHemisphereSegments);
+        float theta1 = (seg + 1) * (PI * 0.5f / NumHemisphereSegments);
 
         float3 p0 = topCenter
             + capsule.Radius * (cos(theta0) * (cos(phi) * Right + sin(phi) * Forward) + sin(theta0) * Up);
@@ -417,15 +417,22 @@ float3 ComputeCapsulePosition(uint globalInstanceID, uint vertexID)
     else
     {
         // Bottom Hemisphere
-        uint idx = localID - (NumSegmentsCircle * 2 + NumVerticalLines + (NumHemisphereSegments * 2));
-        uint group = idx / NumHemisphereSegments; // 0: 0°-180°, 1: 90°-270°
+        uint idx = localID - (NumSegmentsCircle * 2 + NumVerticalLines + (NumHemisphereSegments * 4));
+        uint group = idx / NumHemisphereSegments; // 0: 0°, 1: 90°, 2: 180°, 3: 270°
         uint seg = idx % NumHemisphereSegments;
 
-        float phi = (group == 0) ? 0.0f : (PI * 0.5f); // 0° or 90°
-        float oppositePhi = phi + PI; // 180° or 270°
+        float phi;
+        if (group == 0)
+            phi = 0.0f;
+        else if (group == 1)
+            phi = PI * 0.5f;
+        else if (group == 2)
+            phi = PI;
+        else
+            phi = PI * 1.5f;
 
-        float theta0 = (seg) * (PI * 0.5f) / NumHemisphereSegments;
-        float theta1 = (seg + 1) * (PI * 0.5f) / NumHemisphereSegments;
+        float theta0 = (seg) * (PI * 0.5f / NumHemisphereSegments);
+        float theta1 = (seg + 1) * (PI * 0.5f / NumHemisphereSegments);
 
         float3 p0 = bottomCenter
             + capsule.Radius * (cos(theta0) * (cos(phi) * Right + sin(phi) * Forward) - sin(theta0) * Up);
@@ -435,75 +442,6 @@ float3 ComputeCapsulePosition(uint globalInstanceID, uint vertexID)
         return (vertexID == 0) ? p0 : p1;
     }
 }
-
-
-/////////////////////////////////////////////////////////////////////////
-// Cylinder
-/////////////////////////////////////////////////////////////////////////
-float3 ComputeCylinderPosition(uint globalInstanceID, uint vertexID)
-{
-    const uint NumSegmentsCircle = 16; // 원 둘레 분할 수
-    const uint NumVerticalLines = 4; // 상하좌우 4개만
-
-    const float PI = 3.14159265359f;
-
-    uint capsuleIndex = globalInstanceID / (NumSegmentsCircle * 2 + NumVerticalLines);
-    uint localID = globalInstanceID % (NumSegmentsCircle * 2 + NumVerticalLines);
-
-    FCapsuleData capsule = g_Capsules[capsuleIndex];
-
-    float3 Up = normalize(capsule.UpVector);
-    float3 arbitrary = (abs(Up.z) > 0.99f) ? float3(0, 1, 0) : float3(0, 0, 1);
-    float3 Right = normalize(cross(Up, arbitrary));
-    float3 Forward = normalize(cross(Right, Up));
-
-    // Cylinder는 Capsule의 HalfHeight 기준으로 잡는다
-    float3 topCenter = capsule.Center + Up * capsule.HalfHeight;
-    float3 bottomCenter = capsule.Center - Up * capsule.HalfHeight;
-
-    if (localID < NumSegmentsCircle)
-    {
-        // Top Circle
-        float angle0 = (localID) * (2.0f * PI / NumSegmentsCircle);
-        float angle1 = (localID + 1) * (2.0f * PI / NumSegmentsCircle);
-
-        float3 p0 = topCenter + capsule.Radius * (cos(angle0) * Right + sin(angle0) * Forward);
-        float3 p1 = topCenter + capsule.Radius * (cos(angle1) * Right + sin(angle1) * Forward);
-
-        return (vertexID == 0) ? p0 : p1;
-    }
-    else if (localID < NumSegmentsCircle * 2)
-    {
-        // Bottom Circle
-        uint idx = localID - NumSegmentsCircle;
-
-        float angle0 = (idx) * (2.0f * PI / NumSegmentsCircle);
-        float angle1 = (idx + 1) * (2.0f * PI / NumSegmentsCircle);
-
-        float3 p0 = bottomCenter + capsule.Radius * (cos(angle0) * Right + sin(angle0) * Forward);
-        float3 p1 = bottomCenter + capsule.Radius * (cos(angle1) * Right + sin(angle1) * Forward);
-
-        return (vertexID == 0) ? p0 : p1;
-    }
-    else
-    {
-        // Vertical Lines (4개만)
-        uint idx = localID - NumSegmentsCircle * 2;
-
-        float angle = (idx) * (PI * 0.5f); // 0°, 90°, 180°, 270°
-
-        float3 offset = capsule.Radius * (cos(angle) * Right + sin(angle) * Forward);
-
-        float3 p0 = topCenter + offset;
-        float3 p1 = bottomCenter + offset;
-
-        return (vertexID == 0) ? p0 : p1;
-    }
-}
-
-
-
-
 
 /////////////////////////////////////////////////////////////////////////
 // 메인 버텍스 셰이더
@@ -538,7 +476,7 @@ PS_INPUT mainVS(VS_INPUT input)
     uint obbInstanceCount = 12 * BoundingBoxCount; // OBB도 12 edges per box
     
     uint capsuleInstanceStart = obbInstanceStart + obbInstanceCount;
-    uint capsuleInstanceCount = CapsuleCount * (16 * 2 + 4 + 16*2);
+    uint capsuleInstanceCount = CapsuleCount * (16 * 2 + 4 + 16*4);
     
     // 이제 instanceID를 기준으로 분기
     if (input.instanceID < gridLineCount)
@@ -612,7 +550,7 @@ PS_INPUT mainVS(VS_INPUT input)
     {
         uint capsuleLocalID = input.instanceID - capsuleInstanceStart;
         pos = ComputeCapsulePosition(capsuleLocalID, input.vertexID);
-        uint capsuleIndex = capsuleLocalID / 68;
+        uint capsuleIndex = capsuleLocalID / 100;
         
         //color = float4(0.4, 1.0, 0.4, 1.0); // 예시: 연두색
         color = float4(0.77, 0.66, 0.55, 1.0); // 예시: 빨간색
