@@ -96,15 +96,22 @@ FMatrix UPointLightComponent::GetProjectionMatrix() const
     );
 }
 
-std::shared_ptr<FActorComponentInfo> UPointLightComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> UPointLightComponent::GetComponentInfo()
 {
-    std::shared_ptr<FPointLightComponentInfo> Info = std::make_shared<FPointLightComponentInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
+    auto Info = std::make_unique<FPointLightComponentInfo>();
+    SaveComponentInfo(*Info);
+    
+    return Info;
+}
+
+void UPointLightComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FPointLightComponentInfo* Info = static_cast<FPointLightComponentInfo*>(&OutInfo);
+    Super::SaveComponentInfo(*Info);
 
     Info->Radius = Radius;
     Info->AttenuationFalloff = AttenuationFalloff;
 
-    return Info;
 }
 
 void UPointLightComponent::LoadAndConstruct(const FActorComponentInfo& Info)

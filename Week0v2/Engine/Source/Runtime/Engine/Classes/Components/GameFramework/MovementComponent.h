@@ -9,23 +9,13 @@ struct FMovementComponentInfo : public FActorComponentInfo
         : FActorComponentInfo()
     {
         InfoType = TEXT("FMovementComponentInfo");
-        ComponentType = TEXT("UMovementComponent");
+        ComponentClass = TEXT("UMovementComponent");
     }
 
     bool bUpdateOnlyIfRendered;
     bool bAutoUpdateTickRegistration;
     bool bAutoRegisterUpdatedComponent;
     FVector Velocity;
-
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FActorComponentInfo::Copy(Other);
-        FMovementComponentInfo& MovementInfo = static_cast<FMovementComponentInfo&>(Other);
-        MovementInfo.bUpdateOnlyIfRendered = bUpdateOnlyIfRendered;
-        MovementInfo.bAutoUpdateTickRegistration = bAutoUpdateTickRegistration;
-        MovementInfo.bAutoRegisterUpdatedComponent = bAutoRegisterUpdatedComponent;
-        MovementInfo.Velocity = Velocity;
-    }
 
     virtual void Serialize(FArchive& ar) const override
     {
@@ -96,8 +86,10 @@ public:
     virtual void PostDuplicate() override;
 
 public:
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
-    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
+    
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 };
 

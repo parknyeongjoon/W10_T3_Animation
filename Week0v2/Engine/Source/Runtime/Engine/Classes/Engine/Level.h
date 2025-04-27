@@ -23,4 +23,6 @@ private:
 public:
     TArray<AActor*>& GetActors() { return Actors; }
     TSet<AActor*> PendingBeginPlayActors;
+    
+    void PostLoad(); //씬컴포넌트 연결을 위해 모두 로드후 부착
 };

@@ -5,7 +5,7 @@
 
 AStaticMeshActor::AStaticMeshActor()
 {
-    StaticMeshComponent = AddComponent<UStaticMeshComponent>();
+    StaticMeshComponent = AddComponent<UStaticMeshComponent>(EComponentOrigin::Constructor);
     RootComponent = StaticMeshComponent;
 }
 

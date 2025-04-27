@@ -109,3 +109,28 @@ void ULuaComponent::DestroyComponent()
 {
     Super::DestroyComponent();
 }
+
+std::unique_ptr<FActorComponentInfo> ULuaComponent::GetComponentInfo()
+{
+    auto Info = std::make_unique<FLuaComponentInfo>();
+    SaveComponentInfo(*Info);
+    
+    return Info;
+}
+
+void ULuaComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FLuaComponentInfo* Info = static_cast<FLuaComponentInfo*>(&OutInfo);
+    Super::SaveComponentInfo(*Info);
+    
+    Info->LuaScriptPath = LuaScriptPath;
+}
+
+void ULuaComponent::LoadAndConstruct(const FActorComponentInfo& Info)
+{
+    Super::LoadAndConstruct(Info);
+
+    // cast
+    const FLuaComponentInfo& TextInfo = static_cast<const FLuaComponentInfo&>(Info);
+    LuaScriptPath = TextInfo.LuaScriptPath;
+}

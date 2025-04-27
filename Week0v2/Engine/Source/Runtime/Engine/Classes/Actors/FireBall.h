@@ -24,7 +24,7 @@ public:
     void DuplicateSubObjects(const UObject* Source) override;
     void PostDuplicate() override;
     
-    void LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray) override;
+    void LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray) override;
     FActorInfo GetActorInfo() override;
 
 private:

@@ -7,7 +7,7 @@
 ADirectionalLightActor::ADirectionalLightActor()
     : Super()
 {
-    LightComponent = AddComponent<UDirectionalLightComponent>();
+    LightComponent = AddComponent<UDirectionalLightComponent>(EComponentOrigin::Constructor);
     BillboardComponent->SetTexture(L"Assets/Texture/S_LightDirectional.png");
 }
 
@@ -60,7 +60,7 @@ void ADirectionalLightActor::PostDuplicate()
     Super::PostDuplicate();
 }
 
-void ADirectionalLightActor::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
+void ADirectionalLightActor::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray)
 {
     Super::LoadAndConstruct(InfoArray);
 }

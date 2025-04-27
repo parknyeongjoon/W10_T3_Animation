@@ -14,14 +14,7 @@ struct FBillboardComponentInfo : public FPrimitiveComponentInfo
         , TexturePath(L"")
     {
         InfoType = TEXT("FBillboardComponentInfo");
-        ComponentType = TEXT("UBillboardComponent");
-    }
-    
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FPrimitiveComponentInfo::Copy(Other);
-        FBillboardComponentInfo& OtherBillboard = static_cast<FBillboardComponentInfo&>(Other);
-        OtherBillboard.TexturePath = TexturePath;
+        ComponentClass = TEXT("UBillboardComponent");
     }
 
     virtual void Serialize(FArchive& ar) const override
@@ -65,7 +58,8 @@ public:
     std::shared_ptr<FTexture> Texture;
 
 public:
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 protected:

@@ -29,22 +29,7 @@ struct FHeightFogComponentInfo : public FPrimitiveComponentInfo
         , LightShaftDensity(1.0f)
     {
         InfoType = TEXT("FHeightFogComponentInfo");
-        ComponentType = TEXT("UHeightFogComponent");
-    }
-
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FPrimitiveComponentInfo::Copy(Other);
-        FHeightFogComponentInfo& HeightFogInfo = static_cast<FHeightFogComponentInfo&>(Other);
-        HeightFogInfo.FogColor = FogColor;
-        HeightFogInfo.FogDensity = FogDensity;
-        HeightFogInfo.FogStart = FogStart;
-        HeightFogInfo.FogEnd = FogEnd;
-        HeightFogInfo.FogBaseHeight = FogBaseHeight;
-        HeightFogInfo.HeightFallOff = HeightFallOff;
-        HeightFogInfo.bIsHeightFog = bIsHeightFog;
-        HeightFogInfo.MaxOpacity = MaxOpacity;
-        HeightFogInfo.LightShaftDensity = LightShaftDensity;
+        ComponentClass = TEXT("UHeightFogComponent");
     }
 
     virtual void Serialize(FArchive& ar) const override
@@ -92,8 +77,10 @@ public:
     void SetLightShaftDensity(float InDensity);
 
 public:
-    virtual void LoadAndConstruct(const FActorComponentInfo& Info);
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
 
 private:
     FVector FogColor;

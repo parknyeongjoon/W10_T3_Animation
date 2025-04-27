@@ -2,6 +2,11 @@
 
 #include "GameFramework/Actor.h"
 
+UActorComponent::UActorComponent()
+    : ComponentID(FGuid::NewGuid())
+{
+}
+
 UActorComponent::UActorComponent(const UActorComponent& Other)
     : UObject(Other)
     , bCanEverTick(Other.bCanEverTick)
@@ -11,6 +16,7 @@ UActorComponent::UActorComponent(const UActorComponent& Other)
     , bIsActive(Other.bIsActive)
     , bTickEnabled(Other.bTickEnabled)
     , bAutoActive(Other.bAutoActive)
+    , ComponentID(FGuid::NewGuid())
 {
     // Owner는 복제 시점에 AActor가 직접 지정
 }
@@ -116,18 +122,35 @@ void UActorComponent::OnUnregister()
     Deactivate();
 }
 
-std::shared_ptr<FActorComponentInfo> UActorComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> UActorComponent::GetComponentInfo()
 {
-    std::shared_ptr<FActorComponentInfo> Info = std::make_shared<FActorComponentInfo>();
-    Info->InfoType = GetClass()->GetName();
-    Info->Origin = ComponentOrigin;
-    Info->bIsRoot = GetOwner() && (GetOwner()->GetRootComponent() == this);
+    auto Info = std::make_unique<FActorComponentInfo>();
+    SaveComponentInfo(*Info);
+    
     return Info;
+}
+
+void UActorComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    OutInfo.Origin = ComponentOrigin;
+    OutInfo.ComponentID = ComponentID;
+    OutInfo.ComponentClass = GetClass()->GetName();
+    OutInfo.ComponentName = GetName();
+    OutInfo.ComponentOwner = GetOwner() ? GetOwner()->GetName() : (TEXT("None"));
+    OutInfo.bIsActive = bIsActive;
+    OutInfo.bAutoActive = bAutoActive;
+    OutInfo.bTickEnabled = bTickEnabled;
+    OutInfo.bIsRoot = GetOwner() && (GetOwner()->GetRootComponent() == this);
 }
 
 void UActorComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 {
     ComponentOrigin = Info.Origin;
+    ComponentID = Info.ComponentID;
+    SetFName(Info.ComponentName);
+    bIsActive = Info.bIsActive;
+    bAutoActive = Info.bAutoActive;
+    bTickEnabled = Info.bTickEnabled;
 }
 
 void UActorComponent::RegisterComponent()

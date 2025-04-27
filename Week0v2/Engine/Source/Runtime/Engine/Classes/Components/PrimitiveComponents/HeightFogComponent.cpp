@@ -38,6 +38,14 @@ void UHeightFogComponent::SetHeightFog(bool bEnabled) { bIsHeightFog = bEnabled;
 void UHeightFogComponent::SetMaxOpacity(float InMaxOpacity) { MaxOpacity = InMaxOpacity; }
 void UHeightFogComponent::SetLightShaftDensity(float InDensity) { LightShaftDensity = InDensity; }
 
+std::unique_ptr<FActorComponentInfo> UHeightFogComponent::GetComponentInfo()
+{
+    auto Info = std::make_unique<FHeightFogComponentInfo>();
+    SaveComponentInfo(*Info);
+    
+    return Info;
+}
+
 void UHeightFogComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 {
     Super::LoadAndConstruct(Info);
@@ -53,10 +61,11 @@ void UHeightFogComponent::LoadAndConstruct(const FActorComponentInfo& Info)
     LightShaftDensity = HeightFogInfo.LightShaftDensity;
 }
 
-std::shared_ptr<FActorComponentInfo> UHeightFogComponent::GetActorComponentInfo()
+void UHeightFogComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
 {
-    std::shared_ptr<FHeightFogComponentInfo> Info = std::make_shared<FHeightFogComponentInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
+    FHeightFogComponentInfo* Info = static_cast<FHeightFogComponentInfo*>(&OutInfo);
+    Super::SaveComponentInfo(*Info);
+    
     Info->FogColor = FogColor;
     Info->FogDensity = FogDensity;
     Info->FogStart = FogStart;
@@ -66,6 +75,5 @@ std::shared_ptr<FActorComponentInfo> UHeightFogComponent::GetActorComponentInfo(
     Info->bIsHeightFog = bIsHeightFog;
     Info->MaxOpacity = MaxOpacity;
     Info->LightShaftDensity = LightShaftDensity;
-    return Info;
 
 }
