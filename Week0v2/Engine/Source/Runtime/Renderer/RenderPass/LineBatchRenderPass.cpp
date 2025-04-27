@@ -76,17 +76,24 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
                 PrimitveBatch.AddSphere(Center, radius, color);
 
             }
+            // BoxCollider - OBB
             if (UBoxShapeComponent* pBoxShapeComponent = Cast<UBoxShapeComponent>(actorComp))
             {
                 FVector BoxExtent = pBoxShapeComponent->GetBoxExtent();
                 FVector Center = pBoxShapeComponent->GetComponentLocation();
-                FMatrix WorldMatrix = pBoxShapeComponent->GetOwner()->GetRootComponent()->GetWorldMatrix();
+                //FMatrix WorldMatrix = pBoxShapeComponent->GetOwner()->GetRootComponent()->GetWorldMatrix();
 
-                FBoundingBox localAABB;
-                localAABB.min = FVector(-BoxExtent.x, -BoxExtent.y, -BoxExtent.z);
-                localAABB.max = FVector(BoxExtent.x, BoxExtent.y, BoxExtent.z);
+                //FMatrix WorldMatrix = pBoxShapeComponent->GetWorldMatrix();
+                FQuat Rotation = pBoxShapeComponent->GetComponentRotation().ToQuaternion();
+                FVector Scale = pBoxShapeComponent->GetComponentScale();
 
-                PrimitveBatch.AddOBB(localAABB, Center, WorldMatrix);
+                FMatrix WorldMatrix = JungleMath::CreateModelMatrix(Center, Rotation, Scale);
+
+                FBoundingBox localOBB;
+                localOBB.min = FVector(-BoxExtent.x, -BoxExtent.y, -BoxExtent.z);
+                localOBB.max = FVector(BoxExtent.x, BoxExtent.y, BoxExtent.z);
+
+                PrimitveBatch.AddOBB(localOBB, Center, WorldMatrix);
             }
         }
     }

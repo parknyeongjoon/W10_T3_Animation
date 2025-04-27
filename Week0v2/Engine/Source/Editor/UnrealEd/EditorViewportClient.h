@@ -203,7 +203,7 @@ private:
 public:
     PROPERTY(int32, CameraSpeedSetting)
     PROPERTY(float, GridSize)
-    float GetCameraSpeedScalar() const { return CameraSpeedScalar; };
+    float GetCameraSpeedScalar() const { return CameraSpeedScalar * 0.1f; };
     void SetCameraSpeedScalar(float value);
 
 private:

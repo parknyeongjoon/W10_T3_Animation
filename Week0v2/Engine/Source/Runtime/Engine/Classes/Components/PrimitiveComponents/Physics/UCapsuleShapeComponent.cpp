@@ -3,8 +3,8 @@
 
 UCapsuleShapeComponent::UCapsuleShapeComponent()
     : UShapeComponent()
-    , CapsuleHalfHeight(2.0f) // Default capsule half height
-    , CapsuleRaidus(1.0f)     // Default capsule radius
+    , CapsuleHalfHeight(0.5f) // Default capsule half height
+    , CapsuleRaidus(0.5f)     // Default capsule radius
 {
 }
 

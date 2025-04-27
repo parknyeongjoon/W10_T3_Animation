@@ -5,7 +5,7 @@
 
 UBoxShapeComponent::UBoxShapeComponent()
     : UShapeComponent()
-    , BoxExtent(FVector::OneVector) // Default box extent
+    , BoxExtent(FVector::OneVector * 0.5f) // Default box extent
 {
 }
 
@@ -50,7 +50,8 @@ void UBoxShapeComponent::UpdateBroadAABB()
         FVector(-Extent.x,  Extent.y,  Extent.z)
     };
 
-    FMatrix RotationMatrix = GetRotationMatrix();
+    //FMatrix RotationMatrix = GetRotationMatrix();
+    FMatrix RotationMatrix = GetComponentRotation().ToMatrix();
 
     FVector Min = FVector::ZeroVector;
     FVector Max = FVector::ZeroVector;

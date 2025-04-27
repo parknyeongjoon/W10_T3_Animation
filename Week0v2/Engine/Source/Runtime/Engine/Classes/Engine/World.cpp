@@ -51,8 +51,6 @@ void UWorld::CreateBaseObject()
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
-
-    SpawnActor<ADodge>();
 }
 
 void UWorld::ReleaseBaseObject()
