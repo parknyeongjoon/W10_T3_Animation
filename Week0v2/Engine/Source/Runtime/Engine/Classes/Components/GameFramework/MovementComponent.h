@@ -17,16 +17,6 @@ struct FMovementComponentInfo : public FActorComponentInfo
     bool bAutoRegisterUpdatedComponent;
     FVector Velocity;
 
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FActorComponentInfo::Copy(Other);
-        FMovementComponentInfo& MovementInfo = static_cast<FMovementComponentInfo&>(Other);
-        MovementInfo.bUpdateOnlyIfRendered = bUpdateOnlyIfRendered;
-        MovementInfo.bAutoUpdateTickRegistration = bAutoUpdateTickRegistration;
-        MovementInfo.bAutoRegisterUpdatedComponent = bAutoRegisterUpdatedComponent;
-        MovementInfo.Velocity = Velocity;
-    }
-
     virtual void Serialize(FArchive& ar) const override
     {
         FActorComponentInfo::Serialize(ar);

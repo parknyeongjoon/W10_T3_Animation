@@ -16,14 +16,6 @@ struct FParticleSubUVCompInfo : public FBillboardComponentInfo
         ComponentClass = TEXT("UParticleSubUVComp");
     }
 
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FBillboardComponentInfo::Copy(Other);
-        FParticleSubUVCompInfo& OtherSubUV = static_cast<FParticleSubUVCompInfo&>(Other);
-        OtherSubUV.CellsPerRow = CellsPerRow;
-        OtherSubUV.CellsPerColumn = CellsPerColumn;
-    }
-
     virtual void Serialize(FArchive& ar) const override
     {
         FBillboardComponentInfo::Serialize(ar);

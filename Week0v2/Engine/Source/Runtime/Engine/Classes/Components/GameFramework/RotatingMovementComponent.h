@@ -13,12 +13,6 @@ struct FRotatingMovementComponentInfo : public FMovementComponentInfo
     }
 
     FVector RotationRate;
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FMovementComponentInfo::Copy(Other);
-        FRotatingMovementComponentInfo& RotatingMovementInfo = static_cast<FRotatingMovementComponentInfo&>(Other);
-        RotatingMovementInfo.RotationRate = RotationRate;
-    }
 
     virtual void Serialize(FArchive& ar) const override
     {

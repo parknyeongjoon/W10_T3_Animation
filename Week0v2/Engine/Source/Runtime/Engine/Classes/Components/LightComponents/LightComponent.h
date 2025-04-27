@@ -21,15 +21,6 @@ struct FLightComponentInfo : public FLightComponentBaseInfo
         ComponentClass = TEXT("ULightComponent");
     }
 
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FLightComponentBaseInfo::Copy(Other);
-        FLightComponentInfo& DirectionalLightInfo = static_cast<FLightComponentInfo&>(Other);
-        DirectionalLightInfo.ShadowResolutionScale = ShadowResolutionScale;
-        DirectionalLightInfo.ShadowBias = ShadowBias;
-        DirectionalLightInfo.ShadowSlopeBias = ShadowSlopeBias;
-        DirectionalLightInfo.ShadowSharpen = ShadowSharpen;
-    }
     virtual void Serialize(FArchive& ar) const override
     {
         FLightComponentBaseInfo::Serialize(ar);

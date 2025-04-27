@@ -32,21 +32,6 @@ struct FHeightFogComponentInfo : public FPrimitiveComponentInfo
         ComponentClass = TEXT("UHeightFogComponent");
     }
 
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FPrimitiveComponentInfo::Copy(Other);
-        FHeightFogComponentInfo& HeightFogInfo = static_cast<FHeightFogComponentInfo&>(Other);
-        HeightFogInfo.FogColor = FogColor;
-        HeightFogInfo.FogDensity = FogDensity;
-        HeightFogInfo.FogStart = FogStart;
-        HeightFogInfo.FogEnd = FogEnd;
-        HeightFogInfo.FogBaseHeight = FogBaseHeight;
-        HeightFogInfo.HeightFallOff = HeightFallOff;
-        HeightFogInfo.bIsHeightFog = bIsHeightFog;
-        HeightFogInfo.MaxOpacity = MaxOpacity;
-        HeightFogInfo.LightShaftDensity = LightShaftDensity;
-    }
-
     virtual void Serialize(FArchive& ar) const override
     {
         FPrimitiveComponentInfo::Serialize(ar);

@@ -19,15 +19,6 @@ struct FSpotlightComponentInfo : public FLightComponentBaseInfo
         ComponentClass = TEXT("USpotLightComponent");
     }
 
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FLightComponentBaseInfo::Copy(Other);
-        FSpotlightComponentInfo& SpotLightInfo = static_cast<FSpotlightComponentInfo&>(Other);
-        SpotLightInfo.InnerConeAngle = InnerConeAngle;
-        SpotLightInfo.OuterConeAngle = OuterConeAngle;
-        SpotLightInfo.Direction = Direction;
-    }
-
     virtual void Serialize(FArchive& ar) const override
     {
         FLightComponentBaseInfo::Serialize(ar);

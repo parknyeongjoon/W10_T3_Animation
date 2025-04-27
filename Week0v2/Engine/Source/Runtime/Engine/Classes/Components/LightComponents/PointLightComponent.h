@@ -17,14 +17,6 @@ struct FPointLightComponentInfo : public FLightComponentInfo
         ComponentClass = TEXT("UPointLightComponent");
     }
 
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FLightComponentInfo::Copy(Other);
-        FPointLightComponentInfo& PointLightInfo = static_cast<FPointLightComponentInfo&>(Other);
-        PointLightInfo.Radius = Radius;
-        PointLightInfo.AttenuationFalloff = AttenuationFalloff;
-    }
-
     virtual void Serialize(FArchive& ar) const override
     {
         FLightComponentInfo::Serialize(ar);

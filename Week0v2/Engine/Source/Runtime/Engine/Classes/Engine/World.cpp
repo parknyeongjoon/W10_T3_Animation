@@ -233,7 +233,7 @@ void UWorld::Serialize(FArchive& ar) const
     for (AActor* Actor : Level->GetActors())
     {
         FActorInfo ActorInfo = (Actor->GetActorInfo());
-        //ar << ActorInfo;
+        ar << ActorInfo;
     }
 }
 
@@ -244,7 +244,7 @@ void UWorld::Deserialize(FArchive& ar)
     for (int i = 0; i < ActorCount; i++)
     {
         FActorInfo ActorInfo;
-        //ar >> ActorInfo;
+        ar >> ActorInfo;
         UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorInfo.Type);
         if (ActorClass)
         {

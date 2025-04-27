@@ -21,16 +21,6 @@ struct FProjectileMovementComponentInfo : public FMovementComponentInfo
     bool bRotationFollowsVelocity;
     bool bInitialVelocityInLocalSpace;
     float ProjectileGravityScale;
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FMovementComponentInfo::Copy(Other);
-        FProjectileMovementComponentInfo& ProjectileMovementInfo = static_cast<FProjectileMovementComponentInfo&>(Other);
-        ProjectileMovementInfo.InitialSpeed = InitialSpeed;
-        ProjectileMovementInfo.MaxSpeed = MaxSpeed;
-        ProjectileMovementInfo.bRotationFollowsVelocity = bRotationFollowsVelocity;
-        ProjectileMovementInfo.bInitialVelocityInLocalSpace = bInitialVelocityInLocalSpace;
-        ProjectileMovementInfo.ProjectileGravityScale = ProjectileGravityScale;
-    }
 
     virtual void Serialize(FArchive& ar) const override
     {

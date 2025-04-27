@@ -16,13 +16,6 @@ struct FBillboardComponentInfo : public FPrimitiveComponentInfo
         InfoType = TEXT("FBillboardComponentInfo");
         ComponentClass = TEXT("UBillboardComponent");
     }
-    
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FPrimitiveComponentInfo::Copy(Other);
-        FBillboardComponentInfo& OtherBillboard = static_cast<FBillboardComponentInfo&>(Other);
-        OtherBillboard.TexturePath = TexturePath;
-    }
 
     virtual void Serialize(FArchive& ar) const override
     {

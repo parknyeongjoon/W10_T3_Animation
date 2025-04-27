@@ -32,30 +32,17 @@ struct FActorComponentInfo
     bTickEnabled(true), bIsActive(false), bAutoActive(false)
     {}
     
-
-    
     virtual ~FActorComponentInfo() = default;
-
-    // other의 데이터를 이 객체의 데이터로 복사합니다.
-    virtual void Copy(FActorComponentInfo& Other)
-    {
-        //Other.InfoType = InfoType;
-        //Other.ComponentType = ComponentType;
-        Other.Origin = Origin;
-        Other.bIsRoot = bIsRoot;
-    }
-
-
 
     virtual void Serialize(FArchive& ar) const
     {
-        ar << InfoType << ComponentClass << (int)Origin << bIsRoot;
+        ar << InfoType << ComponentClass << (int)Origin << ComponentName << ComponentOwner << bIsRoot;
     }
 
     virtual void Deserialize(FArchive& ar)
     {
         int iOrigin;
-        ar >> InfoType >> ComponentClass >> iOrigin >> bIsRoot;
+        ar >> InfoType >> ComponentClass >> iOrigin >> ComponentName >> ComponentOwner >> bIsRoot;
         Origin = static_cast<EComponentOrigin>(iOrigin);
     }
 

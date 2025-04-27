@@ -14,12 +14,6 @@ struct FTextComponentInfo : public FBillboardComponentInfo
         InfoType = TEXT("FTextComponentInfo");
         ComponentClass = TEXT("UText");
     }
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FBillboardComponentInfo::Copy(Other);
-        FTextComponentInfo& TextInfo = static_cast<FTextComponentInfo&>(Other);
-        TextInfo.Text = Text;
-    }
 
     virtual void Serialize(FArchive& ar) const override
     {

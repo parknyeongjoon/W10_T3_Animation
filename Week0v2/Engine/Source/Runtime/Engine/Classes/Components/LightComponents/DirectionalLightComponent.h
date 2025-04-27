@@ -16,12 +16,6 @@ struct FDirectionalLightComponentInfo : public FLightComponentInfo
         ComponentClass = TEXT("UDirectionalLightComponent");
     }
 
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FLightComponentInfo::Copy(Other);
-        FDirectionalLightComponentInfo& DirectionalLightInfo = static_cast<FDirectionalLightComponentInfo&>(Other);
-        DirectionalLightInfo.Direction = Direction;
-    }
     virtual void Serialize(FArchive& ar) const override
     {
         FLightComponentInfo::Serialize(ar);

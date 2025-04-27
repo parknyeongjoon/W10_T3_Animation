@@ -322,7 +322,7 @@ FActorInfo AActor::GetActorInfo()
         {
             // Component->GetComponentInfo()가 반환하는 unique_ptr의 소유권을
             // TArray 내부로 이동(move)시킵니다.
-            //ActorInfo.ComponentInfos.Add(std::move(Component->GetComponentInfo()));
+            ActorInfo.ComponentInfos.Add(std::move(Component->GetComponentInfo()));
         }
     }
     return ActorInfo;

@@ -17,14 +17,6 @@ struct FPrimitiveComponentInfo : FSceneComponentInfo
         ComponentClass = TEXT("UPrimitiveComponent");
     }
 
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FSceneComponentInfo::Copy(Other);
-        FPrimitiveComponentInfo& OtherPrimitive = static_cast<FPrimitiveComponentInfo&>(Other);
-        OtherPrimitive.ComponentVelocity = ComponentVelocity;
-        OtherPrimitive.VBIBTopologyMappingName = VBIBTopologyMappingName;
-    }
-
     virtual void Serialize(FArchive& ar) const override
     {
         FSceneComponentInfo::Serialize(ar);

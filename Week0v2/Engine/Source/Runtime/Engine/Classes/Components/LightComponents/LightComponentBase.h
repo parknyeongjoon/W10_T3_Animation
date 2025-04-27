@@ -25,15 +25,6 @@ struct FLightComponentBaseInfo : public FSceneComponentInfo
         ComponentClass = TEXT("ULightComponentBase");
     }
 
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FSceneComponentInfo::Copy(Other);
-        FLightComponentBaseInfo& LightInfo = static_cast<FLightComponentBaseInfo&>(Other);
-        LightInfo.Color = Color;
-        LightInfo.Intensity = Intensity;
-        LightInfo.bCastShadows = bCastShadows;
-    }
-
     virtual void Serialize(FArchive& ar) const override
     {
         FSceneComponentInfo::Serialize(ar);
