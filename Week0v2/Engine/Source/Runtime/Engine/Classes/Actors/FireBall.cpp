@@ -1,11 +1,11 @@
-﻿#include "FireBallActor.h"
+﻿#include "FireBall.h"
 
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Components/LightComponents/PointLightComponent.h"
 #include "Components/PrimitiveComponents/UBillboardComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/FireBallComponent.h"
 
-AFireBallActor::AFireBallActor()
+AFireBall::AFireBall()
     : Super()
 {
     FireBallComponent = AddComponent<UFireBallComponent>();
@@ -17,48 +17,48 @@ AFireBallActor::AFireBallActor()
     BillboardComponent->SetTexture(L"Assets/Texture/spotLight.png");
 }
 
-AFireBallActor::AFireBallActor(const AFireBallActor& Other)
+AFireBall::AFireBall(const AFireBall& Other)
     : Super(Other)
 {
 }
 
-void AFireBallActor::BeginPlay()
+void AFireBall::BeginPlay()
 {
     Super::BeginPlay();
 }
 
-void AFireBallActor::Tick(float DeltaTime)
+void AFireBall::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 }
 
-void AFireBallActor::Destroyed()
+void AFireBall::Destroyed()
 {
     Super::Destroyed();
 }
 
-void AFireBallActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void AFireBall::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     Super::EndPlay(EndPlayReason);
 }
 
-bool AFireBallActor::Destroy()
+bool AFireBall::Destroy()
 {
     return Super::Destroy();
 }
 
-UObject* AFireBallActor::Duplicate() const
+UObject* AFireBall::Duplicate() const
 {
-    AFireBallActor* NewActor = FObjectFactory::ConstructObjectFrom<AFireBallActor>(this);
+    AFireBall* NewActor = FObjectFactory::ConstructObjectFrom<AFireBall>(this);
     NewActor->DuplicateSubObjects(this);
     NewActor->PostDuplicate();
     return NewActor;
 }
 
-void AFireBallActor::DuplicateSubObjects(const UObject* Source)
+void AFireBall::DuplicateSubObjects(const UObject* Source)
 {
     Super::DuplicateSubObjects(Source);
-    AFireBallActor* SourceActor = Cast<AFireBallActor>(Source);
+    AFireBall* SourceActor = Cast<AFireBall>(Source);
 
     FireBallComponent = Cast<UFireBallComponent>(SourceActor->FireBallComponent->Duplicate());
     LightComp = Cast<UPointLightComponent>(SourceActor->LightComp->Duplicate());
@@ -66,17 +66,17 @@ void AFireBallActor::DuplicateSubObjects(const UObject* Source)
     BillboardComponent = Cast<UBillboardComponent>(SourceActor->BillboardComponent->Duplicate());
 }
 
-void AFireBallActor::PostDuplicate()
+void AFireBall::PostDuplicate()
 {
     Super::PostDuplicate();
 }
 
-void AFireBallActor::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
+void AFireBall::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
 {
     AActor::LoadAndConstruct(InfoArray);
 }
 
-FActorInfo AFireBallActor::GetActorInfo()
+FActorInfo AFireBall::GetActorInfo()
 {
     return AActor::GetActorInfo();
 }

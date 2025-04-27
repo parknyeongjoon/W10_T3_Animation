@@ -41,7 +41,8 @@ int32 UEditorEngine::Init(HWND hwnd)
     UIMgr->Initialize(hWnd, graphicDevice.Device, graphicDevice.DeviceContext);
     ResourceManager.Initialize(&renderer, &graphicDevice);
     CollisionManager.Initialize();
-
+    FLuaManager::Get().Initialize();
+    
     FWorldContext EditorContext;
     EditorContext.WorldType = EWorldType::Editor;
     EditorContext.thisCurrentWorld = FObjectFactory::ConstructObject<UWorld>();
@@ -214,6 +215,8 @@ void UEditorEngine::Exit()
     ResourceManager.Release(&renderer);
     CollisionManager.Release();
     renderer.Release();
+
+    FLuaManager::Get().Shutdown();
     graphicDevice.Release();
 }
 

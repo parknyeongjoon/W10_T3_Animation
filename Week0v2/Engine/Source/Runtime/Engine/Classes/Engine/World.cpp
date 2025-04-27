@@ -7,6 +7,7 @@
 #include "Engine/FLoaderOBJ.h"
 #include "UObject/UObjectIterator.h"
 #include "Level.h"
+#include "Actors/ADodge.h"
 #include "Serialization/FWindowsBinHelper.h"
 
 
@@ -22,9 +23,9 @@ UWorld::UWorld(const UWorld& Other): UObject(Other)
 void UWorld::InitWorld()
 {
     // TODO: Load Scene
+    Level = FObjectFactory::ConstructObject<ULevel>();
     PreLoadResources();
     CreateBaseObject();
-    Level = FObjectFactory::ConstructObject<ULevel>();
 }
 
 void UWorld::LoadLevel(const FString& LevelName)
@@ -50,6 +51,8 @@ void UWorld::CreateBaseObject()
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
+
+    SpawnActor<ADodge>();
 }
 
 void UWorld::ReleaseBaseObject()
@@ -70,6 +73,7 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
     // SpawnActor()에 의해 Actor가 생성된 경우, 여기서 BeginPlay 호출
     if (tickType == LEVELTICK_All || true)
     {
+        FLuaManager::Get().BeginPlay();
         for (AActor* Actor : Level->PendingBeginPlayActors)
         {
             Actor->BeginPlay();
@@ -77,7 +81,8 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
         Level->PendingBeginPlayActors.Empty();
 
         // 매 틱마다 Actor->Tick(...) 호출
-        for (AActor* Actor : Level->GetActors())
+        TArray CopyActors = Level->GetActors();
+        for (AActor* Actor : CopyActors)
         {
             Actor->Tick(deltaSeconds);
         }

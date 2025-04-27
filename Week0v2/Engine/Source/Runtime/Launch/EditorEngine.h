@@ -5,6 +5,7 @@
 #include "Renderer/Renderer.h"
 #include "Engine/ResourceManager.h"
 #include "Physics/FCollisionManager.h"
+#include "Script/LuaManager.h"
 
 class FSceneMgr;
 class UnrealEd;

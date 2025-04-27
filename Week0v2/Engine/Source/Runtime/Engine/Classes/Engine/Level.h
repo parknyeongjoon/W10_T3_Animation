@@ -22,5 +22,5 @@ private:
 
 public:
     TArray<AActor*>& GetActors() { return Actors; }
-    TArray<AActor*> PendingBeginPlayActors;
+    TSet<AActor*> PendingBeginPlayActors;
 };

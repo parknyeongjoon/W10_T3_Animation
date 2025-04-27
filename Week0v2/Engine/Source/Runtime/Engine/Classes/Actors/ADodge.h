@@ -1,17 +1,17 @@
 ﻿#pragma once
-#include "GameFramework/Actor.h"
+#include "Engine/StaticMeshActor.h"
+#include "Core/Delegates/DelegateCombination.h"
 
-class UFireBallComponent;
-class UBillboardComponent;
-class UProjectileMovementComponent;
-class UPointLightComponent;
-class AFireBallActor: public AActor
+class UStaticMeshComponent;
+
+class ADodge : public AStaticMeshActor
 {
-    DECLARE_CLASS(AFireBallActor, AActor)
+    DECLARE_CLASS(ADodge, AStaticMeshActor)
+    DECLARE_MULTICAST_DELEGATE(TEST_DELIGATE)
 public:
-    AFireBallActor();
-    AFireBallActor(const AFireBallActor& Other);
-    virtual ~AFireBallActor() override = default;
+    ADodge();
+    ADodge(const ADodge& Other);
+    virtual ~ADodge() override = default;
     
     void BeginPlay() override;
     void Tick(float DeltaTime) override;
@@ -19,7 +19,8 @@ public:
     void Destroyed() override;
     void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     bool Destroy() override;
-    
+    void test();
+
     UObject* Duplicate() const override;
     void DuplicateSubObjects(const UObject* Source) override;
     void PostDuplicate() override;
@@ -28,8 +29,5 @@ public:
     FActorInfo GetActorInfo() override;
 
 private:
-    UFireBallComponent* FireBallComponent;
-    UPointLightComponent* LightComp;
-    UProjectileMovementComponent* ProjMovementComp;
-    UBillboardComponent* BillboardComponent;
+    TEST_DELIGATE TestDelegate;
 };

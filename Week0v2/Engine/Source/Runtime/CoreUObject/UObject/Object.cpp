@@ -19,6 +19,12 @@ UObject::UObject()
 {
 }
 
+UObject::~UObject()
+{
+    NamePrivate = "Destroyed";
+    UUID = 0;
+}
+
 UWorld* UObject::GetWorld()
 {
     return GEngine->GetWorld();
