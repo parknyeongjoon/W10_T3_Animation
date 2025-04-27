@@ -4,8 +4,6 @@
 #include "UObject/ObjectFactory.h"
 #include "ActorComponentInfo.h"
 
-
-
 USceneComponent::USceneComponent() :RelativeLocation(FVector(0.f, 0.f, 0.f)), RelativeRotation(FVector(0.f, 0.f, 0.f)), RelativeScale(FVector(1.f, 1.f, 1.f))
 {
 }

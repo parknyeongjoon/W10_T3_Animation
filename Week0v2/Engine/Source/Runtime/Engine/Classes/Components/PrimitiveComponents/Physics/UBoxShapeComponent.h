@@ -4,6 +4,13 @@
 class USphereShapeComponent;
 class UCapsuleShapeComponent;
 
+struct FBoxShapeInfo : public FShapeInfo
+{
+    FBoxShapeInfo(FVector C, FMatrix M, FVector E) : FShapeInfo(C, M), Extent(E) {}
+
+    FVector Extent;
+};
+
 class UBoxShapeComponent : public UShapeComponent
 {
     DECLARE_CLASS(UBoxShapeComponent, UShapeComponent);
@@ -19,6 +26,7 @@ public:
     void SetBoxExtent(const FVector& InExtent) { BoxExtent = InExtent; }
     FVector GetBoxExtent() const { return BoxExtent; }
 
+    virtual FShapeInfo GetShapeInfo() const override
     virtual void UpdateBroadAABB() override;
 
     virtual bool TestOverlaps(const UShapeComponent* OtherShape) const override;

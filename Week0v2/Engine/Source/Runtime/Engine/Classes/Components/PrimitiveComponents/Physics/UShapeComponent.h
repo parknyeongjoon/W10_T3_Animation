@@ -2,6 +2,14 @@
 #include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "Math/Color.h"
 
+struct FShapeInfo
+{
+    FShapeInfo(FVector C, FMatrix M) : Center(C), WorldMatrix(M) {}
+
+    FVector Center;
+    FMatrix WorldMatrix;
+};
+
 class UShapeComponent : public UPrimitiveComponent
 {
     DECLARE_CLASS(UShapeComponent, UPrimitiveComponent);
@@ -28,6 +36,8 @@ public:
     FVector GetPrevLocation() const { return PrevLocation; }
     FRotator GetPrevRotation() const { return PrevRotation; }
     FVector GetPrevScale() const { return PrevScale; }
+
+    virtual FShapeInfo GetShapeInfo() const;
 
     virtual bool TestOverlaps(const UShapeComponent* OtherShape) const;
     virtual bool BroadPhaseCollisionCheck(const UShapeComponent* OtherShape) const;

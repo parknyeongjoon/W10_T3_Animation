@@ -32,6 +32,15 @@ void UBoxShapeComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
 }
 
+FShapeInfo UBoxShapeComponent::GetShapeInfo() const
+{
+    FShapeInfo ShapeInfo = Super::GetShapeInfo();
+
+    FBoxShapeInfo BoxShpaeInfo(ShapeInfo.Center, ShapeInfo.WorldMatrix, BoxExtent);
+
+    return BoxShpaeInfo;
+}
+
 void UBoxShapeComponent::UpdateBroadAABB()
 {
     FVector Center = GetComponentLocation();
