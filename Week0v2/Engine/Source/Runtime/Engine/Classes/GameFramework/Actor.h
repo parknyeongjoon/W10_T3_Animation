@@ -55,7 +55,7 @@ public:
      */
     template <typename T>
         requires std::derived_from<T, UActorComponent>
-    T* AddComponent(EComponentOrigin Origin);
+    T* AddComponent(EComponentOrigin Origin = EComponentOrigin::Constructor);
 
     // 클래스 정보를 바탕으로 컴포넌트를 새로 추가.
     UActorComponent* AddComponentByClass(UClass* ComponentClass, EComponentOrigin Origin);
