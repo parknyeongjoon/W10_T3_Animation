@@ -20,6 +20,10 @@
 #include "Components/PrimitiveComponents/UParticleSubUVComp.h"
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/CubeComp.h"
+#include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 
 #include "LevelEditor/SLevelEditor.h"
 #include "tinyfiledialogs/tinyfiledialogs.h"
@@ -65,7 +69,6 @@ void PropertyEditorPanel::Render()
     ImGui::Begin("Detail", nullptr, PanelFlags);
 
     AEditorPlayer* player = GEngine->GetWorld()->GetEditorPlayer();
-    AActor* PickedActor = nullptr; 
     if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
             PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
 
@@ -723,6 +726,8 @@ void PropertyEditorPanel::Render()
         }
     }
 
+    RenderShapeProperty();
+
     ImGui::End();
 
 
@@ -1354,6 +1359,68 @@ void PropertyEditorPanel::RenderForLua(ULuaComponent* LuaComponent)
         ImGui::TreePop(); // 트리 닫기
     }
     ImGui::PopStyleColor(); // 스타일 복원
+}
+
+void PropertyEditorPanel::RenderShapeProperty()
+{
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UBoxShapeComponent>())
+    {
+        UBoxShapeComponent* ShapeComp = Cast<UBoxShapeComponent>(PickedComponent);
+
+        if (ImGui::TreeNodeEx("BoxShapeComponent", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            FVector BoxExtent = ShapeComp->GetBoxExtent();
+
+            if (FImGuiWidget::DrawVec3Control("BoxExtent", BoxExtent, 0, 10))
+            {
+                ShapeComp->SetBoxExtent(BoxExtent);
+            }
+
+            ImGui::TreePop();
+        }
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<USphereShapeComponent>())
+    {
+        USphereShapeComponent* ShapeComp = Cast<USphereShapeComponent>(PickedComponent);
+
+        if (ImGui::TreeNodeEx("SphereShapeComponent", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            float Radius = ShapeComp->GetRadius();
+
+            if (ImGui::SliderFloat("Radius", &Radius, 0.0f, 100.0f))
+            {
+                ShapeComp->SetRadius(Radius);
+            }
+
+            ImGui::TreePop();
+        }
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UCapsuleShapeComponent>())
+    {
+        UCapsuleShapeComponent* ShapeComp = Cast<UCapsuleShapeComponent>(PickedComponent);
+
+        if (ImGui::TreeNodeEx("CapsuleShapeComponent", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            float CapsuleRaidus = ShapeComp->GetRadius();
+
+            if (ImGui::SliderFloat("CapsuleRaidus", &CapsuleRaidus, 0.0f, 100.0f))
+            {
+                ShapeComp->SetRadius(CapsuleRaidus);
+            }
+
+            float CapsuleHalfHeight = ShapeComp->GetHalfHeight();
+
+            if (ImGui::SliderFloat("CapsuleHalfHeight", &CapsuleHalfHeight, 0.0f, 100.0f))
+            {
+                ShapeComp->SetHalfHeight(CapsuleHalfHeight);
+            }
+
+            ImGui::TreePop();
+        }
+    }
+
 }
 
 

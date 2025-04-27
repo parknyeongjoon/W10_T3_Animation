@@ -49,12 +49,21 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
             if (UCapsuleShapeComponent* pCapsuleShapeComponent = Cast<UCapsuleShapeComponent>(actorComp))
             {
                 FVector Center = pCapsuleShapeComponent->GetComponentLocation();
-                FVector UpVector = pCapsuleShapeComponent->GetOwner()->GetRootComponent()->GetUpVector();
                 FVector4 Color = FVector4(0.4f,1.0f,0.4f,1.0f);
                 float CapsuleHalfHeight = pCapsuleShapeComponent->GetHalfHeight();
                 float CapsuleRaidus = pCapsuleShapeComponent->GetRadius();
 
-                PrimitveBatch.AddCapsule(Center, UpVector, CapsuleHalfHeight, CapsuleRaidus,Color);
+                FVector Up = FVector(0.f, 0.f, 1.f);
+                FVector UpV;
+                FMatrix WorldMatrix = pCapsuleShapeComponent->GetOwner()->GetRootComponent()->GetWorldMatrix();
+                // WorldMatrix의 회전 부분만 적용
+                UpV.x = Up.x * WorldMatrix.M[0][0] + Up.y * WorldMatrix.M[1][0] + Up.z * WorldMatrix.M[2][0];
+                UpV.y = Up.x * WorldMatrix.M[0][1] + Up.y * WorldMatrix.M[1][1] + Up.z * WorldMatrix.M[2][1];
+                UpV.z = Up.x * WorldMatrix.M[0][2] + Up.y * WorldMatrix.M[1][2] + Up.z * WorldMatrix.M[2][2];
+
+                UpV.Normalize();
+
+                PrimitveBatch.AddCapsule(Center, UpV, CapsuleHalfHeight, CapsuleRaidus,Color);
 
             }
             if (USphereShapeComponent* pSphereShapeComponent = Cast<USphereShapeComponent>(actorComp))
