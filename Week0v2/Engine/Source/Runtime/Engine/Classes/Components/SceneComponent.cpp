@@ -280,10 +280,10 @@ std::shared_ptr<FActorComponentInfo> USceneComponent::GetActorComponentInfo()
     std::shared_ptr<FSceneComponentInfo> Info = std::make_shared<FSceneComponentInfo>();
     Super::GetActorComponentInfo()->Copy(*Info);
 
-    Info->InfoType = GetClass()->GetName();
     Info->RelativeLocation = RelativeLocation;
     Info->RelativeRotation = RelativeRotation;
     Info->RelativeScale3D = RelativeScale;
+    Info->AABB = AABB;
 
     // !TODO : AttachedParent
     return Info;
@@ -296,4 +296,5 @@ void USceneComponent::LoadAndConstruct(const FActorComponentInfo& Info)
     RelativeLocation = SceneInfo.RelativeLocation;
     RelativeRotation = SceneInfo.RelativeRotation;
     RelativeScale = SceneInfo.RelativeScale3D;
+    AABB = SceneInfo.AABB;
 }

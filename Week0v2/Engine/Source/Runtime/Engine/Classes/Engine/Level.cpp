@@ -31,7 +31,6 @@ void ULevel::DuplicateSubObjects(const UObject* SourceObj)
         AActor* dupActor = static_cast<AActor*>(Actor->Duplicate());
         PendingBeginPlayActors.Add(dupActor);
         Actors.Add(dupActor);
-        PendingBeginPlayActors.Add(dupActor);
     }
 }
 

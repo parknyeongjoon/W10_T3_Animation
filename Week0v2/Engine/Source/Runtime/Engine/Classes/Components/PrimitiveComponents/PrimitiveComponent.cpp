@@ -143,9 +143,7 @@ std::shared_ptr<FActorComponentInfo> UPrimitiveComponent::GetActorComponentInfo(
 {
     std::shared_ptr<FPrimitiveComponentInfo> Info = std::make_shared<FPrimitiveComponentInfo>();
     Super::GetActorComponentInfo()->Copy(*Info);
-
-    Info->AABB = AABB;
-
+    
     return Info;
 }
 
@@ -153,5 +151,5 @@ void UPrimitiveComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 {
     Super::LoadAndConstruct(Info);
     const FPrimitiveComponentInfo* PrimitiveInfo = static_cast<const FPrimitiveComponentInfo*>(&Info);
-    AABB = PrimitiveInfo->AABB;
+    //AABB = PrimitiveInfo->AABB;
 }

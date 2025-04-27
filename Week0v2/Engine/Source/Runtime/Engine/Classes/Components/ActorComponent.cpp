@@ -119,7 +119,6 @@ void UActorComponent::OnUnregister()
 std::shared_ptr<FActorComponentInfo> UActorComponent::GetActorComponentInfo()
 {
     std::shared_ptr<FActorComponentInfo> Info = std::make_shared<FActorComponentInfo>();
-    Info->InfoType = GetClass()->GetName();
     Info->Origin = ComponentOrigin;
     Info->bIsRoot = GetOwner() && (GetOwner()->GetRootComponent() == this);
     return Info;
