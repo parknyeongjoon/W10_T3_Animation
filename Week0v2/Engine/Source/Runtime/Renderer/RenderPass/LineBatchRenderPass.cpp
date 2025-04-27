@@ -40,7 +40,7 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
                 FMatrix ModelMatrix = pShapeComponent->GetWorldMatrix();
                 FVector Center = pShapeComponent->GetComponentLocation();
 
-                //UPrimitiveBatch::GetInstance().AddAABB(Box, Center, ModelMatrix);
+                UPrimitiveBatch::GetInstance().AddAABB(Box, Center, ModelMatrix);
 
             }
             if (UCapsuleShapeComponent* pCapsuleShapeComponent = Cast<UCapsuleShapeComponent>(actorComp))
@@ -90,6 +90,7 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
     PrimitiveCounts.SphereCount = PrimitveBatch.GetSpheres().Num();
     PrimitiveCounts.LineCount = PrimitveBatch.GetLines().Num();
     PrimitiveCounts.CapsuleCount = PrimitveBatch.GetCapsules().Num();
+    PrimitiveCounts.OBBCount = PrimitveBatch.GetOrientedBoundingBoxes().Num();
     renderResourceManager->UpdateConstantBuffer(TEXT("FPrimitiveCounts"), &PrimitiveCounts);
 
     const std::shared_ptr<FVBIBTopologyMapping> VBIBTopologyMappingInfo = Renderer.GetVBIBTopologyMapping(VBIBTopologyMappingName);

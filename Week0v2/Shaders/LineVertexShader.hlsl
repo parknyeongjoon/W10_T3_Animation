@@ -20,9 +20,9 @@ cbuffer FPrimitiveCounts : register(b2)
     int ConeCount; // 렌더링할 cone의 개수
     int LineCount;
     int CapsuleCount; 
+    int OBBCount; 
     float pad1;
     float pad2;
-    float pad3;
 };
 
 struct FBoundingBoxData
@@ -473,7 +473,7 @@ PS_INPUT mainVS(VS_INPUT input)
     uint lineInstanceStart = sphereInstanceStart + sphereInstCnt;
     // 4) 그 다음(=선 구간의 끝)이 곧 OBB 시작 지점
     uint obbInstanceStart = lineInstanceStart + lineInstCnt;
-    uint obbInstanceCount = 12 * BoundingBoxCount; // OBB도 12 edges per box
+    uint obbInstanceCount = 12 * OBBCount; // OBB도 12 edges per box
     
     uint capsuleInstanceStart = obbInstanceStart + obbInstanceCount;
     uint capsuleInstanceCount = CapsuleCount * (16 * 2 + 4 + 16*4);
