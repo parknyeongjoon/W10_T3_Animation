@@ -25,7 +25,7 @@ void UWorld::InitWorld()
     // TODO: Load Scene
     Level = FObjectFactory::ConstructObject<ULevel>();
     PreLoadResources();
-    CreateBaseObject();
+    LoadScene("Assets/Scenes/AutoSave.Scene");
 }
 
 void UWorld::LoadLevel(const FString& LevelName)
@@ -91,6 +91,7 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
 
 void UWorld::Release()
 {
+    SaveScene("Assets/Scenes/AutoSave.Scene");
 	for (AActor* Actor : Level->GetActors())
 	{
 		Actor->EndPlay(EEndPlayReason::WorldTransition);
@@ -149,6 +150,15 @@ void UWorld::ReloadScene(const FString& FileName)
 {
 
     ClearScene(); // 기존 오브젝트 제거
+    CreateBaseObject();
+    FArchive ar;
+    FWindowsBinHelper::LoadFromBin(FileName, ar);
+
+    ar >> *this;
+}
+
+void UWorld::LoadScene(const FString& FileName)
+{
     CreateBaseObject();
     FArchive ar;
     FWindowsBinHelper::LoadFromBin(FileName, ar);

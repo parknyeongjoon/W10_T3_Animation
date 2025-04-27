@@ -97,9 +97,9 @@ private:
         }
     }
 
+    //TODO 순환참조 이슈로 작동안됨
     /** FArchive를 사용하여 데이터를 직렬화합니다. */
     void Serialize(FArchive& Ar) const;// 쓰는 작업이므로 const로 선언
-
 
     /** FArchive를 사용하여 데이터를 역직렬화합니다. */
     void Deserialize(FArchive& Ar); // 읽는 작업이므로 비-const

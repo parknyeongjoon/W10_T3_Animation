@@ -113,7 +113,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 
         if (ImGui::MenuItem("New Scene"))
         {
-            GEngine->GetWorld()->ReloadScene("NewScene.scene");
+            GEngine->GetWorld()->ReloadScene("Assets/Scenes/NewScene.scene");
         }
 
         if (ImGui::MenuItem("Load Scene"))
@@ -144,12 +144,13 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
             }
 
             // TODO: Save Scene
-            int i = 1;
-            FArchive ar;
+            //int i = 1;
+            //FArchive ar;
             UWorld World = *GEngine->GetWorld();
-            ar << World;
-
-            FWindowsBinHelper::SaveToBin(FileName, ar);
+            World.SaveScene(FileName);
+            // ar << World;
+            //
+            // FWindowsBinHelper::SaveToBin(FileName, ar);
 
             tinyfd_messageBox("알림", "저장되었습니다.", "ok", "info", 1);
         }
