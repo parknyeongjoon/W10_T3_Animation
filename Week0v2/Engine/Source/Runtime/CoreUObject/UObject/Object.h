@@ -58,7 +58,7 @@ public:
     virtual ~UObject();
 
     UWorld* GetWorld();
-    ;
+    UWorld* GetPIEWorld();
 
     UEditorEngine* GetEngine()
     {

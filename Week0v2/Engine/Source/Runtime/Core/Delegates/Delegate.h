@@ -3,15 +3,12 @@
 #include <type_traits>
 #include <typeindex>
 #include "Core/Container/Map.h"
-#include "UObject/Object.h"
 
 #define FUNC_DECLARE_DELEGATE(DelegateName, ReturnType, ...) \
 	using DelegateName = TDelegate<ReturnType(__VA_ARGS__)>;
 
 #define FUNC_DECLARE_MULTICAST_DELEGATE(MulticastDelegateName, ReturnType, ...) \
 	using MulticastDelegateName = TMulticastDelegate<ReturnType(__VA_ARGS__)>;
-
-class UObject;
 
 // 델리게이트 핸들 클래스
 class FDelegateHandle
@@ -48,7 +45,6 @@ class IFunctionPointerBase
 public:
     virtual ~IFunctionPointerBase() = default;
     virtual bool IsValid() const = 0;
-    
     // 타입 ID를 반환 (RTTI 활용)
     virtual std::type_index GetClassTypeIndex() const = 0;
 };
@@ -503,89 +499,12 @@ private:
         const std::type_index& ObjectType, 
         UObject* DuplicatedObject, 
         std::shared_ptr<IFunctionPointerBase> FuncPtr, 
-        TMulticastDelegate& OutDelegate) const
-    {
-        // 주의: 이 함수는 실제 구현에서는 리플렉션이나 타입 레지스트리를 활용해야 함
-        // 여기서는 개념적으로만 구현
-
-        
-        // 예: 알려진 UObject 서브클래스들에 대해 동적으로 캐스팅하여 처리
-        if (ObjectType == std::type_index(typeid(UObject)))
-        {
-            DuplicateMemberFunctionForClass<UObject>(DuplicatedObject, FuncPtr, OutDelegate);
-        }
-        // 다른 알려진 클래스 타입들에 대해서도 처리
-        // else if (ObjectType == std::type_index(typeid(AActor)))
-        // {
-        //     DuplicateMemberFunctionForClass<AActor>(DuplicatedObject, FuncPtr, OutDelegate);
-        // }
-        // ...등등
-    }
+        TMulticastDelegate& OutDelegate) const;
     
     // 특정 클래스에 대한 델리게이트 복제 처리
     template <typename T>
     void DuplicateMemberFunctionForClass(
         UObject* DuplicatedObject, 
         std::shared_ptr<IFunctionPointerBase> FuncPtr, 
-        TMulticastDelegate& OutDelegate) const
-    {
-        // T 타입으로 함수 포인터 캐스팅
-        auto CastedFuncPtr = static_cast<TMemberFunctionPointer<T, ReturnType, ParamTypes...>*>(FuncPtr.get());
-        if (CastedFuncPtr)
-        {
-            // 함수 포인터 가져오기
-            auto MemberFunction = CastedFuncPtr->GetFunctionPtr();
-            
-            // T 타입으로 객체 캐스팅 및 바인딩
-            T* TypedObject = static_cast<T*>(DuplicatedObject);
-            if (TypedObject)
-            {
-                OutDelegate.AddUObject(TypedObject, MemberFunction);
-            }
-        }
-    }
+        TMulticastDelegate& OutDelegate) const;
 };
-
-// 사용 예시
-/*
-class AMyActor : public AActor
-{
-public:
-    // 멤버 함수
-    void OnHit(AActor* OtherActor) { ... }
-    
-    // 델리게이트 선언
-    UPROPERTY()
-    TDelegate<void(AActor*)> OnActorHitDelegate;
-    
-    UPROPERTY()
-    TMulticastDelegate<void(AActor*)> OnActorHitMultiDelegate;
-    
-    // 초기화
-    void Initialize()
-    {
-        // 단일 델리게이트 바인딩
-        OnActorHitDelegate.BindUObject(this, &AMyActor::OnHit);
-        
-        // 멀티캐스트 델리게이트 바인딩
-        OnActorHitMultiDelegate.AddUObject(this, &AMyActor::OnHit);
-    }
-    
-    // 복제 처리 - PostDuplicate 오버라이드
-    virtual void PostDuplicate(bool bDuplicateForPIE) override
-    {
-        Super::PostDuplicate(bDuplicateForPIE);
-        
-        if (bDuplicateForPIE)
-        {
-            // 객체 복제 맵 가져오기
-            TMap<UObject*, UObject*> DuplicatedObjects;
-            GetWorld()->GetObjsForDuplication(DuplicatedObjects);
-            
-            // 델리게이트 복제
-            OnActorHitDelegate = OnActorHitDelegate.Duplicate(DuplicatedObjects);
-            OnActorHitMultiDelegate = OnActorHitMultiDelegate.Duplicate(DuplicatedObjects);
-        }
-    }
-};
-*/
