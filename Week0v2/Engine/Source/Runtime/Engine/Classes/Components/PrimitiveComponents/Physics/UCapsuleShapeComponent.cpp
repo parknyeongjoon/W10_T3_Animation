@@ -40,7 +40,7 @@ void UCapsuleShapeComponent::UpdateBroadAABB()
     //FMatrix WorldMatrix = JungleMath::CreateModelMatrix(Center, Rotation, Scale);
 
     float R = GetRadius();
-    float H = GetHalfHeight();
+    float H = GetHalfHeight()+R;
 
     FMatrix WorldMatrix = GetWorldMatrix();
 
