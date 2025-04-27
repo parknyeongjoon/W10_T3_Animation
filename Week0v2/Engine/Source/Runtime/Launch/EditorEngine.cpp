@@ -13,14 +13,14 @@
 #include "UObject/UObjectIterator.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "BaseGizmos/TransformGizmo.h"
-
+#include "Coroutine/LuaCoroutine.h"
 class ULevel;
 
 FGraphicsDevice UEditorEngine::graphicDevice;
 FRenderer UEditorEngine::renderer;
 FResourceManager UEditorEngine::ResourceManager;
 FCollisionManager UEditorEngine::CollisionManager;
-// EditorEngine.cpp
+FCoroutineManager UEditorEngine::CoroutineManager;
 
 UEditorEngine::UEditorEngine()
     : hWnd(nullptr)
@@ -122,7 +122,9 @@ void UEditorEngine::Tick(float deltaSeconds)
 
     graphicDevice.SwapBuffer();
     FVector CurRotation = GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetRotation();
-   
+
+    CoroutineManager.Tick(deltaSeconds);
+    CoroutineManager.CleanupCoroutines();
 }
 
 float UEditorEngine::GetAspectRatio(IDXGISwapChain* swapChain) const

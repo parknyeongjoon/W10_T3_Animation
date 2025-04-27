@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -176,6 +176,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine\Source\Runtime\Physics\FCollisionManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.cpp" />
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SLevelEditor.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\ControlEditorPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\OutlinerEditorPanel.cpp" />
@@ -304,9 +305,12 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UShapeComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UCapsuleShapeComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\USphereShapeComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\Runtime\Physics\FCollisionManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.h" />
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SLevelEditor.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\ControlEditorPanel.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\IWindowToggleable.h" />
@@ -343,6 +347,8 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Container\Pair.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Container\Set.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Container\String.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\IEnumerator.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\IWaitObject.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\DelegateCombination.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\EngineStatics.h" />
@@ -467,6 +473,8 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UShapeComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UCapsuleShapeComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\USphereShapeComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\DebugDepthPixelShader.hlsl">
