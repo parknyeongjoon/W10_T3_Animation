@@ -50,6 +50,8 @@ public:
     static FCoroutineManager CoroutineManager;
     HWND hWnd;
     ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;
+
+    sol::state lua;
 private:
     UImGuiManager* UIMgr;
     UWorld* GWorld;
