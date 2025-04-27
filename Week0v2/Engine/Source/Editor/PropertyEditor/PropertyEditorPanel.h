@@ -27,7 +27,7 @@ private:
     void RenderCreateMaterialView();
 
     void RenderForLua(class ULuaComponent* LuaComponent);
-    void RenderShapeProperty();
+    void RenderShapeProperty(AActor* PickedActor);
 private:
     float Width = 0, Height = 0;
     FVector Location = FVector(0, 0, 0);
@@ -40,7 +40,6 @@ private:
     UStaticMeshComponent* SelectedStaticMeshComp = nullptr;
     FObjMaterialInfo tempMaterialInfo;
     bool IsCreateMaterial;
-    AActor* PickedActor = nullptr;
     UActorComponent* PickedComponent = nullptr;
     UActorComponent* LastComponent = nullptr;
     bool bFirstFrame = true;

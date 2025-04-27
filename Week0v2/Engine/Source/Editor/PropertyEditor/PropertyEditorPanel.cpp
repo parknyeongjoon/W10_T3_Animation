@@ -68,6 +68,7 @@ void PropertyEditorPanel::Render()
     /* Render Start */
     ImGui::Begin("Detail", nullptr, PanelFlags);
 
+    AActor* PickedActor = nullptr;
     AEditorPlayer* player = GEngine->GetWorld()->GetEditorPlayer();
     if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
             PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
@@ -726,7 +727,7 @@ void PropertyEditorPanel::Render()
         }
     }
 
-    RenderShapeProperty();
+    RenderShapeProperty(PickedActor);
 
     ImGui::End();
 
@@ -1361,7 +1362,7 @@ void PropertyEditorPanel::RenderForLua(ULuaComponent* LuaComponent)
     ImGui::PopStyleColor(); // 스타일 복원
 }
 
-void PropertyEditorPanel::RenderShapeProperty()
+void PropertyEditorPanel::RenderShapeProperty(AActor* PickedActor)
 {
     if (PickedActor && PickedComponent && PickedComponent->IsA<UBoxShapeComponent>())
     {

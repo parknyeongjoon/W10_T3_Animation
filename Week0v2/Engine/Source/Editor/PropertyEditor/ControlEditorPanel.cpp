@@ -353,7 +353,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/Primitives/Sphere.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Sphere.obj"));
-                    TempActor->AddComponent<USphereShapeComponent>();
+                    TempActor->AddComponent<USphereShapeComponent>(EComponentOrigin::Editor);
 
                     SpawnedActor = TempActor;
                     break;
