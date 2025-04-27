@@ -45,12 +45,7 @@ public:
     static FGraphicsDevice graphicDevice;
     static FRenderer renderer;
     static FResourceManager resourceMgr;
-
-    //Test Code. TODO Delete This
     static FCoroutineManager CoroutineManager;
-    sol::state lua;
-    void TestCoroutine();
-    //Test Code.
 
 
     HWND hWnd;

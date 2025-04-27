@@ -19,3 +19,4 @@ private:
 };
 
 void RegisterWaitHelpers(sol::state& lua);
+void TestCoroutine(sol::state& lua);
