@@ -87,6 +87,11 @@ void RegisterWaitHelpers(sol::state& lua)
     lua["WaitForFrames"] = [](int32_t frames) { return new FWaitForFrames(frames); };
     lua["WaitUntil"] = [](sol::function condition) { return new FWaitUntil(condition); };
     lua["WaitWhile"] = [](sol::function condition) { return new FWaitWhile(condition); };
+
+    lua["Log"] = [](const std::string& message)
+        {
+            std::cout << "[LuaLog] " << message << std::endl;
+        };
 }
 
 void TestCoroutine(sol::state& lua)
