@@ -3,6 +3,8 @@
 #include "GameFramework/Actor.h"
 #include "UObject/ObjectFactory.h"
 
+#include "Physics/FCollisionManager.h"
+
 UPrimitiveComponent::UPrimitiveComponent()
     : Super()
 {
@@ -22,13 +24,12 @@ UPrimitiveComponent::~UPrimitiveComponent()
 
 void UPrimitiveComponent::InitializeComponent()
 {
-    // Super::InitializeComponent();
+     Super::InitializeComponent();
 }
 
 void UPrimitiveComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
-    
 }
 
 int UPrimitiveComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
@@ -127,6 +128,20 @@ void UPrimitiveComponent::DuplicateSubObjects(const UObject* Source)
 void UPrimitiveComponent::PostDuplicate()
 {
     USceneComponent::PostDuplicate();
+}
+
+void UPrimitiveComponent::NotifyHit(HitResult Hit) const
+{
+}
+
+void UPrimitiveComponent::NotifyBeginOverlap(const UPrimitiveComponent* OtherComponent) const
+{
+    UE_LOG(LogLevel::Display, TEXT("%s begin overlap with %s"), *GetName(), *OtherComponent->GetName());
+}
+
+void UPrimitiveComponent::NotifyEndOverlap(const UPrimitiveComponent* OtherComponent) const
+{
+    UE_LOG(LogLevel::Display, TEXT("%s end overlap with %s"), *GetName(), *OtherComponent->GetName());
 }
 
 bool UPrimitiveComponent::MoveComponent(const FVector& Delta)

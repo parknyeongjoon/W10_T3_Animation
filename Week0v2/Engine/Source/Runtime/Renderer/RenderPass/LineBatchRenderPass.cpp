@@ -10,7 +10,10 @@
 
 #include "Components/LightComponents/PointLightComponent.h"
 #include "Components/LightComponents/SpotLightComponent.h"
-
+#include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 class USpotLightComponent;
 extern UEditorEngine* GEngine;
 
@@ -27,8 +30,57 @@ FLineBatchRenderPass::FLineBatchRenderPass(const FName& InShaderName)
     VBIBTopologyMappingName = TEXT("LineBatch");
 }
 
-void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InLevel)
+void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
+    UPrimitiveBatch& PrimitveBatch = UPrimitiveBatch::GetInstance();
+    for (const AActor* actor : InWorld->GetActors())
+    {
+        for (const UActorComponent* actorComp : actor->GetComponents())
+        {
+            if (UShapeComponent* pShapeComponent = Cast<UShapeComponent>(actorComp))
+            {
+               const FBoundingBox& Box = pShapeComponent->GetBroadAABB();
+                FMatrix ModelMatrix = pShapeComponent->GetOwner()->GetRootComponent()->GetWorldMatrix();
+                FVector Center = pShapeComponent->GetComponentLocation();
+
+                PrimitveBatch.AddAABB(Box, Center, FMatrix::Identity);
+
+            }
+            if (UCapsuleShapeComponent* pCapsuleShapeComponent = Cast<UCapsuleShapeComponent>(actorComp))
+            {
+                FVector Center = pCapsuleShapeComponent->GetComponentLocation();
+                FVector UpVector = pCapsuleShapeComponent->GetOwner()->GetRootComponent()->GetUpVector();
+                FVector4 Color = FVector4(0.4f,1.0f,0.4f,1.0f);
+                float CapsuleHalfHeight = pCapsuleShapeComponent->GetHalfHeight();
+                float CapsuleRaidus = pCapsuleShapeComponent->GetRadius();
+
+                PrimitveBatch.AddCapsule(Center, UpVector, CapsuleHalfHeight, CapsuleRaidus,Color);
+
+            }
+            if (USphereShapeComponent* pSphereShapeComponent = Cast<USphereShapeComponent>(actorComp))
+            {
+
+                FVector Center = pSphereShapeComponent->GetComponentLocation();
+                float radius = pSphereShapeComponent->GetRadius();
+                FVector4 color = (1.0f, 0.0f, 0.0f, 1.0f);
+
+                PrimitveBatch.AddSphere(Center, radius, color);
+
+            }
+            if (UBoxShapeComponent* pBoxShapeComponent = Cast<UBoxShapeComponent>(actorComp))
+            {
+                FVector BoxExtent = pBoxShapeComponent->GetBoxExtent();
+                FVector Center = pBoxShapeComponent->GetComponentLocation();
+                FMatrix WorldMatrix = pBoxShapeComponent->GetOwner()->GetRootComponent()->GetWorldMatrix();
+
+                FBoundingBox localAABB;
+                localAABB.min = FVector(-BoxExtent.x, -BoxExtent.y, -BoxExtent.z);
+                localAABB.max = FVector(BoxExtent.x, BoxExtent.y, BoxExtent.z);
+
+                PrimitveBatch.AddOBB(localAABB, Center, WorldMatrix);
+            }
+        }
+    }
 }
 
 void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
@@ -62,15 +114,37 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
     PrimitiveCounts.BoundingBoxCount = PrimitveBatch.GetBoundingBoxes().Num();
     PrimitiveCounts.SphereCount = PrimitveBatch.GetSpheres().Num();
     PrimitiveCounts.LineCount = PrimitveBatch.GetLines().Num();
+    PrimitiveCounts.CapsuleCount = PrimitveBatch.GetCapsules().Num();
+    PrimitiveCounts.OBBCount = PrimitveBatch.GetOrientedBoundingBoxes().Num();
     renderResourceManager->UpdateConstantBuffer(TEXT("FPrimitiveCounts"), &PrimitiveCounts);
 
     const std::shared_ptr<FVBIBTopologyMapping> VBIBTopologyMappingInfo = Renderer.GetVBIBTopologyMapping(VBIBTopologyMappingName);
     VBIBTopologyMappingInfo->Bind();
 
     const uint32 vertexCountPerInstance = 2;
-    const uint32 instanceCount = GridParameters.GridCount + 3 + (PrimitveBatch.GetBoundingBoxes().Num() * 12) + (PrimitveBatch.GetCones().Num() * (2 * PrimitveBatch.GetConeSegmentCount())
-        + (PrimitveBatch.GetSpheres().Num() * 3 * 32) + (PrimitveBatch.GetLines().Num() * 2) + (12 * PrimitveBatch.GetOrientedBoundingBoxes().Num()));
+
+    const uint32 NumSegmentsCircle = 16;
+    const uint32 NumVerticalLines = 4;
+    const uint32 NumHemisphereSegments = 8;
+
+    const uint32 capsuleInstancePerCapsule =
+        (NumSegmentsCircle * 2) + // Top/Bottom Circle
+        NumVerticalLines +        // 세로선 4개
+        (NumHemisphereSegments * 4) + // Top 반구 (0°/180°, 90°/270°)
+        (NumHemisphereSegments * 4);  // Bottom 반구 (0°/180°, 90°/270°)
+
+    const uint32 instanceCount =
+        GridParameters.GridCount +
+        3 +
+        (PrimitveBatch.GetBoundingBoxes().Num() * 12) +
+        (PrimitveBatch.GetCones().Num() * (2 * PrimitveBatch.GetConeSegmentCount())) +
+        (PrimitveBatch.GetSpheres().Num() * 3 * 32) +
+        (PrimitveBatch.GetLines().Num() * 2) +
+        (12 * PrimitveBatch.GetOrientedBoundingBoxes().Num()) +
+        (PrimitveBatch.GetCapsules().Num() * capsuleInstancePerCapsule);
+
     Graphics.DeviceContext->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
+
 
     PrimitveBatch.ClearBatchPrimitives();
 }
@@ -87,7 +161,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
     Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView); // 렌더 타겟 설정
 
-    for (AActor* actor :GEngine->GetWorld()->GetSelectedActors() )    
+    for (AActor* actor : GEngine->GetWorld()->GetSelectedActors())
     {
         ALight* Light = Cast<ALight>(actor);
         if (Light)
@@ -98,7 +172,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                 if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Comp))
                 {
                     const FMatrix Model = SpotLight->GetWorldMatrix();
-                    if (SpotLight->GetOuterConeAngle() > 0) 
+                    if (SpotLight->GetOuterConeAngle() > 0)
                     {
                         UPrimitiveBatch::GetInstance().AddCone(
                             SpotLight->GetComponentLocation(),
@@ -156,6 +230,14 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     Graphics.DeviceContext->VSSetShaderResources(6, 1, &FSphereSRV);
     ID3D11ShaderResourceView* FLineSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Line"));
     Graphics.DeviceContext->VSSetShaderResources(7, 1, &FLineSRV);
+    ID3D11ShaderResourceView* FCapsuleSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Capsule"));
+    Graphics.DeviceContext->VSSetShaderResources(8, 1, &FCapsuleSRV);
+}
+
+void FLineBatchRenderPass::ClearRenderObjects()
+{
+    ShapeComponents.Empty();
+    CapsuleShapeComponents.Empty();
 }
 
 void FLineBatchRenderPass::UpdateBatchResources()
@@ -219,7 +301,7 @@ void FLineBatchRenderPass::UpdateBatchResources()
             ID3D11ShaderResourceView* SBSRV = nullptr;
             SB = renderResourceManager->CreateStructuredBuffer<FSphere>(static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedSphereCapacity()));
             SBSRV = renderResourceManager->CreateBufferSRV(SB, static_cast<uint32>(UPrimitiveBatch::GetInstance().GetAllocatedSphereCapacity()));
-            
+
             renderResourceManager->AddOrSetSRVStructuredBuffer(TEXT("Sphere"), SB);
             renderResourceManager->AddOrSetSRVStructuredBufferSRV(TEXT("Sphere"), SBSRV);
         }
@@ -233,9 +315,9 @@ void FLineBatchRenderPass::UpdateBatchResources()
     }
 
     {
-        if (UPrimitiveBatch::GetInstance().GetLines().Num() > UPrimitiveBatch::GetInstance().GetAllocatedLineCapacity())
+        if (PrimitveBatch.GetLines().Num() > PrimitveBatch.GetAllocatedLineCapacity())
         {
-            UPrimitiveBatch::GetInstance().SetAllocatedLineCapacity(UPrimitiveBatch::GetInstance().GetLines().Num());
+            PrimitveBatch.SetAllocatedLineCapacity(PrimitveBatch.GetLines().Num());
 
             ID3D11Buffer* SB = nullptr;
             ID3D11ShaderResourceView* SBSRV = nullptr;
@@ -251,6 +333,28 @@ void FLineBatchRenderPass::UpdateBatchResources()
         if (SB != nullptr && SBSRV != nullptr)
         {
             renderResourceManager->UpdateStructuredBuffer(SB, UPrimitiveBatch::GetInstance().GetLines());
+        }
+    }
+    {
+        int32 CapsulesNum = PrimitveBatch.GetCapsules().Num();
+        if (CapsulesNum > PrimitveBatch.GetAllocatedCapsuleCapacity())
+        {
+            PrimitveBatch.SetAllocatedCapsuleCapacity(CapsulesNum);
+
+            ID3D11Buffer* SB = nullptr;
+            ID3D11ShaderResourceView* SBSRV = nullptr;
+            SB = renderResourceManager->CreateStructuredBuffer<FCapsule>(static_cast<uint32>(PrimitveBatch.GetAllocatedCapsuleCapacity()));
+            SBSRV = renderResourceManager->CreateBufferSRV(SB, static_cast<uint32>(PrimitveBatch.GetAllocatedCapsuleCapacity()));
+
+            renderResourceManager->AddOrSetSRVStructuredBuffer(TEXT("Capsule"), SB);
+            renderResourceManager->AddOrSetSRVStructuredBufferSRV(TEXT("Capsule"), SBSRV);
+        }
+
+        ID3D11Buffer* SB = renderResourceManager->GetSRVStructuredBuffer(TEXT("Capsule"));
+        ID3D11ShaderResourceView* SBSRV = renderResourceManager->GetStructuredBufferSRV(TEXT("Capsule"));
+        if (SB != nullptr && SBSRV != nullptr)
+        {
+            renderResourceManager->UpdateStructuredBuffer(SB, PrimitveBatch.GetCapsules());
         }
     }
 

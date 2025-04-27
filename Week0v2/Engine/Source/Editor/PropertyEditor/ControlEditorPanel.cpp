@@ -17,6 +17,10 @@
 #include <Actors/ExponentialHeightFog.h>
 #include <UObject/UObjectIterator.h>
 
+#include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 #include "Components/PrimitiveComponents/UParticleSubUVComp.h"
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
@@ -328,7 +332,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     SpawnedActor->SetActorLabel(TEXT("OBJ_ACTOR"));
                     SpawnedActor->AddComponent<USceneComponent>(EComponentOrigin::Editor);
                     break;
-                    // 🔷 셰이프
+                    //  셰이프
                 case OBJ_CUBE:
                 {
                     AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
@@ -336,6 +340,10 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
+                    TempActor->AddComponent<UBoxShapeComponent>();
+                    TempActor->AddComponent<UCapsuleShapeComponent>();
+                    TempActor->AddComponent<USphereShapeComponent>();
+
                     SpawnedActor = TempActor;
                     break;
                 }
@@ -346,6 +354,8 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/apple_mid.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"apple_mid.obj"));
+                    TempActor->AddComponent<UCapsuleShapeComponent>();
+
                     SpawnedActor = TempActor;
                     break;
                 }
@@ -545,7 +555,7 @@ void ControlEditorPanel::CreateFlagButton() const
 
 void ControlEditorPanel::CreateShaderHotReloadButton(const ImVec2 ButtonSize) const
 {
-    ID3D11ShaderResourceView* IconTextureSRV = GEngine->resourceMgr.GetTexture(L"Assets/Texture/HotReload.png")->TextureSRV;
+    ID3D11ShaderResourceView* IconTextureSRV = GEngine->ResourceManager.GetTexture(L"Assets/Texture/HotReload.png")->TextureSRV;
     const ImTextureID textureID = reinterpret_cast<ImTextureID>(IconTextureSRV); // 실제 사용되는 텍스처 SRV
     if (ImGui::ImageButton("btn1", textureID, ButtonSize))
     {

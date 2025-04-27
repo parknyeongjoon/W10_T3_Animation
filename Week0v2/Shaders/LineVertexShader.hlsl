@@ -19,6 +19,10 @@ cbuffer FPrimitiveCounts : register(b2)
     int SphereCount;
     int ConeCount; // 렌더링할 cone의 개수
     int LineCount;
+    int CapsuleCount; 
+    int OBBCount; 
+    float pad1;
+    float pad2;
 };
 
 struct FBoundingBoxData
@@ -40,6 +44,15 @@ struct FConeData
     
     int ConeSegmentCount; // 원뿔 밑면 분할 수
     float pad[3];
+};
+
+struct FCapsuleData
+{
+    float3 Center;
+    float Radius;
+    float3 UpVector;
+    float HalfHeight;
+    float4 Color;
 };
 
 struct FOrientedBoxCornerData
@@ -68,6 +81,7 @@ StructuredBuffer<FConeData> g_ConeData : register(t4);
 StructuredBuffer<FOrientedBoxCornerData> g_OrientedBoxes : register(t5);
 StructuredBuffer<FSphereData> g_SphereData : register(t6);
 StructuredBuffer<FLineData> g_LineData : register(t7);
+StructuredBuffer<FCapsuleData> g_Capsules : register(t8);
 
 static const int BB_EdgeIndices[12][2] =
 {
@@ -309,6 +323,127 @@ float3 ComputeLinePosition(uint globalInstanceID, uint vertexID)
 }
 
 /////////////////////////////////////////////////////////////////////////
+// Capsule
+/////////////////////////////////////////////////////////////////////////
+float3 ComputeCapsulePosition(uint globalInstanceID, uint vertexID)
+{
+    const uint NumSegmentsCircle = 16; // 원 둘레 분할 수
+    const uint NumVerticalLines = 4; // 세로 선 4개 (상하좌우)
+    const uint NumHemisphereSegments = 8; // 반구 아치 세그먼트 수 (각 방향마다)
+
+    const float PI = 3.14159265359f;
+
+    const uint perCapsuleInstanceCount = (NumSegmentsCircle * 2) + NumVerticalLines + (NumHemisphereSegments * 4) * 2;
+    // Top Hemisphere 4개 + Bottom Hemisphere 4개
+
+    uint capsuleIndex = globalInstanceID / perCapsuleInstanceCount;
+    uint localID = globalInstanceID % perCapsuleInstanceCount;
+
+    FCapsuleData capsule = g_Capsules[capsuleIndex];
+
+    float3 Up = normalize(capsule.UpVector);
+    float3 arbitrary = (abs(Up.z) > 0.99f) ? float3(0, 1, 0) : float3(0, 0, 1);
+    float3 Right = normalize(cross(Up, arbitrary));
+    float3 Forward = normalize(cross(Right, Up));
+
+    float3 topCenter = capsule.Center + Up * capsule.HalfHeight;
+    float3 bottomCenter = capsule.Center - Up * capsule.HalfHeight;
+
+    if (localID < NumSegmentsCircle)
+    {
+        // Top Circle
+        float angle0 = (localID) * (2.0f * PI / NumSegmentsCircle);
+        float angle1 = (localID + 1) * (2.0f * PI / NumSegmentsCircle);
+
+        float3 p0 = topCenter + capsule.Radius * (cos(angle0) * Right + sin(angle0) * Forward);
+        float3 p1 = topCenter + capsule.Radius * (cos(angle1) * Right + sin(angle1) * Forward);
+
+        return (vertexID == 0) ? p0 : p1;
+    }
+    else if (localID < NumSegmentsCircle * 2)
+    {
+        // Bottom Circle
+        uint idx = localID - NumSegmentsCircle;
+
+        float angle0 = (idx) * (2.0f * PI / NumSegmentsCircle);
+        float angle1 = (idx + 1) * (2.0f * PI / NumSegmentsCircle);
+
+        float3 p0 = bottomCenter + capsule.Radius * (cos(angle0) * Right + sin(angle0) * Forward);
+        float3 p1 = bottomCenter + capsule.Radius * (cos(angle1) * Right + sin(angle1) * Forward);
+
+        return (vertexID == 0) ? p0 : p1;
+    }
+    else if (localID < NumSegmentsCircle * 2 + NumVerticalLines)
+    {
+        // Vertical Lines (4개)
+        uint idx = localID - (NumSegmentsCircle * 2);
+
+        float angle = (idx) * (PI * 0.5f); // 0°, 90°, 180°, 270°
+
+        float3 offset = capsule.Radius * (cos(angle) * Right + sin(angle) * Forward);
+
+        float3 p0 = topCenter + offset;
+        float3 p1 = bottomCenter + offset;
+
+        return (vertexID == 0) ? p0 : p1;
+    }
+    else if (localID < NumSegmentsCircle * 2 + NumVerticalLines + (NumHemisphereSegments * 4))
+    {
+        // Top Hemisphere
+        uint idx = localID - (NumSegmentsCircle * 2 + NumVerticalLines);
+        uint group = idx / NumHemisphereSegments; // 0: 0°, 1: 90°, 2: 180°, 3: 270°
+        uint seg = idx % NumHemisphereSegments;
+
+        float phi;
+        if (group == 0)
+            phi = 0.0f; // 0도
+        else if (group == 1)
+            phi = PI * 0.5f; // 90도
+        else if (group == 2)
+            phi = PI; // 180도
+        else
+            phi = PI * 1.5f; // 270도
+
+        float theta0 = (seg) * (PI * 0.5f / NumHemisphereSegments);
+        float theta1 = (seg + 1) * (PI * 0.5f / NumHemisphereSegments);
+
+        float3 p0 = topCenter
+            + capsule.Radius * (cos(theta0) * (cos(phi) * Right + sin(phi) * Forward) + sin(theta0) * Up);
+        float3 p1 = topCenter
+            + capsule.Radius * (cos(theta1) * (cos(phi) * Right + sin(phi) * Forward) + sin(theta1) * Up);
+
+        return (vertexID == 0) ? p0 : p1;
+    }
+    else
+    {
+        // Bottom Hemisphere
+        uint idx = localID - (NumSegmentsCircle * 2 + NumVerticalLines + (NumHemisphereSegments * 4));
+        uint group = idx / NumHemisphereSegments; // 0: 0°, 1: 90°, 2: 180°, 3: 270°
+        uint seg = idx % NumHemisphereSegments;
+
+        float phi;
+        if (group == 0)
+            phi = 0.0f;
+        else if (group == 1)
+            phi = PI * 0.5f;
+        else if (group == 2)
+            phi = PI;
+        else
+            phi = PI * 1.5f;
+
+        float theta0 = (seg) * (PI * 0.5f / NumHemisphereSegments);
+        float theta1 = (seg + 1) * (PI * 0.5f / NumHemisphereSegments);
+
+        float3 p0 = bottomCenter
+            + capsule.Radius * (cos(theta0) * (cos(phi) * Right + sin(phi) * Forward) - sin(theta0) * Up);
+        float3 p1 = bottomCenter
+            + capsule.Radius * (cos(theta1) * (cos(phi) * Right + sin(phi) * Forward) - sin(theta1) * Up);
+
+        return (vertexID == 0) ? p0 : p1;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////
 // 메인 버텍스 셰이더
 /////////////////////////////////////////////////////////////////////////
 PS_INPUT mainVS(VS_INPUT input)
@@ -321,7 +456,7 @@ PS_INPUT mainVS(VS_INPUT input)
     // ConeCount 개수만큼이므로 총 (2 * SegmentCount * ConeCount).
     uint coneInstCnt = ConeCount * 2 * g_ConeData[0].ConeSegmentCount;
     
-    uint sphereInstCnt = SphereCount * 2 * 3 * 32;
+    uint sphereInstCnt = SphereCount * 3 * 32;
     
     uint lineInstCnt = LineCount * 2;
 
@@ -337,8 +472,12 @@ PS_INPUT mainVS(VS_INPUT input)
     // 3) 선 구간 시작 지점
     uint lineInstanceStart = sphereInstanceStart + sphereInstCnt;
     // 4) 그 다음(=선 구간의 끝)이 곧 OBB 시작 지점
-    uint obbStart = lineInstanceStart + lineInstCnt;
-
+    uint obbInstanceStart = lineInstanceStart + lineInstCnt;
+    uint obbInstanceCount = 12 * OBBCount; // OBB도 12 edges per box
+    
+    uint capsuleInstanceStart = obbInstanceStart + obbInstanceCount;
+    uint capsuleInstanceCount = CapsuleCount * (16 * 2 + 4 + 16*4);
+    
     // 이제 instanceID를 기준으로 분기
     if (input.instanceID < gridLineCount)
     {
@@ -390,7 +529,7 @@ PS_INPUT mainVS(VS_INPUT input)
         
         color = g_SphereData[sphereIndex].Color;
     }
-    else if (input.instanceID < obbStart)
+    else if (input.instanceID < obbInstanceStart)
     {
         // 그 다음 line 구간
         uint lineInstanceID = input.instanceID - lineInstanceStart;
@@ -398,14 +537,26 @@ PS_INPUT mainVS(VS_INPUT input)
         uint lineIndex = lineInstanceID / 2;
         color = g_LineData[lineIndex].Color;
     }
-    else
+    else if (input.instanceID < obbInstanceStart + obbInstanceCount)
     {
-        uint obbLocalID = input.instanceID - obbStart;
+        uint obbLocalID = input.instanceID - obbInstanceStart;
         uint obbIndex = obbLocalID / 12;
         uint edgeIndex = obbLocalID % 12;
 
         pos = ComputeOrientedBoxPosition(obbIndex, edgeIndex, input.vertexID);
-        color = float4(0.4, 1.0, 0.4, 1.0); // 예시: 연두색
+        color = float4(0.0, 0.0, 1.0, 1.0);
+    }
+    else if (input.instanceID < capsuleInstanceStart + capsuleInstanceCount)
+    {
+        uint capsuleLocalID = input.instanceID - capsuleInstanceStart;
+        pos = ComputeCapsulePosition(capsuleLocalID, input.vertexID);
+        uint capsuleIndex = capsuleLocalID / 100;
+        
+        color = g_Capsules[capsuleIndex].Color;
+    }
+    else
+    {
+        
     }
 
     // 출력 변환

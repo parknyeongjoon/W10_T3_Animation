@@ -491,8 +491,8 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
     
     if (MaterialInfo.bHasTexture == true)
     {
-        const std::shared_ptr<FTexture> texture = GEngine->resourceMgr.GetTexture(MaterialInfo.DiffuseTexturePath);
-        const std::shared_ptr<FTexture> NormalTexture = GEngine->resourceMgr.GetTexture(MaterialInfo.NormalTexturePath);
+        const std::shared_ptr<FTexture> texture = GEngine->ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
+        const std::shared_ptr<FTexture> NormalTexture = GEngine->ResourceManager.GetTexture(MaterialInfo.NormalTexturePath);
         if (texture)
         {
             Graphics.DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);

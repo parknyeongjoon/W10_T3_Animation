@@ -4,8 +4,8 @@
 #include "Engine/Engine.h"
 #include "Renderer/Renderer.h"
 #include "Engine/ResourceManager.h"
+#include "Physics/FCollisionManager.h"
 #include "Script/LuaManager.h"
-
 
 class FSceneMgr;
 class UnrealEd;
@@ -44,7 +44,8 @@ private:
 public:
     static FGraphicsDevice graphicDevice;
     static FRenderer renderer;
-    static FResourceManager resourceMgr;
+    static FResourceManager ResourceManager;
+    static FCollisionManager CollisionManager;
     
     HWND hWnd;
     ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;

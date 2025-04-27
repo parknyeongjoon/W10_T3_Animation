@@ -33,8 +33,6 @@ void UBillboardComponent::InitializeComponent()
 	CreateQuadTextureVertexBuffer();
 }
 
-
-
 void UBillboardComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
@@ -55,7 +53,7 @@ int UBillboardComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDi
 
 void UBillboardComponent::SetTexture(FWString _fileName)
 {
-	Texture = UEditorEngine::resourceMgr.GetTexture(_fileName);
+	Texture = UEditorEngine::ResourceManager.GetTexture(_fileName);
 }
 
 // void UBillboardComponent::SetUUIDParent(USceneComponent* _parent)

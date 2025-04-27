@@ -1,7 +1,7 @@
-#pragma once
-#include "Define.h"
-#include "Quat.h"
-#include "Rotator.h"
+#pragma once  
+#include "Define.h"  
+#include "Quat.h"  
+#include "Rotator.h"  
 
 class JungleMath
 {
@@ -21,5 +21,6 @@ public:
     static float DegToRad(float degree);
     static FQuat EulerToQuaternion(const FVector& eulerDegrees);
     static FVector QuaternionToEuler(const FQuat& quat);
+    static FVector ClosestPointOnSegment(const FVector& A, const FVector& B, const FVector& Point);
+    static void FindClosestPointsBetweenSegments(const FVector& P1, const FVector& Q1, const FVector& P2, const FVector& Q2, FVector& ClosestP1, FVector& ClosestP2);
 };
-
