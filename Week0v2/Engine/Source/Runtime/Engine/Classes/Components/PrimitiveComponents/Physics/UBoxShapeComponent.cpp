@@ -1,7 +1,7 @@
 #include "UBoxShapeComponent.h"
 #include "Math/JungleMath.h"
 
-UBoxShapeComponent::UBoxShapeComponent()
+UBoxShapeComponent::UBoxShapeComponent() : BoxExtent(1.0f,1.0f,1.0f)
 
 {
 }

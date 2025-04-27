@@ -456,7 +456,7 @@ PS_INPUT mainVS(VS_INPUT input)
     // ConeCount 개수만큼이므로 총 (2 * SegmentCount * ConeCount).
     uint coneInstCnt = ConeCount * 2 * g_ConeData[0].ConeSegmentCount;
     
-    uint sphereInstCnt = SphereCount * 2 * 3 * 32;
+    uint sphereInstCnt = SphereCount * 3 * 32;
     
     uint lineInstCnt = LineCount * 2;
 
