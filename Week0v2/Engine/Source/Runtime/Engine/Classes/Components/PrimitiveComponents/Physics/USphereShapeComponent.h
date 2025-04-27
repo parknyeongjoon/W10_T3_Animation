@@ -16,6 +16,6 @@ public:
     float GetRadius() const { return Radius; }
 
 private:
-    float Radius;
+    float Radius=10.0f;
 };
 

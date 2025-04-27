@@ -12,6 +12,8 @@
 #include "Components/LightComponents/SpotLightComponent.h"
 #include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
+#include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 class USpotLightComponent;
 extern UEditorEngine* GEngine;
 
@@ -30,6 +32,7 @@ FLineBatchRenderPass::FLineBatchRenderPass(const FName& InShaderName)
 
 void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
+    UPrimitiveBatch& PrimitveBatch = UPrimitiveBatch::GetInstance();
     for (const AActor* actor : InWorld->GetActors())
     {
         for (const UActorComponent* actorComp : actor->GetComponents())
@@ -40,7 +43,7 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
                 FMatrix ModelMatrix = pShapeComponent->GetWorldMatrix();
                 FVector Center = pShapeComponent->GetComponentLocation();
 
-                UPrimitiveBatch::GetInstance().AddAABB(Box, Center, ModelMatrix);
+                PrimitveBatch.AddAABB(Box, Center, ModelMatrix);
 
             }
             if (UCapsuleShapeComponent* pCapsuleShapeComponent = Cast<UCapsuleShapeComponent>(actorComp))
@@ -51,7 +54,21 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
                 float CapsuleHalfHeight = pCapsuleShapeComponent->GetHalfHeight();
                 float CapsuleRaidus = pCapsuleShapeComponent->GetRadius();
 
-                UPrimitiveBatch::GetInstance().AddCapsule(Center, UpVector, CapsuleHalfHeight, CapsuleRaidus,Color);
+                PrimitveBatch.AddCapsule(Center, UpVector, CapsuleHalfHeight, CapsuleRaidus,Color);
+
+            }
+            if (USphereShapeComponent* pSphereShapeComponent = Cast<USphereShapeComponent>(actorComp))
+            {
+
+                FVector Center = pSphereShapeComponent->GetComponentLocation();
+                float radius = pSphereShapeComponent->GetRadius();
+                FVector4 color = (1.0f, 0.0f, 0.0f, 1.0f);
+
+                PrimitveBatch.AddSphere(Center, radius, color);
+
+            }
+            if (UBoxShapeComponent* pBoxShapeComponent = Cast<UBoxShapeComponent>(actorComp))
+            {
 
             }
         }

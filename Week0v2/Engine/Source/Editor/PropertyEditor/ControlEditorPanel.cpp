@@ -341,6 +341,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
                     TempActor->AddComponent<UBoxShapeComponent>();
                     TempActor->AddComponent<UCapsuleShapeComponent>();
+                    TempActor->AddComponent<USphereShapeComponent>();
 
                     SpawnedActor = TempActor;
                     break;
