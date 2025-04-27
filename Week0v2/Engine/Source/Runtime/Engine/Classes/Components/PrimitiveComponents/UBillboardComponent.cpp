@@ -124,13 +124,19 @@ void UBillboardComponent::CreateQuadTextureVertexBuffer()
     VBIBTopologyMappingName = TEXT("Quad");
 }
 
-std::shared_ptr<FActorComponentInfo> UBillboardComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> UBillboardComponent::GetComponentInfo()
 {
-    std::shared_ptr<FBillboardComponentInfo>Info = std::make_shared<FBillboardComponentInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
-    Info->TexturePath = Texture->path;
-
+    auto Info = std::make_unique<FActorComponentInfo>();
+    SaveComponentInfo(*Info);
+    
     return Info;
+}
+
+void UBillboardComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FBillboardComponentInfo& Info = static_cast<FBillboardComponentInfo&>(OutInfo);
+    Super::SaveComponentInfo(Info);
+    Info.TexturePath = Texture->path;
 }
 
 void UBillboardComponent::LoadAndConstruct(const FActorComponentInfo& Info)

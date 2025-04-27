@@ -60,15 +60,14 @@ void ULightComponentBase::PostDuplicate()
 {
 }
 
-std::shared_ptr<FActorComponentInfo> ULightComponentBase::GetActorComponentInfo()
+void ULightComponentBase::SaveComponentInfo(FActorComponentInfo& OutInfo)
 {
-    std::shared_ptr<FLightComponentBaseInfo> Info = std::make_shared<FLightComponentBaseInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
+    FLightComponentBaseInfo* Info = static_cast<FLightComponentBaseInfo*>(&OutInfo);
+    Super::SaveComponentInfo(*Info);
 
     Info->Color = LightColor;
     Info->Intensity = Intensity;
 
-    return Info;
 }
 
 void ULightComponentBase::LoadAndConstruct(const FActorComponentInfo& Info)

@@ -86,9 +86,23 @@ void ULightComponent::PostDuplicate()
     Super::PostDuplicate();
 }
 
-std::shared_ptr<FActorComponentInfo> ULightComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> ULightComponent::GetComponentInfo()
 {
-    return Super::GetActorComponentInfo();
+    auto Info = std::make_unique<FLightComponentInfo>();
+    SaveComponentInfo(*Info);
+    
+    return Info;
+}
+
+void ULightComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FLightComponentInfo& Info = static_cast<FLightComponentInfo&>(OutInfo);
+    Super::SaveComponentInfo(OutInfo);
+    Info.ShadowResolutionScale = ShadowResolutionScale;
+    Info.ShadowBias = ShadowBias;
+    Info.ShadowSlopeBias = ShadowSlopeBias;
+    Info.ShadowSharpen = ShadowSharpen;
+    
 }
 
 void ULightComponent::LoadAndConstruct(const FActorComponentInfo& Info)

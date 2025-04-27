@@ -47,12 +47,19 @@ void URotatingMovementComponent::PostDuplicate()
     UMovementComponent::PostDuplicate();
 }
 
-std::shared_ptr<FActorComponentInfo> URotatingMovementComponent::GetActorComponentInfo()
+std::unique_ptr<FActorComponentInfo> URotatingMovementComponent::GetComponentInfo()
 {
-    std::shared_ptr<FRotatingMovementComponentInfo> Info = std::make_shared<FRotatingMovementComponentInfo>();
-    Super::GetActorComponentInfo()->Copy(*Info);
-    Info->RotationRate = RotationRate;
+    auto Info = std::make_unique<FRotatingMovementComponentInfo>();
+    SaveComponentInfo(*Info);
+    
     return Info;
+}
+
+void URotatingMovementComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
+{
+    FRotatingMovementComponentInfo* Info = static_cast<FRotatingMovementComponentInfo*>(&OutInfo);
+    Super::SaveComponentInfo(*Info);
+    Info->RotationRate = RotationRate;
 }
 
 void URotatingMovementComponent::LoadAndConstruct(const FActorComponentInfo& Info)

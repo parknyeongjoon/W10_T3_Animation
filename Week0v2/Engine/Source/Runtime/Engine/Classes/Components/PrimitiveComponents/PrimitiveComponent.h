@@ -16,15 +16,7 @@ struct FPrimitiveComponentInfo : FSceneComponentInfo
         , VBIBTopologyMappingName(TEXT(""))
     {
         InfoType = TEXT("FPrimitiveComponentInfo");
-        ComponentType = TEXT("UPrimitiveComponent");
-    }
-
-    virtual void Copy(FActorComponentInfo& Other) override
-    {
-        FSceneComponentInfo::Copy(Other);
-        FPrimitiveComponentInfo& OtherPrimitive = static_cast<FPrimitiveComponentInfo&>(Other);
-        OtherPrimitive.ComponentVelocity = ComponentVelocity;
-        OtherPrimitive.VBIBTopologyMappingName = VBIBTopologyMappingName;
+        ComponentClass = TEXT("UPrimitiveComponent");
     }
 
     virtual void Serialize(FArchive& ar) const override
@@ -72,7 +64,9 @@ public:
     FVector ComponentVelocity;
 
 public:
-    virtual std::shared_ptr<FActorComponentInfo> GetActorComponentInfo() override;
+    
+    std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
+    virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info);
 public:
     FName GetVBIBTopologyMappingName() const { return VBIBTopologyMappingName; }

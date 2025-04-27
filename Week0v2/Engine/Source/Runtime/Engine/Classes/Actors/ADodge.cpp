@@ -68,7 +68,7 @@ void ADodge::PostDuplicate()
     Super::PostDuplicate();
 }
 
-void ADodge::LoadAndConstruct(const TArray<std::shared_ptr<FActorComponentInfo>>& InfoArray)
+void ADodge::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray)
 {
     AActor::LoadAndConstruct(InfoArray);
 }

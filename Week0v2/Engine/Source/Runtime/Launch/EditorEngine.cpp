@@ -207,8 +207,8 @@ void UEditorEngine::StopPIE()
 
 void UEditorEngine::Exit()
 {
-    LevelEditor->Release();
     GWorld->Release();
+    LevelEditor->Release();
     UIMgr->Shutdown();
     delete UIMgr;
     delete SceneMgr;
