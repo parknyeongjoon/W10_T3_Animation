@@ -49,8 +49,8 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
             if (UCapsuleShapeComponent* pCapsuleShapeComponent = Cast<UCapsuleShapeComponent>(actorComp))
             {
                 FVector Center = pCapsuleShapeComponent->GetComponentLocation();
-                FVector UpVector = pCapsuleShapeComponent->GetUpVector(); // 컴포넌트의 월드 Up 방향
-                FVector4 Color = FVector4(0.4f,1.0f,0.4f,1.0f); // ShapeColor 사용
+                FVector UpVector = pCapsuleShapeComponent->GetUpVector();
+                FVector4 Color = FVector4(0.4f,1.0f,0.4f,1.0f);
                 float CapsuleHalfHeight = pCapsuleShapeComponent->GetHalfHeight();
                 float CapsuleRaidus = pCapsuleShapeComponent->GetRadius();
 
@@ -69,7 +69,15 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
             }
             if (UBoxShapeComponent* pBoxShapeComponent = Cast<UBoxShapeComponent>(actorComp))
             {
+                FVector BoxExtent = pBoxShapeComponent->GetBoxExtent();
+                FVector Center = pBoxShapeComponent->GetComponentLocation();
+                FMatrix WorldMatrix = pBoxShapeComponent->GetWorldMatrix();
 
+                FBoundingBox localAABB;
+                localAABB.min = FVector(-BoxExtent.x, -BoxExtent.y, -BoxExtent.z);
+                localAABB.max = FVector(BoxExtent.x, BoxExtent.y, BoxExtent.z);
+
+                PrimitveBatch.AddOBB(localAABB, Center, WorldMatrix);
             }
         }
     }

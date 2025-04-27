@@ -544,7 +544,7 @@ PS_INPUT mainVS(VS_INPUT input)
         uint edgeIndex = obbLocalID % 12;
 
         pos = ComputeOrientedBoxPosition(obbIndex, edgeIndex, input.vertexID);
-        color = float4(0.4, 1.0, 0.4, 1.0);
+        color = float4(0.0, 0.0, 1.0, 1.0);
     }
     else if (input.instanceID < capsuleInstanceStart + capsuleInstanceCount)
     {
@@ -552,8 +552,7 @@ PS_INPUT mainVS(VS_INPUT input)
         pos = ComputeCapsulePosition(capsuleLocalID, input.vertexID);
         uint capsuleIndex = capsuleLocalID / 100;
         
-        //color = float4(0.4, 1.0, 0.4, 1.0); // 예시: 연두색
-        color = float4(0.77, 0.66, 0.55, 1.0); // 예시: 빨간색
+        color = g_Capsules[capsuleIndex].Color;
     }
     else
     {
