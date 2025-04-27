@@ -4,7 +4,7 @@
 ALight::ALight()
     : Super()
 {
-    BillboardComponent = AddComponent<UBillboardComponent>();
+    BillboardComponent = AddComponent<UBillboardComponent>(EComponentOrigin::Constructor);
 }
 
 ALight::ALight(const ALight& Other)

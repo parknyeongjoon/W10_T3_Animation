@@ -4,7 +4,7 @@
 AExponentialHeightFogActor::AExponentialHeightFogActor()
     :Super()
 {
-    FogComponent = AddComponent<UHeightFogComponent>();
+    FogComponent = AddComponent<UHeightFogComponent>(EComponentOrigin::Constructor);
 }
 
 AExponentialHeightFogActor::AExponentialHeightFogActor(const AExponentialHeightFogActor& Other)

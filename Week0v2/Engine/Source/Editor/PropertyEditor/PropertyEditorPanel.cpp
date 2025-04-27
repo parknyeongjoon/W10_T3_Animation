@@ -186,19 +186,19 @@ void PropertyEditorPanel::Render()
 
                 if (ImGui::Selectable("ProjectileMovementComponent"))
                 {
-                    UProjectileMovementComponent* ProjectileComp = PickedActor->AddComponent<UProjectileMovementComponent>();
+                    UProjectileMovementComponent* ProjectileComp = PickedActor->AddComponent<UProjectileMovementComponent>(EComponentOrigin::Editor);
                     PickedComponent = ProjectileComp;
                 }
 
                 if (ImGui::Selectable("RotatingMovementComponent"))
                 {
-                    URotatingMovementComponent* RotatingComponent = PickedActor->AddComponent<URotatingMovementComponent>();
+                    URotatingMovementComponent* RotatingComponent = PickedActor->AddComponent<URotatingMovementComponent>(EComponentOrigin::Editor);
                     PickedComponent = RotatingComponent;
                 }
                 
                 if (ImGui::Selectable("LuaComponent"))
                 {
-                    ULuaComponent* LuaComponent = PickedActor->AddComponent<ULuaComponent>();
+                    ULuaComponent* LuaComponent = PickedActor->AddComponent<ULuaComponent>(EComponentOrigin::Editor);
                     PickedComponent = LuaComponent;
                 }
 

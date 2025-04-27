@@ -1,10 +1,10 @@
 #pragma once
 #include "Container/String.h"
+#include "Components/ActorComponent.h"
 #include "Container/Array.h"
 #include "Math/Vector.h"
-#include "Serialization/Archive.h"
-#include "Components/ActorComponent.h"
 #include "Math/Quat.h"
+#include "Serialization/Archive.h"
 #include <functional>
 #include <memory>
 
@@ -17,6 +17,8 @@ struct FActorComponentInfo
     FString InfoType;
     EComponentOrigin Origin;
     
+    FGuid ComponentID;
+    
     FString ComponentClass;
     FString ComponentName;
     FString ComponentOwner;
@@ -25,24 +27,26 @@ struct FActorComponentInfo
     bool bIsActive;
     bool bAutoActive;
     bool bIsRoot;
-    
+
     
     FActorComponentInfo()
         : InfoType(TEXT("FActorComponentInfo")), ComponentClass(TEXT("")), Origin(EComponentOrigin::None), bIsRoot(false),
-    bTickEnabled(true), bIsActive(false), bAutoActive(false)
+    bTickEnabled(true), bIsActive(false), bAutoActive(false), ComponentID() 
     {}
     
     virtual ~FActorComponentInfo() = default;
 
     virtual void Serialize(FArchive& ar) const
     {
-        ar << InfoType << ComponentClass << (int)Origin << ComponentName << ComponentOwner << bTickEnabled << bIsActive << bAutoActive << bIsRoot;
+        ar << InfoType << ComponentClass << (int)Origin  << ComponentName << ComponentOwner << bTickEnabled << bIsActive << bAutoActive << bIsRoot;
+        ar << ComponentID.A << ComponentID.B << ComponentID.C << ComponentID.D;
     }
 
     virtual void Deserialize(FArchive& ar)
     {
-        int iOrigin;
+        int iOrigin  = 0;
         ar >> InfoType >> ComponentClass >> iOrigin >> ComponentName >> ComponentOwner >> bTickEnabled >> bIsActive >> bAutoActive>> bIsRoot;
+        ar >> ComponentID.A >> ComponentID.B >> ComponentID.C >> ComponentID.D;
         Origin = static_cast<EComponentOrigin>(iOrigin);
     }
 

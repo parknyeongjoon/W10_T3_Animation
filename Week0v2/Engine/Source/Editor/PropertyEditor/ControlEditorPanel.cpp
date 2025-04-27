@@ -325,7 +325,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 case OBJ_ACTOR:
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_ACTOR"));
-                    SpawnedActor->AddComponent<USceneComponent>();
+                    SpawnedActor->AddComponent<USceneComponent>(EComponentOrigin::Editor);
                     break;
                     // 🔷 셰이프
                 case OBJ_CUBE:
@@ -385,7 +385,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_PARTICLE"));
-                    UParticleSubUVComp* Particle = SpawnedActor->AddComponent<UParticleSubUVComp>();
+                    UParticleSubUVComp* Particle = SpawnedActor->AddComponent<UParticleSubUVComp>(EComponentOrigin::Editor);
                     Particle->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
                     Particle->SetRowColumnCount(6, 6);
                     Particle->SetRelativeScale(FVector(10.0f, 10.0f, 10.0f));
@@ -396,7 +396,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_TEXT"));
-                    UTextComponent* Text = SpawnedActor->AddComponent<UTextComponent>();
+                    UTextComponent* Text = SpawnedActor->AddComponent<UTextComponent>(EComponentOrigin::Editor);
                     Text->SetTexture(L"Assets/Texture/font.png");
                     Text->SetRowColumnCount(106, 106);
                     Text->SetText(L"안녕하세요 Jungle 1");

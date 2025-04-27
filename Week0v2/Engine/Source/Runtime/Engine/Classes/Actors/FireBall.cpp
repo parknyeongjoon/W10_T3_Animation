@@ -8,12 +8,12 @@
 AFireBall::AFireBall()
     : Super()
 {
-    FireBallComponent = AddComponent<UFireBallComponent>();
-    LightComp = AddComponent<UPointLightComponent>();
+    FireBallComponent = AddComponent<UFireBallComponent>(EComponentOrigin::Constructor);
+    LightComp = AddComponent<UPointLightComponent>(EComponentOrigin::Constructor);
     LightComp->SetIntensity(3.f);
     LightComp->SetRadius(20.f);
-    ProjMovementComp = AddComponent<UProjectileMovementComponent>();
-    BillboardComponent = AddComponent<UBillboardComponent>();
+    ProjMovementComp = AddComponent<UProjectileMovementComponent>(EComponentOrigin::Constructor);
+    BillboardComponent = AddComponent<UBillboardComponent>(EComponentOrigin::Constructor);
     BillboardComponent->SetTexture(L"Assets/Texture/spotLight.png");
 }
 

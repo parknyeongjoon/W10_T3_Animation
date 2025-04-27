@@ -7,7 +7,7 @@
 ADirectionalLightActor::ADirectionalLightActor()
     : Super()
 {
-    LightComponent = AddComponent<UDirectionalLightComponent>();
+    LightComponent = AddComponent<UDirectionalLightComponent>(EComponentOrigin::Constructor);
     BillboardComponent->SetTexture(L"Assets/Texture/S_LightDirectional.png");
 }
 

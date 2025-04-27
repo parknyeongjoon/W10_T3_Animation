@@ -221,6 +221,7 @@ bool UWorld::DestroyActor(AActor* ThisActor)
     return true;
 }
 
+
 void UWorld::SetPickingGizmo(UObject* Object)
 {
 	pickingGizmo = Cast<USceneComponent>(Object);
@@ -256,6 +257,8 @@ void UWorld::Deserialize(FArchive& ar)
             }
         }
     }
+    Level->PostLoad();
+    
 }
 
 /*************************임시******************************/

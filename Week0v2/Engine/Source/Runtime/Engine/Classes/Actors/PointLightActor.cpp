@@ -6,7 +6,7 @@
 
 APointLightActor::APointLightActor()
 {
-    LightComponent = AddComponent<UPointLightComponent>();
+    LightComponent = AddComponent<UPointLightComponent>(EComponentOrigin::Constructor);
     BillboardComponent->SetTexture(L"Assets/Texture/S_LightPoint.png");
 }
 

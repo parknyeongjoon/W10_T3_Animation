@@ -4,17 +4,21 @@
 #include "UObject/ObjectMacros.h"
 #include "ActorComponentInfo.h"
 #include "Math/Rotator.h"
+#include "Misc/Guid.h"
 
 class USceneComponent;
 
 struct FSceneComponentInfo : public FActorComponentInfo
 {
     DECLARE_ACTORCOMPONENT_INFO(FSceneComponentInfo);
-    
+
     FVector RelativeLocation;
     FRotator RelativeRotation;
     FVector RelativeScale3D;
     FBoundingBox AABB;
+
+    
+    FGuid ParentComponentID;
     
 
     FSceneComponentInfo()
@@ -33,12 +37,14 @@ struct FSceneComponentInfo : public FActorComponentInfo
     {
         FActorComponentInfo::Serialize(ar);
         ar << RelativeLocation << RelativeRotation << RelativeScale3D << AABB;
+        ar << ParentComponentID.A << ParentComponentID.B << ParentComponentID.C << ParentComponentID.D;
     }
 
     virtual void Deserialize(FArchive& ar) override
     {
         FActorComponentInfo::Deserialize(ar);
         ar >> RelativeLocation >> RelativeRotation >> RelativeScale3D >> AABB;
+        ar >> ParentComponentID.A >> ParentComponentID.B >> ParentComponentID.C >> ParentComponentID.D;
     }
 };
 
@@ -110,5 +116,8 @@ public:
 
 private:
     class UTextUUID* uuidText = nullptr;
+private:
+    FGuid PendingAttachParentID; // 로드 후 링크를 위해 임시 저장
 public:
+    FGuid GetPendingAttachParentID() const { return PendingAttachParentID; }
 };

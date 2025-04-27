@@ -2,6 +2,11 @@
 
 #include "GameFramework/Actor.h"
 
+UActorComponent::UActorComponent()
+    : ComponentID(FGuid::NewGuid())
+{
+}
+
 UActorComponent::UActorComponent(const UActorComponent& Other)
     : UObject(Other)
     , bCanEverTick(Other.bCanEverTick)
@@ -11,6 +16,7 @@ UActorComponent::UActorComponent(const UActorComponent& Other)
     , bIsActive(Other.bIsActive)
     , bTickEnabled(Other.bTickEnabled)
     , bAutoActive(Other.bAutoActive)
+    , ComponentID(FGuid::NewGuid())
 {
     // Owner는 복제 시점에 AActor가 직접 지정
 }
@@ -127,6 +133,7 @@ std::unique_ptr<FActorComponentInfo> UActorComponent::GetComponentInfo()
 void UActorComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
 {
     OutInfo.Origin = ComponentOrigin;
+    OutInfo.ComponentID = ComponentID;
     OutInfo.ComponentClass = GetClass()->GetName();
     OutInfo.ComponentName = GetName();
     OutInfo.ComponentOwner = GetOwner() ? GetOwner()->GetName() : (TEXT("None"));
@@ -139,6 +146,7 @@ void UActorComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
 void UActorComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 {
     ComponentOrigin = Info.Origin;
+    ComponentID = Info.ComponentID;
     SetFName(Info.ComponentName);
     bIsActive = Info.bIsActive;
     bAutoActive = Info.bAutoActive;
