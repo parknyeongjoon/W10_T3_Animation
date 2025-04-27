@@ -6,7 +6,9 @@
 UBoxShapeComponent::UBoxShapeComponent()
     : UShapeComponent()
     , BoxExtent(FVector::OneVector) // Default box extent
+{
 
+}
 UBoxShapeComponent::UBoxShapeComponent(const UBoxShapeComponent& Other)
     : UShapeComponent(Other)
     , BoxExtent(Other.BoxExtent) 

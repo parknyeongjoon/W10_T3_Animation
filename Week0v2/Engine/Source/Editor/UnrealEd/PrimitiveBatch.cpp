@@ -99,7 +99,7 @@ void UPrimitiveBatch::AddOBB(const FBoundingBox& localAABB, const FVector& cente
         { localAABB.min.x, localAABB.max.y, localAABB.max.z },
         { localAABB.max.x, localAABB.max.y, localAABB.max.z }
     };
-
+    
     FOBB faceBB;
     for (int32 i = 0; i < 8; ++i) {
         // 모델 매트릭스로 점을 변환 후, center를 더해준다.

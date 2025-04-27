@@ -37,10 +37,6 @@ public:
 protected:
     virtual void UpdateBroadAABB() {}
 
-    FVector PrevLocation;
-    FRotator PrevRotation;
-    FVector PrevScale;
-
 protected:
     FBoundingBox BroadAABB;
     FVector PrevLocation;
