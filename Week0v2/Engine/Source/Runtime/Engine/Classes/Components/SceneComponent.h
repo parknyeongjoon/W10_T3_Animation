@@ -60,6 +60,7 @@ public:
 
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
+    void DestroyComponent() override;
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance);
     virtual FVector GetForwardVector() const;
     virtual FVector GetRightVector();

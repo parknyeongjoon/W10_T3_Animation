@@ -34,6 +34,15 @@
 
 void PropertyEditorPanel::Render()
 {
+    // TODO PickedComponent 패널에서 뺴기 우선 임시용으로 배치
+    if ((GetAsyncKeyState(VK_DELETE) & 0x8000))
+    {
+        if (PickedComponent != nullptr)
+        {
+            PickedComponent->DestroyComponent();
+            PickedComponent = nullptr;
+        }
+    }
     /* Pre Setup */
     float PanelWidth = (Width) * 0.2f - 6.0f;
     float PanelHeight = (Height) * 0.65f;
@@ -59,6 +68,7 @@ void PropertyEditorPanel::Render()
     /* Render Start */
     ImGui::Begin("Detail", nullptr, PanelFlags);
 
+    AActor* PickedActor = nullptr;
     AEditorPlayer* player = GEngine->GetWorld()->GetEditorPlayer();
     if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
             PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
@@ -717,7 +727,7 @@ void PropertyEditorPanel::Render()
         }
     }
 
-    RenderShapeProperty();
+    RenderShapeProperty(PickedActor);
 
     ImGui::End();
 
@@ -1352,7 +1362,7 @@ void PropertyEditorPanel::RenderForLua(ULuaComponent* LuaComponent)
     ImGui::PopStyleColor(); // 스타일 복원
 }
 
-void PropertyEditorPanel::RenderShapeProperty()
+void PropertyEditorPanel::RenderShapeProperty(AActor* PickedActor)
 {
     if (PickedActor && PickedComponent && PickedComponent->IsA<UBoxShapeComponent>())
     {

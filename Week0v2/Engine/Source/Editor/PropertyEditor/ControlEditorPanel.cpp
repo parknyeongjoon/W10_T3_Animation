@@ -341,7 +341,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/Primitives/Cube.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
-                    TempActor->AddComponent<UBoxShapeComponent>();
+                    TempActor->AddComponent<UBoxShapeComponent>(EComponentOrigin::Editor);
 
                     SpawnedActor = TempActor;
                     break;
@@ -353,7 +353,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/Primitives/Sphere.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Sphere.obj"));
-                    TempActor->AddComponent<USphereShapeComponent>();
+                    TempActor->AddComponent<USphereShapeComponent>(EComponentOrigin::Editor);
 
                     SpawnedActor = TempActor;
                     break;
@@ -365,7 +365,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/Primitives/Capsule.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
-                    TempActor->AddComponent<UCapsuleShapeComponent>();
+                    TempActor->AddComponent<UCapsuleShapeComponent>(EComponentOrigin::Editor);
 
                     SpawnedActor = TempActor;
                     break;
