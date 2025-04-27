@@ -30,6 +30,15 @@
 
 void PropertyEditorPanel::Render()
 {
+    // TODO PickedComponent 패널에서 뺴기 우선 임시용으로 배치
+    if ((GetAsyncKeyState(VK_DELETE) & 0x8000))
+    {
+        if (PickedComponent != nullptr)
+        {
+            PickedComponent->DestroyComponent();
+            PickedComponent = nullptr;
+        }
+    }
     /* Pre Setup */
     float PanelWidth = (Width) * 0.2f - 6.0f;
     float PanelHeight = (Height) * 0.65f;

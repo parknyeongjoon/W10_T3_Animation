@@ -31,6 +31,28 @@ void USceneComponent::TickComponent(float DeltaTime)
 	Super::TickComponent(DeltaTime);
 }
 
+void USceneComponent::DestroyComponent()
+{
+    TArray<USceneComponent*> ChildrenToDestroy = AttachChildren;
+    
+    for (USceneComponent* Child : ChildrenToDestroy)
+    {
+        // 자식 포인터가 유효한지 확인 (필수)
+        if (Child)
+        {
+            Child->DestroyComponent(); // 재귀 호출
+        }
+    }
+    if (AttachParent)
+    {
+        // 부모의 자식 목록에서 현재 컴포넌트 제거
+        AttachParent->AttachChildren.Remove(this);
+        // AttachParent = nullptr; // 어차피 파괴될 것이므로 필수는 아님
+    }
+
+    Super::DestroyComponent();
+}
+
 
 int USceneComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
 {

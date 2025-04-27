@@ -124,7 +124,10 @@ bool AActor::SetRootComponent(USceneComponent* NewRootComponent)
             USceneComponent* OldRootComponent = RootComponent;
             RootComponent = NewRootComponent;
 
-            OldRootComponent->SetupAttachment(RootComponent);
+            if (OldRootComponent)
+            {
+                OldRootComponent->SetupAttachment(RootComponent);
+            }
         }
         return true;
     }

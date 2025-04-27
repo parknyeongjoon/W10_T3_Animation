@@ -187,7 +187,7 @@ void AEditorPlayer::Input()
             cMode = CM_SCALE;
         }
     }
-    if (GetAsyncKeyState(VK_DELETE) & 0x8000)
+    if ((GetAsyncKeyState(VK_LSHIFT) & 0x8000) && (GetAsyncKeyState(VK_DELETE) & 0x8000))
     {
         for (AActor* actor : GEngine->GetWorld()->GetSelectedActors())
         {
