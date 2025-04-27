@@ -337,13 +337,11 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 case OBJ_CUBE:
                 {
                     AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    TempActor->SetActorLabel(TEXT("OBJ_CUBE"));
+                    TempActor->SetActorLabel(TEXT("Cube"));
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
+                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Cube.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
                     TempActor->AddComponent<UBoxShapeComponent>();
-                    TempActor->AddComponent<UCapsuleShapeComponent>();
-                    TempActor->AddComponent<USphereShapeComponent>();
 
                     SpawnedActor = TempActor;
                     break;
@@ -351,25 +349,25 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 case OBJ_SPHERE:
                 {
                     AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    TempActor->SetActorLabel(TEXT("OBJ_SPHERE"));
+                    TempActor->SetActorLabel(TEXT("Sphere"));
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    FManagerOBJ::CreateStaticMesh("Assets/apple_mid.obj");
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"apple_mid.obj"));
-                    TempActor->AddComponent<UCapsuleShapeComponent>();
+                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Sphere.obj");
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Sphere.obj"));
+                    TempActor->AddComponent<USphereShapeComponent>();
 
                     SpawnedActor = TempActor;
                     break;
                 }
                 case OBJ_CAPSULE:
                 {
-                    //AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    //TempActor->SetActorLabel(TEXT("OBJ_CAPSULE"));
-                    //UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    //FManagerOBJ::CreateStaticMesh("Assets/Capsule.obj");
-                    //MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
-                    //TempActor->AddComponent<UCapsuleShapeComponent>();
+                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                    TempActor->SetActorLabel(TEXT("Capsule"));
+                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Capsule.obj");
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
+                    TempActor->AddComponent<UCapsuleShapeComponent>();
 
-                    //SpawnedActor = TempActor;
+                    SpawnedActor = TempActor;
                     break;
                 }
                 case OBJ_SKYSPHERE:
