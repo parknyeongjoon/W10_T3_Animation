@@ -66,7 +66,6 @@ int32 UEditorEngine::Init(HWND hwnd)
     
     SceneMgr = new FSceneMgr();
 
-    //TestCoroutine(lua);
     return 0;
 }
 
