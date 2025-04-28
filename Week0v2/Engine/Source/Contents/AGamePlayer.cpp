@@ -17,7 +17,8 @@ AGamePlayer::AGamePlayer(const AGamePlayer& Other) : Super(Other)
 void AGamePlayer::BeginPlay()
 {
     Super::BeginPlay();
-
+    ShowCursor(FALSE);
+    bShowCursor = false;
     GetCursorPos(&lastMousePos);
     UCameraComponent* Camera = GetComponentByClass<UCameraComponent>();
     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(Camera);
@@ -32,6 +33,8 @@ void AGamePlayer::Tick(float DeltaTime)
 void AGamePlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     Super::EndPlay(EndPlayReason);
+    ShowCursor(TRUE);
+    bShowCursor = true;
     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
 }
 
@@ -62,7 +65,6 @@ void AGamePlayer::Input(float DeltaTime)
             bLeftMouseDown = true;
             AGBullet* bullet = GEngine->GetWorld()->SpawnActor<AGBullet>();
             bullet->Fire(GetActorLocation(), GetActorForwardVector(), 50);
-            UE_LOG(LogLevel::Display, "GamePlayer Left Mouse Click");
         }
     }
     else
@@ -75,12 +77,26 @@ void AGamePlayer::Input(float DeltaTime)
         if (!bRightMouseDown)
         {
             bRightMouseDown = true;
-            UE_LOG(LogLevel::Display, "GamePlayer Right Mouse Click");
         }
     }
     else
     {
         if (bRightMouseDown) bRightMouseDown = false;
+    }
+
+    if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+    {
+        if (!bSpacePressedLastFrame)
+        {
+            bShowCursor = !bShowCursor;
+            ShowCursor(bShowCursor ? TRUE : FALSE);
+
+            bSpacePressedLastFrame = true;
+        }
+    }
+    else
+    {
+        bSpacePressedLastFrame = false;
     }
 
     POINT currentMousePos;

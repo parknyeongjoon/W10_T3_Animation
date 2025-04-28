@@ -24,6 +24,8 @@ private:
     float MoveSpeed = 0.1f;
     bool bLeftMouseDown = false;
     bool bRightMouseDown = false;
+    bool bShowCursor = false;
+    bool bSpacePressedLastFrame = false;
     POINT lastMousePos;
 };
 
