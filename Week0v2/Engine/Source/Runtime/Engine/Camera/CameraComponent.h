@@ -7,6 +7,7 @@ class UCameraComponent : public USceneComponent
 
 public:
     UCameraComponent();
+    UCameraComponent(const UCameraComponent& Other);
     virtual ~UCameraComponent() override;
 
     virtual void InitializeComponent() override;
@@ -20,6 +21,10 @@ public:
     void RotatePitch(float _Value);
 
     bool IsCameraMode() const { return bRightMouseDown; }
+
+    virtual UObject* Duplicate() const override;
+    virtual void DuplicateSubObjects(const UObject* Source) override;
+    virtual void PostDuplicate() override;
 
 private:
     float mouseSpeed = 0.25f;
@@ -41,4 +46,7 @@ public:
     float& GetFarClip() { return farClip; }
     void SetMouseSpeed(float _Value) { mouseSpeed = _Value; }
     float GetMouseSpeed() const { return mouseSpeed; }
+
+    FMatrix GetViewMatrix() const;
+    FMatrix GetProjectionMatrix() const;
 };

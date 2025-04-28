@@ -26,7 +26,7 @@ void SLevelEditor::Initialize()
         viewportClients[i] = std::make_shared<FEditorViewportClient>();
         viewportClients[i]->Initialize(i);
     }
- 
+
     OnResize();
     VSplitter = new SSplitterV();
     VSplitter->Initialize(FRect(0.0f, EditorHeight * 0.5f - 10, EditorHeight, 20));
@@ -38,26 +38,29 @@ void SLevelEditor::Initialize()
     bInitialize = true;
 }
 
-void SLevelEditor::Tick(double deltaTime)
+void SLevelEditor::Tick(ELevelTick tickType, double deltaTime)
 {
-    if (bMultiViewportMode) {
-        POINT pt;
-        GetCursorPos(&pt);
-        ScreenToClient(GEngine->hWnd, &pt);
-        if (VSplitter->IsHover(FPoint(pt.x, pt.y)) || HSplitter->IsHover(FPoint(pt.x, pt.y)))
-        {
-            SetCursor(LoadCursor(NULL, IDC_SIZEALL));
+    if (tickType == LEVELTICK_ViewportsOnly)
+    {
+        if (bMultiViewportMode) {
+            POINT pt;
+            GetCursorPos(&pt);
+            ScreenToClient(GEngine->hWnd, &pt);
+            if (VSplitter->IsHover(FPoint(pt.x, pt.y)) || HSplitter->IsHover(FPoint(pt.x, pt.y)))
+            {
+                SetCursor(LoadCursor(NULL, IDC_SIZEALL));
+            }
+            else
+            {
+                SetCursor(LoadCursor(NULL, IDC_ARROW));
+            }
+            Input();
         }
-        else
-        {
-            SetCursor(LoadCursor(NULL, IDC_ARROW));
-        }
-        Input();
     }
     //Test Code Cursor icon End
     OnResize();
-
     ActiveViewportClient->Tick(deltaTime);
+
 }
 
 void SLevelEditor::Input()
@@ -152,9 +155,9 @@ void SLevelEditor::OnResize()
     EditorHeight = GEngine->graphicDevice.screenHeight;
     if (bInitialize) {
         //HSplitter 에는 바뀐 width 비율이 들어감 
-        HSplitter->OnResize(EditorWidth/PrevWidth, EditorHeight);
+        HSplitter->OnResize(EditorWidth / PrevWidth, EditorHeight);
         //HSplitter 에는 바뀐 Height 비율이 들어감 
-        VSplitter->OnResize(EditorWidth, EditorHeight/PrevHeight);
+        VSplitter->OnResize(EditorWidth, EditorHeight / PrevHeight);
         ResizeViewports();
     }
 }
@@ -163,7 +166,7 @@ void SLevelEditor::ResizeViewports()
 {
     if (bMultiViewportMode) {
         if (GetViewports()[0]) {
-            for (int i = 0;i < 4;++i)
+            for (int i = 0; i < 4; ++i)
             {
                 GetViewports()[i]->ResizeViewport(VSplitter->SideLT->Rect, VSplitter->SideRB->Rect,
                     HSplitter->SideLT->Rect, HSplitter->SideRB->Rect);

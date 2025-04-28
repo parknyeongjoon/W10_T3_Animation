@@ -12,7 +12,6 @@
 #include "Contents/GameManager.h"
 #include "Serialization/FWindowsBinHelper.h"
 
-
 UWorld::UWorld(const UWorld& Other): UObject(Other)
                                    , defaultMapName(Other.defaultMapName)
                                    , Level(Other.Level)

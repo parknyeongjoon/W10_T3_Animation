@@ -96,8 +96,6 @@ void RegisterWaitHelpers(sol::state& lua)
 
 void TestCoroutine(sol::state& lua)
 {
-    //Test Code. TODO Delete This
-    lua.open_libraries(sol::lib::base, sol::lib::coroutine, sol::lib::os);
 
     // Wait Helper 등록
     RegisterWaitHelpers(lua);

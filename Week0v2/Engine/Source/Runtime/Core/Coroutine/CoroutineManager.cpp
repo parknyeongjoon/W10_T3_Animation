@@ -8,13 +8,13 @@ void FCoroutineManager::StartCoroutine(IEnumerator* Coroutine)
 
 void FCoroutineManager::Tick(float DeltaTime)
 {
-    float deltaSeconds = DeltaTime * 1000.0f;
+    float deltaSeconds = DeltaTime / 1000.0f;
 
     for (auto*& Coroutine : Coroutines)
     {
         if (Coroutine)
         {
-            if (!Coroutine->MoveNext(DeltaTime))
+            if (!Coroutine->MoveNext(deltaSeconds))
             {
                 delete Coroutine;
                 Coroutine = nullptr;

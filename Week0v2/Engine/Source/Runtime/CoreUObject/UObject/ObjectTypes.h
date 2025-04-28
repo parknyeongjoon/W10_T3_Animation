@@ -4,6 +4,7 @@
 enum OBJECTS
 {
     OBJ_ACTOR,
+    OBJ_GAMEPLAYER,
     OBJ_CUBE,
     OBJ_SPHERE,
     OBJ_CAPSULE,

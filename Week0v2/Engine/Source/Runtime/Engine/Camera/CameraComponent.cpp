@@ -5,8 +5,14 @@
 #include "Engine/World.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "LevelEditor/SLevelEditor.h"
-
+#include "Math/JungleMath.h"
 UCameraComponent::UCameraComponent()
+{
+}
+
+UCameraComponent::UCameraComponent(const UCameraComponent& Other)
+    :Super(Other),
+    FOV(Other.FOV), nearClip(Other.nearClip), farClip(Other.farClip)
 {
 }
 
@@ -118,4 +124,43 @@ void UCameraComponent::RotatePitch(float _Value)
 		RelativeRotation.Pitch = -90.0f;
 	if (RelativeRotation.Pitch > 90.0f)
 		RelativeRotation.Pitch = 90.0f;
+}
+
+UObject* UCameraComponent::Duplicate() const
+{
+    UCameraComponent* NewComp = FObjectFactory::ConstructObjectFrom<UCameraComponent>(this);
+    NewComp->DuplicateSubObjects(this);
+    NewComp->PostDuplicate();
+
+    return NewComp;
+}
+
+void UCameraComponent::DuplicateSubObjects(const UObject* Source)
+{
+    Super::DuplicateSubObjects(Source);
+}
+
+void UCameraComponent::PostDuplicate()
+{
+    Super::PostDuplicate();
+}
+
+FMatrix UCameraComponent::GetViewMatrix() const
+{
+    FVector CameraPos = GetComponentLocation();
+    FVector CameraForward = GetForwardVector();
+    FVector CameraUP = FVector(0,0,1);
+
+    return JungleMath::CreateViewMatrix(CameraPos,CameraPos+CameraForward, CameraUP);
+}
+
+FMatrix UCameraComponent::GetProjectionMatrix() const
+{
+    float AspectRatio = GEngine->GetAspectRatio(GEngine->graphicDevice.SwapChain);
+    return JungleMath::CreateProjectionMatrix(
+        FMath::DegreesToRadians(FOV),
+        AspectRatio,
+        nearClip,
+        farClip
+    );
 }
