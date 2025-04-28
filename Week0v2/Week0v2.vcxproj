@@ -617,6 +617,7 @@
     <Natvis Include="Week0v2.natvis" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Engine\Source\Contents\" />
     <Folder Include="Shaders\ShaderHeaders\" />
   </ItemGroup>
   <ItemGroup>
