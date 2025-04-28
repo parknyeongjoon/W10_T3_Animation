@@ -68,7 +68,7 @@ void AGEnemy::Tick(float DeltaTime)
     if (bIsDead)
     {
         DeadTimer += DeltaTime;
-        if (DeadTimer > 3.0f)
+        if (DeadTimer > 1.0f)
         {
             Destroy();
         }
