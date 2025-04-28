@@ -7,6 +7,7 @@ class AGEnemy : public AActor
 {
     DECLARE_CLASS(AGEnemy, AActor)
     DECLARE_MULTICAST_DELEGATE(OnHitEvent)
+    DECLARE_MULTICAST_DELEGATE(OnDeadEvent)
 public:
     AGEnemy();
     AGEnemy(const AGEnemy& Other);
@@ -23,8 +24,11 @@ public:
 
     void OnDamaged();
     void ChangeColor(FVector NewColor) const;
-private:
+
     OnHitEvent OnHit;
+    OnDeadEvent OnDead;
+private:
+    
     UStaticMeshComponent* MeshComp;
     UCapsuleShapeComponent* Capsule;
     UBillboardComponent* HeartUI[3];

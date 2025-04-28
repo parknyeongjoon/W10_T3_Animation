@@ -1,5 +1,6 @@
 ﻿#include "AGEnemy.h"
 
+#include "GameManager.h"
 #include "Components/Material/Material.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 #include "Engine/FLoaderOBJ.h"
@@ -23,7 +24,7 @@ AGEnemy::AGEnemy()
         HeartUI[i]->SetTexture(L"Assets/Texture/heartpixelart.png");
         HeartUI[i]->SetRelativeLocation(FVector(0.0f, 0.0f, 3.0f));
         HeartUI[i]->bOnlyForEditor = false;
-        HeartUI[i]->SetRelativeLocation(FVector(-1 + i, 0, 1.5f));
+        HeartUI[i]->SetRelativeLocation(FVector(i - 1, 0, 1.5f));
     }
     
     ChangeColor(FVector(0,200,100));
@@ -37,6 +38,7 @@ void AGEnemy::BeginPlay()
 {
     Super::BeginPlay();
     OnHit.AddUObject(this, &AGEnemy::OnDamaged);
+    OnDead.AddStatic(FGameManager::AddScore);
     // FCoroutineManager::StartCoroutine()
 }
 
@@ -102,6 +104,7 @@ void AGEnemy::OnDamaged()
     case 0:
         ChangeColor(FVector(0.2,0.2,0.2));
         HeartUI[0]->DestroyComponent();
+        OnDead.Broadcast();
         break;
     }
 }
