@@ -41,4 +41,7 @@ public:
     float& GetFarClip() { return farClip; }
     void SetMouseSpeed(float _Value) { mouseSpeed = _Value; }
     float GetMouseSpeed() const { return mouseSpeed; }
+
+    FMatrix GetViewMatrix() const;
+    FMatrix GetProjectionMatrix() const;
 };

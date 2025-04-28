@@ -85,6 +85,7 @@ void FEditorViewportClient::Release()
 
 void FEditorViewportClient::Input()
 {
+    if (GEngine->levelType != LEVELTICK_ViewportsOnly) return;
     ImGuiIO& io = ImGui::GetIO();
     if (io.WantCaptureMouse) return;
     if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) // VK_RBUTTON은 마우스 오른쪽 버튼을 나타냄

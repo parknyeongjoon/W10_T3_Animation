@@ -2,12 +2,13 @@
 #include "Camera/CameraComponent.h"
 AGamePlayer::AGamePlayer()
 {
-    Camera = AddComponent<UCameraComponent>(EComponentOrigin::Constructor);
+    //Camera = AddComponent<UCameraComponent>(EComponentOrigin::Constructor);
 }
 
 void AGamePlayer::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+    UE_LOG(LogLevel::Display, "GamePlayer Tick");
     Input();
 }
 

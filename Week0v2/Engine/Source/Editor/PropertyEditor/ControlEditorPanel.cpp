@@ -16,6 +16,7 @@
 #include "Actors/SpotLightActor.h"
 #include <Actors/ExponentialHeightFog.h>
 #include <UObject/UObjectIterator.h>
+#include "Camera/CameraComponent.h"
 
 #include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
@@ -24,6 +25,8 @@
 #include "Components/PrimitiveComponents/UParticleSubUVComp.h"
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
+
+#include "Contents/AGamePlayer.h"
 
 void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
 {
@@ -282,6 +285,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         // 카테고리 순서대로 정렬된 배열
         static const Actor actors[] = {
             { "Defaults", "Actor", OBJ_ACTOR},
+            { "Defaults", "GamePlayer", OBJ_GAMEPLAYER},
             // 🔦 라이트
             { "Lights", "Spot Light",      OBJ_SPOTLIGHT },
             { "Lights", "Point Light",     OBJ_POINTLIGHT },
@@ -333,6 +337,12 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     SpawnedActor->SetActorLabel(TEXT("OBJ_ACTOR"));
                     SpawnedActor->AddComponent<USceneComponent>(EComponentOrigin::Editor);
                     break;
+                case OBJ_GAMEPLAYER:
+                {
+                    SpawnedActor = World->SpawnActor<AGamePlayer>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_GAMEPLAYER"));
+                    SpawnedActor->AddComponent<UCameraComponent>(EComponentOrigin::Editor);
+                }
                     //  셰이프
                 case OBJ_CUBE:
                 {

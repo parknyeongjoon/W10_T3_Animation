@@ -5,7 +5,7 @@
 #include "Engine/World.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "LevelEditor/SLevelEditor.h"
-
+#include "Math/JungleMath.h"
 UCameraComponent::UCameraComponent()
 {
 }
@@ -118,4 +118,14 @@ void UCameraComponent::RotatePitch(float _Value)
 		RelativeRotation.Pitch = -90.0f;
 	if (RelativeRotation.Pitch > 90.0f)
 		RelativeRotation.Pitch = 90.0f;
+}
+
+FMatrix UCameraComponent::GetViewMatrix() const
+{
+    return FMatrix();
+}
+
+FMatrix UCameraComponent::GetProjectionMatrix() const
+{
+    return FMatrix();
 }

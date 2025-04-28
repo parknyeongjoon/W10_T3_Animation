@@ -56,10 +56,10 @@ void SLevelEditor::Tick(ELevelTick tickType, double deltaTime)
             }
             Input();
         }
-        ActiveViewportClient->Tick(deltaTime);
     }
     //Test Code Cursor icon End
     OnResize();
+    ActiveViewportClient->Tick(deltaTime);
 
 }
 

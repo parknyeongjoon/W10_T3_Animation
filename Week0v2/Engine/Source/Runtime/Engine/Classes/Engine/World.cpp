@@ -10,7 +10,6 @@
 #include "Actors/ADodge.h"
 #include "Contents/GameManager.h"
 #include "Serialization/FWindowsBinHelper.h"
-#include "Contents/AGamePlayer.h"
 
 UWorld::UWorld(const UWorld& Other): UObject(Other)
                                    , defaultMapName(Other.defaultMapName)
@@ -53,10 +52,6 @@ void UWorld::CreateBaseObject()
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
 
-    if (GamePlayer == nullptr)
-    {
-        GamePlayer = FObjectFactory::ConstructObject<AGamePlayer>();
-    }
     // ADodge* Dodge1 = SpawnActor<ADodge>();
     // Dodge1->SetActorLocation(FVector(150,0,0));
     // ADodge* Dodge2 = SpawnActor<ADodge>();
@@ -69,7 +64,6 @@ void UWorld::ReleaseBaseObject()
 {
     LocalGizmo = nullptr;
     EditorPlayer = nullptr;
-    GamePlayer = nullptr;
 }
 
 void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
@@ -90,8 +84,6 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
             Actor->BeginPlay();
         }
         Level->PendingBeginPlayActors.Empty();
-
-        GamePlayer->Tick(deltaSeconds);
 
         // 매 틱마다 Actor->Tick(...) 호출
         TArray CopyActors = Level->GetActors();
@@ -152,7 +144,6 @@ void UWorld::DuplicateSubObjects(const UObject* SourceObj)
     Level = Cast<ULevel>(Level->Duplicate());
     EditorPlayer = FObjectFactory::ConstructObject<AEditorPlayer>();
     LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
-    GamePlayer = FObjectFactory::ConstructObject<AGamePlayer>();
 }
 
 void UWorld::PostDuplicate()

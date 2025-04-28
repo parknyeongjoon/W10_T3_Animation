@@ -16,7 +16,6 @@ class UCameraComponent;
 class AEditorPlayer;
 class USceneComponent;
 class UTransformGizmo;
-class AGamePlayer;
 class UWorld final : public UObject
 {
     DECLARE_CLASS(UWorld, UObject)
@@ -91,7 +90,6 @@ private:
     TSet<AActor*> SelectedActors;
     USceneComponent* pickingGizmo = nullptr;
     AEditorPlayer* EditorPlayer = nullptr;
-    AGamePlayer* GamePlayer = nullptr;
 public:
     
     EWorldType::Type WorldType = EWorldType::None;
