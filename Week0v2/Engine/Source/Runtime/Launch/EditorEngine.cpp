@@ -118,9 +118,17 @@ void UEditorEngine::Tick(float deltaSeconds)
     
     UIMgr->BeginFrame();
 
-    UnrealEditor->Render();
+    if (levelType == LEVELTICK_ViewportsOnly)
+    {
+        UnrealEditor->Render();
+    }
+    else if (levelType == LEVELTICK_All)
+    {
+        ContentsUI->Render();
+    }
+    //UnrealEditor->Render();
 
-    ContentsUI->Render();
+    //ContentsUI->Render();
     
     Console::GetInstance().Draw();
     
@@ -161,6 +169,11 @@ void UEditorEngine::Input()
     else
     {
         bTestInput = false;
+    }
+
+    if (GetAsyncKeyState('L') & 0x8000)
+    {
+        LevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
     }
 }
 
