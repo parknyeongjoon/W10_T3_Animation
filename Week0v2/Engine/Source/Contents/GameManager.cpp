@@ -5,7 +5,7 @@
 #include "Engine/World.h"
 
 
- std::shared_ptr<FGameManager> FGameManager::Instance;
+std::shared_ptr<FGameManager> FGameManager::Instance;
 
 FGameManager& FGameManager::Get()
 {
@@ -20,12 +20,12 @@ void FGameManager::BeginPlay()
 {
     Score = 0;
     GameTimer = 0.0f;
-    for (int i=0;i<3;i++)
+    for (int i = 0; i < 3; i++)
     {
-        for (int j=0;j<3;j++)
+        for (int j = 0; j < 3; j++)
         {
             AActor* enemy = GEngine->GetWorld()->SpawnActor<AGEnemy>();
-            enemy->SetActorLocation(FVector(i * 10,j * 10,0));
+            enemy->SetActorLocation(FVector(i * 10, j * 10, 2));
         }
     }
 }

@@ -671,7 +671,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     //float3 TotalLight = MatAmbientColor; // 전역 앰비언트
     // TODO : Lit이면 낮은 값 Unlit이면 float3(1.0f,1.0f,1.0f)면 됩니다.
-    float3 TotalLight = float3(0.15f,0.15f,0.15f); // 전역 앰비언트  
+    float3 TotalLight = float3(0.08f, 0.08f, 0.08f); // 전역 앰비언트  
     
     if (IsSelectedActor == 1)
         TotalLight = TotalLight * 10.0f;
