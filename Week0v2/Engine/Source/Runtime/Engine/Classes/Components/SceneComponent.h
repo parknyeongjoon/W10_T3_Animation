@@ -63,8 +63,8 @@ public:
     void DestroyComponent() override;
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance);
     virtual FVector GetForwardVector() const;
-    virtual FVector GetRightVector();
-    virtual FVector GetUpVector();
+    virtual FVector GetRightVector() const;
+    virtual FVector GetUpVector() const;
     void AddLocation(FVector _added);
     void AddRotation(FVector _added);
     void AddScale(FVector _added);

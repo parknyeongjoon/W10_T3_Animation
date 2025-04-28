@@ -4,6 +4,9 @@
 #include <typeindex>
 #include "Core/Container/Map.h"
 
+
+#include "UObject/Object.h"
+
 #define FUNC_DECLARE_DELEGATE(DelegateName, ReturnType, ...) \
 	using DelegateName = TDelegate<ReturnType(__VA_ARGS__)>;
 

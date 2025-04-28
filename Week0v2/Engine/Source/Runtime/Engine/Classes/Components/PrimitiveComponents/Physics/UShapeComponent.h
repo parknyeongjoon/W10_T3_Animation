@@ -2,6 +2,24 @@
 #include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "Math/Color.h"
 
+enum class EShapeType
+{
+    Box, Sphere, Capsule, None
+};
+
+struct FShapeInfo
+{
+    FShapeInfo() : Type(EShapeType::None), Center(FVector::ZeroVector), WorldMatrix(FMatrix::Identity) {}
+    FShapeInfo(EShapeType InType, const FVector& InCenter, const FMatrix& InWorldMatrix)
+        : Type(InType), Center(InCenter), WorldMatrix(InWorldMatrix) {}
+
+    virtual ~FShapeInfo() = default;
+
+    EShapeType Type;
+    FVector Center;
+    FMatrix WorldMatrix;
+};
+
 class UShapeComponent : public UPrimitiveComponent
 {
     DECLARE_CLASS(UShapeComponent, UPrimitiveComponent);
@@ -29,6 +47,8 @@ public:
     FRotator GetPrevRotation() const { return PrevRotation; }
     FVector GetPrevScale() const { return PrevScale; }
 
+    virtual const FShapeInfo* GetShapeInfo() const { return &ShapeInfo; }
+
     virtual bool TestOverlaps(const UShapeComponent* OtherShape) const;
     virtual bool BroadPhaseCollisionCheck(const UShapeComponent* OtherShape) const;
     virtual bool NarrowPhaseCollisionCheck(const UShapeComponent* OtherShape) const { return false; }
@@ -37,6 +57,8 @@ protected:
     virtual void UpdateBroadAABB() {}
 
 protected:
+    mutable FShapeInfo ShapeInfo;
+
     FBoundingBox BroadAABB;
 
     FVector PrevLocation;
@@ -48,4 +70,3 @@ private:
     bool bDrawOnlyIfSelected;
 };
 
- 
