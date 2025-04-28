@@ -8,6 +8,7 @@
 #include "UObject/UObjectIterator.h"
 #include "Level.h"
 #include "Actors/ADodge.h"
+#include "Contents/GameManager.h"
 #include "Serialization/FWindowsBinHelper.h"
 
 
@@ -153,7 +154,6 @@ void UWorld::PostDuplicate()
 
 void UWorld::ReloadScene(const FString& FileName)
 {
-
     ClearScene(); // 기존 오브젝트 제거
     CreateBaseObject();
     FArchive ar;
@@ -284,7 +284,7 @@ bool UWorld::IsPIEWorld() const
 
 void UWorld::BeginPlay()
 {
-
+    FGameManager::Get().BeginPlay();
 }
 
 UWorld* UWorld::DuplicateWorldForPIE(UWorld* world)
