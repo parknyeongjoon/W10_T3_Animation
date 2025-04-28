@@ -26,6 +26,7 @@
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 
+#include "Contents/AGBullet.h"
 #include "Contents/AGamePlayer.h"
 
 void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
@@ -386,14 +387,20 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 }
                 case OBJ_SKYSPHERE:
                 {
-                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
-                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
-                    TempActor->SetActorRotation(FVector(-90.0f, 0.0f, 0.0f));
-                    TempActor->SetActorScale(FVector(100.0f, 100.0f, 100.0f));
+                    //AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                    //TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
+                    //UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                    //FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
+                    //MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
+                    //TempActor->SetActorRotation(FVector(-90.0f, 0.0f, 0.0f));
+                    //TempActor->SetActorScale(FVector(100.0f, 100.0f, 100.0f));
+                    //SpawnedActor = TempActor;
+
+                    AGBullet* TempActor = World->SpawnActor<AGBullet>();
+                    TempActor->SetActorLabel(TEXT("Bullet"));
+
                     SpawnedActor = TempActor;
+
                     break; // 누락된 break 추가
                 }
 

@@ -8,10 +8,13 @@ struct FBoxShapeInfo : public FShapeInfo
 {
     FBoxShapeInfo()
         : FShapeInfo(EShapeType::Box, FVector::ZeroVector, FMatrix::Identity)
-        , Extent(FVector::ZeroVector) { }
+        , Extent(FVector::ZeroVector)
+        , RotationMatrix(FMatrix::Identity) {
+    }
 
     FBoxShapeInfo(const FVector& InCenter, const FMatrix& InWorldMatrix, const FVector& InExtent)
-        : FShapeInfo(EShapeType::Box, InCenter, InWorldMatrix), Extent(InExtent) { }
+        : FShapeInfo(EShapeType::Box, InCenter, InWorldMatrix), Extent(InExtent) {
+    }
 
     FVector Extent;
     FMatrix RotationMatrix;
@@ -29,6 +32,10 @@ public:
     void InitializeComponent() override;
     void TickComponent(float DeltaTime) override;
 
+    virtual UObject* Duplicate() const override;
+    virtual void DuplicateSubObjects(const UObject* Source) override;
+    virtual void PostDuplicate() override;
+
     void SetBoxExtent(const FVector& InExtent) { BoxExtent = InExtent; }
     FVector GetBoxExtent() const { return BoxExtent; }
 
@@ -45,6 +52,7 @@ private:
 
 protected:
     mutable FBoxShapeInfo ShapeInfo;
+
 private:
     FVector PrevExtent;
     FVector BoxExtent;

@@ -5,14 +5,17 @@
 
 USphereShapeComponent::USphereShapeComponent()
     : UShapeComponent()
+    , ShapeInfo()
     , Radius(0.5f) // Default radius
 {
 }
 
-USphereShapeComponent::USphereShapeComponent(const USphereShapeComponent& Other)  
-   : UShapeComponent(Other) 
-   , Radius(Other.Radius)    
-{  
+USphereShapeComponent::USphereShapeComponent(const USphereShapeComponent& Other)
+    : UShapeComponent(Other)
+    , ShapeInfo(Other.ShapeInfo)
+    , PrevRadius(Other.PrevRadius)
+    , Radius(Other.Radius)
+{
 }
 
 USphereShapeComponent::~USphereShapeComponent()
@@ -36,6 +39,25 @@ void USphereShapeComponent::TickComponent(float DeltaTime)
 
         PrevRadius = Radius;
     }
+}
+
+UObject* USphereShapeComponent::Duplicate() const
+{
+    USphereShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<USphereShapeComponent>(this);
+    NewComp->DuplicateSubObjects(this);
+    NewComp->PostDuplicate();
+
+    return NewComp;
+}
+
+void USphereShapeComponent::DuplicateSubObjects(const UObject* Source)
+{
+    Super::DuplicateSubObjects(Source);
+}
+
+void USphereShapeComponent::PostDuplicate()
+{
+    Super::PostDuplicate();
 }
 
 const FShapeInfo* USphereShapeComponent::GetShapeInfo() const

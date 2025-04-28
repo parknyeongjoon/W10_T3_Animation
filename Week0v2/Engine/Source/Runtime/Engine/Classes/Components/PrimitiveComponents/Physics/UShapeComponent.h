@@ -30,7 +30,9 @@ public:
     ~UShapeComponent() override;
 
     void InitializeComponent() override;
+    void BeginPlay() override;
     void TickComponent(float DeltaTime) override;
+    void DestroyComponent() override;
 
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;

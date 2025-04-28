@@ -30,7 +30,7 @@ void FCollisionManager::Register(const UPrimitiveComponent* InComponent)
     if (InComponent && !RegisteredComponents.Contains(InComponent))
     {
         RegisteredComponents.Add(InComponent);
-        // UE_LOG(LogLevel::Display, "Register : %s", *(InComponent->GetOwner()->GetActorLabel()));
+        //UE_LOG(LogLevel::Display, "Register : %s", *(InComponent->GetOwner()->GetActorLabel()));
         UE_LOG(LogLevel::Display, "Registered Count : %d", RegisteredComponents.Num());
     }
 }
