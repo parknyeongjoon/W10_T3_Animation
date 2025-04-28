@@ -1,6 +1,8 @@
 #include "CoroutineManager.h"
 #include <algorithm>
 
+float FCoroutineManager::CurrentDeltaTime = 0.0f;
+
 void FCoroutineManager::StartCoroutine(IEnumerator* Coroutine)
 {
     Coroutines.Add(Coroutine);
@@ -8,13 +10,13 @@ void FCoroutineManager::StartCoroutine(IEnumerator* Coroutine)
 
 void FCoroutineManager::Tick(float DeltaTime)
 {
-    float deltaSeconds = DeltaTime / 1000.0f;
+    CurrentDeltaTime = DeltaTime / 1000.0f;
 
     for (auto*& Coroutine : Coroutines)
     {
         if (Coroutine)
         {
-            if (!Coroutine->MoveNext(deltaSeconds))
+            if (!Coroutine->MoveNext(CurrentDeltaTime))
             {
                 delete Coroutine;
                 Coroutine = nullptr;

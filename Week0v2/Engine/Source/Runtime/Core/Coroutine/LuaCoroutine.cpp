@@ -92,6 +92,9 @@ void RegisterWaitHelpers(sol::state& lua)
         {
             std::cout << "[LuaLog] " << message << std::endl;
         };
+    lua.set_function("DeltaTime", []() {
+        return FCoroutineManager::CurrentDeltaTime;
+        });
 }
 
 void TestCoroutine(sol::state& lua)

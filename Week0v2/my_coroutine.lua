@@ -36,5 +36,16 @@ function my_coroutine()
         return count > 0
     end))
 
+    elapsedTime = 0
+
+    Log("[Lua] 5초 동안 DeltaTime Print Start")
+
+    coroutine.yield(WaitWhile(function()
+        local dt = DeltaTime()
+        elapsedTime = elapsedTime + dt
+        Log("[Lua] DeltaTime = " .. tostring(dt) .. ", ElapsedTime = " .. tostring(elapsedTime))
+        return elapsedTime < 5.0
+    end))
+
     Log("[Lua] Count finished, exiting coroutine")
 end
