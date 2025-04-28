@@ -13,6 +13,11 @@ AGEnemy::AGEnemy()
     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
     
     Capsule = AddComponent<UCapsuleShapeComponent>(EComponentOrigin::Constructor);
+
+    UMaterial* Material = new UMaterial();
+    FObjMaterialInfo MaterialInfo;
+    Material->SetMaterialInfo(MaterialInfo);
+    MeshComp->SetMaterial(0, Material);
     
     for (int i=0;i<3;i++)
     {
