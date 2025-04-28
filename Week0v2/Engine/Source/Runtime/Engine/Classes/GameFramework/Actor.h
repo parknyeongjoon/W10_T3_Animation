@@ -132,7 +132,7 @@ public:
 
     // BeginOverlap
     template<typename UserClass>
-    FDelegateHandle AddBeginOverlapUObject(UserClass* Object, void(UserClass::* Func)(UPrimitiveComponent*))
+    FDelegateHandle AddBeginOverlapUObject(UserClass* Object, void(UserClass::* Func)(const UPrimitiveComponent*))
     {
         return OnBeginOverlap.AddUObject(Object, Func);
     }
@@ -149,7 +149,7 @@ public:
 
     // EndOverlap
     template<typename UserClass>
-    FDelegateHandle AddEndOverlapUObject(UserClass* Object, void(UserClass::* Func)(UPrimitiveComponent*))
+    FDelegateHandle AddEndOverlapUObject(UserClass* Object, void(UserClass::* Func)(const UPrimitiveComponent*))
     {
         return OnEndOverlap.AddUObject(Object, Func);
     }

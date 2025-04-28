@@ -5,13 +5,16 @@
 
 UBoxShapeComponent::UBoxShapeComponent()
     : UShapeComponent()
+    , ShapeInfo()
     , BoxExtent(FVector::OneVector * 0.5f) // Default box extent
 {
 }
 
 UBoxShapeComponent::UBoxShapeComponent(const UBoxShapeComponent& Other)
     : UShapeComponent(Other)
-    , BoxExtent(Other.BoxExtent) 
+    , ShapeInfo(Other.ShapeInfo)
+    , PrevExtent(Other.PrevExtent)
+    , BoxExtent(Other.BoxExtent)
 {
 }
 
@@ -36,6 +39,25 @@ void UBoxShapeComponent::TickComponent(float DeltaTime)
 
         PrevExtent = BoxExtent;
     }
+}
+
+UObject* UBoxShapeComponent::Duplicate() const
+{
+    UBoxShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<UBoxShapeComponent>(this);
+    NewComp->DuplicateSubObjects(this);
+    NewComp->PostDuplicate();
+
+    return NewComp;
+}
+
+void UBoxShapeComponent::DuplicateSubObjects(const UObject* Source)
+{
+    Super::DuplicateSubObjects(Source);
+}
+
+void UBoxShapeComponent::PostDuplicate()
+{
+    Super::PostDuplicate();
 }
 
 const FShapeInfo* UBoxShapeComponent::GetShapeInfo() const

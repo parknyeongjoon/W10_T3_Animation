@@ -23,7 +23,7 @@ UShapeComponent::UShapeComponent(const UShapeComponent& Other)
 
 UShapeComponent::~UShapeComponent()
 {
-    UEditorEngine::CollisionManager.Unregister(this);
+    
 }
 
 void UShapeComponent::InitializeComponent()
@@ -32,7 +32,10 @@ void UShapeComponent::InitializeComponent()
 
     bDrawOnlyIfSelected = true;
     BroadAABB = FBoundingBox(FVector(-1, -1, -1), FVector(1, 1, 1));
+}
 
+void UShapeComponent::BeginPlay()
+{
     UEditorEngine::CollisionManager.Register(this);
 }
 
@@ -52,6 +55,11 @@ void UShapeComponent::TickComponent(float DeltaTime)
         PrevRotation = CurRotation;
         PrevScale = CurScale;
     }
+}
+
+void UShapeComponent::DestroyComponent()
+{
+    UEditorEngine::CollisionManager.Unregister(this);
 }
 
 UObject* UShapeComponent::Duplicate() const

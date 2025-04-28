@@ -36,6 +36,10 @@ public:
     void InitializeComponent() override;
     void TickComponent(float DeltaTime) override;
 
+    virtual UObject* Duplicate() const override;
+    virtual void DuplicateSubObjects(const UObject* Source) override;
+    virtual void PostDuplicate() override;
+
     void SetRadius(float InRadius) { Radius = InRadius; }
     float GetRadius() const { return Radius; }
 
