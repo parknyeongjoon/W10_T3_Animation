@@ -17,6 +17,7 @@ UActorComponent::UActorComponent(const UActorComponent& Other)
     , bTickEnabled(Other.bTickEnabled)
     , bAutoActive(Other.bAutoActive)
     , ComponentID(FGuid::NewGuid())
+    , ComponentOrigin(Other.ComponentOrigin)
 {
     // Owner는 복제 시점에 AActor가 직접 지정
 }

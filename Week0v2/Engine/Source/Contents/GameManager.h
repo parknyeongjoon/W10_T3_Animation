@@ -4,9 +4,9 @@
 enum class EGameState
 {
     None,
-    BeginPlay,
+    //BeginPlay,
     Playing,
-    Paused,
+    //Paused,
     Ended
 };
 
@@ -29,6 +29,10 @@ public:
 
     int GetScore() const { return Score; }
     void SetScore(int NewScore) { Score = NewScore; }
+
+    static void AddScore() { Get().Score++;}
+    static void StaticSpawnEnemy() {}
+    static void SpawnEnemy();
     
     void SetGameState(EGameState NewState) { CurrentGameState = NewState; }
     EGameState GetGameState() const { return CurrentGameState; }

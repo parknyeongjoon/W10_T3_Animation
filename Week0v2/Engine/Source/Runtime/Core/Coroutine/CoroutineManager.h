@@ -12,6 +12,7 @@ public:
     void Tick(float DeltaTime);
     void CleanupCoroutines();
 
+    static float CurrentDeltaTime;
 private:
     TArray<IEnumerator*> Coroutines;
 };

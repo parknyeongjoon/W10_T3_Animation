@@ -8,6 +8,7 @@
 #include "UObject/ObjectMacros.h"
 #include <sol/sol.hpp>
 #include "ActorInfo.h"
+#include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "Core/Delegates/DelegateCombination.h"
 #include "Components/PrimitiveComponents/PrimitiveComponent.h"
 

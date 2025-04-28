@@ -51,7 +51,6 @@ public:
     static FCoroutineManager CoroutineManager;
     HWND hWnd;
     ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;
-
 private:
     UImGuiManager* UIMgr;
     UWorld* GWorld;

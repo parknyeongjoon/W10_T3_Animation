@@ -8,9 +8,9 @@
 #include "UObject/UObjectIterator.h"
 #include "Level.h"
 #include "Actors/ADodge.h"
+#include "Contents/AGEnemy.h"
 #include "Contents/GameManager.h"
 #include "Serialization/FWindowsBinHelper.h"
-
 
 UWorld::UWorld(const UWorld& Other): UObject(Other)
                                    , defaultMapName(Other.defaultMapName)
@@ -52,12 +52,6 @@ void UWorld::CreateBaseObject()
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
-
-    //ADodge* Dodge1 = SpawnActor<ADodge>();
-    //Dodge1->SetActorLocation(FVector(150,0,0));
-    //ADodge* Dodge2 = SpawnActor<ADodge>();
-    //Dodge2->SetActorScale(FVector(0.5f, 0.5f, 0.5f));
-    //Dodge1->TestDelegate.AddUObject(Dodge2, &ADodge::TestRotate);
 }
 
 void UWorld::ReleaseBaseObject()

@@ -23,7 +23,8 @@ UBillboardComponent::~UBillboardComponent()
 }
 
 UBillboardComponent::UBillboardComponent(const UBillboardComponent& other)
-    : UPrimitiveComponent(other), finalIndexU(other.finalIndexU), finalIndexV(other.finalIndexV), Texture(other.Texture)
+    : UPrimitiveComponent(other), finalIndexU(other.finalIndexU), finalIndexV(other.finalIndexV), Texture(other.Texture),
+bOnlyForEditor(other.bOnlyForEditor)
 {
 }
 
@@ -137,6 +138,7 @@ void UBillboardComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
     FBillboardComponentInfo& Info = static_cast<FBillboardComponentInfo&>(OutInfo);
     Super::SaveComponentInfo(Info);
     Info.TexturePath = Texture->path;
+    Info.bOnlyForEditor = bOnlyForEditor;
 }
 
 void UBillboardComponent::LoadAndConstruct(const FActorComponentInfo& Info)
@@ -144,6 +146,7 @@ void UBillboardComponent::LoadAndConstruct(const FActorComponentInfo& Info)
     Super::LoadAndConstruct(Info);
     const FBillboardComponentInfo& billboardInfo = static_cast<const FBillboardComponentInfo&>(Info);
     SetTexture(billboardInfo.TexturePath);
+    bOnlyForEditor = billboardInfo.bOnlyForEditor;
 }
 
 bool UBillboardComponent::CheckPickingOnNDC(const TArray<FVector>& checkQuad, float& hitDistance)

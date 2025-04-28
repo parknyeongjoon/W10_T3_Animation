@@ -13,7 +13,7 @@ public:
     SLevelEditor();
     ~SLevelEditor();
     void Initialize();
-    void Tick(double deltaTime);
+    void Tick(ELevelTick tickType, double deltaTime);
     void Input();
     void Release();
     

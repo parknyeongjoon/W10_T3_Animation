@@ -92,12 +92,13 @@ void RegisterWaitHelpers(sol::state& lua)
         {
             std::cout << "[LuaLog] " << message << std::endl;
         };
+    lua.set_function("DeltaTime", []() {
+        return FCoroutineManager::CurrentDeltaTime;
+        });
 }
 
 void TestCoroutine(sol::state& lua)
 {
-    //Test Code. TODO Delete This
-    lua.open_libraries(sol::lib::base, sol::lib::coroutine, sol::lib::os);
 
     // Wait Helper 등록
     RegisterWaitHelpers(lua);

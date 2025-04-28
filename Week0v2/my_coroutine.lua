@@ -7,7 +7,7 @@ function my_coroutine()
     Log("[Lua] Start Coroutine")
 
     Log("[Lua] Waiting for 2 seconds...")
-    coroutine.yield(WaitForSeconds(2.0))
+    coroutine.yield(WaitForSeconds(5.0))
     Log("[Lua] 2 seconds passed")
 
     Log("[Lua] Waiting for 3 frames...")
@@ -34,6 +34,17 @@ function my_coroutine()
         count = count - 1
         Log("[Lua] count: " .. tostring(count))
         return count > 0
+    end))
+
+    elapsedTime = 0
+
+    Log("[Lua] 5초 동안 DeltaTime Print Start")
+
+    coroutine.yield(WaitWhile(function()
+        local dt = DeltaTime()
+        elapsedTime = elapsedTime + dt
+        Log("[Lua] DeltaTime = " .. tostring(dt) .. ", ElapsedTime = " .. tostring(elapsedTime))
+        return elapsedTime < 5.0
     end))
 
     Log("[Lua] Count finished, exiting coroutine")

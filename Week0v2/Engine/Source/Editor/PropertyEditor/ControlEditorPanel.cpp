@@ -16,6 +16,7 @@
 #include "Actors/SpotLightActor.h"
 #include <Actors/ExponentialHeightFog.h>
 #include <UObject/UObjectIterator.h>
+#include "Camera/CameraComponent.h"
 
 #include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
@@ -26,6 +27,7 @@
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 
 #include "Contents/AGBullet.h"
+#include "Contents/AGamePlayer.h"
 
 void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
 {
@@ -125,7 +127,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
         if (ImGui::MenuItem("Load Scene"))
         {
             char const* lFilterPatterns[1] = { "*.scene" };
-            const char* FileName = tinyfd_openFileDialog("Open Scene File", "", 1, lFilterPatterns, "Scene(.scene) file", 0);
+            const char* FileName = tinyfd_openFileDialog("Open Scene File", "Assets/Scenes", 1, lFilterPatterns, "Scene(.scene) file", 0);
 
             if (FileName == nullptr)
             {
@@ -141,7 +143,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
         if (ImGui::MenuItem("Save Scene"))
         {
             char const* lFilterPatterns[1] = { "*.scene" };
-            const char* FileName = tinyfd_saveFileDialog("Save Scene File", "", 1, lFilterPatterns, "Scene(.scene) file");
+            const char* FileName = tinyfd_saveFileDialog("Save Scene File", "Assets/Scenes", 1, lFilterPatterns, "Scene(.scene) file");
 
             if (FileName == nullptr)
             {
@@ -284,6 +286,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         // 카테고리 순서대로 정렬된 배열
         static const Actor actors[] = {
             { "Defaults", "Actor", OBJ_ACTOR},
+            { "Defaults", "GamePlayer", OBJ_GAMEPLAYER},
             // 🔦 라이트
             { "Lights", "Spot Light",      OBJ_SPOTLIGHT },
             { "Lights", "Point Light",     OBJ_POINTLIGHT },
@@ -335,6 +338,16 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     SpawnedActor->SetActorLabel(TEXT("OBJ_ACTOR"));
                     SpawnedActor->AddComponent<USceneComponent>(EComponentOrigin::Editor);
                     break;
+                case OBJ_GAMEPLAYER:
+                {
+                    SpawnedActor = World->SpawnActor<AGamePlayer>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_GAMEPLAYER"));
+                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Capsule.obj");
+                    UStaticMeshComponent* MeshComp = SpawnedActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Editor);
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
+                    SpawnedActor->AddComponent<UCameraComponent>(EComponentOrigin::Editor);
+                    break;
+                }
                     //  셰이프
                 case OBJ_CUBE:
                 {

@@ -10,7 +10,7 @@
 #include "GameFramework/Actor.h"
 #include "Engine/Classes/Engine/StaticMeshActor.h"
 #include "Components/SceneComponent.h"
-
+#include "Camera/CameraComponent.h"
 FVector FEditorViewportClient::Pivot = FVector(0.0f, 0.0f, 0.0f);
 float FEditorViewportClient::orthoSize = 10.0f;
 FEditorViewportClient::FEditorViewportClient()
@@ -85,6 +85,7 @@ void FEditorViewportClient::Release()
 
 void FEditorViewportClient::Input()
 {
+    if (GEngine->levelType != LEVELTICK_ViewportsOnly) return;
     ImGuiIO& io = ImGui::GetIO();
     if (io.WantCaptureMouse) return;
     if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) // VK_RBUTTON은 마우스 오른쪽 버튼을 나타냄
@@ -419,6 +420,10 @@ void FEditorViewportClient::UpdateViewMatrix()
         {
             View = DirectionalLight->GetViewMatrix();
         }
+        if (UCameraComponent* PlayerCamera = Cast<UCameraComponent>(OverrideComponent))
+        {
+            View = PlayerCamera->GetViewMatrix();
+        }
     }
 }
 
@@ -461,6 +466,10 @@ void FEditorViewportClient::UpdateProjectionMatrix()
         if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(OverrideComponent))
         {
             Projection = DirectionalLight->GetProjectionMatrix();
+        }
+        if (UCameraComponent* PlayerCamera = Cast<UCameraComponent>(OverrideComponent))
+        {
+            Projection = PlayerCamera->GetProjectionMatrix();
         }
     }
 }
