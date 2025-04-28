@@ -25,7 +25,7 @@ public:
     void OnDamaged();
     void ChangeColor(FVector NewColor) const;
     void Move();
-    void OnCollision();
+    void OnCollision(const UPrimitiveComponent* Other);
 
     OnHitEvent OnHit;
     OnDeadEvent OnDead;

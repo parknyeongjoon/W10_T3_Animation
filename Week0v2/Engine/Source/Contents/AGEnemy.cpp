@@ -41,7 +41,7 @@ void AGEnemy::BeginPlay()
     OnHit.AddUObject(this, &AGEnemy::OnDamaged);
     OnDead.AddStatic(FGameManager::AddScore);
     OnDead.AddStatic(FGameManager::SpawnEnemy);
-    // OnBeginOverlap.AddUObject(this, &AGEnemy::OnCollision);
+    OnBeginOverlap.AddUObject(this, &AGEnemy::OnCollision);
     static std::mt19937 generator(std::chrono::system_clock::now().time_since_epoch().count());
     
     // 각 축별로 다른 분포 정의
@@ -132,7 +132,7 @@ void AGEnemy::Move()
     SetActorLocation(GetActorLocation() + Velocity);
 }
 
-void AGEnemy::OnCollision()
+void AGEnemy::OnCollision(const UPrimitiveComponent* Other)
 {
     Velocity = FVector(-Velocity.x, -Velocity.y,0);
 }
