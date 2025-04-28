@@ -39,7 +39,6 @@ void AGBullet::BeginPlay()
     LifeElapsed = 0.0f;
 
     AddBeginOverlapUObject(this, &AGBullet::OnHit);
-    Fire(FVector(0, 0, 10), RootComponent->GetForwardVector(), 50);
 }
 
 void AGBullet::Tick(float DeltaTime)
@@ -82,6 +81,7 @@ void AGBullet::Fire(FVector FirePosition, FVector FireDirection, float Power)
     LifeElapsed = 0.0f;
 
     Position = FirePosition;
+    SetActorLocation(Position);
     FVector V = FireDirection.Normalize();
     V *= 10;
     V.z += 5;
