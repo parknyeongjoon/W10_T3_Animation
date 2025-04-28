@@ -176,6 +176,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine\Source\Contents\AGBullet.cpp" />
+    <ClCompile Include="Engine\Source\Contents\AGamePlayer.cpp" />
     <ClCompile Include="Engine\Source\Contents\GameManager.cpp" />
     <ClCompile Include="Engine\Source\Contents\UI\ContentsUI.cpp" />
     <ClCompile Include="Engine\Source\Contents\UI\ContentsPanel.cpp" />
@@ -317,6 +318,7 @@
   <ItemGroup>
     <ClInclude Include="Engine\Source\Contents\AGBullet.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\FunctionResgistry.h" />
+    <ClInclude Include="Engine\Source\Contents\AGamePlayer.h" />
     <ClInclude Include="Engine\Source\Contents\GameManager.h" />
     <ClInclude Include="Engine\Source\Contents\UI\ContentsUI.h" />
     <ClInclude Include="Engine\Source\Contents\UI\ContentsPanel.h" />

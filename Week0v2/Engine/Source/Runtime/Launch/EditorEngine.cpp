@@ -112,7 +112,7 @@ void UEditorEngine::Tick(float deltaSeconds)
     
     Input();
     // GWorld->Tick(LEVELTICK_All, deltaSeconds);
-    LevelEditor->Tick(deltaSeconds);
+    LevelEditor->Tick(levelType, deltaSeconds);
 
     Render();
     
@@ -172,6 +172,7 @@ void UEditorEngine::PreparePIE()
     GWorld = worldContexts[1].thisCurrentWorld;
     GWorld->WorldType = EWorldType::PIE;
     levelType = LEVELTICK_All;
+    
 }
 
 void UEditorEngine::StartPIE()
