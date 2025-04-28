@@ -176,7 +176,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine\Source\Contents\AGBullet.cpp" />
-    <ClCompile Include="Engine\Source\Contents\UGameManager.cpp" />
     <ClCompile Include="Engine\Source\Contents\GameManager.cpp" />
     <ClCompile Include="Engine\Source\Editor\Script\LuaManagerBind.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\FCollisionManager.cpp" />
@@ -314,7 +313,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\Contents\AGBullet.h" />
-    <ClInclude Include="Engine\Source\Contents\UGameManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\FunctionResgistry.h" />
     <ClInclude Include="Engine\Source\Contents\GameManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.impl.h" />
     <ClInclude Include="Engine\Source\Runtime\Physics\FCollisionManager.h" />

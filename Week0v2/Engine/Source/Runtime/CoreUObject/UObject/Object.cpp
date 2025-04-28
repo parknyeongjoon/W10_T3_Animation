@@ -2,6 +2,7 @@
 
 #include "EditorEngine.h"
 #include "UClass.h"
+#include "FunctionResgistry.h"
 #include "UObjectHash.h"
 
 
@@ -9,6 +10,12 @@ UClass* UObject::StaticClass()
 {
     static UClass ClassInfo{TEXT("UObject"), sizeof(UObject), alignof(UObject), nullptr};
     return &ClassInfo;
+}
+
+FFunctionRegistry* UObject::FunctionRegistry()
+{
+    static FFunctionRegistry FunctionRegister;
+    return &FunctionRegister;
 }
 
 UObject::UObject()

@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Engine/StaticMeshActor.h"
 #include "Core/Delegates/DelegateCombination.h"
+#include "UObject/FunctionResgistry.h"
 
 class UStaticMeshComponent;
 
@@ -19,7 +20,8 @@ public:
     void Destroyed() override;
     void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     bool Destroy() override;
-    void test();
+    void TestTranslate();
+    void TestRotate();
 
     UObject* Duplicate() const override;
     void DuplicateSubObjects(const UObject* Source) override;
@@ -29,5 +31,4 @@ public:
     FActorInfo GetActorInfo() override;
 
     TEST_DELIGATE TestDelegate;
-private:
 };

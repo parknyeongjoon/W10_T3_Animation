@@ -31,6 +31,8 @@
 #include <windows.h> // 기본적인 Windows API 포함
 #include <shellapi.h> // ShellExecute 관련 함수 정의 포함
 #include <filesystem> // C++17 filesystem 사용
+#include "UObject/FunctionResgistry.h"
+
 
 void PropertyEditorPanel::Render()
 {
@@ -219,6 +221,11 @@ void PropertyEditorPanel::Render()
             }
             ImGui::TreePop();
         }
+    }
+
+    if (PickedActor) // Delegate Test
+    {
+        RenderDelegate(GEngine->GetWorld()->GetLevel());
     }
 
     if (PickedActor)
@@ -1422,6 +1429,41 @@ void PropertyEditorPanel::RenderShapeProperty(AActor* PickedActor)
         }
     }
 
+}
+
+void PropertyEditorPanel::RenderDelegate(ULevel* level)
+{
+    static AActor* SelectedActor = nullptr;
+    FString SelectedActorName;
+    SelectedActor ? SelectedActorName = SelectedActor->GetName() : SelectedActorName = "";
+    
+    if (ImGui::BeginCombo("Delegate Object", GetData(SelectedActorName), ImGuiComboFlags_None))
+    {
+        for (const auto& Actor : level->GetActors())
+        {
+            if (ImGui::Selectable(GetData(Actor->GetName()), false))
+            {
+                SelectedActor = Actor;
+            }
+        }
+        ImGui::EndCombo();
+    }
+    
+    static FString SelectedFunctionName = "";
+    if (SelectedActor)
+    {
+        if (ImGui::BeginCombo("Delegate Function", GetData(SelectedFunctionName), ImGuiComboFlags_None))
+        {
+            for (const auto& function : SelectedActor->FunctionRegistry()->GetRegisteredFunctions())
+            {
+                if (ImGui::Selectable(GetData(function.Key.ToString()), false))
+                {
+                    SelectedFunctionName = function.Key.ToString();
+                }
+            }
+            ImGui::EndCombo();
+        }
+    }
 }
 
 
