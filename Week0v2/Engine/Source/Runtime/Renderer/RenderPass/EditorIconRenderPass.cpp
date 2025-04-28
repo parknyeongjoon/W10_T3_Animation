@@ -86,8 +86,18 @@ void FEditorIconRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     FSceneConstant SceneConstants;
     SceneConstants.ViewMatrix = View;
     SceneConstants.ProjMatrix = Proj;
-    SceneConstants.CameraPos = curEditorViewportClient->ViewTransformPerspective.GetLocation();
-    SceneConstants.CameraLookAt = curEditorViewportClient->ViewTransformPerspective.GetLookAt();
+    USceneComponent* overrideComp = curEditorViewportClient->GetOverrideComponent();
+    if (overrideComp)
+    {
+        SceneConstants.CameraPos = overrideComp->GetComponentLocation();
+        SceneConstants.CameraLookAt = curEditorViewportClient->ViewTransformPerspective.GetLookAt();
+    }
+    else
+    {
+        SceneConstants.CameraPos = curEditorViewportClient->ViewTransformPerspective.GetLocation();
+        SceneConstants.CameraLookAt = curEditorViewportClient->ViewTransformPerspective.GetLookAt();
+
+    }
 
     renderResourceManager->UpdateConstantBuffer(TEXT("FSceneConstant"), &SceneConstants);
     

@@ -17,7 +17,8 @@ AGamePlayer::AGamePlayer(const AGamePlayer& Other) : Super(Other)
 void AGamePlayer::BeginPlay()
 {
     Super::BeginPlay();
-
+    ShowCursor(FALSE);
+    bShowCursor = false;
     GetCursorPos(&lastMousePos);
     UCameraComponent* Camera = GetComponentByClass<UCameraComponent>();
     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(Camera);
@@ -32,6 +33,8 @@ void AGamePlayer::Tick(float DeltaTime)
 void AGamePlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     Super::EndPlay(EndPlayReason);
+    ShowCursor(TRUE);
+    bShowCursor = true;
     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
 }
 
@@ -62,7 +65,6 @@ void AGamePlayer::Input(float DeltaTime)
             bLeftMouseDown = true;
             AGBullet* bullet = GEngine->GetWorld()->SpawnActor<AGBullet>();
             bullet->Fire(GetActorLocation(), GetActorForwardVector(), 50);
-            UE_LOG(LogLevel::Display, "GamePlayer Left Mouse Click");
         }
     }
     else
@@ -75,7 +77,6 @@ void AGamePlayer::Input(float DeltaTime)
         if (!bRightMouseDown)
         {
             bRightMouseDown = true;
-            UE_LOG(LogLevel::Display, "GamePlayer Right Mouse Click");
         }
     }
     else
@@ -83,24 +84,42 @@ void AGamePlayer::Input(float DeltaTime)
         if (bRightMouseDown) bRightMouseDown = false;
     }
 
-    POINT currentMousePos;
-    GetCursorPos(&currentMousePos);
+    if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+    {
+        if (!bSpacePressedLastFrame)
+        {
+            bShowCursor = !bShowCursor;
+            ShowCursor(bShowCursor ? TRUE : FALSE);
 
-    int32 deltaX = currentMousePos.x - lastMousePos.x;
-    int32 deltaY = currentMousePos.y - lastMousePos.y;
+            bSpacePressedLastFrame = true;
+        }
+    }
+    else
+    {
+        bSpacePressedLastFrame = false;
+    }
 
-    FRotator Rotation = GetActorRotation();
-    Rotation.Yaw += deltaX * YawSpeed;    // 좌우 마우스 이동 -> Yaw 회전
-    Rotation.Pitch -= deltaY * PitchSpeed;  // 위아래 마우스 이동 -> Pitch 회전 (보통 위로 올리면 Pitch 감소)
+    if (!bShowCursor) // 커서 숨김 상태일 때만 마우스 회전
+    {
+        POINT currentMousePos;
+        GetCursorPos(&currentMousePos);
 
-    // Pitch 클램프
-    if (Rotation.Pitch > 89.0f) Rotation.Pitch = 89.0f;
-    if (Rotation.Pitch < -89.0f) Rotation.Pitch = -89.0f;
+        int32 deltaX = currentMousePos.x - lastMousePos.x;
+        int32 deltaY = currentMousePos.y - lastMousePos.y;
 
-    SetActorRotation(Rotation);
+        FRotator Rotation = GetActorRotation();
+        Rotation.Yaw += deltaX * YawSpeed;    // 좌우 마우스 이동 -> Yaw 회전
+        Rotation.Pitch -= deltaY * PitchSpeed;  // 위아래 마우스 이동 -> Pitch 회전 (보통 위로 올리면 Pitch 감소)
 
-    // 다음 프레임을 위해 현재 마우스 위치 저장
-    lastMousePos = currentMousePos;
+        // Pitch 클램프
+        if (Rotation.Pitch > 89.0f) Rotation.Pitch = 89.0f;
+        if (Rotation.Pitch < -89.0f) Rotation.Pitch = -89.0f;
+
+        SetActorRotation(Rotation);
+
+        // 다음 프레임을 위해 현재 마우스 위치 저장
+        lastMousePos = currentMousePos;
+    }
 
     FVector MoveDirection = FVector::ZeroVector;
     if (GetAsyncKeyState('W') & 0x8000) MoveDirection += GetActorForwardVector();
