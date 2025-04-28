@@ -103,12 +103,12 @@ void UEditorEngine::Tick(float deltaSeconds)
 {
     GWorld->Tick(levelType, deltaSeconds);
 
-    //if (GWorld->WorldType == EWorldType::PIE)
-    //{
-    //    CollisionManager.UpdateCollision(deltaSeconds);
-    //}
+    if (GWorld->WorldType == EWorldType::PIE)
+    {
+        CollisionManager.UpdateCollision(deltaSeconds);
+    }
 
-    CollisionManager.UpdateCollision(deltaSeconds);
+    //CollisionManager.UpdateCollision(deltaSeconds);
     
     Input();
     // GWorld->Tick(LEVELTICK_All, deltaSeconds);
@@ -127,7 +127,7 @@ void UEditorEngine::Tick(float deltaSeconds)
     UIMgr->EndFrame();
 
     // Pending 처리된 오브젝트 제거
-    GUObjectArray.ProcessPendingDestroyObjects();
+    //GUObjectArray.ProcessPendingDestroyObjects();
 
     graphicDevice.SwapBuffer();
     FVector CurRotation = GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetRotation();

@@ -136,11 +136,19 @@ void UPrimitiveComponent::NotifyHit(HitResult Hit) const
 
 void UPrimitiveComponent::NotifyBeginOverlap(const UPrimitiveComponent* OtherComponent) const
 {
+    if (AActor* OwnerActor = Cast<AActor>(GetOwner()))
+    {
+        OwnerActor->NotifyBeginOverlap(OtherComponent);
+    }
     UE_LOG(LogLevel::Display, TEXT("%s begin overlap with %s"), *GetName(), *OtherComponent->GetName());
 }
 
 void UPrimitiveComponent::NotifyEndOverlap(const UPrimitiveComponent* OtherComponent) const
 {
+    if (AActor* OwnerActor = Cast<AActor>(GetOwner()))
+    {
+        OwnerActor->NotifyEndOverlap(OtherComponent);
+    }
     UE_LOG(LogLevel::Display, TEXT("%s end overlap with %s"), *GetName(), *OtherComponent->GetName());
 }
 
