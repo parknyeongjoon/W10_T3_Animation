@@ -30,6 +30,7 @@ public:
 protected:
     TArray<FWorldContext> worldContexts;
     FWorldContext* GetEditorWorldContext() { return &worldContexts[0]; }
+    FWorldContext* GetPIEWorldContext() { return &worldContexts[1]; }
 
 public:
     TArray<FWorldContext>& GetWorldContexts() { return worldContexts; }
