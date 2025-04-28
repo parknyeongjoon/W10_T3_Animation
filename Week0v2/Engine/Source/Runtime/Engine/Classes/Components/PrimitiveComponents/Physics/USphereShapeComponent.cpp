@@ -5,7 +5,7 @@
 
 USphereShapeComponent::USphereShapeComponent()
     : UShapeComponent()
-    , Radius(1.0f) // Default radius
+    , Radius(0.5f) // Default radius
 {
 }
 
@@ -29,45 +29,53 @@ void USphereShapeComponent::InitializeComponent()
 void USphereShapeComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+
+    if (PrevRadius != Radius)
+    {
+        UpdateBroadAABB();
+
+        PrevRadius = Radius;
+    }
+}
+
+const FShapeInfo* USphereShapeComponent::GetShapeInfo() const
+{
+    FVector Center = GetComponentLocation();
+    float Scale = GetComponentScale().MaxValue();
+    float ScaledRadius = GetRadius() * Scale;
+
+    ShapeInfo.Center = Center;
+    ShapeInfo.Radius = ScaledRadius;
+
+    return &ShapeInfo;
 }
 
 void USphereShapeComponent::UpdateBroadAABB()
 {
-    FVector Center = GetComponentLocation();
-    FVector Rotation = GetComponentRotation().ToVector();
-    FVector Scale = GetComponentScale();
+    GetShapeInfo();
 
-    float R = GetRadius();
-    FVector ScaledRadius = Scale * R;
+    FVector Center = ShapeInfo.Center;
+    float ScaledRadius = ShapeInfo.Radius;
 
-    FMatrix WorldMatrix = JungleMath::CreateModelMatrix(Center, Rotation, ScaledRadius);
+    //FVector Center = GetComponentLocation();
+    //float Scale = GetComponentScale().MaxValue();
+
+    //float R = GetRadius();
+    //float ScaledRadius = Scale * R;
 
     FVector LocalCorners[8] = {
-        { ScaledRadius.x,  ScaledRadius.y,  ScaledRadius.z },
-        { ScaledRadius.x,  ScaledRadius.y, -ScaledRadius.z },
-        { ScaledRadius.x, -ScaledRadius.y,  ScaledRadius.z },
-        { ScaledRadius.x, -ScaledRadius.y, -ScaledRadius.z },
-        { -ScaledRadius.x,  ScaledRadius.y,  ScaledRadius.z },
-        { -ScaledRadius.x,  ScaledRadius.y, -ScaledRadius.z },
-        { -ScaledRadius.x, -ScaledRadius.y,  ScaledRadius.z },
-        { -ScaledRadius.x, -ScaledRadius.y, -ScaledRadius.z }
+        { ScaledRadius,  ScaledRadius,  ScaledRadius },
+        { ScaledRadius,  ScaledRadius, -ScaledRadius },
+        { ScaledRadius, -ScaledRadius,  ScaledRadius },
+        { ScaledRadius, -ScaledRadius, -ScaledRadius },
+        { -ScaledRadius,  ScaledRadius,  ScaledRadius },
+        { -ScaledRadius,  ScaledRadius, -ScaledRadius },
+        { -ScaledRadius, -ScaledRadius,  ScaledRadius },
+        { -ScaledRadius, -ScaledRadius, -ScaledRadius }
     };
 
-    FVector WorldPt0 = WorldMatrix.TransformPosition(LocalCorners[0]);
-    FVector Min = WorldPt0;
-    FVector Max = WorldPt0;
-
-    for (int i = 1; i < 8; ++i)
-    {
-        FVector W = WorldMatrix.TransformPosition(LocalCorners[i]);
-        Min.x = FMath::Min(Min.x, W.x);
-        Min.y = FMath::Min(Min.y, W.y);
-        Min.z = FMath::Min(Min.z, W.z);
-
-        Max.x = FMath::Max(Max.x, W.x);
-        Max.y = FMath::Max(Max.y, W.y);
-        Max.z = FMath::Max(Max.z, W.z);
-    }
+    FVector Min = LocalCorners[7] + Center;
+    FVector Max = LocalCorners[0] + Center;
 
     BroadAABB.min = Min;
     BroadAABB.max = Max;

@@ -519,7 +519,7 @@ PS_INPUT mainVS(VS_INPUT input)
         
         color = g_ConeData[coneIndex].Color;
     }
-    else if (input.instanceID < lineInstanceStart)
+    else if (input.instanceID < lineInstanceStart) // SphereCollider
     {
         //그 다음 sphere 구간
         uint sphereInstanceID = input.instanceID - sphereInstanceStart;
@@ -527,7 +527,7 @@ PS_INPUT mainVS(VS_INPUT input)
         int N = 32;
         uint sphereIndex = sphereInstanceID / (3 * N);
         
-        color = g_SphereData[sphereIndex].Color;
+        color = float4(0.0, 1.0, 0.0, 1.0);
     }
     else if (input.instanceID < obbInstanceStart)
     {
@@ -537,22 +537,22 @@ PS_INPUT mainVS(VS_INPUT input)
         uint lineIndex = lineInstanceID / 2;
         color = g_LineData[lineIndex].Color;
     }
-    else if (input.instanceID < obbInstanceStart + obbInstanceCount)
+    else if (input.instanceID < obbInstanceStart + obbInstanceCount) // BoxCollider
     {
         uint obbLocalID = input.instanceID - obbInstanceStart;
         uint obbIndex = obbLocalID / 12;
         uint edgeIndex = obbLocalID % 12;
 
         pos = ComputeOrientedBoxPosition(obbIndex, edgeIndex, input.vertexID);
-        color = float4(0.0, 0.0, 1.0, 1.0);
+        color = float4(0.0, 1.0, 0.0, 1.0);
     }
-    else if (input.instanceID < capsuleInstanceStart + capsuleInstanceCount)
+    else if (input.instanceID < capsuleInstanceStart + capsuleInstanceCount) // CapsuleCollider
     {
         uint capsuleLocalID = input.instanceID - capsuleInstanceStart;
         pos = ComputeCapsulePosition(capsuleLocalID, input.vertexID);
         uint capsuleIndex = capsuleLocalID / 100;
         
-        color = g_Capsules[capsuleIndex].Color;
+        color = float4(0.0, 1.0, 0.0, 1.0);
     }
     else
     {

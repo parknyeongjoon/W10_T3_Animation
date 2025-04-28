@@ -53,11 +53,12 @@ void UWorld::CreateBaseObject()
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
 
-    ADodge* Dodge1 = SpawnActor<ADodge>();
-    Dodge1->SetActorLocation(FVector(150,0,0));
-    ADodge* Dodge2 = SpawnActor<ADodge>();
-    Dodge2->SetActorScale(FVector(0.5f, 0.5f, 0.5f));
-    Dodge1->TestDelegate.AddUObject(Dodge2, &ADodge::test);
+    // ADodge* Dodge1 = SpawnActor<ADodge>();
+    // Dodge1->SetActorLocation(FVector(150,0,0));
+    // ADodge* Dodge2 = SpawnActor<ADodge>();
+    // Dodge2->SetActorScale(FVector(0.5f, 0.5f, 0.5f));
+    // Dodge1->TestDelegate.AddUObject(Dodge2, &ADodge::test);
+
 }
 
 void UWorld::ReleaseBaseObject()

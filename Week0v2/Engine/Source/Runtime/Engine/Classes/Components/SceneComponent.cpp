@@ -4,8 +4,6 @@
 #include "UObject/ObjectFactory.h"
 #include "ActorComponentInfo.h"
 
-
-
 USceneComponent::USceneComponent() :RelativeLocation(FVector(0.f, 0.f, 0.f)), RelativeRotation(FVector(0.f, 0.f, 0.f)), RelativeScale(FVector(1.f, 1.f, 1.f))
 {
 }
@@ -67,14 +65,14 @@ FVector USceneComponent::GetForwardVector() const
     return Forward;
 }
 
-FVector USceneComponent::GetRightVector()
+FVector USceneComponent::GetRightVector() const
 {
     FVector Right = FVector(0.f, 1.f, 0.0f);
     Right = JungleMath::FVectorRotate(Right, GetComponentRotation());
     return Right;
 }
 
-FVector USceneComponent::GetUpVector()
+FVector USceneComponent::GetUpVector() const
 {
     FVector Up = FVector(0.f, 0.f, 1.0f);
     Up = JungleMath::FVectorRotate(Up, GetComponentRotation());

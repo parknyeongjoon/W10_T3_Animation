@@ -5,7 +5,7 @@
 
 UBoxShapeComponent::UBoxShapeComponent()
     : UShapeComponent()
-    , BoxExtent(FVector::OneVector) // Default box extent
+    , BoxExtent(FVector::OneVector * 0.5f) // Default box extent
 {
 }
 
@@ -23,20 +23,44 @@ UBoxShapeComponent::~UBoxShapeComponent()
 void UBoxShapeComponent::InitializeComponent()
 {
     Super::InitializeComponent();
-
     UpdateBroadAABB();
 }
 
 void UBoxShapeComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+
+    if (PrevExtent != BoxExtent)
+    {
+        UpdateBroadAABB();
+
+        PrevExtent = BoxExtent;
+    }
+}
+
+const FShapeInfo* UBoxShapeComponent::GetShapeInfo() const
+{  
+    // Center, WorldMatrix, Extent 최신값을 가져옴
+    FVector Center = GetComponentLocation();
+    FMatrix WorldMatrix = GetWorldMatrix();
+    FVector Extent = GetBoxExtent();
+    FMatrix RotationMatrix = GetComponentRotation().ToMatrix();
+
+    ShapeInfo.Center = Center;
+    ShapeInfo.WorldMatrix = WorldMatrix;
+    ShapeInfo.Extent = Extent;
+    ShapeInfo.RotationMatrix = RotationMatrix;
+
+   return &ShapeInfo;
 }
 
 void UBoxShapeComponent::UpdateBroadAABB()
 {
-    FVector Center = GetComponentLocation();
+    GetShapeInfo();
+
+    FVector Center = ShapeInfo.Center;
     FVector Scale = GetComponentScale();
-    FVector Extent = BoxExtent * Scale /** 0.5f*/;
+    FVector Extent = ShapeInfo.Extent * Scale /** 0.5f*/;
 
     FVector LocalCorners[8] =
     {
@@ -50,7 +74,8 @@ void UBoxShapeComponent::UpdateBroadAABB()
         FVector(-Extent.x,  Extent.y,  Extent.z)
     };
 
-    FMatrix RotationMatrix = GetRotationMatrix();
+    //FMatrix RotationMatrix = GetRotationMatrix();
+    FMatrix RotationMatrix = ShapeInfo.RotationMatrix;
 
     FVector Min = FVector::ZeroVector;
     FVector Max = FVector::ZeroVector;
@@ -89,6 +114,8 @@ bool UBoxShapeComponent::NarrowPhaseCollisionCheck(const UShapeComponent* OtherS
         return false;
     }
 
+    GetShapeInfo();
+
     if (OtherShape->IsA<UBoxShapeComponent>())
     {
         const UBoxShapeComponent* OtherBox = dynamic_cast<const UBoxShapeComponent*>(OtherShape);
@@ -111,15 +138,17 @@ bool UBoxShapeComponent::NarrowPhaseCollisionCheck(const UShapeComponent* OtherS
 // OBB vs OBB
 bool UBoxShapeComponent::CollisionCheckWithBox(const UBoxShapeComponent* OtherBox) const
 {
+    const FBoxShapeInfo* OtherShapeInfo = static_cast<const FBoxShapeInfo*>(OtherBox->GetShapeInfo());
+
     // 1) 자신의 OBB 정보
-    FVector CenterA = GetComponentLocation();
-    FVector ExtentA = GetBoxExtent() * GetComponentScale();
-    FMatrix RotA = GetRotationMatrix();
+    FVector CenterA = ShapeInfo.Center;
+    FVector ExtentA = ShapeInfo.Extent * GetComponentScale();
+    FMatrix RotA = ShapeInfo.RotationMatrix;
 
     // 2) 상대 OBB 정보
-    FVector CenterB = OtherBox->GetComponentLocation();
-    FVector ExtentB = OtherBox->GetBoxExtent() * OtherBox->GetComponentScale();
-    FMatrix RotB = OtherBox->GetRotationMatrix();
+    FVector CenterB = OtherShapeInfo->Center;
+    FVector ExtentB = OtherShapeInfo->Extent * OtherBox->GetComponentScale();
+    FMatrix RotB = OtherShapeInfo->RotationMatrix;
 
     // 3) 두 중심 벡터를 A의 로컬 축(x,y,z)으로 투영
     FVector d = CenterB - CenterA;
@@ -186,20 +215,23 @@ bool UBoxShapeComponent::CollisionCheckWithBox(const UBoxShapeComponent* OtherBo
 
 bool UBoxShapeComponent::CollisionCheckWithSphere(const USphereShapeComponent* OtherSphere) const
 {
+    const FSphereShapeInfo* OtherShapeInfo = static_cast<const FSphereShapeInfo*>(OtherSphere->GetShapeInfo());
+
     // 1. Sphere 정보
-    FVector CenterS = OtherSphere->GetComponentLocation();
-    float RadiusS = OtherSphere->GetRadius() * OtherSphere->GetComponentScale().MaxValue();
+    FVector CenterS = OtherShapeInfo->Center;
+    float RadiusS = OtherShapeInfo->Radius;
+    //float RadiusS = OtherSphere->GetRadius() * OtherSphere->GetComponentScale().MaxValue();
 
     // 2. Box OBB 정보
-    FVector CenterB = GetComponentLocation();
-    FVector ExtentB = GetBoxExtent() * GetComponentScale();
-    FMatrix RotB = GetRotationMatrix();
+    FVector CenterB = ShapeInfo.Center;
+    FVector ExtentB = ShapeInfo.Extent * GetComponentScale();
+    FMatrix RotB = ShapeInfo.RotationMatrix;
 
     // 3. Sphere 중심을 Box 로컬 좌표로 변환
     FVector d = CenterS - CenterB;
-    FVector AxisBX(RotB.M[0][0], RotB.M[1][0], RotB.M[2][0]);
-    FVector AxisBY(RotB.M[0][1], RotB.M[1][1], RotB.M[2][1]);
-    FVector AxisBZ(RotB.M[0][2], RotB.M[1][2], RotB.M[2][2]);
+    FVector AxisBX(RotB.M[0][0], RotB.M[0][1], RotB.M[0][2]);
+    FVector AxisBY(RotB.M[1][0], RotB.M[1][1], RotB.M[1][2]);
+    FVector AxisBZ(RotB.M[2][0], RotB.M[2][1], RotB.M[2][2]);
 
     float x = d.Dot(AxisBX);
     float y = d.Dot(AxisBY);
@@ -222,31 +254,41 @@ bool UBoxShapeComponent::CollisionCheckWithSphere(const USphereShapeComponent* O
 
 bool UBoxShapeComponent::CollisionCheckWithCapsule(const UCapsuleShapeComponent* OtherCapsule) const
 {
+    const FCapsuleShapeInfo* OtherShapeInfo = static_cast<const FCapsuleShapeInfo*>(OtherCapsule->GetShapeInfo());
+
     // 1. Capsule 세그먼트 엔드포인트 계산
-    FVector CenterC = OtherCapsule->GetComponentLocation();
-    float HalfH = OtherCapsule->GetHalfHeight();
-    float RadiusC = OtherCapsule->GetRadius() * OtherCapsule->GetComponentScale().MaxValue();
+    FVector CenterC = OtherShapeInfo->Center;
+    float HalfH = OtherShapeInfo->HalfHeight;
+    float RadiusC = OtherShapeInfo->Radius;
+
     // 캡슐 로컬 Z축을 기준으로 세그먼트 방향 정의
-    FMatrix RotC = OtherCapsule->GetRotationMatrix();
-    FVector AxisC = FVector(RotC.M[0][2], RotC.M[1][2], RotC.M[2][2]);
+    //FMatrix RotC = OtherShapeInfo->RotationMatrix;
+    //FVector AxisC = FVector(RotC.M[2][0], RotC.M[2][1], RotC.M[2][2]);
+    FVector AxisC = OtherShapeInfo->Up;
     FVector P0 = CenterC + AxisC * HalfH;
     FVector P1 = CenterC - AxisC * HalfH;
-
+    
     // 2. 박스 로컬 좌표로 변환
-    FVector CenterB = GetComponentLocation();
-    FMatrix RotB = GetRotationMatrix();
-    FVector AxisBX(RotB.M[0][0], RotB.M[1][0], RotB.M[2][0]);
-    FVector AxisBY(RotB.M[0][1], RotB.M[1][1], RotB.M[2][1]);
-    FVector AxisBZ(RotB.M[0][2], RotB.M[1][2], RotB.M[2][2]);
+    FVector CenterB = ShapeInfo.Center;
+    FMatrix RotB = ShapeInfo.RotationMatrix;
+    FVector AxisBX(RotB.M[0][0], RotB.M[0][1], RotB.M[0][2]);
+    FVector AxisBY(RotB.M[1][0], RotB.M[1][1], RotB.M[1][2]);
+    FVector AxisBZ(RotB.M[2][0], RotB.M[2][1], RotB.M[2][2]);
+
+    //FVector AxisBX(RotB.M[0][0], RotB.M[1][0], RotB.M[2][0]);
+    //FVector AxisBY(RotB.M[0][1], RotB.M[1][1], RotB.M[2][1]);
+    //FVector AxisBZ(RotB.M[0][2], RotB.M[1][2], RotB.M[2][2]);
+
     auto ToLocal = [&](const FVector& P) {
         FVector d = P - CenterB;
         return FVector(d.Dot(AxisBX), d.Dot(AxisBY), d.Dot(AxisBZ));
         };
+
     FVector L0 = ToLocal(P0);
     FVector L1 = ToLocal(P1);
 
     // 3. 확장된 AABB extents
-    FVector ExtentB = GetBoxExtent() * GetComponentScale();
+    FVector ExtentB = ShapeInfo.Extent * GetComponentScale();
     FVector Exp = ExtentB + FVector(RadiusC, RadiusC, RadiusC);
 
     // 4. 세그먼트-AABB 교차 (슬랩 방법)
@@ -276,4 +318,5 @@ bool UBoxShapeComponent::CollisionCheckWithCapsule(const UCapsuleShapeComponent*
         }
     }
     return true;
+
 }
