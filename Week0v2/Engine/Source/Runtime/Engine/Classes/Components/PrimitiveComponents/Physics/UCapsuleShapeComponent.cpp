@@ -4,14 +4,14 @@
 UCapsuleShapeComponent::UCapsuleShapeComponent()
     : UShapeComponent()
     , CapsuleHalfHeight(0.5f) // Default capsule half height
-    , CapsuleRaidus(0.5f)     // Default capsule radius
+    , CapsuleRadius(0.5f)     // Default capsule radius
 {
 }
 
 UCapsuleShapeComponent::UCapsuleShapeComponent(const UCapsuleShapeComponent& Other)
     : UShapeComponent(Other)
     , CapsuleHalfHeight(Other.CapsuleHalfHeight)
-    , CapsuleRaidus(Other.CapsuleRaidus)
+    , CapsuleRadius(Other.CapsuleRadius)
 {
 }
 
@@ -29,43 +29,63 @@ void UCapsuleShapeComponent::InitializeComponent()
 void UCapsuleShapeComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+
+    if (PrevHalfHeight != CapsuleHalfHeight || PrevRadius != CapsuleRadius)
+    {
+        UpdateBroadAABB();
+
+        PrevHalfHeight = CapsuleHalfHeight;
+        PrevRadius = CapsuleRadius;
+    }
+}
+
+const FShapeInfo* UCapsuleShapeComponent::GetShapeInfo() const
+{
+    FVector Center = GetComponentLocation();
+    FMatrix WorldMatrix = GetWorldMatrix();
+
+    // GetUpVector() 문제 있음. (회전 고치기 전이랑 같은 문제)
+    FVector Up = FVector(WorldMatrix.M[2][0], WorldMatrix.M[2][1], WorldMatrix.M[2][2]);
+    FMatrix RotationMatrix = GetComponentRotation().ToMatrix();
+    float RadiusValue = GetRadius() * FMath::Max(GetComponentScale().x, GetComponentScale().y);
+    float HalfHeightValue = GetHalfHeight() * GetComponentScale().z;
+
+    ShapeInfo.Center = Center;
+    ShapeInfo.WorldMatrix = WorldMatrix;
+    ShapeInfo.Up = Up;
+    ShapeInfo.RotationMatrix = RotationMatrix;
+    ShapeInfo.Radius = RadiusValue;
+    ShapeInfo.HalfHeight = HalfHeightValue;
+
+    return &ShapeInfo;
 }
 
 void UCapsuleShapeComponent::UpdateBroadAABB()
 {
-    //FVector Center = GetComponentLocation();
-    //FVector Rotation = GetComponentRotation().ToVector();
-    //FVector Scale = GetComponentScale();
+    GetShapeInfo();
 
-    //FMatrix WorldMatrix = JungleMath::CreateModelMatrix(Center, Rotation, Scale);
+    FVector Center = ShapeInfo.Center;
+    FMatrix WorldMatrix = ShapeInfo.WorldMatrix;
+    FVector Up = ShapeInfo.Up;
+    float R = ShapeInfo.Radius;
+    float H = ShapeInfo.HalfHeight;
 
-    float R = GetRadius();
-    float H = GetHalfHeight()+R;
+    FVector Top = Center + Up * H;
+    FVector Bottom = Center - Up * H;
 
-    FMatrix WorldMatrix = GetWorldMatrix();
+    FVector Min = Top - FVector(R, R, R);
+    FVector Max = Top + FVector(R, R, R);
 
-    FVector LocalCorners[8] = {
-        {  R,  R,  H }, {  R,  R, -H },
-        {  R, -R,  H }, {  R, -R, -H },
-        { -R,  R,  H }, { -R,  R, -H },
-        { -R, -R,  H }, { -R, -R, -H }
-    };
+    FVector BottomMin = Bottom - FVector(R, R, R);
+    FVector BottomMax = Bottom + FVector(R, R, R);
 
-    FVector W0 = WorldMatrix.TransformPosition(LocalCorners[0]); 
-    FVector Min = W0;
-    FVector Max = W0;
+    Min.x = FMath::Min(Min.x, BottomMin.x);
+    Min.y = FMath::Min(Min.y, BottomMin.y);
+    Min.z = FMath::Min(Min.z, BottomMin.z);
 
-    for (int i = 1; i < 8; ++i)
-    {
-        FVector W = WorldMatrix.TransformPosition(LocalCorners[i]);
-        Min.x = FMath::Min(Min.x, W.x);
-        Min.y = FMath::Min(Min.y, W.y);
-        Min.z = FMath::Min(Min.z, W.z);
-            
-        Max.x = FMath::Max(Max.x, W.x);
-        Max.y = FMath::Max(Max.y, W.y);
-        Max.z = FMath::Max(Max.z, W.z);
-    }
+    Max.x = FMath::Max(Max.x, BottomMax.x);
+    Max.y = FMath::Max(Max.y, BottomMax.y);
+    Max.z = FMath::Max(Max.z, BottomMax.z);
 
     BroadAABB.min = Min;
     BroadAABB.max = Max;

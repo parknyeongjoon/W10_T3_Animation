@@ -29,15 +29,39 @@ void USphereShapeComponent::InitializeComponent()
 void USphereShapeComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+
+    if (PrevRadius != Radius)
+    {
+        UpdateBroadAABB();
+
+        PrevRadius = Radius;
+    }
+}
+
+const FShapeInfo* USphereShapeComponent::GetShapeInfo() const
+{
+    FVector Center = GetComponentLocation();
+    float Scale = GetComponentScale().MaxValue();
+    float ScaledRadius = GetRadius() * Scale;
+
+    ShapeInfo.Center = Center;
+    ShapeInfo.Radius = ScaledRadius;
+
+    return &ShapeInfo;
 }
 
 void USphereShapeComponent::UpdateBroadAABB()
 {
-    FVector Center = GetComponentLocation();
-    float Scale = GetComponentScale().MaxValue();
+    GetShapeInfo();
 
-    float R = GetRadius();
-    float ScaledRadius = Scale * R;
+    FVector Center = ShapeInfo.Center;
+    float ScaledRadius = ShapeInfo.Radius;
+
+    //FVector Center = GetComponentLocation();
+    //float Scale = GetComponentScale().MaxValue();
+
+    //float R = GetRadius();
+    //float ScaledRadius = Scale * R;
 
     FVector LocalCorners[8] = {
         { ScaledRadius,  ScaledRadius,  ScaledRadius },
@@ -50,8 +74,8 @@ void USphereShapeComponent::UpdateBroadAABB()
         { -ScaledRadius, -ScaledRadius, -ScaledRadius }
     };
 
-    FVector Min = LocalCorners[0] + Center;
-    FVector Max = LocalCorners[7] + Center;
+    FVector Min = LocalCorners[7] + Center;
+    FVector Max = LocalCorners[0] + Center;
 
     BroadAABB.min = Min;
     BroadAABB.max = Max;

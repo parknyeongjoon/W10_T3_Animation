@@ -6,9 +6,15 @@ class UCapsuleShapeComponent;
 
 struct FBoxShapeInfo : public FShapeInfo
 {
-    FBoxShapeInfo(FVector C, FMatrix M, FVector E) : FShapeInfo(C, M), Extent(E) {}
+    FBoxShapeInfo()
+        : FShapeInfo(EShapeType::Box, FVector::ZeroVector, FMatrix::Identity)
+        , Extent(FVector::ZeroVector) { }
+
+    FBoxShapeInfo(const FVector& InCenter, const FMatrix& InWorldMatrix, const FVector& InExtent)
+        : FShapeInfo(EShapeType::Box, InCenter, InWorldMatrix), Extent(InExtent) { }
 
     FVector Extent;
+    FMatrix RotationMatrix;
 };
 
 class UBoxShapeComponent : public UShapeComponent
@@ -26,7 +32,7 @@ public:
     void SetBoxExtent(const FVector& InExtent) { BoxExtent = InExtent; }
     FVector GetBoxExtent() const { return BoxExtent; }
 
-    virtual FShapeInfo GetShapeInfo() const override
+    virtual const FShapeInfo* GetShapeInfo() const override;
     virtual void UpdateBroadAABB() override;
 
     virtual bool TestOverlaps(const UShapeComponent* OtherShape) const override;
@@ -37,7 +43,10 @@ private:
     bool CollisionCheckWithSphere(const USphereShapeComponent* OtherSphere) const;
     bool CollisionCheckWithCapsule(const UCapsuleShapeComponent* OtherCapsule) const;
 
+protected:
+    mutable FBoxShapeInfo ShapeInfo;
 private:
+    FVector PrevExtent;
     FVector BoxExtent;
 };
 

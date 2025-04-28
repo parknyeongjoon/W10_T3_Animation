@@ -330,3 +330,15 @@ FActorInfo AActor::GetActorInfo()
     }
     return ActorInfo;
 }
+
+void AActor::AddHitEvent()
+{
+}
+
+void AActor::AddBeginOverlapEvent()
+{
+}
+
+void AActor::AddEndOverlapEvent()
+{
+}

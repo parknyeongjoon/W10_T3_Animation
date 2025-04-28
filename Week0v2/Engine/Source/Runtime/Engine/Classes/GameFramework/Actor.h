@@ -8,14 +8,14 @@
 #include "UObject/ObjectMacros.h"
 #include <sol/sol.hpp>
 #include "ActorInfo.h"
+#include "Core/Delegates/DelegateCombination.h"
 
 class UActorComponent;
 
 class AActor : public UObject
 {
     DECLARE_CLASS(AActor, UObject)
-
-    
+    DECLARE_MULTICAST_DELEGATE_OneParam(Delegate, void, UPrimitiveComponent*)
 
 public:
     AActor() = default;
@@ -104,6 +104,12 @@ public:
 public:
     bool ShouldTickInEditor() const { return bTickInEditor; }
     void SetTickInEditor(bool bEnable) { bTickInEditor = bEnable; }
+
+public:
+    void AddHitEvent();
+    void AddBeginOverlapEvent();
+    void AddEndOverlapEvent();
+
 protected:
     USceneComponent* RootComponent = nullptr;
 
@@ -119,6 +125,10 @@ private:
     
     /** 현재 Actor가 삭제 처리중인지 여부 */
     uint8 bActorIsBeingDestroyed : 1;
+
+    Delegate OnHit;
+    Delegate OnBeginOverlap;
+    Delegate OnEndOverlap;
 
 #if 1 // TODO: WITH_EDITOR 추가
 public:

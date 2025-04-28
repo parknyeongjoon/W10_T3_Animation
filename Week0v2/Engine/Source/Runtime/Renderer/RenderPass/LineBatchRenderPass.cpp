@@ -32,68 +32,69 @@ FLineBatchRenderPass::FLineBatchRenderPass(const FName& InShaderName)
 
 void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
-    UPrimitiveBatch& PrimitveBatch = UPrimitiveBatch::GetInstance();
+    UPrimitiveBatch& PrimitiveBatch = UPrimitiveBatch::GetInstance();
     for (const AActor* actor : InWorld->GetActors())
     {
         for (const UActorComponent* actorComp : actor->GetComponents())
         {
             if (UShapeComponent* pShapeComponent = Cast<UShapeComponent>(actorComp))
             {
-               const FBoundingBox& Box = pShapeComponent->GetBroadAABB();
-                FMatrix ModelMatrix = pShapeComponent->GetOwner()->GetRootComponent()->GetWorldMatrix();
+                const FBoundingBox& Box = pShapeComponent->GetBroadAABB();
                 FVector Center = pShapeComponent->GetComponentLocation();
 
-                PrimitveBatch.AddAABB(Box, Center, FMatrix::Identity);
+                PrimitiveBatch.AddAABB(Box, Center, FMatrix::Identity);
 
-            }
-            if (UCapsuleShapeComponent* pCapsuleShapeComponent = Cast<UCapsuleShapeComponent>(actorComp))
-            {
-                FVector Center = pCapsuleShapeComponent->GetComponentLocation();
-                FVector4 Color = FVector4(0.4f,1.0f,0.4f,1.0f);
-                float CapsuleHalfHeight = pCapsuleShapeComponent->GetHalfHeight();
-                float CapsuleRaidus = pCapsuleShapeComponent->GetRadius();
+                const FShapeInfo* BaseShapeInfo = pShapeComponent->GetShapeInfo();
 
-                FVector Up = FVector(0.f, 0.f, 1.f);
-                FVector UpV;
-                FMatrix WorldMatrix = pCapsuleShapeComponent->GetOwner()->GetRootComponent()->GetWorldMatrix();
-                // WorldMatrix의 회전 부분만 적용
-                UpV.x = Up.x * WorldMatrix.M[0][0] + Up.y * WorldMatrix.M[1][0] + Up.z * WorldMatrix.M[2][0];
-                UpV.y = Up.x * WorldMatrix.M[0][1] + Up.y * WorldMatrix.M[1][1] + Up.z * WorldMatrix.M[2][1];
-                UpV.z = Up.x * WorldMatrix.M[0][2] + Up.y * WorldMatrix.M[1][2] + Up.z * WorldMatrix.M[2][2];
+                if (!BaseShapeInfo)
+                    continue;
 
-                UpV.Normalize();
+                switch (BaseShapeInfo->Type)
+                {
+                case EShapeType::Box:
+                {
+                    const FBoxShapeInfo* BoxInfo = static_cast<const FBoxShapeInfo*>(BaseShapeInfo);
 
-                PrimitveBatch.AddCapsule(Center, UpV, CapsuleHalfHeight, CapsuleRaidus,Color);
+                    FVector BoxExtent = BoxInfo->Extent;
+                    FVector Center = BoxInfo->Center;
+                    FMatrix WorldMatrix = BoxInfo->WorldMatrix;
 
-            }
-            if (USphereShapeComponent* pSphereShapeComponent = Cast<USphereShapeComponent>(actorComp))
-            {
+                    FBoundingBox localOBB;
+                    localOBB.min = FVector(-BoxExtent.x, -BoxExtent.y, -BoxExtent.z);
+                    localOBB.max = FVector(BoxExtent.x, BoxExtent.y, BoxExtent.z);
 
-                FVector Center = pSphereShapeComponent->GetComponentLocation();
-                float radius = pSphereShapeComponent->GetRadius();
-                FVector4 color = (1.0f, 0.0f, 0.0f, 1.0f);
+                    PrimitiveBatch.AddOBB(localOBB, Center, WorldMatrix);
+                    break;
+                }
+                case EShapeType::Sphere:
+                {
+                    const FSphereShapeInfo* SphereInfo = static_cast<const FSphereShapeInfo*>(BaseShapeInfo);
 
-                PrimitveBatch.AddSphere(Center, radius, color);
+                    FVector Center = SphereInfo->Center;
+                    float Radius = SphereInfo->Radius;
+                    FVector4 Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f); // 사용 안됨.
 
-            }
-            // BoxCollider - OBB
-            if (UBoxShapeComponent* pBoxShapeComponent = Cast<UBoxShapeComponent>(actorComp))
-            {
-                FVector BoxExtent = pBoxShapeComponent->GetBoxExtent();
-                FVector Center = pBoxShapeComponent->GetComponentLocation();
-                //FMatrix WorldMatrix = pBoxShapeComponent->GetOwner()->GetRootComponent()->GetWorldMatrix();
+                    PrimitiveBatch.AddSphere(Center, Radius, Color);
+                    break;
+                }
+                case EShapeType::Capsule:
+                {
+                    const FCapsuleShapeInfo* CapsuleInfo = static_cast<const FCapsuleShapeInfo*>(BaseShapeInfo);
 
-                //FMatrix WorldMatrix = pBoxShapeComponent->GetWorldMatrix();
-                FQuat Rotation = pBoxShapeComponent->GetComponentRotation().ToQuaternion();
-                FVector Scale = pBoxShapeComponent->GetComponentScale();
+                    FVector Center = CapsuleInfo->Center;
+                    FVector UpV = CapsuleInfo->Up;
+                    float Radius = CapsuleInfo->Radius;
+                    float HalfHeight = CapsuleInfo->HalfHeight;
+                    FVector4 Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f); // 사용 안됨.
 
-                FMatrix WorldMatrix = JungleMath::CreateModelMatrix(Center, Rotation, Scale);
+                    UpV.Normalize();
 
-                FBoundingBox localOBB;
-                localOBB.min = FVector(-BoxExtent.x, -BoxExtent.y, -BoxExtent.z);
-                localOBB.max = FVector(BoxExtent.x, BoxExtent.y, BoxExtent.z);
-
-                PrimitveBatch.AddOBB(localOBB, Center, WorldMatrix);
+                    PrimitiveBatch.AddCapsule(Center, UpV, HalfHeight, Radius, Color);
+                    break;
+                }
+                default:
+                    break;
+                }
             }
         }
     }
