@@ -8,6 +8,7 @@
 #include "Script/LuaManager.h"
 #include "Coroutine/CoroutineManager.h"
 
+class FContentsUI;
 class FSceneMgr;
 class UnrealEd;
 class UImGuiManager;
@@ -57,6 +58,8 @@ private:
     SLevelEditor* LevelEditor;
     UnrealEd* UnrealEditor;
     FSceneMgr* SceneMgr;
+
+    FContentsUI* ContentsUI;
     
     bool bTestInput = false;
 public:

@@ -11,6 +11,19 @@ AGEnemy::AGEnemy()
     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
     Capsule = AddComponent<UCapsuleShapeComponent>(EComponentOrigin::Constructor);
     ChangeColor(FVector(0,200,100));
+    for (int i=0;i<3;i++)
+    {
+        HeartUI[i] = AddComponent<UBillboardComponent>(EComponentOrigin::Constructor);
+        if (USceneComponent* ParentComponent = Cast<USceneComponent>(MeshComp))
+        {
+            HeartUI[i]->DetachFromParent();
+            HeartUI[i]->SetupAttachment(ParentComponent);
+        }
+        HeartUI[i]->SetTexture(L"Assets/Texture/heartpixelart.png");
+        HeartUI[i]->SetRelativeLocation(FVector(0.0f, 0.0f, 3.0f));
+        HeartUI[i]->bOnlyForEditor = false;
+        SetActorLocation(FVector(0, -1 + i, 1));
+    }
 }
 
 AGEnemy::AGEnemy(const AGEnemy& Other)

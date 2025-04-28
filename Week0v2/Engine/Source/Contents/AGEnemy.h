@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Components/PrimitiveComponents/UBillboardComponent.h"
 #include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 #include "Engine/StaticMeshActor.h"
 
@@ -25,7 +26,7 @@ public:
 private:
     OnHitEvent OnHit;
     UCapsuleShapeComponent* Capsule;
-    AActor* HeartUI[3];
+    UBillboardComponent* HeartUI[3];
 
     int health = 3;
 };

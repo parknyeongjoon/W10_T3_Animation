@@ -1,6 +1,15 @@
 #pragma once
 #include <memory>
 
+enum class EGameState
+{
+    None,
+    //BeginPlay,
+    Playing,
+    //Paused,
+    Ended
+};
+
 class FGameManager 
 {
     
@@ -18,10 +27,20 @@ public:
     void StartGame();
     void EndGame();
 
+    int GetScore() const { return Score; }
+    void SetScore(int NewScore) { Score = NewScore; }
+    
+    void SetGameState(EGameState NewState) { CurrentGameState = NewState; }
+    EGameState GetGameState() const { return CurrentGameState; }
+
+    float GetRemainingTime() const { return GameOverTimer - GameTimer; }
 
 private:
     int Score = 0;
     float GameTimer = 0.0f;
+    float GameOverTimer = 0.0f;
+    EGameState CurrentGameState = EGameState::None;
+    
     
     // 싱글톤을 위한 정적 인스턴스
     static std::shared_ptr<FGameManager> Instance;

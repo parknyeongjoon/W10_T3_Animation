@@ -41,8 +41,15 @@ void PropertyEditorPanel::Render()
     {
         if (PickedComponent != nullptr)
         {
-            PickedComponent->DestroyComponent();
-            PickedComponent = nullptr;
+            AActor* PickedActor = nullptr;
+            PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
+
+            //루트 컴포넌트면 삭제 불가
+            if (PickedComponent != PickedActor->GetRootComponent())
+            {
+                PickedComponent->DestroyComponent();
+                PickedComponent = nullptr;
+            }
         }
     }
     /* Pre Setup */
@@ -215,6 +222,20 @@ void PropertyEditorPanel::Render()
                 {
                     ULuaComponent* LuaComponent = PickedActor->AddComponent<ULuaComponent>(EComponentOrigin::Editor);
                     PickedComponent = LuaComponent;
+                }
+                
+                if (ImGui::Selectable("HeartComponent"))
+                {
+                    UBillboardComponent* BillboardComponent = PickedActor->AddComponent<UBillboardComponent>(EComponentOrigin::Editor);
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        BillboardComponent->DetachFromParent();
+                        BillboardComponent->SetupAttachment(ParentComponent);
+                    }
+                    PickedComponent = BillboardComponent;
+                    BillboardComponent->SetTexture(L"Assets/Texture/heartpixelart.png");
+                    BillboardComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 3.0f));
+                    BillboardComponent->bOnlyForEditor = false;
                 }
 
                 ImGui::EndPopup();
