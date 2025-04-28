@@ -233,7 +233,7 @@ void PropertyEditorPanel::Render()
                         BillboardComponent->SetupAttachment(ParentComponent);
                     }
                     PickedComponent = BillboardComponent;
-                    BillboardComponent->SetTexture(L"Assets/Texture/heart pixel art 32x32.png");
+                    BillboardComponent->SetTexture(L"Assets/Texture/heartpixelart.png");
                     BillboardComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 3.0f));
                     BillboardComponent->bOnlyForEditor = false;
                 }

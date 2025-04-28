@@ -95,7 +95,7 @@ void FEditorIconRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     {
         FDebugIconConstant DebugConstant;
         DebugConstant.IconPosition = item->GetComponentLocation();
-        DebugConstant.IconScale = 1;
+        DebugConstant.IconScale = 0.2f; //TODO: 게임잼용 임시 스케일 변경
 
         renderResourceManager->UpdateConstantBuffer(TEXT("FDebugIconConstant"), &DebugConstant);
 
