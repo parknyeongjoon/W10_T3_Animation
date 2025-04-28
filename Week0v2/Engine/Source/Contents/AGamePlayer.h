@@ -19,7 +19,7 @@ public:
 private:
     void Input(float DeltaTime);
 private:
-    float MoveSpeed = 0.5f;
+    float MoveSpeed = 0.1f;
     bool bLeftMouseDown = false;
     bool bRightMouseDown = false;
     POINT lastMousePos;
