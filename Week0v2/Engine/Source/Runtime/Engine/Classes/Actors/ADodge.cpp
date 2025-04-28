@@ -1,6 +1,8 @@
 ﻿#include "ADodge.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 #include "Engine/FLoaderOBJ.h"
+#include "Engine/World.h"
+#include "Delegates/Delegate.impl.h"
 
 ADodge::ADodge()
     : Super()
@@ -19,8 +21,8 @@ ADodge::ADodge(const ADodge& Other)
 void ADodge::BeginPlay()
 {
     Super::BeginPlay();
-    TestDelegate.AddLambda([this]{SetActorLocation(GetActorLocation() + FVector(0.01,0,0));});
-    TestDelegate.AddUObject(this, &ADodge::test);
+    // TestDelegate.AddUObject(this, &ADodge::test);
+    // TestDelegate.AddLambda([this]{SetActorLocation(GetActorLocation() + FVector(0.1,0,0));});
 }
 
 void ADodge::Tick(float DeltaTime)
@@ -46,7 +48,7 @@ bool ADodge::Destroy()
 
 void ADodge::test()
 {
-    SetActorRotation(GetActorRotation() + FVector(0.001,0,0));
+    SetActorRotation(GetActorRotation() + FVector(0.01,0,0));
     // Destroy();
 }
 
@@ -54,18 +56,22 @@ UObject* ADodge::Duplicate() const
 {
     ADodge* NewActor = FObjectFactory::ConstructObjectFrom<ADodge>(this);
     NewActor->DuplicateSubObjects(this);
-    NewActor->PostDuplicate();
     return NewActor;
 }
 
 void ADodge::DuplicateSubObjects(const UObject* Source)
 {
     Super::DuplicateSubObjects(Source);
+    ADodge* Origin = Cast<ADodge>(Source);
+    TestDelegate = Origin->TestDelegate;
 }
 
 void ADodge::PostDuplicate()
 {
     Super::PostDuplicate();
+    // TODO: PIE world 받아오는 다른 방법 생각해보기 지금은 하드코딩
+    // 아직 Duplicate 중이라 GetWorld가 Editor World를 뱉음
+    TestDelegate = TestDelegate.Duplicate(GetWorld()->GetPIEWorld()->GetLevel()->GetDuplicatedObjects());
 }
 
 void ADodge::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray)

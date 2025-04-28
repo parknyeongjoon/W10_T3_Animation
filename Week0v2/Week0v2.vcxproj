@@ -310,6 +310,7 @@
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.impl.h" />
     <ClInclude Include="Engine\Source\Runtime\Physics\FCollisionManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.h" />
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SLevelEditor.h" />

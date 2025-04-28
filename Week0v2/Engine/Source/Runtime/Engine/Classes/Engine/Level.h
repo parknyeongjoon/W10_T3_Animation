@@ -19,9 +19,15 @@ public:
 
 private:
     TArray<AActor*> Actors;
+    /*
+     * param1: Origin Object
+     * param2: Duplicated Object
+     */
+    TMap<UObject*, UObject*> DuplicatedObjects;
 
 public:
     TArray<AActor*>& GetActors() { return Actors; }
+    TMap<UObject*, UObject*>& GetDuplicatedObjects() { return DuplicatedObjects; }
     TSet<AActor*> PendingBeginPlayActors;
     
     void PostLoad(); //씬컴포넌트 연결을 위해 모두 로드후 부착
