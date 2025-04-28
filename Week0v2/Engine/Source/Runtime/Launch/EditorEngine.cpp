@@ -106,7 +106,7 @@ void UEditorEngine::Tick(float deltaSeconds)
     
     Input();
     // GWorld->Tick(LEVELTICK_All, deltaSeconds);
-    LevelEditor->Tick(deltaSeconds);
+    LevelEditor->Tick(levelType, deltaSeconds);
 
     Render();
     
