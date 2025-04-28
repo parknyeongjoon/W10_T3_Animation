@@ -3,6 +3,8 @@
 #include "EditorEngine.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "UnrealEd/EditorViewportClient.h"
+#include "Engine/World.h"
+#include "AGBullet.h"
 AGamePlayer::AGamePlayer()
 {
     //Camera = AddComponent<UCameraComponent>(EComponentOrigin::Constructor);
@@ -15,6 +17,8 @@ AGamePlayer::AGamePlayer(const AGamePlayer& Other) : Super(Other)
 void AGamePlayer::BeginPlay()
 {
     Super::BeginPlay();
+
+    GetCursorPos(&lastMousePos);
     UCameraComponent* Camera = GetComponentByClass<UCameraComponent>();
     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(Camera);
 }
@@ -56,6 +60,8 @@ void AGamePlayer::Input(float DeltaTime)
         if (!bLeftMouseDown)
         {
             bLeftMouseDown = true;
+            AGBullet* bullet = GEngine->GetWorld()->SpawnActor<AGBullet>();
+            bullet->Fire(GetActorLocation(), GetActorForwardVector(), 50);
             UE_LOG(LogLevel::Display, "GamePlayer Left Mouse Click");
         }
     }
@@ -84,8 +90,8 @@ void AGamePlayer::Input(float DeltaTime)
     int32 deltaY = currentMousePos.y - lastMousePos.y;
 
     FRotator Rotation = GetActorRotation();
-    Rotation.Yaw += deltaX * 0.1f;    // 좌우 마우스 이동 -> Yaw 회전
-    Rotation.Pitch -= deltaY * 0.1f;  // 위아래 마우스 이동 -> Pitch 회전 (보통 위로 올리면 Pitch 감소)
+    Rotation.Yaw += deltaX * YawSpeed;    // 좌우 마우스 이동 -> Yaw 회전
+    Rotation.Pitch -= deltaY * PitchSpeed;  // 위아래 마우스 이동 -> Pitch 회전 (보통 위로 올리면 Pitch 감소)
 
     // Pitch 클램프
     if (Rotation.Pitch > 89.0f) Rotation.Pitch = 89.0f;

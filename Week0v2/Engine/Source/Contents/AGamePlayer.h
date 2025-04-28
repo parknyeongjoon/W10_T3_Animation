@@ -19,6 +19,8 @@ public:
 private:
     void Input(float DeltaTime);
 private:
+    float YawSpeed = 0.1f;
+    float PitchSpeed = 0.1f;
     float MoveSpeed = 0.1f;
     bool bLeftMouseDown = false;
     bool bRightMouseDown = false;
