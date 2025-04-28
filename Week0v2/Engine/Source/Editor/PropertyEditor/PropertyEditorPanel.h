@@ -4,6 +4,7 @@
 
 class UStaticMeshComponent;
 class USceneComponent;
+class ULevel;
 
 class PropertyEditorPanel : public UEditorPanel
 {
@@ -28,6 +29,7 @@ private:
 
     void RenderForLua(class ULuaComponent* LuaComponent);
     void RenderShapeProperty(AActor* PickedActor);
+    void RenderDelegate(ULevel* level);
 private:
     float Width = 0, Height = 0;
     FVector Location = FVector(0, 0, 0);

@@ -229,7 +229,7 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
     if (!Source) return;
 
     TMap<const USceneComponent*, USceneComponent*> SceneCloneMap;
-
+    
     for (UActorComponent* Component : Source->OwnedComponents)
     {
         UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate());

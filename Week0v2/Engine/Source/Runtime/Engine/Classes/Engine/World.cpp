@@ -56,7 +56,7 @@ void UWorld::CreateBaseObject()
     Dodge1->SetActorLocation(FVector(150,0,0));
     ADodge* Dodge2 = SpawnActor<ADodge>();
     Dodge2->SetActorScale(FVector(0.5f, 0.5f, 0.5f));
-    Dodge1->TestDelegate.AddUObject(Dodge2, &ADodge::test);
+    Dodge1->TestDelegate.AddUObject(Dodge2, &ADodge::TestRotate);
 }
 
 void UWorld::ReleaseBaseObject()

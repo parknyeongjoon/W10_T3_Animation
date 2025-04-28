@@ -5,6 +5,7 @@
 #include "Container/Map.h"
 #include "Container/String.h"
 
+class FFunctionRegistry;
 
 class UEditorEngine;
 extern UEditorEngine* GEngine;
@@ -16,8 +17,6 @@ class UWorld;
 class UObject
 {
 private:
-
-
     UObject& operator=(const UObject&) = delete;
     UObject(UObject&&) = delete;
     UObject& operator=(UObject&&) = delete;
@@ -32,6 +31,7 @@ public:
     {
     }
     static UClass* StaticClass();
+    static FFunctionRegistry* FunctionRegistry();
 
     virtual UObject* Duplicate() const
     {
