@@ -8,6 +8,7 @@
 #include "UObject/ObjectMacros.h"
 #include <sol/sol.hpp>
 #include "ActorInfo.h"
+#include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "Core/Delegates/DelegateCombination.h"
 
 class UActorComponent;
@@ -15,7 +16,7 @@ class UActorComponent;
 class AActor : public UObject
 {
     DECLARE_CLASS(AActor, UObject)
-    DECLARE_MULTICAST_DELEGATE_OneParam(Delegate, void, UPrimitiveComponent*)
+    DECLARE_MULTICAST_DELEGATE_OneParam(Delegate, UPrimitiveComponent*)
 
 public:
     AActor() = default;
@@ -114,6 +115,9 @@ public:
 protected:
     USceneComponent* RootComponent = nullptr;
 
+    Delegate OnHit;
+    Delegate OnBeginOverlap;
+    Delegate OnEndOverlap;
 private:
     /** 이 Actor를 소유하고 있는 다른 Actor의 정보 */
     AActor* Owner = nullptr;
@@ -127,9 +131,6 @@ private:
     /** 현재 Actor가 삭제 처리중인지 여부 */
     uint8 bActorIsBeingDestroyed : 1;
 
-    Delegate OnHit;
-    Delegate OnBeginOverlap;
-    Delegate OnEndOverlap;
 
 #if 1 // TODO: WITH_EDITOR 추가
 public:
