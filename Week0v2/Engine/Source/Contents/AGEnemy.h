@@ -24,11 +24,14 @@ public:
 
     void OnDamaged();
     void ChangeColor(FVector NewColor) const;
+    void Move();
+    void OnCollision();
 
     OnHitEvent OnHit;
     OnDeadEvent OnDead;
 private:
-    
+    FVector Velocity; 
+
     UStaticMeshComponent* MeshComp;
     UCapsuleShapeComponent* Capsule;
     UBillboardComponent* HeartUI[3];

@@ -52,7 +52,6 @@ void UWorld::CreateBaseObject()
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
-    AGEnemy* enemy = SpawnActor<AGEnemy>();
 }
 
 void UWorld::ReleaseBaseObject()

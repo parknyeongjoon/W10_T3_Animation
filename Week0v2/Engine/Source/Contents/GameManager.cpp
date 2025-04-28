@@ -1,5 +1,6 @@
 #include "GameManager.h"
 
+#include "AGEnemy.h"
 #include "EditorEngine.h"
 #include "Engine/World.h"
 
@@ -17,8 +18,16 @@ FGameManager& FGameManager::Get()
 
 void FGameManager::BeginPlay()
 {
-    int Score = 0;
-    float GameTimer = 0.0f;
+    Score = 0;
+    GameTimer = 0.0f;
+    for (int i=0;i<3;i++)
+    {
+        for (int j=0;j<3;j++)
+        {
+            AActor* enemy = GEngine->GetWorld()->SpawnActor<AGEnemy>();
+            enemy->SetActorLocation(FVector(i * 10,j * 10,0));
+        }
+    }
 }
 
 void FGameManager::RestartGame()
@@ -34,4 +43,9 @@ void FGameManager::StartGame()
 void FGameManager::EndGame()
 {
     GEngine->GetWorld()->LoadScene("Assets/Scenes/EndGame.scene");
+}
+
+void FGameManager::SpawnEnemy()
+{
+    GEngine->GetWorld()->SpawnActor<AGEnemy>();
 }

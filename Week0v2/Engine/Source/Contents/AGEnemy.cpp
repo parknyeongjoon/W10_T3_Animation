@@ -1,5 +1,6 @@
 ﻿#include "AGEnemy.h"
 
+#include <random>
 #include "GameManager.h"
 #include "Components/Material/Material.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
@@ -39,12 +40,26 @@ void AGEnemy::BeginPlay()
     Super::BeginPlay();
     OnHit.AddUObject(this, &AGEnemy::OnDamaged);
     OnDead.AddStatic(FGameManager::AddScore);
-    // FCoroutineManager::StartCoroutine()
+    OnDead.AddStatic(FGameManager::SpawnEnemy);
+    // OnBeginOverlap.AddUObject(this, &AGEnemy::OnCollision);
+    static std::mt19937 generator(std::chrono::system_clock::now().time_since_epoch().count());
+    
+    // 각 축별로 다른 분포 정의
+    std::uniform_int_distribution<int> xDistribution(-10, 10);
+    std::uniform_int_distribution<int> yDistribution(-10, 10);  // y축은 더 넓은 범위
+    
+    // 각 축에 대해 별도로 난수 생성
+    Velocity = FVector(
+        xDistribution(generator) * 0.001f, 
+        yDistribution(generator) * 0.001f, 
+        0
+    );
 }
 
 void AGEnemy::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+    Move();
 }
 
 void AGEnemy::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -59,7 +74,7 @@ UObject* AGEnemy::Duplicate() const
     return NewActor;
 }
 
-void AGEnemy::DuplicateSubObjects(const UObject* Source)
+void AGEnemy::DuplicateSubObjects(const UObject* Source) // TODO: Duplicate 고치기
 {
     int heartIndex = 0;
     Super::DuplicateSubObjects(Source);
@@ -102,8 +117,6 @@ void AGEnemy::OnDamaged()
         HeartUI[1]->DestroyComponent();
         break;
     case 0:
-        ChangeColor(FVector(0.2,0.2,0.2));
-        HeartUI[0]->DestroyComponent();
         OnDead.Broadcast();
         break;
     }
@@ -112,4 +125,14 @@ void AGEnemy::OnDamaged()
 void AGEnemy::ChangeColor(FVector NewColor) const
 {
     MeshComp->GetMaterial(0)->SetDiffuse(NewColor);
+}
+
+void AGEnemy::Move()
+{
+    SetActorLocation(GetActorLocation() + Velocity);
+}
+
+void AGEnemy::OnCollision()
+{
+    Velocity = FVector(-Velocity.x, -Velocity.y,0);
 }
