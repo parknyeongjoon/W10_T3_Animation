@@ -9,13 +9,14 @@
 #include <sol/sol.hpp>
 #include "ActorInfo.h"
 #include "Core/Delegates/DelegateCombination.h"
+#include "Components/PrimitiveComponents/PrimitiveComponent.h"
 
 class UActorComponent;
 
 class AActor : public UObject
 {
     DECLARE_CLASS(AActor, UObject)
-    DECLARE_MULTICAST_DELEGATE_OneParam(Delegate, void, UPrimitiveComponent*)
+    DECLARE_MULTICAST_DELEGATE_OneParam(Delegate, const UPrimitiveComponent*)
 
 public:
     AActor() = default;
@@ -107,9 +108,75 @@ public:
     void SetTickInEditor(bool bEnable) { bTickInEditor = bEnable; }
 
 public:
-    void AddHitEvent();
-    void AddBeginOverlapEvent();
-    void AddEndOverlapEvent();
+#pragma region Event Delegate
+    // --- Hit 이벤트 바인딩 (UObject 멤버 함수) ---
+    template<typename UserClass>
+    FDelegateHandle AddHitUObject(UserClass* Object, void(UserClass::* Func)(UPrimitiveComponent*))
+    {
+        return OnHit.AddUObject(Object, Func);
+    }
+
+    // --- Hit 이벤트 바인딩 (정적 함수 또는 펑터) ---
+    template<typename FunctorType>
+    FDelegateHandle AddHitStatic(FunctorType&& Functor)
+    {
+        return OnHit.AddStatic(std::forward<FunctorType>(Functor));
+    }
+
+    // --- Hit 이벤트 바인딩 (람다) ---
+    template<typename LambdaType>
+    FDelegateHandle AddHitLambda(LambdaType&& Lambda)
+    {
+        return OnHit.AddLambda(std::forward<LambdaType>(Lambda));
+    }
+
+    // BeginOverlap
+    template<typename UserClass>
+    FDelegateHandle AddBeginOverlapUObject(UserClass* Object, void(UserClass::* Func)(UPrimitiveComponent*))
+    {
+        return OnBeginOverlap.AddUObject(Object, Func);
+    }
+    template<typename FunctorType>
+    FDelegateHandle AddBeginOverlapStatic(FunctorType&& Functor)
+    {
+        return OnBeginOverlap.AddStatic(std::forward<FunctorType>(Functor));
+    }
+    template<typename LambdaType>
+    FDelegateHandle AddBeginOverlapLambda(LambdaType&& Lambda)
+    {
+        return OnBeginOverlap.AddLambda(std::forward<LambdaType>(Lambda));
+    }
+
+    // EndOverlap
+    template<typename UserClass>
+    FDelegateHandle AddEndOverlapUObject(UserClass* Object, void(UserClass::* Func)(UPrimitiveComponent*))
+    {
+        return OnEndOverlap.AddUObject(Object, Func);
+    }
+    template<typename FunctorType>
+    FDelegateHandle AddEndOverlapStatic(FunctorType&& Functor)
+    {
+        return OnEndOverlap.AddStatic(std::forward<FunctorType>(Functor));
+    }
+    template<typename LambdaType>
+    FDelegateHandle AddEndOverlapLambda(LambdaType&& Lambda)
+    {
+        return OnEndOverlap.AddLambda(std::forward<LambdaType>(Lambda));
+    }
+
+    //void NotifyHit(UPrimitiveComponent* HitComp)
+    //{
+    //    OnHit.Broadcast(HitComp);
+    //}
+    void NotifyBeginOverlap(const UPrimitiveComponent* Comp) const
+    {
+        OnBeginOverlap.Broadcast(Comp);
+    }
+    void NotifyEndOverlap(const UPrimitiveComponent* Comp) const
+    {
+        OnEndOverlap.Broadcast(Comp);
+    }
+#pragma endregion Event Delegate
 
 protected:
     USceneComponent* RootComponent = nullptr;
@@ -127,6 +194,7 @@ private:
     /** 현재 Actor가 삭제 처리중인지 여부 */
     uint8 bActorIsBeingDestroyed : 1;
 
+public:
     Delegate OnHit;
     Delegate OnBeginOverlap;
     Delegate OnEndOverlap;
@@ -146,9 +214,6 @@ private:
     /** 에디터상에 보이는 Actor의 이름 */
     FString ActorLabel;
 #endif
-
-
-
 };
 
 
