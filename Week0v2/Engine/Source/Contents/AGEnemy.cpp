@@ -65,6 +65,14 @@ void AGEnemy::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     Move();
+    if (bIsDead)
+    {
+        DeadTimer += DeltaTime;
+        if (DeadTimer > 3.0f)
+        {
+            Destroy();
+        }
+    }
 }
 
 void AGEnemy::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -123,6 +131,9 @@ void AGEnemy::OnDamaged()
         break;
     case 0:
         OnDead.Broadcast();
+        ChangeColor(FVector(0.1,0.1,0.1));
+        Velocity = FVector(0, 0, 0);
+        bIsDead = true;
         break;
     }
 }

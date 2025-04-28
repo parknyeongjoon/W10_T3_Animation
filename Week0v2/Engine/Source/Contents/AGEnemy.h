@@ -30,7 +30,9 @@ public:
     OnHitEvent OnHit;
     OnDeadEvent OnDead;
 private:
-    FVector Velocity; 
+    FVector Velocity;
+    bool bIsDead= false;
+    float DeadTimer = 0.0f;
 
     UStaticMeshComponent* MeshComp;
     UCapsuleShapeComponent* Capsule;
