@@ -70,6 +70,13 @@ public:
         return Actor;
     }
 
+    AActor* SpawnActorByName(const FString& ActorName, bool bCallBeginPlay)
+    {
+        UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorName);
+
+        return SpawnActorByClass(ActorClass, bCallBeginPlay);
+    }
+
     void DuplicateSeletedActors();
     void DuplicateSeletedActorsOnLocation();
 

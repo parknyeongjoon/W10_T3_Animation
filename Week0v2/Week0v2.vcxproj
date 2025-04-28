@@ -175,6 +175,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Editor\Script\LuaManagerBind.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\FCollisionManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.cpp" />
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SLevelEditor.cpp" />
