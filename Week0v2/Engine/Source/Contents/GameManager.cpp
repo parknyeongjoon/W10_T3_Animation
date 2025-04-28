@@ -47,5 +47,5 @@ void FGameManager::EndGame()
 
 void FGameManager::SpawnEnemy()
 {
-    GEngine->GetWorld()->SpawnActor<AGEnemy>();
+    GEngine->GetWorld()->SpawnActor<AGEnemy>()->SetActorLocation(FVector(0, 0, 2));
 }
