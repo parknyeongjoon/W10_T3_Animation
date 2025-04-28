@@ -122,10 +122,20 @@ void UCameraComponent::RotatePitch(float _Value)
 
 FMatrix UCameraComponent::GetViewMatrix() const
 {
-    return FMatrix();
+    FVector CameraPos = GetOwner()->GetActorLocation();
+    FVector CameraForward = GetOwner()->GetActorForwardVector();
+    FVector CameraUP = FVector(0,0,1);
+
+    return JungleMath::CreateViewMatrix(CameraPos,CameraPos+CameraForward, CameraUP);
 }
 
 FMatrix UCameraComponent::GetProjectionMatrix() const
 {
-    return FMatrix();
+    float AspectRatio = GEngine->GetAspectRatio(GEngine->graphicDevice.SwapChain);
+    return JungleMath::CreateProjectionMatrix(
+        FMath::DegreesToRadians(FOV),
+        AspectRatio,
+        nearClip,
+        farClip
+    );
 }

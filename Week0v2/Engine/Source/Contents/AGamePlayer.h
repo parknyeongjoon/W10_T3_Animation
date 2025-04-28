@@ -8,7 +8,12 @@ class AGamePlayer :
     DECLARE_CLASS(AGamePlayer,AActor)
 public:
     AGamePlayer();
+    AGamePlayer(const AGamePlayer& Other);
     virtual void Tick(float DeltaTime) override;
+
+    UObject* Duplicate() const override;
+    void DuplicateSubObjects(const UObject* Source) override;
+    void PostDuplicate() override;
 private:
     void Input();
 private:
