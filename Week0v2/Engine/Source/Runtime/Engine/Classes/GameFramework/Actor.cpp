@@ -239,8 +239,6 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
     
     for (UActorComponent* Component : Source->OwnedComponents)
     {
-        if (Component->ComponentOrigin == EComponentOrigin::Constructor)
-            continue;
         UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate());
         dupComponent->Owner = this;
         OwnedComponents.Add(dupComponent);
