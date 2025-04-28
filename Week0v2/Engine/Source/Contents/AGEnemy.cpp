@@ -33,7 +33,7 @@ AGEnemy::AGEnemy()
         HeartUI[i]->SetRelativeLocation(FVector(i - 1, 0, 1.5f));
     }
     
-    ChangeColor(FVector(0,200,100));
+    ChangeColor(FVector(0,0.7,0.4));
 }
 
 AGEnemy::AGEnemy(const AGEnemy& Other)
@@ -65,6 +65,14 @@ void AGEnemy::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     Move();
+    if (bIsDead)
+    {
+        DeadTimer += DeltaTime;
+        if (DeadTimer > 1.0f)
+        {
+            Destroy();
+        }
+    }
 }
 
 void AGEnemy::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -114,15 +122,18 @@ void AGEnemy::OnDamaged()
     switch (health)
     {
     case 2:
-        ChangeColor(FVector(255,255,0));
+        ChangeColor(FVector(1,1,0));
         HeartUI[2]->DestroyComponent();
         break;
     case 1:
-        ChangeColor(FVector(255,0,0));
+        ChangeColor(FVector(1,0,0));
         HeartUI[1]->DestroyComponent();
         break;
     case 0:
         OnDead.Broadcast();
+        ChangeColor(FVector(0.1,0.1,0.1));
+        Velocity = FVector(0, 0, 0);
+        bIsDead = true;
         break;
     }
 }
