@@ -99,24 +99,27 @@ void AGamePlayer::Input(float DeltaTime)
         bSpacePressedLastFrame = false;
     }
 
-    POINT currentMousePos;
-    GetCursorPos(&currentMousePos);
+    if (!bShowCursor) // 커서 숨김 상태일 때만 마우스 회전
+    {
+        POINT currentMousePos;
+        GetCursorPos(&currentMousePos);
 
-    int32 deltaX = currentMousePos.x - lastMousePos.x;
-    int32 deltaY = currentMousePos.y - lastMousePos.y;
+        int32 deltaX = currentMousePos.x - lastMousePos.x;
+        int32 deltaY = currentMousePos.y - lastMousePos.y;
 
-    FRotator Rotation = GetActorRotation();
-    Rotation.Yaw += deltaX * YawSpeed;    // 좌우 마우스 이동 -> Yaw 회전
-    Rotation.Pitch -= deltaY * PitchSpeed;  // 위아래 마우스 이동 -> Pitch 회전 (보통 위로 올리면 Pitch 감소)
+        FRotator Rotation = GetActorRotation();
+        Rotation.Yaw += deltaX * YawSpeed;    // 좌우 마우스 이동 -> Yaw 회전
+        Rotation.Pitch -= deltaY * PitchSpeed;  // 위아래 마우스 이동 -> Pitch 회전 (보통 위로 올리면 Pitch 감소)
 
-    // Pitch 클램프
-    if (Rotation.Pitch > 89.0f) Rotation.Pitch = 89.0f;
-    if (Rotation.Pitch < -89.0f) Rotation.Pitch = -89.0f;
+        // Pitch 클램프
+        if (Rotation.Pitch > 89.0f) Rotation.Pitch = 89.0f;
+        if (Rotation.Pitch < -89.0f) Rotation.Pitch = -89.0f;
 
-    SetActorRotation(Rotation);
+        SetActorRotation(Rotation);
 
-    // 다음 프레임을 위해 현재 마우스 위치 저장
-    lastMousePos = currentMousePos;
+        // 다음 프레임을 위해 현재 마우스 위치 저장
+        lastMousePos = currentMousePos;
+    }
 
     FVector MoveDirection = FVector::ZeroVector;
     if (GetAsyncKeyState('W') & 0x8000) MoveDirection += GetActorForwardVector();
