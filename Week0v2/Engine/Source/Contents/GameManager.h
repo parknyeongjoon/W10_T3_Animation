@@ -29,6 +29,8 @@ public:
 
     int GetScore() const { return Score; }
     void SetScore(int NewScore) { Score = NewScore; }
+
+    static void AddScore() { Get().Score++;}
     
     void SetGameState(EGameState NewState) { CurrentGameState = NewState; }
     EGameState GetGameState() const { return CurrentGameState; }
