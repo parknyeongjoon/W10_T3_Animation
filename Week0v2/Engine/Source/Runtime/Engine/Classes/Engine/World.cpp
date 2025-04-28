@@ -51,6 +51,13 @@ void UWorld::CreateBaseObject()
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
+
+    // ADodge* Dodge1 = SpawnActor<ADodge>();
+    // Dodge1->SetActorLocation(FVector(150,0,0));
+    // ADodge* Dodge2 = SpawnActor<ADodge>();
+    // Dodge2->SetActorScale(FVector(0.5f, 0.5f, 0.5f));
+    // Dodge1->TestDelegate.AddUObject(Dodge2, &ADodge::test);
+
 }
 
 void UWorld::ReleaseBaseObject()
@@ -69,7 +76,7 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
             LocalGizmo->Tick(deltaSeconds);
     }
     // SpawnActor()에 의해 Actor가 생성된 경우, 여기서 BeginPlay 호출
-    if (tickType == LEVELTICK_All || true)
+    if (tickType == LEVELTICK_All)
     {
         FLuaManager::Get().BeginPlay();
         for (AActor* Actor : Level->PendingBeginPlayActors)

@@ -19,6 +19,33 @@
 3. std::string에서 FString 생성
 */
 
+// // --- Helper function for converting wstring to UTF-8 string ---
+// // C++17에서 <codecvt>가 deprecated 되었으므로, 필요시 플랫폼별 API나 다른 라이브러리 사용 고려
+// // 예시: Windows API 사용
+// #ifdef _WIN32
+// std::string WideStringToUTF8(const std::wstring& wstr) {
+//     if (wstr.empty()) return std::string();
+//     int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), NULL, 0, NULL, NULL);
+//     std::string strTo(size_needed, 0);
+//     WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0], size_needed, NULL, NULL);
+//     return strTo;
+// }
+// #else
+// // 다른 플랫폼 (Linux, macOS)의 경우 iconv 등의 라이브러리 사용
+// std::string WideStringToUTF8(const std::wstring& wstr) {
+//     // C++11/14 방식 (C++17 deprecated)
+//     try {
+//         std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+//         return converter.to_bytes(wstr);
+//     } catch(const std::exception& e) {
+//         // 변환 실패 시 대체 처리 (예: 에러 로깅, 빈 문자열 반환)
+//         // UE_LOG(LogTemp, Error, TEXT("Failed to convert wstring to UTF8: %hs"), e.what());
+//         return ""; // 혹은 예외를 다시 던지거나 다른 방식으로 처리
+//     }
+//     // 다른 라이브러리(iconv, ICU 등) 사용 로직 구현...
+// }
+// #endif
+
 enum : int8 { INDEX_NONE = -1 };
 
 /** Determines case sensitivity options for string comparisons. */

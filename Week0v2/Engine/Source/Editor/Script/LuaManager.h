@@ -58,6 +58,9 @@ private:
     // --- 헬퍼 함수 ---
     // 공통 C++ 타입 및 함수를 Lua에 바인딩합니다.
     void BindCoreTypes();
+    //전방 선언하듯이 모든 구조체를 미리 등록한다.
+    void BindForwardDeclarations(sol::table& lua);
+    void BindFStringToLua(sol::table& lua) ;
     
     bool bInitialized = false;
 

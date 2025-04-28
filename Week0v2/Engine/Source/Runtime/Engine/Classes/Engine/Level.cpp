@@ -1,5 +1,8 @@
 #include "Level.h"
+
+#include "Actors/ADodge.h"
 #include "GameFramework/Actor.h"
+#include "Delegates/Delegate.impl.h"
 
 ULevel::ULevel()
 {
@@ -63,11 +66,19 @@ UObject* ULevel::Duplicate() const
 void ULevel::DuplicateSubObjects(const UObject* SourceObj)
 {
     UObject::DuplicateSubObjects(SourceObj);
-    for (const AActor* Actor : Cast<ULevel>(SourceObj)->GetActors())
+    for (AActor* Actor : Cast<ULevel>(SourceObj)->GetActors())
     {
         AActor* dupActor = static_cast<AActor*>(Actor->Duplicate());
+        DuplicatedObjects.Add(Actor, dupActor);
         PendingBeginPlayActors.Add(dupActor);
         Actors.Add(dupActor);
+    }
+    for (AActor* Actor : Actors)
+    {
+        if (ADodge* NewDodge = Cast<ADodge>(Actor))
+        {
+            NewDodge->TestDelegate = NewDodge->TestDelegate.Duplicate(DuplicatedObjects);
+        }
     }
 }
 

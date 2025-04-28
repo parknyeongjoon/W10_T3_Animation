@@ -59,6 +59,7 @@ public:
 
     // 클래스 정보를 바탕으로 컴포넌트를 새로 추가.
     UActorComponent* AddComponentByClass(UClass* ComponentClass, EComponentOrigin Origin);
+    UActorComponent* AddComponentByName(FString ComponentName, EComponentOrigin Origin);
     void AddComponent(UActorComponent* Component);
     /** Actor가 가지고 있는 Component를 제거합니다. */
     void RemoveOwnedComponent(UActorComponent* Component);
