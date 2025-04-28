@@ -162,7 +162,7 @@ FMatrix USceneComponent::GetScaleMatrix() const
 
 FMatrix USceneComponent::GetRotationMatrix() const
 {
-    FMatrix RotationMat = FMatrix::GetRotationMatrix(RelativeRotation);
+    FMatrix RotationMat = FMatrix::GetRotationMatrix(RelativeRotation.ToQuaternion());
     if (AttachParent)
     {
         FMatrix ParentRotationMat = AttachParent->GetRotationMatrix();

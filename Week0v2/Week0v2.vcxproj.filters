@@ -407,6 +407,13 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\ResourceManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowResource.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\ADodge.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBall.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\IEnumerator.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\IWaitObject.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Physics\FCollisionManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UShapeComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UBoxShapeComponent.h" />
@@ -572,6 +579,9 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\LuaComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\ADodge.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBall.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

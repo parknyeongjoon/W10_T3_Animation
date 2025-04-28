@@ -192,6 +192,13 @@ UActorComponent* AActor::AddComponentByClass(UClass* ComponentClass, EComponentO
 
     return Component;
 }
+
+UActorComponent* AActor::AddComponentByName(FString ComponentName, EComponentOrigin Origin)
+{
+    UClass* ComponentClass = UClassRegistry::Get().FindClassByName(ComponentName);
+    return AddComponentByClass(ComponentClass, Origin);
+}
+
 // AActor.cpp
 void AActor::AddComponent(UActorComponent* Component)
 {
@@ -232,6 +239,8 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
     
     for (UActorComponent* Component : Source->OwnedComponents)
     {
+        if (Component->ComponentOrigin == EComponentOrigin::Constructor)
+            continue;
         UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate());
         dupComponent->Owner = this;
         OwnedComponents.Add(dupComponent);
@@ -251,6 +260,7 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
                 SceneCloneMap.Add(OldScene, NewScene);
             }
         }
+
     }
 
     for (const auto& Pair : SceneCloneMap)

@@ -1,6 +1,7 @@
 #pragma once
 #include <sol/sol.hpp>
 
+class UWorld;
 class AActor;
 class ALuaActor;
 struct FMatrix;
@@ -36,4 +37,6 @@ namespace LuaTypes
     // Object Types
     //template <> struct FBindLua<ALuaActor>    { static void Bind(sol::table& Table); };
     template <> struct FBindLua<AActor>    { static void Bind(sol::table& Table); };
+    template <> struct FBindLua<UWorld>    { static void Bind(sol::table& Table); };
+
 }

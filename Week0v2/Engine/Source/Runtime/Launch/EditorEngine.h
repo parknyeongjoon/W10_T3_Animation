@@ -6,6 +6,7 @@
 #include "Engine/ResourceManager.h"
 #include "Physics/FCollisionManager.h"
 #include "Script/LuaManager.h"
+#include "Coroutine/CoroutineManager.h"
 
 class FSceneMgr;
 class UnrealEd;
@@ -46,9 +47,10 @@ public:
     static FRenderer renderer;
     static FResourceManager ResourceManager;
     static FCollisionManager CollisionManager;
-    
+    static FCoroutineManager CoroutineManager;
     HWND hWnd;
     ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;
+
 private:
     UImGuiManager* UIMgr;
     UWorld* GWorld;
