@@ -92,9 +92,7 @@ void AGBullet::Fire(FVector FirePosition, FVector FireDirection, float Power)
 
 void AGBullet::ReturnToPool()
 {
-    SetActorLocation(FVector(0, 0, -100));
-    Velocity = FVector::ZeroVector;
-    bFired = false;
+    Destroy();
 }
 
 void AGBullet::OnHit(const UPrimitiveComponent* Other)
