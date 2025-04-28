@@ -71,7 +71,7 @@ int32 UEditorEngine::Init(HWND hwnd)
     graphicDevice.OnResize(hWnd);
     
     SceneMgr = new FSceneMgr();
-
+    TestCoroutine(FLuaManager::Get().GetLuaState());
     return 0;
 }
 

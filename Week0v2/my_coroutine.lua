@@ -7,7 +7,7 @@ function my_coroutine()
     Log("[Lua] Start Coroutine")
 
     Log("[Lua] Waiting for 2 seconds...")
-    coroutine.yield(WaitForSeconds(2.0))
+    coroutine.yield(WaitForSeconds(5.0))
     Log("[Lua] 2 seconds passed")
 
     Log("[Lua] Waiting for 3 frames...")
