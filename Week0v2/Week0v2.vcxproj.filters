@@ -424,6 +424,8 @@
     <ClInclude Include="Engine\Source\Editor\Script\LuaTypes\LuaUserTypes.h" />
     <ClInclude Include="Engine\Source\Editor\Script\LuaUtils\LuaStub.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\LuaComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\ADodge.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBall.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />

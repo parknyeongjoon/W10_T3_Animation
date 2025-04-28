@@ -30,6 +30,11 @@ UWorld* UObject::GetWorld()
     return GEngine->GetWorld();
 }
 
+UWorld* UObject::GetPIEWorld()
+{
+    return GEngine->GetPIEWorld();
+}
+
 bool UObject::IsA(const UClass* SomeBase) const
 {
     const UClass* ThisClass = GetClass();

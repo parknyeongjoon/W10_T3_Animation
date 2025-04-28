@@ -277,6 +277,7 @@ void LuaTypes::FBindLua<FMatrix>::Bind(sol::table& Table)
 
 void LuaTypes::FBindLua<AActor>::Bind(sol::table& Table)
 {
+    
     Table.Lua_NewUserType(
         AActor,
 
@@ -306,8 +307,79 @@ void LuaTypes::FBindLua<AActor>::Bind(sol::table& Table)
         LUA_BIND_MEMBER(&AActor::SetRootComponent),
         LUA_BIND_MEMBER(&AActor::GetOwner),
         LUA_BIND_MEMBER(&AActor::SetOwner),
+        LUA_BIND_MEMBER(&AActor::AddComponentByName),
 
         LUA_BIND_MEMBER(&AActor::Destroy),
         LUA_BIND_MEMBER(&AActor::IsActorBeingDestroyed)
     );
 }
+
+void LuaTypes::FBindLua<UWorld>::Bind(sol::table& engineTable)
+{
+// {
+//     if (!engineTable["EWorldType"].valid()) { // 이미 바인딩되었는지 확인
+//         engineTable.new_enum("EWorldType",
+//            "None", EWorldType::None,
+//            "Game", EWorldType::Game,
+//            "Editor", EWorldType::Editor,
+//            "PIE", EWorldType::PIE, // Play In Editor
+//            "EditorPreview", EWorldType::EditorPreview,
+//            "Inactive", EWorldType::Inactive
+//        );
+//     }
+//
+//      engineTable.new_usertype<UWorld>("World",
+//         // 생성자 미노출 - World는 보통 엔진에 의해 관리됩니다.
+//         sol::no_constructor,
+//     
+//         // --- 기본 클래스 ---
+//         sol::bases<UObject>(), // UObject로부터 상속
+//     
+//         // --- 씬/레벨 관리 ---
+//         "LoadLevel", &UWorld::LoadLevel,               // void(const FString& LevelName)
+//         "LoadScene", &UWorld::LoadScene,               // void(const FString& FileName)
+//         "SaveScene", &UWorld::SaveScene,               // void(const FString& FileName)
+//         "ReloadScene", &UWorld::ReloadScene,           // void(const FString& FileName)
+//         // "ClearScene", &UWorld::ClearScene,          // 잠재적으로 위험할 수 있음? 주의해서 노출하세요.
+//     
+//         // --- 액터 관리 ---
+//         // SpawnActorByName이 Lua에서 액터를 스폰하는 가장 친화적인 방법입니다.
+//         "SpawnActorByName", &UWorld::SpawnActorByName, // AActor*(const FString& ActorName, bool bCallBeginPlay)
+//         "DestroyActor", &UWorld::DestroyActor,         // bool(AActor* ThisActor)
+//     
+//         // --- 액터 쿼리 ---
+//         // GetActors는 TArray<AActor*>를 반환합니다. 헬퍼를 사용하거나 sol2의 자동 변환에 의존하세요.
+//         "GetActors", [](UWorld& self, sol::this_state ts) { // 헬퍼와 함께 람다 사용
+//              return ConvertActorArrayToLuaTable(ts, self.GetActors());
+//          },
+//         // "GetActors", &UWorld::GetActors, // 대안: 직접 바인딩 시도 (작동할 수도 있음)
+//     
+//     
+//         // --- 월드 정보 ---
+//         "IsPIEWorld", &UWorld::IsPIEWorld,             // bool() const
+//         "GetLevel", &UWorld::GetLevel,                 // ULevel*() const (ULevel 바인딩 필요)
+//         "WorldType", sol::readonly(&UWorld::WorldType), // EWorldType::Type (읽기 전용 권장)
+//     
+//     
+//         // --- 에디터/선택 기능 (나중에 "Editor" 테이블로 옮기는 것이 좋을 수 있음) ---
+//         "GetEditorPlayer", &UWorld::GetEditorPlayer,   // AEditorPlayer*() const (AEditorPlayer 바인딩 필요)
+//          // GetSelectedActors는 TSet<AActor*>를 반환합니다. 헬퍼를 사용하세요.
+//         "GetSelectedActors", [](UWorld& self, sol::this_state ts) {
+//              return ConvertActorSetToLuaTable(ts, self.GetSelectedActors());
+//          },
+//         "SetSelectedActor", &UWorld::SetSelectedActor, // void(AActor* InActor)
+//         "AddSelectedActor", &UWorld::AddSelectedActor, // void(AActor* InActor)
+//         "ClearSelectedActors", &UWorld::ClearSelectedActors, // void()
+//         "DuplicateSeletedActors", &UWorld::DuplicateSeletedActors, // void()
+//         "DuplicateSeletedActorsOnLocation", &UWorld::DuplicateSeletedActorsOnLocation, // void()
+//     
+//         // 기즈모 관련 (USceneComponent/UTransformGizmo 바인딩 필요)
+//         "GetPickingGizmo", &UWorld::GetPickingGizmo,   // USceneComponent*() const
+//         "SetPickingGizmo", &UWorld::SetPickingGizmo,   // void(UObject* Object)
+//         "LocalGizmo", sol::readonly(&UWorld::LocalGizmo) // UTransformGizmo* (읽기 전용 권장)
+//     
+//     
+//     );
+}
+
+

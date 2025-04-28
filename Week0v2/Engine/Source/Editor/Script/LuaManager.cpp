@@ -6,8 +6,12 @@
 #include <iostream> // 오류 로깅용 (엔진 로깅으로 교체)
 #include <filesystem> // 경로 조작용 (C++17) - 구 버전 C++ 또는 엔진 특정 기능 사용 시 조정
 
+#include "Components/Mesh/StaticMesh.h"
+#include "Engine/Level.h"
 #include "LuaTypes/LuaUserTypes.h"
 #include "LuaUtils/LuaStub.h"
+
+#include "sol/sol.hpp"
 
 // AActor 전방 선언 또는 헤더 포함 (BindAActor가 다른 곳에 정의된 경우)
 // class AActor;
@@ -39,13 +43,13 @@ void FLuaManager::Initialize()
         // 표준 Lua 라이브러리 열기
         LuaState.open_libraries(
             sol::lib::base,       // Lua를 사용하기 위한 기본 라이브러리 (print, type, pcall 등)
-            // sol::lib::package,    // 모듈 로딩(require) 및 패키지 관리 기능
+            sol::lib::package,    // 모듈 로딩(require) 및 패키지 관리 기능
             sol::lib::coroutine,  // 코루틴 생성 및 관리 기능 (yield, resume 등)
             sol::lib::string,     // 문자열 검색, 치환, 포맷팅 등 문자열 처리 기능
             sol::lib::math,       // 수학 함수 (sin, random, pi 등) 및 상수 제공
             sol::lib::table,      // 테이블(배열/딕셔너리) 생성 및 조작 기능 (insert, sort 등)
-            // sol::lib::io,         // 파일 읽기/쓰기 등 입출력 관련 기능
-            // sol::lib::os,         // 운영체제 관련 기능 (시간, 날짜, 파일 시스템 접근 등)
+            sol::lib::io,         // 파일 읽기/쓰기 등 입출력 관련 기능
+            sol::lib::os,         // 운영체제 관련 기능 (시간, 날짜, 파일 시스템 접근 등)
             sol::lib::debug,      // 디버깅 및 introspection 기능 (traceback, getinfo 등)
             sol::lib::bit32,      // 32비트 정수 대상 비트 연산 기능 (Lua 5.2 이상)
             // sol::lib::jit,        // LuaJIT의 JIT 컴파일러 제어 기능 (LuaJIT 전용)
@@ -182,9 +186,135 @@ void FLuaManager::BindCoreTypes()
      LuaTypes::FBindLua<FQuat>::Bind(Ns);
      LuaTypes::FBindLua<FMatrix>::Bind(Ns);
 
+
     // Object Types
     //LuaTypes::FBindLua<ALuaActor>::Bind(Ns);
     LuaTypes::FBindLua<AActor>::Bind(Ns);
 
+    
+
+    BindFStringToLua(Ns);
+
     generateStubs(LuaState);
+}
+
+
+void FLuaManager::BindFStringToLua(sol::table& lua)
+{
+//         // ESearchCase 열거형 바인딩
+//     lua.new_enum("ESearchCase",
+//         "CaseSensitive", ESearchCase::CaseSensitive,
+//         "IgnoreCase", ESearchCase::IgnoreCase
+//     );
+//
+//     // ESearchDir 열거형 바인딩
+//     lua.new_enum("ESearchDir",
+//         "FromStart", ESearchDir::FromStart,
+//         "FromEnd", ESearchDir::FromEnd
+//     );
+//
+//     // FString 클래스 바인딩
+//     lua.new_usertype<FString>("FString",
+//         // 생성자 바인딩
+//         sol::constructors<
+//             FString(),                                  // 기본 생성자
+//             FString(const FString&),                    // 복사 생성자
+// #if USE_WIDECHAR
+//             FString(const wchar_t*),                    // Wide C 문자열로부터 생성
+//             FString(const char*),                       // Ansi C 문자열로부터 생성 (내부 변환)
+//             FString(const std::wstring&),               // std::wstring으로부터 생성
+//             FString(const std::string&)                 // std::string으로부터 생성 (내부 변환)
+// #else
+//             FString(const char*),                       // Ansi C 문자열로부터 생성
+//             FString(const std::string&)                 // std::string으로부터 생성
+//             // Wide 문자열 생성자는 explicit이므로, 필요시 별도 팩토리 함수로 노출 가능
+//             // 예: sol::factories([](const wchar_t* ws){ return FString(ws); })
+// #endif
+//         >(),
+//
+//         // 멤버 함수 및 프로퍼티 바인딩
+//         "Len", &FString::Len, // 문자열 길이
+//         "IsEmpty", &FString::IsEmpty, // 비어있는지 확인
+//         "Left", &FString::Left, // 왼쪽 부분 문자열
+//         "RightChop", &FString::RightChop, // 오른쪽 부분 제거
+//         "Empty", &FString::Empty, // 문자열 비우기
+//         "Reserve", &FString::Reserve, // 메모리 예약
+//         "Resize", &FString::Resize,   // 크기 조절 (주의: 내용이 변경될 수 있음)
+//
+//         // 비교 및 검색
+//         "Equals", &FString::Equals,
+//         "Contains", &FString::Contains,
+//         "Find", &FString::Find,
+//
+//         // 대소문자 변환
+//         "ToUpper", sol::resolve<FString() const &>(&FString::ToUpper), // 원본 불변 버전
+//         "ToLower", sol::resolve<FString() const &>(&FString::ToLower), // 원본 불변 버전
+//         "ToUpperInline", &FString::ToUpperInline, // 내부 수정 버전
+//         "ToLowerInline", &FString::ToLowerInline, // 내부 수정 버전
+//
+//         // 변환 함수
+//         "ToInt", &FString::ToInt,
+//         "ToFloat", &FString::ToFloat,
+//         "ToBool", &FString::ToBool,
+//         "toPathString", [](const FString& self) { // std::filesystem::path 암시적 변환 대신 명시적 함수
+//             std::filesystem::path p = self; // operator PathType() 호출
+//             #if defined(_MSC_VER) && defined(USE_WIDECHAR) && USE_WIDECHAR // Windows + WideChar 환경 대응
+//                  // Windows에서 filesystem::path::string()은 UTF-8 멀티바이트 문자열을 반환함
+//                  return p.string();
+//             #elif defined(USE_WIDECHAR) && USE_WIDECHAR // Non-Windows + WideChar
+//                  // Non-Windows 환경에서 wstring을 UTF8로 변환하여 반환
+//                  return WideStringToUTF8(p.wstring());
+//             #else // ANSI Char 환경
+//                 return p.string(); // ANSI 환경에서는 그냥 string() 사용
+//             #endif
+//         },
+//
+// #if USE_WIDECHAR
+//         // WideChar 환경에서만 필요한 변환 함수
+//         "ToAnsiString", &FString::ToAnsiString, // std::string (UTF-8) 반환
+// #else
+//         // AnsiChar 환경에서만 필요한 변환 함수
+//         "ToWideString", [](const FString& self) {
+//             std::wstring wstr = self.ToWideString();
+//             // Lua가 이해할 수 있도록 UTF-8 문자열로 변환하여 반환
+//             return WideStringToUTF8(wstr);
+//          },
+// #endif
+//
+//         // 연산자 오버로딩 (메타메소드)
+//         sol::meta_function::addition, sol::resolve<FString(const FString&, const FString&)>(&operator+), // '+' 연산자 (문자열 덧셈)
+//         sol::meta_function::concatenation, sol::resolve<FString(const FString&, const FString&)>(&operator+), // '..' 연산자 (Lua의 문자열 연결)
+//         sol::meta_function::equal_to, sol::resolve<bool(const FString&) const>(&FString::operator==), // '==' 연산자
+//         sol::meta_function::to_string, [](const FString& self) { // Lua의 print()나 tostring()에서 사용될 표현
+// #if USE_WIDECHAR
+//             // WideChar 문자열을 Lua가 이해하는 UTF-8 문자열로 변환
+//              return self.ToAnsiString(); // ToAnsiString이 UTF-8을 반환한다고 가정
+// #else
+//             // AnsiChar 문자열은 그대로 사용 (operator*() 활용)
+//             return std::string(*self); // const char*를 std::string으로 변환하여 반환 (sol2가 관리)
+// #endif
+//         },
+//
+//          // operator+= (메소드로 노출하는 것이 더 명확할 수 있음)
+//         "Append", sol::resolve<FString&(const FString&)>(&FString::operator+=), // += 연산자를 'Append' 메소드로 노출
+//
+//
+//         // 정적 멤버 함수 바인딩
+//         // 주의: FromInt 템플릿은 구체적인 타입으로 캐스팅하여 오버로드로 제공
+//         "FromInt", sol::overload(
+//             static_cast<FString(*)(int)>(&FString::FromInt<int>),
+//             static_cast<FString(*)(long)>(&FString::FromInt<long>),
+//             static_cast<FString(*)(long long)>(&FString::FromInt<long long>),
+//             static_cast<FString(*)(unsigned int)>(&FString::FromInt<unsigned int>),
+//             static_cast<FString(*)(unsigned long)>(&FString::FromInt<unsigned long>),
+//             static_cast<FString(*)(unsigned long long)>(&FString::FromInt<unsigned long long>)
+//             // 필요한 다른 정수 타입 추가...
+//         ),
+//         "FromFloat", static_cast<FString(*)(float)>(&FString::FromInt<float>), // FromInt를 float용으로 사용
+//         "FromDouble", static_cast<FString(*)(double)>(&FString::FromInt<double>), // FromInt를 double용으로 사용
+//         "SanitizeFloat", &FString::SanitizeFloat
+//         // "Printf", &FString::Printf // 가변 인자 함수 바인딩 (주의 필요 - 아래 설명 참조)
+//         // Printf 를 위한 대안 (Lua 측에서 처리)
+//         // Lua 스크립트에서: local formattedString = string.format("Hello %s %d", fstringInstance:ToString(), 123)
+//     );
 }
