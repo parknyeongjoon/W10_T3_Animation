@@ -3,9 +3,9 @@
 #include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 #include "Engine/StaticMeshActor.h"
 
-class AGEnemy : public AStaticMeshActor
+class AGEnemy : public AActor
 {
-    DECLARE_CLASS(AGEnemy, AStaticMeshActor)
+    DECLARE_CLASS(AGEnemy, AActor)
     DECLARE_MULTICAST_DELEGATE(OnHitEvent)
 public:
     AGEnemy();
@@ -25,6 +25,7 @@ public:
     void ChangeColor(FVector NewColor) const;
 private:
     OnHitEvent OnHit;
+    UStaticMeshComponent* MeshComp;
     UCapsuleShapeComponent* Capsule;
     UBillboardComponent* HeartUI[3];
 

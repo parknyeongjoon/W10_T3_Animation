@@ -6,11 +6,12 @@
 
 AGEnemy::AGEnemy()
 {
-    UStaticMeshComponent* MeshComp = GetStaticMeshComponent();
+    MeshComp = AddComponent<UStaticMeshComponent>(EComponentOrigin::Constructor);
     FManagerOBJ::CreateStaticMesh("Assets/Primitives/Capsule.obj");
     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
+    
     Capsule = AddComponent<UCapsuleShapeComponent>(EComponentOrigin::Constructor);
-    ChangeColor(FVector(0,200,100));
+    
     for (int i=0;i<3;i++)
     {
         HeartUI[i] = AddComponent<UBillboardComponent>(EComponentOrigin::Constructor);
@@ -22,18 +23,20 @@ AGEnemy::AGEnemy()
         HeartUI[i]->SetTexture(L"Assets/Texture/heartpixelart.png");
         HeartUI[i]->SetRelativeLocation(FVector(0.0f, 0.0f, 3.0f));
         HeartUI[i]->bOnlyForEditor = false;
-        HeartUI[i]->SetRelativeLocation(FVector(0, -1.0f + i, 1.5f));
+        HeartUI[i]->SetRelativeLocation(FVector(-1 + i, 0, 1.5f));
     }
+    
+    ChangeColor(FVector(0,200,100));
 }
 
 AGEnemy::AGEnemy(const AGEnemy& Other)
 {
-    
 }
 
 void AGEnemy::BeginPlay()
 {
     Super::BeginPlay();
+    OnHit.AddUObject(this, &AGEnemy::OnDamaged);
     // FCoroutineManager::StartCoroutine()
 }
 
@@ -56,7 +59,25 @@ UObject* AGEnemy::Duplicate() const
 
 void AGEnemy::DuplicateSubObjects(const UObject* Source)
 {
+    int heartIndex = 0;
     Super::DuplicateSubObjects(Source);
+    for (auto& Comp : GetComponents())
+    {
+        if (UStaticMeshComponent* SMComp = Cast<UStaticMeshComponent>(Comp))
+        {
+            MeshComp = SMComp;
+        }
+        if (UBillboardComponent* HBComp = Cast<UBillboardComponent>(Comp))
+        {
+            HeartUI[heartIndex] = HBComp;
+            HeartUI[heartIndex]->SetRelativeLocation(FVector(-1 + heartIndex, 0, 0));
+            heartIndex++;
+        }
+        if (UCapsuleShapeComponent* CapComp = Cast<UCapsuleShapeComponent>(Comp))
+        {
+            Capsule = CapComp;
+        }
+    }
 }
 
 void AGEnemy::PostDuplicate()
@@ -66,21 +87,26 @@ void AGEnemy::PostDuplicate()
 
 void AGEnemy::OnDamaged()
 {
+    health--;
+    
     switch (health)
     {
     case 2:
         ChangeColor(FVector(255,255,0));
+        HeartUI[2]->DestroyComponent();
         break;
     case 1:
         ChangeColor(FVector(255,0,0));
+        HeartUI[1]->DestroyComponent();
         break;
     case 0:
-        ChangeColor(FVector(30,30,30));
+        ChangeColor(FVector(0.2,0.2,0.2));
+        HeartUI[0]->DestroyComponent();
         break;
     }
 }
 
 void AGEnemy::ChangeColor(FVector NewColor) const
 {
-    GetStaticMeshComponent()->GetMaterial(0)->SetDiffuse(NewColor);
+    MeshComp->GetMaterial(0)->SetDiffuse(NewColor);
 }

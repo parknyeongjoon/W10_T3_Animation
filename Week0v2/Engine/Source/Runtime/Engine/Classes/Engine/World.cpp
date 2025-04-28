@@ -8,6 +8,7 @@
 #include "UObject/UObjectIterator.h"
 #include "Level.h"
 #include "Actors/ADodge.h"
+#include "Contents/AGEnemy.h"
 #include "Contents/GameManager.h"
 #include "Serialization/FWindowsBinHelper.h"
 
@@ -52,6 +53,7 @@ void UWorld::CreateBaseObject()
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
+    AGEnemy* enemy = SpawnActor<AGEnemy>();
 }
 
 void UWorld::ReleaseBaseObject()
