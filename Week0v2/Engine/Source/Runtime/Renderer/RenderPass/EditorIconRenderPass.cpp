@@ -15,10 +15,13 @@ FEditorIconRenderPass::~FEditorIconRenderPass()
 
 void FEditorIconRenderPass::AddRenderObjectsToRenderPass(UWorld* InLevel)
 {
-    if (InLevel->WorldType != EWorldType::Editor)
-    {
-        return;
-    }
+
+    //TODO: 게임잼 끝나고 돌리기
+    
+    // if (InLevel->WorldType != EWorldType::Editor)
+    // {
+    //     return;
+    // }
 
     for (const auto actor : InLevel->GetActors())
     {
@@ -26,6 +29,10 @@ void FEditorIconRenderPass::AddRenderObjectsToRenderPass(UWorld* InLevel)
         {
             if (UBillboardComponent* billboardComp = Cast<UBillboardComponent>(comp))
             {
+                if (InLevel->WorldType != EWorldType::Editor and billboardComp->bOnlyForEditor == true)
+                {
+                    continue;
+                }
                 BillboardComponents.Add(billboardComp);
             }
         }
