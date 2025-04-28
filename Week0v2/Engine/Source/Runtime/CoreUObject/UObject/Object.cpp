@@ -2,7 +2,7 @@
 
 #include "EditorEngine.h"
 #include "UClass.h"
-#include "FunctionResgistry.h"
+#include "FunctionRegistry.h"
 #include "UObjectHash.h"
 
 

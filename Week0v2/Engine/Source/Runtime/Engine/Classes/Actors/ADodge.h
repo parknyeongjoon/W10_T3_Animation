@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Engine/StaticMeshActor.h"
 #include "Core/Delegates/DelegateCombination.h"
-#include "UObject/FunctionResgistry.h"
+#include "UObject/FunctionRegistry.h"
 
 class UStaticMeshComponent;
 

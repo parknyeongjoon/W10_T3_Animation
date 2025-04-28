@@ -31,7 +31,7 @@
 #include <windows.h> // 기본적인 Windows API 포함
 #include <shellapi.h> // ShellExecute 관련 함수 정의 포함
 #include <filesystem> // C++17 filesystem 사용
-#include "UObject/FunctionResgistry.h"
+#include "UObject/FunctionRegistry.h"
 
 
 void PropertyEditorPanel::Render()
