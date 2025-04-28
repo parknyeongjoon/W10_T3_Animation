@@ -11,6 +11,8 @@ ADodge::ADodge()
     UStaticMeshComponent* MeshComp = GetStaticMeshComponent();
     FManagerOBJ::CreateStaticMesh("Assets/Dodge/Dodge.obj");
     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Dodge.obj"));
+    FunctionRegistry()->RegisterMemberFunction<ThisClass>("TestRotate", &ADodge::TestRotate);
+    FunctionRegistry()->RegisterMemberFunction<ThisClass>("TestTranslate", &ADodge::TestTranslate);
 }
 
 ADodge::ADodge(const ADodge& Other)
@@ -21,6 +23,10 @@ ADodge::ADodge(const ADodge& Other)
 void ADodge::BeginPlay()
 {
     Super::BeginPlay();
+    for (auto& function : FunctionRegistry()->GetRegisteredFunctions())
+    {
+        std::cout << function.Key.ToString();
+    }
     // TestDelegate.AddUObject(this, &ADodge::test);
     // TestDelegate.AddLambda([this]{SetActorLocation(GetActorLocation() + FVector(0.1,0,0));});
 }
@@ -46,10 +52,14 @@ bool ADodge::Destroy()
     return Super::Destroy();
 }
 
-void ADodge::test()
+void ADodge::TestTranslate()
+{
+    SetActorLocation(GetActorLocation() + FVector(0.01,0,0));
+}
+
+void ADodge::TestRotate()
 {
     SetActorRotation(GetActorRotation() + FVector(0.01,0,0));
-    // Destroy();
 }
 
 UObject* ADodge::Duplicate() const

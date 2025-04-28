@@ -13,6 +13,7 @@
 #include "UObject/UObjectIterator.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "BaseGizmos/TransformGizmo.h"
+#include "Contents/UI/ContentsUI.h"
 #include "Coroutine/LuaCoroutine.h"
 class ULevel;
 
@@ -62,6 +63,11 @@ int32 UEditorEngine::Init(HWND hwnd)
     UnrealEditor = new UnrealEd();
     UnrealEditor->Initialize(LevelEditor);
     UnrealEditor->OnResize(hWnd); // 현재 윈도우 사이즈에 대한 재조정
+
+    ContentsUI = new FContentsUI();
+    ContentsUI->Initialize();
+    ContentsUI->OnResize(hWnd);
+    
     graphicDevice.OnResize(hWnd);
     
     SceneMgr = new FSceneMgr();
@@ -97,12 +103,12 @@ void UEditorEngine::Tick(float deltaSeconds)
 {
     GWorld->Tick(levelType, deltaSeconds);
 
-    //if (GWorld->WorldType == EWorldType::PIE)
-    //{
-    //    CollisionManager.UpdateCollision(deltaSeconds);
-    //}
+    if (GWorld->WorldType == EWorldType::PIE)
+    {
+        CollisionManager.UpdateCollision(deltaSeconds);
+    }
 
-    CollisionManager.UpdateCollision(deltaSeconds);
+    //CollisionManager.UpdateCollision(deltaSeconds);
     
     Input();
     // GWorld->Tick(LEVELTICK_All, deltaSeconds);
@@ -111,14 +117,17 @@ void UEditorEngine::Tick(float deltaSeconds)
     Render();
     
     UIMgr->BeginFrame();
+
     UnrealEditor->Render();
+
+    ContentsUI->Render();
     
     Console::GetInstance().Draw();
     
     UIMgr->EndFrame();
 
     // Pending 처리된 오브젝트 제거
-    GUObjectArray.ProcessPendingDestroyObjects();
+    //GUObjectArray.ProcessPendingDestroyObjects();
 
     graphicDevice.SwapBuffer();
     FVector CurRotation = GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetRotation();
