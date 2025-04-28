@@ -7,7 +7,6 @@
 #include "Physics/FCollisionManager.h"
 #include "Script/LuaManager.h"
 #include "Coroutine/CoroutineManager.h"
-
 class FSceneMgr;
 class UnrealEd;
 class UImGuiManager;
@@ -50,7 +49,6 @@ public:
     static FCoroutineManager CoroutineManager;
     HWND hWnd;
     ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;
-
 private:
     UImGuiManager* UIMgr;
     UWorld* GWorld;

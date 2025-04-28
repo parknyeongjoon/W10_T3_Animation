@@ -163,6 +163,7 @@ void UEditorEngine::PreparePIE()
     GWorld = worldContexts[1].thisCurrentWorld;
     GWorld->WorldType = EWorldType::PIE;
     levelType = LEVELTICK_All;
+    
 }
 
 void UEditorEngine::StartPIE()
