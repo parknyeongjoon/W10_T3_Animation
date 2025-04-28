@@ -22,7 +22,7 @@ AGEnemy::AGEnemy()
         HeartUI[i]->SetTexture(L"Assets/Texture/heartpixelart.png");
         HeartUI[i]->SetRelativeLocation(FVector(0.0f, 0.0f, 3.0f));
         HeartUI[i]->bOnlyForEditor = false;
-        SetActorLocation(FVector(0, -1 + i, 1));
+        HeartUI[i]->SetRelativeLocation(FVector(0, -1.0f + i, 1.5f));
     }
 }
 
