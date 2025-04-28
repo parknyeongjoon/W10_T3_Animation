@@ -10,7 +10,7 @@
 #include "GameFramework/Actor.h"
 #include "Engine/Classes/Engine/StaticMeshActor.h"
 #include "Components/SceneComponent.h"
-
+#include "Camera/CameraComponent.h"
 FVector FEditorViewportClient::Pivot = FVector(0.0f, 0.0f, 0.0f);
 float FEditorViewportClient::orthoSize = 10.0f;
 FEditorViewportClient::FEditorViewportClient()
@@ -420,6 +420,10 @@ void FEditorViewportClient::UpdateViewMatrix()
         {
             View = DirectionalLight->GetViewMatrix();
         }
+        if (UCameraComponent* PlayerCamera = Cast<UCameraComponent>(OverrideComponent))
+        {
+            View = PlayerCamera->GetViewMatrix();
+        }
     }
 }
 
@@ -462,6 +466,10 @@ void FEditorViewportClient::UpdateProjectionMatrix()
         if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(OverrideComponent))
         {
             Projection = DirectionalLight->GetProjectionMatrix();
+        }
+        if (UCameraComponent* PlayerCamera = Cast<UCameraComponent>(OverrideComponent))
+        {
+            Projection = PlayerCamera->GetProjectionMatrix();
         }
     }
 }

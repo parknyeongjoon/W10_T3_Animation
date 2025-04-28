@@ -341,7 +341,11 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AGamePlayer>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_GAMEPLAYER"));
+                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Capsule.obj");
+                    UStaticMeshComponent* MeshComp = SpawnedActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Editor);
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
                     SpawnedActor->AddComponent<UCameraComponent>(EComponentOrigin::Editor);
+                    break;
                 }
                     //  셰이프
                 case OBJ_CUBE:

@@ -1,5 +1,8 @@
 #include "AGamePlayer.h"
 #include "Camera/CameraComponent.h"
+#include "EditorEngine.h"
+#include "LevelEditor/SLevelEditor.h"
+#include "UnrealEd/EditorViewportClient.h"
 AGamePlayer::AGamePlayer()
 {
     //Camera = AddComponent<UCameraComponent>(EComponentOrigin::Constructor);
@@ -9,10 +12,23 @@ AGamePlayer::AGamePlayer(const AGamePlayer& Other) : Super(Other)
 {
 }
 
+void AGamePlayer::BeginPlay()
+{
+    Super::BeginPlay();
+    UCameraComponent* Camera = GetComponentByClass<UCameraComponent>();
+    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(Camera);
+}
+
 void AGamePlayer::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-    Input();
+    Input(DeltaTime);
+}
+
+void AGamePlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
 }
 
 UObject* AGamePlayer::Duplicate() const
@@ -33,7 +49,7 @@ void AGamePlayer::PostDuplicate()
     Super::PostDuplicate();
 }
 
-void AGamePlayer::Input()
+void AGamePlayer::Input(float DeltaTime)
 {
     if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
     {
@@ -61,43 +77,35 @@ void AGamePlayer::Input()
         if (bRightMouseDown) bRightMouseDown = false;
     }
 
-    if (GetAsyncKeyState('W') & 0x8000)
-    {
-        if (!bWkeyDown) bWkeyDown = true;
-        UE_LOG(LogLevel::Display, "GamePlayer W Button Down");
-    }
-    else
-    {
-        if (bWkeyDown) bWkeyDown = false;
-    }
+    POINT currentMousePos;
+    GetCursorPos(&currentMousePos);
 
-    if (GetAsyncKeyState('A') & 0x8000)
-    {
-        if (!bAkeyDown) bAkeyDown = true;
-        UE_LOG(LogLevel::Display, "GamePlayer A Button Down");
-    }
-    else
-    {
-        if (bAkeyDown) bAkeyDown = false;
-    }
+    int32 deltaX = currentMousePos.x - lastMousePos.x;
+    int32 deltaY = currentMousePos.y - lastMousePos.y;
 
-    if (GetAsyncKeyState('S') & 0x8000)
-    {
-        if (!bSkeyDown) bSkeyDown = true;
-        UE_LOG(LogLevel::Display, "GamePlayer S Button Down");
-    }
-    else
-    {
-        if (bSkeyDown) bSkeyDown = false;
-    }
+    FRotator Rotation = GetActorRotation();
+    Rotation.Yaw += deltaX * 0.1f;    // 좌우 마우스 이동 -> Yaw 회전
+    Rotation.Pitch -= deltaY * 0.1f;  // 위아래 마우스 이동 -> Pitch 회전 (보통 위로 올리면 Pitch 감소)
 
-    if (GetAsyncKeyState('D') & 0x8000)
+    // Pitch 클램프
+    if (Rotation.Pitch > 89.0f) Rotation.Pitch = 89.0f;
+    if (Rotation.Pitch < -89.0f) Rotation.Pitch = -89.0f;
+
+    SetActorRotation(Rotation);
+
+    // 다음 프레임을 위해 현재 마우스 위치 저장
+    lastMousePos = currentMousePos;
+
+    FVector MoveDirection = FVector::ZeroVector;
+    if (GetAsyncKeyState('W') & 0x8000) MoveDirection += GetActorForwardVector();
+    if (GetAsyncKeyState('S') & 0x8000) MoveDirection -= GetActorForwardVector();
+    if (GetAsyncKeyState('D') & 0x8000) MoveDirection += GetActorRightVector();
+    if (GetAsyncKeyState('A') & 0x8000) MoveDirection -= GetActorRightVector();
+    
+    if (!MoveDirection.IsNearlyZero())
     {
-        if (!bDkeyDown) bDkeyDown = true;
-        UE_LOG(LogLevel::Display, "GamePlayer D Button Down");
-    }
-    else
-    {
-        if (bDkeyDown) bDkeyDown = false;
+        MoveDirection.z = 0.0f;
+        MoveDirection.Normalize();
+        SetActorLocation(GetActorLocation() + MoveDirection * MoveSpeed * DeltaTime);
     }
 }

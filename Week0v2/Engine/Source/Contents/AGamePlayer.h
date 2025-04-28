@@ -1,5 +1,5 @@
 #pragma once
-#include "GameFramework/Actor.h"
+#include "Engine/StaticMeshActor.h"
 
 class UCameraComponent;
 class AGamePlayer :
@@ -9,22 +9,19 @@ class AGamePlayer :
 public:
     AGamePlayer();
     AGamePlayer(const AGamePlayer& Other);
+    virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
     UObject* Duplicate() const override;
     void DuplicateSubObjects(const UObject* Source) override;
     void PostDuplicate() override;
 private:
-    void Input();
+    void Input(float DeltaTime);
 private:
-    UCameraComponent* Camera;
-private:
+    float MoveSpeed = 0.5f;
     bool bLeftMouseDown = false;
     bool bRightMouseDown = false;
-    bool bWkeyDown = false;
-    bool bAkeyDown = false;
-    bool bSkeyDown = false;
-    bool bDkeyDown = false;
     POINT lastMousePos;
 };
 
