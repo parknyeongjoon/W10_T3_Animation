@@ -7,7 +7,8 @@ struct FTexture;
 struct FBillboardComponentInfo : public FPrimitiveComponentInfo
 {
     DECLARE_ACTORCOMPONENT_INFO(FBillboardComponentInfo);
-    FWString TexturePath; 
+    FWString TexturePath;
+    bool bOnlyForEditor;
 
     FBillboardComponentInfo()
         : FPrimitiveComponentInfo()
@@ -20,13 +21,13 @@ struct FBillboardComponentInfo : public FPrimitiveComponentInfo
     virtual void Serialize(FArchive& ar) const override
     {
         FPrimitiveComponentInfo::Serialize(ar);
-        ar << TexturePath;
+        ar << TexturePath << bOnlyForEditor;
     }
 
     virtual void Deserialize(FArchive& ar) override
     {
         FPrimitiveComponentInfo::Deserialize(ar);
-        ar >> TexturePath;
+        ar >> TexturePath >> bOnlyForEditor;
     }
 };
 
@@ -56,6 +57,8 @@ public:
     float finalIndexU = 0.0f;
     float finalIndexV = 0.0f;
     std::shared_ptr<FTexture> Texture;
+    
+    bool bOnlyForEditor = true;
 
 public:
     std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;

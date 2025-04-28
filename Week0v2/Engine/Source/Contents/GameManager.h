@@ -4,9 +4,9 @@
 enum class EGameState
 {
     None,
-    BeginPlay,
+    //BeginPlay,
     Playing,
-    Paused,
+    //Paused,
     Ended
 };
 
