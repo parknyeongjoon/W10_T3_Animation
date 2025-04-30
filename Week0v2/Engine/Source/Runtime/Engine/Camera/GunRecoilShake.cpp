@@ -1,4 +1,5 @@
 #include "GunRecoilShake.h"
+#include "Curves/CurveFloat.h"
 
 void UGunRecoilShake::UpdateShake(float DeltaTime, FVector& OutLoc, FRotator& OutRot, float& OutFOV)
 {
