@@ -1,7 +1,6 @@
 #include "APlayerCameraManager.h"
 #include "Camera/UCameraModifier.h"
 #include "Camera/CameraComponent.h"
-#include "UObject/UObjectArray.h"
 void APlayerCameraManager::Tick(float DeltaTime)
 {
     float DeltaTimeSecond = DeltaTime * 0.001f;
@@ -89,7 +88,7 @@ void APlayerCameraManager::ApplyCameraShakes(float DeltaTime, FViewInfo& ViewInf
         FActiveCameraShakeInfo& Info = ActiveShakes[i];
         if (Info.IsFinished())
         {
-            //GUObjectArray.MarkRemoveObject(Info.Instance);
+            Info.Instance->MarkRemoveObject();
             ActiveShakes.RemoveAt(i);
             continue;
         }

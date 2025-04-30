@@ -2,6 +2,7 @@
 #include "Engine/StaticMeshActor.h"
 
 class UCameraComponent;
+class APlayerCameraManager;
 class AGPlayer :
     public AActor
 {
@@ -27,5 +28,8 @@ private:
     bool bShowCursor = false;
     bool bSpacePressedLastFrame = false;
     POINT lastMousePos;
+
+private:
+    APlayerCameraManager* PlayerCameraManager = nullptr;
 };
 
