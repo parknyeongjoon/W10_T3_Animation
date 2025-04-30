@@ -14,5 +14,5 @@ public:
 
     class ID3D11Buffer* BlurConstantBuffer = nullptr;
 
-    void UpdateBlurConstant(float BlurStrength, float BlurRadius) const;
+    void UpdateBlurConstant(float BlurStrength, float TexelX, float TexelY) const;
 };

@@ -3,9 +3,9 @@ cbuffer BlurConstants : register(b0) // 다른 상수 버퍼와 겹치지 않는
     // 블러 강도 (가우시안 함수의 표준 편차(sigma) 역할)
     float BlurStrength;
     // 텍셀(텍스처 픽셀 하나)의 UV 공간 크기 (x: 가로 크기, y: 세로 크기)
-    float TexelSize;
+    float2 TexelSize;
     // 필요시 패딩
-    float2 Padding;
+    float Padding;
 };
 // 입력 텍스처 (원본 씬 텍스처)
 Texture2D InputTexture : register(t0);
@@ -29,7 +29,7 @@ float GaussianWeight(float offset, float sigma)
 // --- 단일 패스 가우시안 블러 픽셀 셰이더 ---
 // 블러 샘플링 반경 (예: 3이면 -3 ~ +3 범위, 총 7x7 커널)
 // **주의: 이 값이 커지면 성능이 급격히 저하됩니다!** (샘플링 횟수 = (2*RADIUS+1)^2)
-static const int KERNEL_RADIUS = 3; // 7x7 커널 예시 (49 샘플)
+static const int KERNEL_RADIUS = 11; // 7x7 커널 예시 (49 샘플)
 float4 mainPS(VS_OUT input) : SV_TARGET
 {
     float4 totalColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -43,7 +43,7 @@ float4 mainPS(VS_OUT input) : SV_TARGET
         for (int i = -KERNEL_RADIUS; i <= KERNEL_RADIUS; ++i)
         {
             // 현재 샘플링할 픽셀의 UV 오프셋 계산
-            float2 offsetUV = input.uv + float2(TexelSize * i, TexelSize * j);
+            float2 offsetUV = input.uv + float2(TexelSize.x * i, TexelSize.y * j);
             // 2D 가우시안 가중치 계산 (1D 가중치의 곱으로 계산 가능 - 분리성 활용)
             // 또는 거리 기반으로 계산: float distSq = i*i + j*j; weight = exp(-distSq / (2*sigmaSq));
             float weightX = GaussianWeight(float(i), sigma);

@@ -273,15 +273,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         }
         ImGui::Separator();
 
-        ImGui::Text("Blur radius");
-        float BlurRadius = GEngine->testBlurRadius;
-        ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::DragFloat("##Blur radius", &BlurRadius, 0.1f, 1.0f, 20.0f, "%.1f"))
-        {
-            GEngine->testBlurRadius = BlurRadius;
-        }
-        ImGui::Separator();
-
         ImGui::EndPopup();
     }
 

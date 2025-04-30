@@ -166,10 +166,11 @@ struct alignas(16) FFadeConstants
 
 struct alignas(16) FBlurConstants
 {
+    // 블러 강도 (가우시안 함수의 표준 편차(sigma) 역할)
     float BlurStrength;
-    float TexelSize;
-    float Padding0;
-    float Padding1;
+    float TexelSizeX;
+    float TexelSizeY;
+    float Padding;
 };
 
 struct alignas(16) FFlagConstants
