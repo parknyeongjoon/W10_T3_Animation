@@ -88,7 +88,7 @@ void FFogRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
     }
 }
 
-void FFogRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewportClient> InViewportClient)
+void FFogRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewportClient> InViewportClient) const
 {
     const FGraphicsDevice& Graphics = GEngine->graphicDevice;
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
@@ -122,7 +122,7 @@ void FFogRenderPass::UpdateScreenConstant(std::shared_ptr<FViewportClient> InVie
     renderResourceManager->UpdateConstantBuffer(TEXT("FViewportInfo"), &ScreenConstans);
 }
 
-void FFogRenderPass::UpdateFogConstant(const std::shared_ptr<FViewportClient> InViewportClient)
+void FFogRenderPass::UpdateFogConstant(const std::shared_ptr<FViewportClient> InViewportClient) const
 {
     const FGraphicsDevice& Graphics = GEngine->graphicDevice;
     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();

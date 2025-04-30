@@ -22,11 +22,14 @@ void FFadeRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 void FFadeRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
 {
     bRender = true;
+    
     if (bRender)
     {
         FBaseRenderPass::Prepare(InViewportClient);
         const FRenderer& Renderer = GEngine->renderer;
+
         FGraphicsDevice& Graphics = GEngine->graphicDevice;
+        Graphics.SwapPingPongBuffers();
 
         const auto CurRTV = Graphics.GetCurrentRenderTargetView();
         Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, nullptr);
@@ -44,16 +47,14 @@ void FFadeRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
 
 void FFadeRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
 {
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
     if (bRender)
     {
+        FGraphicsDevice& Graphics = GEngine->graphicDevice;
         Graphics.DeviceContext->Draw(6, 0);
 
         bRender = false;
     }
-
-    Graphics.SwapPingPongBuffers();
 }
 
 void FFadeRenderPass::UpdateFadeConstant()

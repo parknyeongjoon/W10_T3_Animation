@@ -11,6 +11,7 @@
 #include "RenderPass/FogRenderPass.h"
 #include "RenderPass/ShadowRenderPass.h"
 
+class FBlurRenderPass;
 class FFinalRenderPass;
 class FFadeRenderPass;
 class FComputeTileLightCulling;
@@ -105,6 +106,7 @@ private:
     std::shared_ptr<FFogRenderPass> FogRenderPass;
     std::shared_ptr<FShadowRenderPass> ShadowRenderPass;
     std::shared_ptr<FFadeRenderPass> FadeRenderPass;
+    std::shared_ptr<FBlurRenderPass> BlurRenderPass;
     std::shared_ptr<FFinalRenderPass> FinalRenderPass;
 
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;

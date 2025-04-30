@@ -164,6 +164,14 @@ struct alignas(16) FFadeConstants
     float Padding2;   
 };
 
+struct alignas(16) FBlurConstants
+{
+    float BlurStrength;
+    float BlurRadius;
+    float NDCX;
+    float NDCY;
+};
+
 struct alignas(16) FFlagConstants
 {
     uint32 IsLit; // offset: 0, size: 4

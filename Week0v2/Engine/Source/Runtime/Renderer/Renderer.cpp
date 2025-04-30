@@ -11,6 +11,7 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UObject/UObjectIterator.h"
 #include "D3D11RHI/FShaderProgram.h"
+#include "RenderPass/BlurRenderPass.h"
 #include "RenderPass/EditorIconRenderPass.h"
 #include "RenderPass/FadeRenderPass.h"
 #include "RenderPass/FinalRenderPass.h"
@@ -98,6 +99,9 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     CreateVertexPixelShader(TEXT("Fade"), nullptr);
     FadeRenderPass = std::make_shared<FFadeRenderPass>(TEXT("Fade"));
 
+    CreateVertexPixelShader(TEXT("Blur"), nullptr);
+    BlurRenderPass = std::make_shared<FBlurRenderPass>(TEXT("Blur"));
+    
     CreateVertexPixelShader(TEXT("Final"), nullptr);
     FinalRenderPass = std::make_shared<FFinalRenderPass>(TEXT("Final"));
 }
@@ -279,6 +283,9 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
         FogRenderPass->Prepare(ActiveViewport);
         FogRenderPass->Execute(ActiveViewport);
     }
+
+    BlurRenderPass->Prepare(ActiveViewport);
+    BlurRenderPass->Execute(ActiveViewport);
 
     LineBatchRenderPass->Prepare(ActiveViewport);
     LineBatchRenderPass->Execute(ActiveViewport);

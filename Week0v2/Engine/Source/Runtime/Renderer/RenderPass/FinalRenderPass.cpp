@@ -17,13 +17,15 @@ void FFinalRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 
 void FFinalRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
 {
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
     
     bRender = true;    
     if (bRender)
     {
         FBaseRenderPass::Prepare(InViewportClient);
         const FRenderer& Renderer = GEngine->renderer;
+        
+        FGraphicsDevice& Graphics = GEngine->graphicDevice;
+        Graphics.SwapPingPongBuffers();
         
         Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.FrameBufferRTV, nullptr);
         Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);

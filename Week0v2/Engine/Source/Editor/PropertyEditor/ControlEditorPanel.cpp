@@ -264,6 +264,24 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             GEngine->GetLevelEditor()->GetActiveViewportClient()->SetCameraSpeedScalar(CameraSpeed);
         }
 
+        ImGui::Text("Blur Strength");
+        float BlurStrength = GEngine->testBlurStrength;
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::DragFloat("##Blur Strength", &BlurStrength, 0.1f, 0.0f, 1.0f, "%.1f"))
+        {
+            GEngine->testBlurStrength = BlurStrength;
+        }
+        ImGui::Separator();
+
+        ImGui::Text("Blur radius");
+        float BlurRadius = GEngine->testBlurRadius;
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::DragFloat("##Blur radius", &BlurRadius, 0.1f, 1.0f, 20.0f, "%.1f"))
+        {
+            GEngine->testBlurRadius = BlurRadius;
+        }
+        ImGui::Separator();
+
         ImGui::EndPopup();
     }
 
