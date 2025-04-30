@@ -98,6 +98,10 @@ public:
     UTransformGizmo* LocalGizmo = nullptr;
     AEditorPlayer* GetEditorPlayer() const { return EditorPlayer; }
     APlayerCameraManager* GetPlayerCameraManager() const { return PlayerCameraManager; }
+    void SetPlayerCameraManager(APlayerCameraManager* InPlayerCameraManager)
+    {
+        PlayerCameraManager = InPlayerCameraManager;
+    }
     // EditorManager 같은데로 보내기
     TSet<AActor*>& GetSelectedActors() { return SelectedActors; }
     void SetSelectedActor(AActor* InActor)

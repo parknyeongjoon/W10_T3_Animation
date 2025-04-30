@@ -1,4 +1,7 @@
 #include "AGPlayer.h"
+
+#include <iso646.h>
+
 #include "Camera/CameraComponent.h"
 #include "EditorEngine.h"
 #include "LevelEditor/SLevelEditor.h"
@@ -7,6 +10,7 @@
 #include "AGBullet.h"
 #include "APlayerCameraManager.h"
 #include "GameManager.h"
+#include "Camera/CameraLetterBox.h"
 
 #include "Camera/GunRecoilShake.h"
 #include "Curves/CurveFloat.h"
@@ -22,6 +26,8 @@ AGPlayer::AGPlayer(const AGPlayer& Other) : Super(Other)
 void AGPlayer::BeginPlay()
 {
     Super::BeginPlay();
+
+    bIsMoveStarted = false;
 
     CURSORINFO cursorInfo = { sizeof(CURSORINFO) };
     GetCursorInfo(&cursorInfo);
@@ -188,6 +194,18 @@ void AGPlayer::Input(float DeltaTime)
     if (GetAsyncKeyState('S') & 0x8000) MoveDirection -= GetActorForwardVector();
     if (GetAsyncKeyState('D') & 0x8000) MoveDirection += GetActorRightVector();
     if (GetAsyncKeyState('A') & 0x8000) MoveDirection -= GetActorRightVector();
+    
+    if (GetAsyncKeyState('W') & 0x8000
+        or GetAsyncKeyState('S') & 0x8000
+         or GetAsyncKeyState('A') & 0x8000
+         or GetAsyncKeyState('D') & 0x8000)
+    {
+        bIsMoveStarted = true;
+        UCameraLetterBox* CameraModifier = FObjectFactory::ConstructObject<UCameraLetterBox>();
+        CameraModifier->ActivateLetterbox(1.0f, 3.f);
+        GEngine->GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
+    }
+        
     
     if (!MoveDirection.IsNearlyZero())
     {

@@ -1,6 +1,8 @@
 #pragma once
 #include <memory>
 
+class APlayerCameraManager;
+
 enum class EGameState
 {
     None,
@@ -48,6 +50,8 @@ private:
     float GameTimer = 0.0f;
     float GameOverTimer = 60.0f;
     EGameState CurrentGameState = EGameState::None;
+
+    APlayerCameraManager* PlayerCameraManager = nullptr;
     
     
     // 싱글톤을 위한 정적 인스턴스

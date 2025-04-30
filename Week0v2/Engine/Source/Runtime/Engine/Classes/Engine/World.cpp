@@ -58,7 +58,7 @@ void UWorld::CreateBaseObject()
     }
 
     
-    PlayerCameraManager = SpawnActor<APlayerCameraManager>();
+   //PlayerCameraManager = SpawnActor<APlayerCameraManager>();
     
     APointLightActor* Light1 = SpawnActor<APointLightActor>();
     APointLightActor* Light2 = SpawnActor<APointLightActor>();
@@ -315,6 +315,15 @@ bool UWorld::IsPIEWorld() const
 void UWorld::BeginPlay()
 {
     FGameManager::Get().BeginPlay();
+
+    for (auto Actor :GEngine->GetWorld()->GetActors())
+    {
+        if (APlayerCameraManager* CameraManager = Cast<APlayerCameraManager>(Actor))
+        {
+            PlayerCameraManager = CameraManager;
+        }
+    }
+
 }
 
 UWorld* UWorld::DuplicateWorldForPIE(UWorld* world)
