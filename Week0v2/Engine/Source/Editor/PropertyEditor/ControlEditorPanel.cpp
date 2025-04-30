@@ -264,6 +264,15 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             GEngine->GetLevelEditor()->GetActiveViewportClient()->SetCameraSpeedScalar(CameraSpeed);
         }
 
+        ImGui::Text("Blur Strength");
+        float BlurStrength = GEngine->testBlurStrength;
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::DragFloat("##Blur Strength", &BlurStrength, 0.02f, 0.0f, 5.0f, "%.1f"))
+        {
+            GEngine->testBlurStrength = BlurStrength;
+        }
+        ImGui::Separator();
+
         ImGui::EndPopup();
     }
 

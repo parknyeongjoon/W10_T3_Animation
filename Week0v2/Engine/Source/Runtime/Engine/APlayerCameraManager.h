@@ -19,22 +19,29 @@ public:
     virtual void Tick(float DeltaTime) override;
 public:
     APlayerCameraManager();
-    APlayerCameraManager(const APlayerCameraManager& Other) {};
+    APlayerCameraManager(const APlayerCameraManager& Other);
     virtual ~APlayerCameraManager() override {};
 
     UObject* Duplicate() const override;
     
     AActor* GetViewTarget() const { return ViewTarget.Target; }
-    FViewInfo& GetViewInfo() { return ViewTarget.ViewInfo; }
+    FSimpleViewInfo& GetViewInfo() { return ViewTarget.ViewInfo; }
     void AssignViewTarget(const FTViewTarget& InViewTarget)
     {
         ViewTarget = InViewTarget;
     }
+
     
-    void AddCameraModifier(UCameraModifier* Modifier) { CameraModifiers.Add(Modifier); }
-    void RemoveCameraModifier(UCameraModifier* Modifier) { CameraModifiers.Remove(Modifier); }
+    void AddCameraModifier(UCameraModifier* Modifier)
+    {
+        CameraModifiers.Add(Modifier);
+    }
+    void RemoveCameraModifier(UCameraModifier* Modifier)
+    {
+        CameraModifiers.Remove(Modifier);
+    }
     void CleanCameraModifiers() { CameraModifiers.Empty(); }
-    void ApplyCameraModifiers(float DeltaTime, FViewInfo& ViewInfo);
+    void ApplyCameraModifiers(float DeltaTime, FSimpleViewInfo& ViewInfo);
 
     /** Adds a postprocess effect at the given weight. */
     void AddCachedPPBlend(FPostProcessSettings& PPSettings, float BlendWeight, EViewTargetBlendOrder BlendOrder = VTBlendOrder_Base);
@@ -55,7 +62,7 @@ private:
     TArray<FActiveCameraShakeInfo> ActiveShakes;
 
     void UpdateViewTarget();           // ViewTarget.Target → ViewInfo 갱신
-    void ApplyCameraShakes(float DeltaTime, FViewInfo& ViewInfo);         // ActiveShake 계산
+    void ApplyCameraShakes(float DeltaTime, FSimpleViewInfo& ViewInfo);         // ActiveShake 계산
     void ApplyFinalViewToCamera(); // ViewInfo + 흔들림 → 실제 카메라 적용
 
 };

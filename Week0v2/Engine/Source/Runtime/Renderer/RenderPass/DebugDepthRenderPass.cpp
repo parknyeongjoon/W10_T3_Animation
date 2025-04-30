@@ -25,7 +25,8 @@ void FDebugDepthRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportC
     Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
     Graphics.DeviceContext->PSSetShaderResources(0, 1, &Graphics.DepthCopySRV);
 
-    Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], nullptr);
+    const auto& CurRTV = Graphics.GetCurrentRenderTargetView();
+    Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, nullptr);
 }
 
 void FDebugDepthRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)

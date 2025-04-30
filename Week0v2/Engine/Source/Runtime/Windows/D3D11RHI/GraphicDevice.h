@@ -29,27 +29,27 @@ public:
     ID3D11Device* Device = nullptr;
     ID3D11DeviceContext* DeviceContext = nullptr;
     IDXGISwapChain* SwapChain = nullptr;
+
     ID3D11Texture2D* FrameBuffer = nullptr;
-    ID3D11Texture2D* UUIDFrameBuffer = nullptr;
-    ID3D11RenderTargetView* RTVs[2];
     ID3D11RenderTargetView* FrameBufferRTV = nullptr;
-    ID3D11RenderTargetView* UUIDFrameBufferRTV = nullptr;
+    
+    ID3D11Texture2D* PingPongFrameBuffers[2] = { nullptr, nullptr };
+    ID3D11RenderTargetView* PingPongRTVs[2] = { nullptr, nullptr };
+    ID3D11ShaderResourceView* PingPongSRVs[2] = { nullptr, nullptr };
+    int CurrentPingPongIndex = 0; // 현재 쓰기용 버퍼 인덱스
+    
     ID3D11RasterizerState* RasterizerStateSOLID = nullptr;
     ID3D11RasterizerState* RasterizerStateWIREFRAME = nullptr;
     DXGI_SWAP_CHAIN_DESC SwapchainDesc;
     
     UINT screenWidth = 0;
     UINT screenHeight = 0;
+    
     // Depth-Stencil 관련 변수
     ID3D11Texture2D* DepthStencilBuffer = nullptr;  // 깊이/스텐실 텍스처
     ID3D11DepthStencilView* DepthStencilView = nullptr;  // 깊이/스텐실 뷰
     ID3D11Texture2D* DepthCopyTexture;
     ID3D11ShaderResourceView* DepthCopySRV;
-
-    //Fog 처리용 변수
-    ID3D11ShaderResourceView* SceneColorSRV = nullptr;
-    ID3D11Texture2D* SceneColorBuffer = nullptr;
-    ID3D11RenderTargetView* SceneColorRTV = nullptr;
     
     FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear) 할 때 사용할 색상(RGBA)
 
@@ -62,15 +62,17 @@ public:
     void CreateDepthCopyTexture();
     void ReleaseDeviceAndSwapChain();
     void CreateFrameBuffer();
-    void CreateSceneColorResources();
-    void SwitchRTV();
-    void ReturnRTV();
+
+    // PingPong 관련 함수들
+    void SwapPingPongBuffers();
+    ID3D11RenderTargetView* GetCurrentRenderTargetView() const;
+    ID3D11ShaderResourceView* GetPreviousShaderResourceView() const;
+    
     void ReleaseFrameBuffer();
     void ReleaseDepthStencilResources();
-    void ReleaseSceneColorResources();
     void Release();
-    void SwapBuffer();
-    void Prepare();
+    void SwapBuffer() const;
+    void Prepare() const;
     void Prepare(D3D11_VIEWPORT* viewport);
     void OnResize(HWND hWindow);
     
@@ -79,9 +81,6 @@ public:
     
     // void ChangeDepthStencilState(ID3D11DepthStencilState* newDetptStencil) const;
     ID3D11ShaderResourceView* GetCopiedShaderResourceView() const;
-
-    uint32 GetPixelUUID(POINT pt);
-    uint32 DecodeUUIDColor(FVector4 UUIDColor);
 private:
     //ID3D11RasterizerState* CurrentRasterizer = nullptr;
 public:

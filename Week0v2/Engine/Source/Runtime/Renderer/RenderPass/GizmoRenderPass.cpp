@@ -46,9 +46,10 @@ void FGizmoRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewport
     Graphics.DeviceContext->RSSetState(Renderer.GetResourceManager()->GetRasterizerState(ERasterizerState::SolidBack));
 
     // RTVs 배열의 유효성을 확인합니다.
-    if (Graphics.RTVs[0] != nullptr)
+    const auto CurRTV = Graphics.GetCurrentRenderTargetView();
+    if (CurRTV != nullptr)
     {
-        Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView); // 렌더 타겟 설정
+        Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.DepthStencilView); // 렌더 타겟 설정
     }
     else
     {

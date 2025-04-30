@@ -1,6 +1,11 @@
 #include "UCameraModifier.h"
 #include "APlayerCameraManager.h"
 
+// void UCameraModifier::Initialize(APlayerCameraManager* InCameraOwner, float InAlphaInTime, float InAlphaOutTime)
+// {
+//     CameraOwner = InCameraOwner;
+// }
+
 void UCameraModifier::AddedToCamera(APlayerCameraManager* Camera)
 {
     CameraOwner = Camera;
@@ -58,7 +63,7 @@ void UCameraModifier::EnableModifier()
     bPendingDisable = false;
 }
 
-void UCameraModifier::ModifyCamera(float DeltaTime, FViewInfo& ViewInfo)
+void UCameraModifier::ModifyCamera(float DeltaTime, FSimpleViewInfo& ViewInfo)
 {
     ModifyCamera(DeltaTime, ViewInfo.Location, ViewInfo.Rotation, ViewInfo.FOV, ViewInfo.Location, ViewInfo.Rotation, ViewInfo.FOV);
 

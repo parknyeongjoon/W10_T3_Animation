@@ -11,8 +11,10 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UObject/UObjectIterator.h"
 #include "D3D11RHI/FShaderProgram.h"
+#include "RenderPass/BlurRenderPass.h"
 #include "RenderPass/EditorIconRenderPass.h"
 #include "RenderPass/FadeRenderPass.h"
+#include "RenderPass/FinalRenderPass.h"
 #include "RenderPass/GizmoRenderPass.h"
 #include "RenderPass/LineBatchRenderPass.h"
 #include "RenderPass/StaticMeshRenderPass.h"
@@ -96,6 +98,12 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
 
     CreateVertexPixelShader(TEXT("Fade"), nullptr);
     FadeRenderPass = std::make_shared<FFadeRenderPass>(TEXT("Fade"));
+
+    CreateVertexPixelShader(TEXT("Blur"), nullptr);
+    BlurRenderPass = std::make_shared<FBlurRenderPass>(TEXT("Blur"));
+    
+    CreateVertexPixelShader(TEXT("Final"), nullptr);
+    FinalRenderPass = std::make_shared<FFinalRenderPass>(TEXT("Final"));
 }
 
 void FRenderer::PrepareShader(const FName InShaderName)
@@ -244,9 +252,6 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
         FogRenderPass->PrePrepare(); //fog 렌더 여부 결정 및 준비
     }
     
-    FadeRenderPass->PrePrepare();  //TODO: 포그랑 호환안됨
-
-    
     //값을 써줄때 
     
     //ComputeTileLightCulling->Dispatch(ActiveViewport);
@@ -279,6 +284,9 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
         FogRenderPass->Execute(ActiveViewport);
     }
 
+    BlurRenderPass->Prepare(ActiveViewport);
+    BlurRenderPass->Execute(ActiveViewport);
+
     LineBatchRenderPass->Prepare(ActiveViewport);
     LineBatchRenderPass->Execute(ActiveViewport);
 
@@ -299,7 +307,9 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     
     FadeRenderPass->Prepare(ActiveViewport);
     FadeRenderPass->Execute(ActiveViewport);
-    
+
+    FinalRenderPass->Prepare(ActiveViewport);
+    FinalRenderPass->Execute(ActiveViewport);
 }
 
 void FRenderer::ClearRenderObjects() const
