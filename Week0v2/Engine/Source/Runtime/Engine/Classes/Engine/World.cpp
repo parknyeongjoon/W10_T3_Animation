@@ -322,4 +322,15 @@ UWorld* UWorld::DuplicateWorldForPIE(UWorld* world)
 {
     return new UWorld();
 }
+
+AActor* SpawnActorByName(const FString& ActorName, bool bCallBeginPlay)
+{
+    {
+        UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorName);
+        return GEngine->GetWorld()->SpawnActorByClass(ActorClass, bCallBeginPlay);
+        
+    }
+
+}
+
 /**********************************************************/

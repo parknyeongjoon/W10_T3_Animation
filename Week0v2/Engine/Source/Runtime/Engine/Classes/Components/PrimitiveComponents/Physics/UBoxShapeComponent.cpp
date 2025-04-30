@@ -63,10 +63,10 @@ void UBoxShapeComponent::PostDuplicate()
 const FShapeInfo* UBoxShapeComponent::GetShapeInfo() const
 {  
     // Center, WorldMatrix, Extent 최신값을 가져옴
-    FVector Center = GetComponentLocation();
+    FVector Center = GetWorldLocation();
     FMatrix WorldMatrix = GetWorldMatrix();
     FVector Extent = GetBoxExtent();
-    FMatrix RotationMatrix = GetComponentRotation().ToMatrix();
+    FMatrix RotationMatrix = GetWorldRotation().ToMatrix();
 
     ShapeInfo.Center = Center;
     ShapeInfo.WorldMatrix = WorldMatrix;
@@ -81,7 +81,7 @@ void UBoxShapeComponent::UpdateBroadAABB()
     GetShapeInfo();
 
     FVector Center = ShapeInfo.Center;
-    FVector Scale = GetComponentScale();
+    FVector Scale = GetWorldScale();
     FVector Extent = ShapeInfo.Extent * Scale /** 0.5f*/;
 
     FVector LocalCorners[8] =
@@ -164,12 +164,12 @@ bool UBoxShapeComponent::CollisionCheckWithBox(const UBoxShapeComponent* OtherBo
 
     // 1) 자신의 OBB 정보
     FVector CenterA = ShapeInfo.Center;
-    FVector ExtentA = ShapeInfo.Extent * GetComponentScale();
+    FVector ExtentA = ShapeInfo.Extent * GetWorldScale();
     FMatrix RotA = ShapeInfo.RotationMatrix;
 
     // 2) 상대 OBB 정보
     FVector CenterB = OtherShapeInfo->Center;
-    FVector ExtentB = OtherShapeInfo->Extent * OtherBox->GetComponentScale();
+    FVector ExtentB = OtherShapeInfo->Extent * OtherBox->GetWorldScale();
     FMatrix RotB = OtherShapeInfo->RotationMatrix;
 
     // 3) 두 중심 벡터를 A의 로컬 축(x,y,z)으로 투영
@@ -246,7 +246,7 @@ bool UBoxShapeComponent::CollisionCheckWithSphere(const USphereShapeComponent* O
 
     // 2. Box OBB 정보
     FVector CenterB = ShapeInfo.Center;
-    FVector ExtentB = ShapeInfo.Extent * GetComponentScale();
+    FVector ExtentB = ShapeInfo.Extent * GetWorldScale();
     FMatrix RotB = ShapeInfo.RotationMatrix;
 
     // 3. Sphere 중심을 Box 로컬 좌표로 변환
@@ -310,7 +310,7 @@ bool UBoxShapeComponent::CollisionCheckWithCapsule(const UCapsuleShapeComponent*
     FVector L1 = ToLocal(P1);
 
     // 3. 확장된 AABB extents
-    FVector ExtentB = ShapeInfo.Extent * GetComponentScale();
+    FVector ExtentB = ShapeInfo.Extent * GetWorldScale();
     FVector Exp = ExtentB + FVector(RadiusC, RadiusC, RadiusC);
 
     // 4. 세그먼트-AABB 교차 (슬랩 방법)

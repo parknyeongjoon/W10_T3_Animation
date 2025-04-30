@@ -161,7 +161,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
             {
                 UPrimitiveBatch::GetInstance().AddAABB(
                     staticMeshComp->GetBoundingBox(),
-                    staticMeshComp->GetComponentLocation(),
+                    staticMeshComp->GetWorldLocation(),
                     Model
                 );
             }
@@ -351,7 +351,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
 
             LightConstant.PointLights[PointLightCount].Color = PointLightComp->GetLightColor();
             LightConstant.PointLights[PointLightCount].Intensity = PointLightComp->GetIntensity();
-            LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetComponentLocation();
+            LightConstant.PointLights[PointLightCount].Position = PointLightComp->GetWorldLocation();
             LightConstant.PointLights[PointLightCount].Radius = PointLightComp->GetRadius();
             LightConstant.PointLights[PointLightCount].AttenuationFalloff = PointLightComp->GetAttenuationFalloff();
             LightConstant.PointLights[PointLightCount].CastShadow = PointLightComp->CanCastShadows();
@@ -401,7 +401,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
                 continue;
             }
 
-            LightConstant.SpotLights[SpotLightCount].Position = SpotLightComp->GetComponentLocation();
+            LightConstant.SpotLights[SpotLightCount].Position = SpotLightComp->GetWorldLocation();
             LightConstant.SpotLights[SpotLightCount].Color = SpotLightComp->GetLightColor();
             LightConstant.SpotLights[SpotLightCount].Intensity = SpotLightComp->GetIntensity();
             LightConstant.SpotLights[SpotLightCount].Direction = SpotLightComp->GetForwardVector();
@@ -542,7 +542,7 @@ bool FStaticMeshRenderPass::IsLightInFrustum(ULightComponentBase* LightComponent
     // 포인트 라이트 : 구 형태 판단
     if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComponent))
     {
-        FVector LightCenter = PointLightComp->GetComponentLocation();
+        FVector LightCenter = PointLightComp->GetWorldLocation();
         float Radius = PointLightComp->GetRadius();
         return CameraFrustum.IntersectsSphere(LightCenter, Radius);
     }
@@ -564,7 +564,7 @@ bool FStaticMeshRenderPass::IsLightInFrustum(ULightComponentBase* LightComponent
 bool FStaticMeshRenderPass::IsSpotLightInFrustum(USpotLightComponent* SpotLightComp, const FFrustum& CameraFrustum) const
 {
     // 스팟 라이트의 Apex(위치)
-    FVector Apex = SpotLightComp->GetComponentLocation();
+    FVector Apex = SpotLightComp->GetWorldLocation();
 
     // 스팟 라이트의 방향: 스팟 라이트의 오너의 전방벡터를 사용 (정규화된 값)
     FVector Dir = SpotLightComp->GetOwner()->GetActorForwardVector().Normalize();
