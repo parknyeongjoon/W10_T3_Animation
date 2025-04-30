@@ -35,16 +35,7 @@ UObject* APlayerCameraManager::Duplicate() const
     return ClonedActor;
 }
 
-void APlayerCameraManager::Tick(float DeltaTime)
-{
-    AActor::Tick(DeltaTime);
 
-    // ToDo: 뷰정보 넣어주기
-    FViewInfo ViewInfo;
-    ApplyCameraModifiers(DeltaTime, ViewInfo);
-
-
-}
 
 void APlayerCameraManager::ApplyCameraModifiers(float DeltaTime, FViewInfo& ViewInfo)
 {

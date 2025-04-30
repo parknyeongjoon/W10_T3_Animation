@@ -30,7 +30,6 @@ public:
     {
         ViewTarget = InViewTarget;
     }
-    void Tick(float DeltaTime) override;
 
     
     void AddCameraModifier(UCameraModifier* Modifier)
