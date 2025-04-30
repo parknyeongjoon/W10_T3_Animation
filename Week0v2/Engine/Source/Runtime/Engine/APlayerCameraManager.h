@@ -14,11 +14,18 @@ class APlayerCameraManager : public AActor
 {
     DECLARE_CLASS(APlayerCameraManager, AActor)
 public:
-    APlayerCameraManager() {};
+    APlayerCameraManager();
+    APlayerCameraManager(const APlayerCameraManager& Other) {};
+    virtual ~APlayerCameraManager() override {};
+
+    UObject* Duplicate() const override;
     
     AActor* GetViewTarget() const { return ViewTarget.Target; }
     FViewInfo& GetViewInfo() { return ViewTarget.ViewInfo; }
-    void AssignViewTarget(const FTViewTarget& InViewTarget) { ViewTarget = InViewTarget; }
+    void AssignViewTarget(const FTViewTarget& InViewTarget)
+    {
+        ViewTarget = InViewTarget;
+    }
     
     void AddCameraModifier(UCameraModifier* Modifier) { CameraModifiers.Add(Modifier); }
     void RemoveCameraModifier(UCameraModifier* Modifier) { CameraModifiers.Remove(Modifier); }
