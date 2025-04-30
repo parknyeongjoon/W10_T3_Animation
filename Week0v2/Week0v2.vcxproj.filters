@@ -441,6 +441,9 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraDefine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\APlayerCameraManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FadeRenderPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -612,6 +615,9 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\APlayerCameraManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FadeRenderPass.cpp" />
+    <ClCompile Include="Shaders\FadeVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

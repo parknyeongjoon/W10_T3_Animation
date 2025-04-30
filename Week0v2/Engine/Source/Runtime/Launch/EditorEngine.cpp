@@ -118,11 +118,28 @@ void UEditorEngine::Tick(float deltaSeconds)
     
     UIMgr->BeginFrame();
 
-    if (levelType == LEVELTICK_ViewportsOnly)
+    if (GetAsyncKeyState('U') & 0x8000)
+    {
+        if (!bUButtonDown)
+        {
+            bUButtonDown= true;
+            GEngine->ForceEditorUIOnOff();
+        }
+    }
+    else
+    {
+        if (bUButtonDown)
+        {
+            bUButtonDown = false;
+        }
+    }
+
+
+    if (GEngine->GetLevelEditor()->GetEditorStateManager().GetEditorState() != EEditorState::Playing or bForceEditorUI == true )
     {
         UnrealEditor->Render();
     }
-    else if (levelType == LEVELTICK_All)
+    else
     {
         ContentsUI->Render();
     }
