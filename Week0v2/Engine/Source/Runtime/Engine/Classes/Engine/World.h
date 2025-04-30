@@ -86,6 +86,7 @@ private:
     TSet<AActor*> SelectedActors;
     USceneComponent* pickingGizmo = nullptr;
     AEditorPlayer* EditorPlayer = nullptr;
+    APlayerCameraManager* CameraManager = nullptr;
 public:
     
     EWorldType::Type WorldType = EWorldType::None;

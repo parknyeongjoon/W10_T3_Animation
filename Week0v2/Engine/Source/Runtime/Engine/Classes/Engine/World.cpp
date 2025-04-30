@@ -84,6 +84,8 @@ void UWorld::CreateBaseObject()
     //Light4->GetComponentByClass<UPointLightComponent>()->SetRadius(50);
     //Light4->GetComponentByClass<UPointLightComponent>()->SetIntensity(2);
     // Gae Scene End
+
+    CameraManager = SpawnActor<APlayerCameraManager>();
 }
 
 void UWorld::ReleaseBaseObject()
