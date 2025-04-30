@@ -30,6 +30,8 @@
 #include "Contents/AGBullet.h"
 #include "Contents/AGPlayer.h"
 
+
+
 void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
 {
     activeLevelEditor = levelEditor;
@@ -352,11 +354,12 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AGPlayer>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_GAMEPLAYER"));
-                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Capsule.obj");
+                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Cube.obj");
                     UStaticMeshComponent* MeshComp = SpawnedActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Editor);
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
                     USpringArmComponent* SpringComp = SpawnedActor->AddComponent<USpringArmComponent>(EComponentOrigin::Editor);
                     UCameraComponent* Camera = SpawnedActor->AddComponent<UCameraComponent>(EComponentOrigin::Editor);
+                    //SpawnedActor->AddComponent<USphereShapeComponent>(EComponentOrigin::Editor)->SetAttachParent(SpringComp);
                     SpringComp->SetTargetComponent(Camera);
 
                     SpawnedActor->AddComponent<UBoxShapeComponent>(EComponentOrigin::Editor);

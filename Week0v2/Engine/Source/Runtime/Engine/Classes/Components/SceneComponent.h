@@ -5,6 +5,7 @@
 #include "ActorComponentInfo.h"
 #include "Math/Rotator.h"
 #include "Misc/Guid.h"
+#include <sol\sol.hpp>
 
 class USceneComponent;
 
@@ -66,7 +67,7 @@ public:
     virtual FVector GetRightVector() const;
     virtual FVector GetUpVector() const;
     void AddLocation(FVector _added);
-    void AddRotation(FVector _added);
+    void AddRotation(FRotator _added);
     void AddScale(FVector _added);
     FVector GetWorldLocation() const;
     FRotator GetWorldRotation() const;
@@ -75,6 +76,9 @@ public:
     FMatrix GetRotationMatrix() const;
     FMatrix GetTranslationMatrix() const;
     FMatrix GetWorldMatrix() const;
+
+    void SetWorldLocation(const FVector& NewWorldLocation);
+    FMatrix GetWorldToLocalMatrix() const;
 
     FBoundingBox GetBoundingBox() const { return AABB; }
     void SetBoundingBox(const FBoundingBox& InAABB) { AABB = InAABB; }

@@ -61,6 +61,7 @@ struct FMath
 	template <typename T>
 	[[nodiscard]] static FORCEINLINE constexpr T Lerp(const T& A, const T& B, float Alpha)
 	{
+        Alpha = Clamp(Alpha, 0.0f, 1.0f);
 		return static_cast<T>((A * (1.0f - Alpha)) + (B * Alpha));
 	}
 

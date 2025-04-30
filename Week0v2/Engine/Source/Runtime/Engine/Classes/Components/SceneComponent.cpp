@@ -3,6 +3,7 @@
 #include "Math/JungleMath.h"
 #include "UObject/ObjectFactory.h"
 #include "ActorComponentInfo.h"
+//#include "Math/Matrix.h"
 
 USceneComponent::USceneComponent() :RelativeLocation(FVector(0.f, 0.f, 0.f)), RelativeRotation(FVector(0.f, 0.f, 0.f)), RelativeScale(FVector(1.f, 1.f, 1.f))
 {
@@ -55,27 +56,31 @@ void USceneComponent::DestroyComponent()
 int USceneComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
 {
     int nIntersections = 0;
-    return nIntersections;
+    return nIntersections; 
 }
 
+// 이거 문제 있음
 FVector USceneComponent::GetForwardVector() const
 {
     FVector Forward = FVector(1.f, 0.f, 0.0f);
-    Forward = JungleMath::FVectorRotate(Forward, GetWorldRotation());
+    //Forward = JungleMath::FVectorRotate(Forward, GetWorldRotation());
+    Forward = FMatrix::TransformVector(Forward, GetWorldMatrix());
     return Forward;
 }
 
 FVector USceneComponent::GetRightVector() const
 {
     FVector Right = FVector(0.f, 1.f, 0.0f);
-    Right = JungleMath::FVectorRotate(Right, GetWorldRotation());
+    //Right = JungleMath::FVectorRotate(Right, GetWorldRotation());
+    Right = FMatrix::TransformVector(Right, GetWorldMatrix());
     return Right;
 }
 
 FVector USceneComponent::GetUpVector() const
 {
     FVector Up = FVector(0.f, 0.f, 1.0f);
-    Up = JungleMath::FVectorRotate(Up, GetWorldRotation());
+    //Up = JungleMath::FVectorRotate(Up, GetWorldRotation());
+    Up = FMatrix::TransformVector(Up, GetWorldMatrix());
     return Up;
 }
 
@@ -84,9 +89,9 @@ void USceneComponent::AddLocation(FVector _added)
 	RelativeLocation = RelativeLocation + _added;
 }
 
-void USceneComponent::AddRotation(FVector _added)
+void USceneComponent::AddRotation(FRotator _added)
 {
-	RelativeRotation = RelativeRotation + _added;
+    RelativeRotation = RelativeRotation.ToQuaternion() * _added.ToQuaternion();
 }
 
 void USceneComponent::AddScale(FVector _added)
@@ -197,6 +202,28 @@ FMatrix USceneComponent::GetWorldMatrix() const
     return WorldMatrix;
 }
 
+void USceneComponent::SetWorldLocation(const FVector& NewWorldLocation)
+{
+    if (AttachParent)
+    {
+        const FMatrix ParentWorldMatrix = AttachParent->GetWorldMatrix();
+        const FMatrix InverseParentWorldMatrix = FMatrix::Inverse(ParentWorldMatrix);
+
+        const FVector NewRelativeLocation = InverseParentWorldMatrix.TransformPosition(NewWorldLocation);
+
+        SetRelativeLocation(NewRelativeLocation);
+    }
+    else
+    {
+        SetRelativeLocation(NewWorldLocation);
+    }
+}
+
+FMatrix USceneComponent::GetWorldToLocalMatrix() const
+{
+
+    return FMatrix();
+}
 
 void USceneComponent::SetupAttachment(USceneComponent* InParent)
 {

@@ -1,6 +1,8 @@
 #pragma once
 #include "SceneComponent.h"
 
+class USphereShapeComponent;
+
 class USpringArmComponent : public USceneComponent
 {
     DECLARE_CLASS(USpringArmComponent, USceneComponent)
@@ -29,7 +31,7 @@ public:
 
     // 1. Offset
     float GetTargetArmLength() const { return TargetArmLength; }
-    void SetTargetArmLength(float InTargetArmLength) { TargetArmLength = InTargetArmLength; }
+    void SetTargetArmLength(float InTargetArmLength) { ChangeTargetArmLength = InTargetArmLength; }
     FVector GetSocketOffset() const { return SocketOffset; }
     void SetSocketOffset(const FVector& InSocketOffset) { SocketOffset = InSocketOffset; }
     FVector GetTargetOffset() const { return TargetOffset; }
@@ -77,9 +79,11 @@ public:
 #pragma endregion
 
 private:
+    USphereShapeComponent* Probe = nullptr;
     USceneComponent* TargetComponent = nullptr;
 
     // 1. Offset
+    float ChangeTargetArmLength = 0;
     float TargetArmLength = 2;
     FVector SocketOffset = FVector(0, 0, 0);
     FVector TargetOffset = FVector(0, 0, 0);
@@ -92,11 +96,11 @@ private:
     // 3. Lag
     bool bActiveCameraLag = false;
     float CameraLagSpeed = 0.5f;
-    float CameraLagMaxDistance = 0.5f;
+    float CameraLagMaxDistance = 50.f;
 
     bool bActiveCameraRotationLag = false;
     float CameraRotationLagSpeed = 0.5f;
-    float CameraRotationLagMaxAngle = 0.5f;
+    float CameraRotationLagMaxAngle = 20.f;
 
     // 4. Camera Setting
     bool bUsePawnControlRotation = false;

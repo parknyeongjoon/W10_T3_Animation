@@ -1,4 +1,6 @@
 #include "USpringArmComponent.h"
+#include "GameFramework/Actor.h"
+#include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
 
 USpringArmComponent::USpringArmComponent()
 {
@@ -48,21 +50,36 @@ void USpringArmComponent::TickComponent(float DeltaTime)
         return;
     }
 
+    if (ChangeTargetArmLength != TargetArmLength)
+    {
+        TargetArmLength = FMath::Lerp(TargetArmLength, ChangeTargetArmLength, 30 * DeltaTime * 0.001f);
+        if (FMath::Abs(TargetArmLength - ChangeTargetArmLength) < 0.01f)
+        {
+            TargetArmLength = ChangeTargetArmLength;
+        }
+    }
+
     // Socket의 Local공간 위치 계산
-    FVector TargetArmDirection = -FVector::ForwardVector;
+    FVector TargetArmDirection = -FVector::ForwardVector + FVector::UpVector * 0.5f;
+    TargetArmDirection = TargetArmDirection.Normalize();
     FVector SocketLocalLocation = TargetArmDirection * TargetArmLength;
     SocketLocalLocation += TargetOffset + SocketOffset;
 
+    if (bActiveCameraLag)
+    {
+        FVector SocketWorldLocation = AttachParent->GetWorldMatrix().TransformPosition(SocketLocalLocation);
+        FVector CurrentWorldLocation = GetWorldLocation();
+
+        FVector LaggedWorldLocation = FMath::Lerp<FVector>(CurrentWorldLocation, SocketWorldLocation, CameraLagSpeed);
+        SetWorldLocation(LaggedWorldLocation);
+    }
+    else
+    {
+        SetRelativeLocation(SocketLocalLocation);
+    }
+
     //TargetComponent->SetRelativeLocation(SocketLocalLocation);
-
-    // Camera Rotation 적용
-    FVector TargetRotation = TargetComponent->GetRelativeRotation().ToVector();
-    TargetRotation.x *= 1;
-    TargetRotation.y *= 1;
-    TargetRotation.z *= 1;
-
-    SetRelativeRotation(FRotator(TargetRotation));
-
+    //TargetComponent->SetWorldLocation(FVector(0, 0, 10));
 }
 
 void USpringArmComponent::DestroyComponent()
