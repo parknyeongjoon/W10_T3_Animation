@@ -175,6 +175,9 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShakeBase.cpp" />
     <ClCompile Include="Engine\Source\Contents\AGEnemy.cpp" />
     <ClCompile Include="Engine\Source\Contents\AGBullet.cpp" />
     <ClCompile Include="Engine\Source\Contents\AGPlayer.cpp" />
@@ -316,8 +319,12 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\USphereShapeComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShakeBase.h" />
     <ClInclude Include="Engine\Source\Contents\AGEnemy.h" />
     <ClInclude Include="Engine\Source\Contents\AGBullet.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\FunctionRegistry.h" />
@@ -494,6 +501,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\USphereShapeComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\DebugDepthPixelShader.hlsl">
