@@ -1,6 +1,20 @@
 ﻿#include "APlayerCameraManager.h"
 #include "Camera/UCameraModifier.h"
 
+APlayerCameraManager::APlayerCameraManager()
+{
+    auto SceneComp = AddComponent<USceneComponent>(EComponentOrigin::Constructor);
+    RootComponent = SceneComp;
+}
+
+UObject* APlayerCameraManager::Duplicate() const
+{
+    APlayerCameraManager* ClonedActor = FObjectFactory::ConstructObjectFrom<APlayerCameraManager>(this);
+    ClonedActor->DuplicateSubObjects(this);
+    ClonedActor->PostDuplicate();
+    return ClonedActor;
+}
+
 void APlayerCameraManager::ApplyCameraModifiers(float DeltaTime, FViewInfo& ViewInfo)
 {
     for (auto CameraModifier : CameraModifiers)

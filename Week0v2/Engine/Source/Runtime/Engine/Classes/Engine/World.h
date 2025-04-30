@@ -16,6 +16,7 @@ class UCameraComponent;
 class AEditorPlayer;
 class USceneComponent;
 class UTransformGizmo;
+class APlayerCameraManager;
 class UWorld final : public UObject
 {
     DECLARE_CLASS(UWorld, UObject)
