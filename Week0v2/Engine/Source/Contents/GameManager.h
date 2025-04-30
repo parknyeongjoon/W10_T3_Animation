@@ -48,7 +48,7 @@ public:
 private:
     int Score = 0;
     float GameTimer = 0.0f;
-    float GameOverTimer = 10.0f;
+    float GameOverTimer = 60.0f;
     EGameState CurrentGameState = EGameState::None;
 
     APlayerCameraManager* PlayerCameraManager = nullptr;
