@@ -1,5 +1,15 @@
-﻿#include "APlayerCameraManager.h"
+#include "APlayerCameraManager.h"
 #include "Camera/UCameraModifier.h"
+#include "Camera/CameraComponent.h"
+#include "UObject/UObjectArray.h"
+void APlayerCameraManager::Tick(float DeltaTime)
+{
+    float DeltaTimeSecond = DeltaTime * 0.001f;
+    UpdateViewTarget();
+    ApplyCameraModifiers(DeltaTimeSecond, ViewTarget.ViewInfo);
+    ApplyCameraShakes(DeltaTimeSecond, ViewTarget.ViewInfo);
+    ApplyFinalViewToCamera();
+}
 
 APlayerCameraManager::APlayerCameraManager()
 {
@@ -51,4 +61,60 @@ void APlayerCameraManager::GetCachedPostProcessBlends(TArray<FPostProcessSetting
     OutPPSettings = &PostProcessBlendCache;
     OutBlendWeights = &PostProcessBlendCacheWeights;
     OutBlendOrders = &PostProcessBlendCacheOrders;
+}
+
+void APlayerCameraManager::StartCameraShake(UCameraShakeBase* Shake)
+{
+    if (!Shake) return;
+    ActiveShakes.Add({ Shake });
+}
+
+void APlayerCameraManager::UpdateViewTarget()
+{
+    if (!ViewTarget.Target) return;
+
+    if (UCameraComponent* Cam = ViewTarget.Target->GetComponentByClass<UCameraComponent>())
+    {
+        
+        ViewTarget.ViewInfo.Location = Cam->GetRelativeLocation();
+        ViewTarget.ViewInfo.Rotation = Cam->GetRelativeRotation();
+        ViewTarget.ViewInfo.FOV = Cam->GetFOV();
+    }
+}
+
+void APlayerCameraManager::ApplyCameraShakes(float DeltaTime, FViewInfo& ViewInfo)
+{
+    for (int32 i = ActiveShakes.Num() - 1; i >= 0; --i)
+    {
+        FActiveCameraShakeInfo& Info = ActiveShakes[i];
+        if (Info.IsFinished())
+        {
+            //GUObjectArray.MarkRemoveObject(Info.Instance);
+            ActiveShakes.RemoveAt(i);
+            continue;
+        }
+
+        FVector Loc; FRotator Rot; float FOV;
+        Info.Instance->Tick(DeltaTime);
+        Info.Instance->UpdateShake(DeltaTime, Loc, Rot, FOV);
+
+        float W = Info.Instance->GetBlendWeight();
+        ViewInfo.Location += Loc * W;
+        ViewInfo.Rotation += Rot * W;
+        ViewInfo.FOV += FOV * W;
+    }
+}
+
+void APlayerCameraManager::ApplyFinalViewToCamera()
+{
+    if (!ViewTarget.Target) return;
+
+    UCameraComponent* Cam = ViewTarget.Target->GetComponentByClass<UCameraComponent>();
+    if (!Cam) return;
+
+    const FViewInfo& View = ViewTarget.ViewInfo;
+
+    Cam->SetRelativeLocation(View.Location);
+    Cam->SetRelativeRotation(View.Rotation);
+    Cam->SetFOV(View.FOV);
 }
