@@ -58,7 +58,7 @@ void UWorld::CreateBaseObject()
     }
 
     
-   //PlayerCameraManager = SpawnActor<APlayerCameraManager>();
+    PlayerCameraManager = SpawnActor<APlayerCameraManager>();
     
     APointLightActor* Light1 = SpawnActor<APointLightActor>();
     APointLightActor* Light2 = SpawnActor<APointLightActor>();
