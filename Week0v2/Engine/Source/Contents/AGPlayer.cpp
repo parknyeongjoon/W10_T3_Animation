@@ -118,9 +118,6 @@ void AGPlayer::Input(float DeltaTime)
         POINT currentMousePos;
         GetCursorPos(&currentMousePos);
 
-
-
-
         int32 deltaX = currentMousePos.x - lastMousePos.x;
         int32 deltaY = currentMousePos.y - lastMousePos.y;
 

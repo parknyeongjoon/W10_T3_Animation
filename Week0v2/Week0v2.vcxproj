@@ -316,6 +316,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\USphereShapeComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\USpringArmComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\Contents\AGEnemy.h" />
@@ -494,6 +495,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\USphereShapeComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\USpringArmComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\DebugDepthPixelShader.hlsl">

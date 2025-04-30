@@ -1,1 +1,9 @@
-﻿#include "UCameraModifier.h"
+#include "UCameraModifier.h"
+
+void UCameraModifier::ModifiyCamera()
+{
+}
+
+void UCameraModifier::ModifiyPostProcess()
+{
+}
