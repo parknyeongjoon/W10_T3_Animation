@@ -6,6 +6,8 @@
 #include "Engine/World.h"
 #include "AGBullet.h"
 #include "APlayerCameraManager.h"
+#include "GameManager.h"
+
 #include "Camera/GunRecoilShake.h"
 #include "Curves/CurveFloat.h"
 AGPlayer::AGPlayer()
@@ -144,13 +146,18 @@ void AGPlayer::Input(float DeltaTime)
         bSpacePressedLastFrame = false;
     }
 
+
+
+    // if (FGameManager::Get().GetGameState() == EGameState::Ended)
+    // {
+    //     bShowCursor = true;
+    // }
+     
+
     if (!bShowCursor) // 커서 숨김 상태일 때만 마우스 회전
     {
         POINT currentMousePos;
         GetCursorPos(&currentMousePos);
-
-
-
 
         int32 deltaX = currentMousePos.x - lastMousePos.x;
         int32 deltaY = currentMousePos.y - lastMousePos.y;

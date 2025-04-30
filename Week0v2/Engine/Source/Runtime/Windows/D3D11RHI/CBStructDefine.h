@@ -154,6 +154,16 @@ struct alignas(16) FLightingConstants
     FSpotLight SpotLights[MAX_SPOTLIGHT]; 
 };
 
+struct alignas(16) FFadeConstants
+{
+    FLinearColor TargetFadeColor; // 페이드 목표 색상 (예: 검은색 float4(0,0,0,1))
+    
+    float  FadeAlpha;       // 보간 계수 (0.0 = SceneColor, 1.0 = TargetFadeColor)
+    float Padding;   
+    float Padding1;   
+    float Padding2;   
+};
+
 struct alignas(16) FFlagConstants
 {
     uint32 IsLit; // offset: 0, size: 4

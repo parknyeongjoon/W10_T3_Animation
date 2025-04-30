@@ -25,6 +25,7 @@
 #include "Components/PrimitiveComponents/UParticleSubUVComp.h"
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
+#include "Components/USpringArmComponent.h"
 
 #include "Contents/AGBullet.h"
 #include "Contents/AGPlayer.h"
@@ -345,7 +346,9 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     FManagerOBJ::CreateStaticMesh("Assets/Primitives/Capsule.obj");
                     UStaticMeshComponent* MeshComp = SpawnedActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Editor);
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
-                    SpawnedActor->AddComponent<UCameraComponent>(EComponentOrigin::Editor);
+                    USpringArmComponent* SpringComp = SpawnedActor->AddComponent<USpringArmComponent>(EComponentOrigin::Editor);
+                    UCameraComponent* Camera = SpawnedActor->AddComponent<UCameraComponent>(EComponentOrigin::Editor);
+                    SpringComp->SetTargetComponent(Camera);
                     break;
                 }
                     //  셰이프
