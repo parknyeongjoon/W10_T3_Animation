@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 #include "CameraDefine.h"

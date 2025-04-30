@@ -1,0 +1,11 @@
+#pragma once
+#include "UObject/Object.h"
+class UCurveBase : public UObject
+{
+public:
+    virtual float GetStartTime() const { return 0.f; }
+    virtual float GetEndTime() const { return 1.f; }
+
+    virtual float GetFloatValue(float Time) const { return 0.f; } // 오버라이드 전용
+};
+

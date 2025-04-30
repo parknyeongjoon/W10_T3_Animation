@@ -1,4 +1,4 @@
-﻿#include "UCameraModifier.h"
+#include "UCameraModifier.h"
 #include "APlayerCameraManager.h"
 
 void UCameraModifier::AddedToCamera(APlayerCameraManager* Camera)

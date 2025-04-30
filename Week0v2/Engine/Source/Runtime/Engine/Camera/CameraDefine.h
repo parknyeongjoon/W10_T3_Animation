@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Math/Rotator.h"
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
