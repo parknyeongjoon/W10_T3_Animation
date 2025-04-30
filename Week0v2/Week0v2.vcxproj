@@ -175,14 +175,19 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShakeBase.cpp" />
     <ClCompile Include="Engine\Source\Contents\AGEnemy.cpp" />
     <ClCompile Include="Engine\Source\Contents\AGBullet.cpp" />
-    <ClCompile Include="Engine\Source\Contents\AGamePlayer.cpp" />
+    <ClCompile Include="Engine\Source\Contents\AGPlayer.cpp" />
     <ClCompile Include="Engine\Source\Contents\GameManager.cpp" />
     <ClCompile Include="Engine\Source\Contents\UI\ContentsUI.cpp" />
     <ClCompile Include="Engine\Source\Contents\UI\ContentsPanel.cpp" />
     <ClCompile Include="Engine\Source\Contents\UI\GameUIPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\Script\LuaManagerBind.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\APlayerCameraManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\FCollisionManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.cpp" />
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SLevelEditor.cpp" />
@@ -315,17 +320,24 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\USphereShapeComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShakeBase.h" />
     <ClInclude Include="Engine\Source\Contents\AGEnemy.h" />
     <ClInclude Include="Engine\Source\Contents\AGBullet.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\FunctionRegistry.h" />
-    <ClInclude Include="Engine\Source\Contents\AGamePlayer.h" />
+    <ClInclude Include="Engine\Source\Contents\AGPlayer.h" />
     <ClInclude Include="Engine\Source\Contents\GameManager.h" />
     <ClInclude Include="Engine\Source\Contents\UI\ContentsUI.h" />
     <ClInclude Include="Engine\Source\Contents\UI\ContentsPanel.h" />
     <ClInclude Include="Engine\Source\Contents\UI\GameUIPanel.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.impl.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraDefine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\APlayerCameraManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Physics\FCollisionManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.h" />
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SLevelEditor.h" />
@@ -492,6 +504,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\USphereShapeComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\DebugDepthPixelShader.hlsl">

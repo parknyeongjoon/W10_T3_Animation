@@ -267,4 +267,24 @@ struct FMath
 	{
 	    return Min ( Min( A, B ), C );
 	}
+
+    [[nodiscard]] static FORCEINLINE int RandRange(int Min, int Max)
+    {
+        return Min + (std::rand() % ((Max - Min) + 1));
+    }
+
+    /** 실수형 범위 내에서 난수 반환 */
+    [[nodiscard]] static FORCEINLINE float RandRange(float Min, float Max)
+    {
+        float Ratio = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+        return Min + (Max - Min) * Ratio;
+    }
+
+    // FMath 내부에 추가
+    static float InterpEaseOut(float A, float B, float Alpha, float Exp)
+    {
+        Alpha = FMath::Clamp(Alpha, 0.0f, 1.0f);
+        return A + (B - A) * FMath::Pow(1 - FMath::Pow(1 - Alpha, Exp));
+    }
+
 };

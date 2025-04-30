@@ -12,6 +12,9 @@
 #include "Contents/GameManager.h"
 #include "Serialization/FWindowsBinHelper.h"
 
+#include "Actors/PointLightActor.h"
+#include "Components/LightComponents/PointLightComponent.h"
+
 UWorld::UWorld(const UWorld& Other): UObject(Other)
                                    , defaultMapName(Other.defaultMapName)
                                    , Level(Other.Level)
@@ -52,6 +55,32 @@ void UWorld::CreateBaseObject()
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
+
+    APointLightActor* Light1 = SpawnActor<APointLightActor>();
+    APointLightActor* Light2 = SpawnActor<APointLightActor>();
+    APointLightActor* Light3 = SpawnActor<APointLightActor>();
+    APointLightActor* Light4 = SpawnActor<APointLightActor>();
+
+    Light1->SetActorLocation(FVector(-75, -75, 20));
+    Light2->SetActorLocation(FVector(-75, 75, 20));
+    Light3->SetActorLocation(FVector(75, -75, 20));
+    Light4->SetActorLocation(FVector(75, 75, 20));
+
+    Light1->GetComponentByClass<UPointLightComponent>()->SetColor(FVector4(0.8f, 0.05f, 0.05f, 1));
+    Light1->GetComponentByClass<UPointLightComponent>()->SetRadius(50);
+    Light1->GetComponentByClass<UPointLightComponent>()->SetIntensity(2);
+
+    Light2->GetComponentByClass<UPointLightComponent>()->SetColor(FVector4(0.8f, 0.05f, 0.05f, 1));
+    Light2->GetComponentByClass<UPointLightComponent>()->SetRadius(50);
+    Light2->GetComponentByClass<UPointLightComponent>()->SetIntensity(2);
+
+    Light3->GetComponentByClass<UPointLightComponent>()->SetColor(FVector4(0.8f, 0.05f, 0.05f, 1));
+    Light3->GetComponentByClass<UPointLightComponent>()->SetRadius(50);
+    Light3->GetComponentByClass<UPointLightComponent>()->SetIntensity(2);
+
+    Light4->GetComponentByClass<UPointLightComponent>()->SetColor(FVector4(0.8f, 0.05f, 0.05f, 1));
+    Light4->GetComponentByClass<UPointLightComponent>()->SetRadius(50);
+    Light4->GetComponentByClass<UPointLightComponent>()->SetIntensity(2);
 }
 
 void UWorld::ReleaseBaseObject()

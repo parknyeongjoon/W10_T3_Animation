@@ -5,6 +5,8 @@
 #include "Matrix.h"
 #include "Misc/Parse.h"
 
+const FRotator FRotator::ZeroRotator = FRotator(0.0f, 0.0f, 0.0f);
+
 FRotator::FRotator(const FVector& InVector)
     : Pitch(FMath::RadiansToDegrees(InVector.y)), Yaw(FMath::RadiansToDegrees(InVector.z)), Roll(FMath::RadiansToDegrees(InVector.x))
 {

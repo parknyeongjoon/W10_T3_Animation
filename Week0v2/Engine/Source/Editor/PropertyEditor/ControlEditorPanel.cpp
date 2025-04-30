@@ -27,7 +27,7 @@
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 
 #include "Contents/AGBullet.h"
-#include "Contents/AGamePlayer.h"
+#include "Contents/AGPlayer.h"
 
 void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
 {
@@ -340,7 +340,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     break;
                 case OBJ_GAMEPLAYER:
                 {
-                    SpawnedActor = World->SpawnActor<AGamePlayer>();
+                    SpawnedActor = World->SpawnActor<AGPlayer>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_GAMEPLAYER"));
                     FManagerOBJ::CreateStaticMesh("Assets/Primitives/Capsule.obj");
                     UStaticMeshComponent* MeshComp = SpawnedActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Editor);
