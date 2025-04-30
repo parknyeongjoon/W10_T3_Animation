@@ -70,8 +70,8 @@ FMatrix UPointLightComponent::GetViewMatrixForFace(int faceIndex) const
         break;
     }
     return JungleMath::CreateViewMatrix(
-        GetComponentLocation(),
-        Forward + GetComponentLocation(),
+        GetWorldLocation(),
+        Forward + GetWorldLocation(),
         Up
     );
 }

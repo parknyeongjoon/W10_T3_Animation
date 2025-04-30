@@ -5,6 +5,9 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "Engine/World.h"
 #include "AGBullet.h"
+#include "APlayerCameraManager.h"
+#include "GameManager.h"
+
 AGPlayer::AGPlayer()
 {
     //Camera = AddComponent<UCameraComponent>(EComponentOrigin::Constructor);
@@ -28,6 +31,17 @@ void AGPlayer::BeginPlay()
 
     GetCursorPos(&lastMousePos);
     UCameraComponent* Camera = GetComponentByClass<UCameraComponent>();
+    FTViewTarget ViewTarget;
+    ViewTarget.Target = this;
+    ViewTarget.ViewInfo = FViewInfo(Camera->GetWorldLocation(), Camera->GetWorldRotation(), Camera->GetFOV());
+    for (auto& Actor : GEngine->GetWorld()->GetActors())
+    {
+        if (APlayerCameraManager* APCM = Cast<APlayerCameraManager>(Actor))
+        {
+            APCM->AssignViewTarget(ViewTarget);
+            break;
+        }
+    }
     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(Camera);
     UE_LOG(LogLevel::Display, "AGamePlayer Begin Play");
 }
@@ -112,6 +126,14 @@ void AGPlayer::Input(float DeltaTime)
     {
         bSpacePressedLastFrame = false;
     }
+
+
+
+    // if (FGameManager::Get().GetGameState() == EGameState::Ended)
+    // {
+    //     bShowCursor = true;
+    // }
+     
 
     if (!bShowCursor) // 커서 숨김 상태일 때만 마우스 회전
     {

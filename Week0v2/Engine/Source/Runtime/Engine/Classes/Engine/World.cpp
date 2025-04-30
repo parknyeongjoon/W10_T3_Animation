@@ -1,5 +1,6 @@
 #include "World.h"
 
+#include "APlayerCameraManager.h"
 #include "Actors/Player.h"
 #include "BaseGizmos/TransformGizmo.h"
 #include "Camera/CameraComponent.h"
@@ -321,4 +322,15 @@ UWorld* UWorld::DuplicateWorldForPIE(UWorld* world)
 {
     return new UWorld();
 }
+
+AActor* SpawnActorByName(const FString& ActorName, bool bCallBeginPlay)
+{
+    {
+        UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorName);
+        return GEngine->GetWorld()->SpawnActorByClass(ActorClass, bCallBeginPlay);
+        
+    }
+
+}
+
 /**********************************************************/

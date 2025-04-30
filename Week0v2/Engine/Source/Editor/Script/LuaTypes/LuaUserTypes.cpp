@@ -9,6 +9,7 @@
 #include "Math/Rotator.h"
 #include "Script/LuaActor.h"
 
+#include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 
 void LuaTypes::FBindLua<FColor>::Bind(sol::table& Table)
 {
@@ -238,6 +239,14 @@ void LuaTypes::FBindLua<FMatrix>::Bind(sol::table& Table)
     );
 }
 
+void LuaTypes::FBindLua<UObject>::Bind(sol::table& Table)
+{
+    Table.new_usertype<UObject>("UObject" // 타입 이름 명시
+       , sol::no_constructor
+       , LUA_BIND_MEMBER(&UObject::GetName)
+   );
+}
+
 // void LuaTypes::FBindLua<ALuaActor>::Bind(sol::table& Table)
 // {
 //     Table.Lua_NewUserType(
@@ -281,6 +290,7 @@ void LuaTypes::FBindLua<AActor>::Bind(sol::table& Table)
     Table.Lua_NewUserType(
         AActor,
 
+        sol::base_classes, sol::bases<UObject>(),
         // UObject 메서드
         LUA_BIND_MEMBER(&AActor::Duplicate),
         LUA_BIND_MEMBER(&AActor::GetFName),
@@ -310,9 +320,62 @@ void LuaTypes::FBindLua<AActor>::Bind(sol::table& Table)
         LUA_BIND_MEMBER(&AActor::AddComponentByName),
 
         LUA_BIND_MEMBER(&AActor::Destroy),
-        LUA_BIND_MEMBER(&AActor::IsActorBeingDestroyed)
+        LUA_BIND_MEMBER(&AActor::IsActorBeingDestroyed),
+        "GetComponentByClass",
+        // 람다 함수 정의: 첫 인자는 객체 자신(self), 다음 인자는 Lua에서 전달될 값
+        [](const AActor& self, const std::string& componentClassName) -> USceneComponent* {
+            // Lua에서 받은 std::string을 FString으로 변환 (FString 구현에 따라 다름)
+            FString classNameFString(componentClassName.c_str()); // 또는 다른 변환 방식 사용
+
+            // 명시적으로 원하는 오버로딩 버전 호출
+            return Cast<USceneComponent>(self.GetComponentByClass(classNameFString));
+        }
     );
 }
+
+void LuaTypes::FBindLua<UActorComponent>::Bind(sol::table& engineTable)
+{
+    engineTable.new_usertype<UActorComponent>("UActorComponent" // 타입 이름 명시
+       , sol::no_constructor
+       , sol::base_classes, sol::bases<UObject>()
+       , "IsActive", &UActorComponent::IsActive // 멤버 함수 직접 추가
+   );
+}
+
+void LuaTypes::FBindLua<USceneComponent>::Bind(sol::table& engineTable)
+{
+    // LUA_BIND_MEMBER 매크로가 실제 멤버를 이름과 함께 추가한다고 가정하고 직접 풀어서 작성
+    // 만약 매크로가 단순 이름 지정이 아니었다면 그에 맞게 수정 필요
+    engineTable.new_usertype<USceneComponent>("USceneComponent" // 타입 이름 명시
+        , sol::no_constructor
+        , sol::base_classes, sol::bases<UActorComponent>() // 상속 명시
+        // 멤버들 직접 바인딩 (LUA_BIND_MEMBER를 풀어서)
+        , "GetForwardVector", &USceneComponent::GetForwardVector
+        , "GetRightVector", &USceneComponent::GetRightVector
+        , "GetUpVector", &USceneComponent::GetUpVector
+        , "AddLocation", &USceneComponent::AddLocation
+        , "AddRotation", &USceneComponent::AddRotation
+        , "AddScale", &USceneComponent::AddScale
+        , "GetWorldLocation", &USceneComponent::GetWorldLocation
+        , "GetWorldRotation", &USceneComponent::GetWorldRotation
+        , "GetWorldScale", &USceneComponent::GetWorldScale
+        , "GetLocalLocation", &USceneComponent::GetLocalLocation
+        , "GetLocalScale", &USceneComponent::GetLocalScale
+    );
+}
+
+void LuaTypes::FBindLua<UStaticMeshComponent>::Bind(sol::table& engineTable)
+{
+    engineTable.new_usertype<UStaticMeshComponent>("UStaticMeshComponent" // 타입 이름 명시
+        , sol::no_constructor
+        , sol::base_classes, sol::bases<USceneComponent>() // 상속 명시
+        // 멤버 직접 바인딩
+        , "GetNumMaterials", &UStaticMeshComponent::GetNumMaterials
+        // ... 필요하다면 다른 멤버들 ...
+    );
+}
+
+
 
 void LuaTypes::FBindLua<UWorld>::Bind(sol::table& engineTable)
 {

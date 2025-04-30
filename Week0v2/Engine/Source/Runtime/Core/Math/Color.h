@@ -83,6 +83,7 @@ struct FColor
     static const FColor Gray;
 };
 
+// 0~1 사이의 값을 가지는 색상 구조체
 struct FLinearColor
 {
     union

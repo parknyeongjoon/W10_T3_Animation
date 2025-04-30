@@ -359,7 +359,7 @@ bool FShadowRenderPass::IsLightInFrustum(ULightComponentBase* LightComponent, co
     // 포인트 라이트 : 구 형태 판단
     if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComponent))
     {
-        FVector LightCenter = PointLightComp->GetComponentLocation();
+        FVector LightCenter = PointLightComp->GetWorldLocation();
         float Radius = PointLightComp->GetRadius();
         return CameraFrustum.IntersectsSphere(LightCenter, Radius);
     }
@@ -381,7 +381,7 @@ bool FShadowRenderPass::IsLightInFrustum(ULightComponentBase* LightComponent, co
 bool FShadowRenderPass::IsSpotLightInFrustum(USpotLightComponent* SpotLightComp, const FFrustum& CameraFrustum) const
 {
     // 스팟 라이트의 Apex(위치)
-    FVector Apex = SpotLightComp->GetComponentLocation();
+    FVector Apex = SpotLightComp->GetWorldLocation();
 
     // 스팟 라이트의 방향: 스팟 라이트의 오너의 전방벡터를 사용 (정규화된 값)
     FVector Dir = SpotLightComp->GetOwner()->GetActorForwardVector().Normalize();

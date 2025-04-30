@@ -68,9 +68,9 @@ public:
     void AddLocation(FVector _added);
     void AddRotation(FVector _added);
     void AddScale(FVector _added);
-    FVector GetComponentLocation() const;
-    FRotator GetComponentRotation() const;
-    FVector GetComponentScale() const;
+    FVector GetWorldLocation() const;
+    FRotator GetWorldRotation() const;
+    FVector GetWorldScale() const;
     FMatrix GetScaleMatrix() const;
     FMatrix GetRotationMatrix() const;
     FMatrix GetTranslationMatrix() const;

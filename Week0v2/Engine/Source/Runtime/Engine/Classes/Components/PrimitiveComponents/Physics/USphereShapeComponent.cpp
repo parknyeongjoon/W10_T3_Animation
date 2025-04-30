@@ -62,8 +62,8 @@ void USphereShapeComponent::PostDuplicate()
 
 const FShapeInfo* USphereShapeComponent::GetShapeInfo() const
 {
-    FVector Center = GetComponentLocation();
-    float Scale = GetComponentScale().MaxValue();
+    FVector Center = GetWorldLocation();
+    float Scale = GetWorldScale().MaxValue();
     float ScaledRadius = GetRadius() * Scale;
 
     ShapeInfo.Center = Center;
@@ -142,12 +142,12 @@ bool USphereShapeComponent::NarrowPhaseCollisionCheck(const UShapeComponent* Oth
 bool USphereShapeComponent::CollisionCheckWithBox(const UBoxShapeComponent* OtherBox) const
 {
     // 1. Sphere 정보
-    FVector CenterS = GetComponentLocation();
-    float RadiusS = GetRadius() * GetComponentScale().MaxValue();
+    FVector CenterS = GetWorldLocation();
+    float RadiusS = GetRadius() * GetWorldScale().MaxValue();
 
     // 2. Box OBB 정보
-    FVector CenterB = OtherBox->GetComponentLocation();
-    FVector ExtentB = OtherBox->GetBoxExtent() * GetComponentScale();
+    FVector CenterB = OtherBox->GetWorldLocation();
+    FVector ExtentB = OtherBox->GetBoxExtent() * GetWorldScale();
     FMatrix RotB = GetRotationMatrix();
 
     // 3. Sphere 중심을 Box 로컬 좌표로 변환
@@ -177,11 +177,11 @@ bool USphereShapeComponent::CollisionCheckWithBox(const UBoxShapeComponent* Othe
 
 bool USphereShapeComponent::CollisionCheckWithSphere(const USphereShapeComponent* OtherSphere) const
 {
-    FVector CenterA = GetComponentLocation();
-    float RadiusA = GetRadius() * GetComponentScale().MaxValue();
+    FVector CenterA = GetWorldLocation();
+    float RadiusA = GetRadius() * GetWorldScale().MaxValue();
 
-    FVector CenterB = OtherSphere->GetComponentLocation();
-    float RadiusB = OtherSphere->GetRadius() * OtherSphere->GetComponentScale().MaxValue();
+    FVector CenterB = OtherSphere->GetWorldLocation();
+    float RadiusB = OtherSphere->GetRadius() * OtherSphere->GetWorldScale().MaxValue();
 
     FVector d = CenterA - CenterB;
     float DistSquared = d.Dot(d);
@@ -192,15 +192,15 @@ bool USphereShapeComponent::CollisionCheckWithSphere(const USphereShapeComponent
 
 bool USphereShapeComponent::CollisionCheckWithCapsule(const UCapsuleShapeComponent* OtherCapsule) const
 {
-    FVector SphereCenter = GetComponentLocation();
-    float SphereRadius = GetRadius() * GetComponentScale().MaxValue();
+    FVector SphereCenter = GetWorldLocation();
+    float SphereRadius = GetRadius() * GetWorldScale().MaxValue();
 
-    FVector CapsuleCenter = OtherCapsule->GetComponentLocation();
+    FVector CapsuleCenter = OtherCapsule->GetWorldLocation();
     FMatrix CapsuleRotation = OtherCapsule->GetRotationMatrix();
     FVector CapsuleUp = FVector(CapsuleRotation.M[0][1], CapsuleRotation.M[1][1], CapsuleRotation.M[2][1]); // Y축 기준
 
-    float CapsuleHalfHeight = OtherCapsule->GetHalfHeight() * OtherCapsule->GetComponentScale().y;
-    float CapsuleRadius = OtherCapsule->GetRadius() * OtherCapsule->GetComponentScale().MaxValue();
+    float CapsuleHalfHeight = OtherCapsule->GetHalfHeight() * OtherCapsule->GetWorldScale().y;
+    float CapsuleRadius = OtherCapsule->GetRadius() * OtherCapsule->GetWorldScale().MaxValue();
 
     // 캡슐의 세그먼트 끝점 계산
     FVector Top = CapsuleCenter + CapsuleUp * CapsuleHalfHeight;

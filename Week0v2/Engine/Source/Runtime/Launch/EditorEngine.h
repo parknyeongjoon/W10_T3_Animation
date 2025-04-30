@@ -51,6 +51,11 @@ public:
     static FCoroutineManager CoroutineManager;
     HWND hWnd;
     ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;
+    bool bUButtonDown = false;
+
+    void ForceEditorUIOnOff() { bForceEditorUI = !bForceEditorUI; }
+    
+    bool bForceEditorUI = false;
 private:
     UImGuiManager* UIMgr;
     UWorld* GWorld;
@@ -61,6 +66,7 @@ private:
     FContentsUI* ContentsUI;
     
     bool bTestInput = false;
+
 public:
     UWorld* GetWorld() const { return GWorld; }
     SLevelEditor* GetLevelEditor() const { return LevelEditor; }

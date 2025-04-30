@@ -118,11 +118,28 @@ void UEditorEngine::Tick(float deltaSeconds)
     
     UIMgr->BeginFrame();
 
-    if (levelType == LEVELTICK_ViewportsOnly)
+    if (GetAsyncKeyState('U') & 0x8000)
+    {
+        if (!bUButtonDown)
+        {
+            bUButtonDown= true;
+            GEngine->ForceEditorUIOnOff();
+        }
+    }
+    else
+    {
+        if (bUButtonDown)
+        {
+            bUButtonDown = false;
+        }
+    }
+
+
+    if (GEngine->GetLevelEditor()->GetEditorStateManager().GetEditorState() != EEditorState::Playing or bForceEditorUI == true )
     {
         UnrealEditor->Render();
     }
-    else if (levelType == LEVELTICK_All)
+    else
     {
         ContentsUI->Render();
     }
@@ -171,9 +188,26 @@ void UEditorEngine::Input()
         bTestInput = false;
     }
 
-    if (GetAsyncKeyState('L') & 0x8000)
+    if (GetAsyncKeyState('L') & 0x8000 or GetAsyncKeyState(VK_ESCAPE) & 0x8000)
     {
         LevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
+    }
+
+
+    if (GetAsyncKeyState('P') & 0x8000 and GetAsyncKeyState(VK_MENU) & 0x8000)
+    {
+        if (LevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
+        {
+            LevelEditor->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
+        }
+        // else if (LevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Paused)
+        // {
+        //     LevelEditor->GetEditorStateManager().SetState(EEditorState::Playing);
+        // }
+        // else
+        // {
+        //     LevelEditor->GetEditorStateManager().SetState(EEditorState::Paused);
+        // }
     }
 }
 

@@ -607,7 +607,6 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
     float CursorPosX = (ContentWidth - TotalWidth) * 0.5f;
     ImGui::SetCursorPosX(CursorPosX);
 
-
     if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));

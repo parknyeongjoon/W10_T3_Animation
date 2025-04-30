@@ -151,9 +151,9 @@ std::string FSceneMgr::SerializeSceneData(const SceneData& sceneData)
     for (const auto& [Id, Obj] : sceneData.Primitives)
     {
         USceneComponent* primitive = static_cast<USceneComponent*>(Obj);
-        std::vector<float> Location = { primitive->GetComponentLocation().x,primitive->GetComponentLocation().y,primitive->GetComponentLocation().z };
-        std::vector<float> Rotation = { primitive->GetComponentRotation().Pitch,primitive->GetComponentRotation().Yaw,primitive->GetComponentRotation().Roll };
-        std::vector<float> Scale = { primitive->GetComponentScale().x,primitive->GetComponentScale().y,primitive->GetComponentScale().z };
+        std::vector<float> Location = { primitive->GetWorldLocation().x,primitive->GetWorldLocation().y,primitive->GetWorldLocation().z };
+        std::vector<float> Rotation = { primitive->GetWorldRotation().Pitch,primitive->GetWorldRotation().Yaw,primitive->GetWorldRotation().Roll };
+        std::vector<float> Scale = { primitive->GetWorldScale().x,primitive->GetWorldScale().y,primitive->GetWorldScale().z };
 
         std::string primitiveName = *primitive->GetName();
         size_t pos = primitiveName.rfind('_');
@@ -171,8 +171,8 @@ std::string FSceneMgr::SerializeSceneData(const SceneData& sceneData)
     for (const auto& [id, camera] : sceneData.Cameras)
     {
         UCameraComponent* cameraComponent = static_cast<UCameraComponent*>(camera);
-        TArray<float> Location = { cameraComponent->GetComponentLocation().x, cameraComponent->GetComponentLocation().y, cameraComponent->GetComponentLocation().z };
-        TArray<float> Rotation = { 0.0f, cameraComponent->GetComponentRotation().Yaw, cameraComponent->GetComponentRotation().Roll };
+        TArray<float> Location = { cameraComponent->GetWorldLocation().x, cameraComponent->GetWorldLocation().y, cameraComponent->GetWorldLocation().z };
+        TArray<float> Rotation = { 0.0f, cameraComponent->GetWorldRotation().Yaw, cameraComponent->GetWorldRotation().Roll };
         float FOV = cameraComponent->GetFOV();
         float nearClip = cameraComponent->GetNearClip();
         float farClip = cameraComponent->GetFarClip();

@@ -61,21 +61,21 @@ int USceneComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirect
 FVector USceneComponent::GetForwardVector() const
 {
     FVector Forward = FVector(1.f, 0.f, 0.0f);
-    Forward = JungleMath::FVectorRotate(Forward, GetComponentRotation());
+    Forward = JungleMath::FVectorRotate(Forward, GetWorldRotation());
     return Forward;
 }
 
 FVector USceneComponent::GetRightVector() const
 {
     FVector Right = FVector(0.f, 1.f, 0.0f);
-    Right = JungleMath::FVectorRotate(Right, GetComponentRotation());
+    Right = JungleMath::FVectorRotate(Right, GetWorldRotation());
     return Right;
 }
 
 FVector USceneComponent::GetUpVector() const
 {
     FVector Up = FVector(0.f, 0.f, 1.0f);
-    Up = JungleMath::FVectorRotate(Up, GetComponentRotation());
+    Up = JungleMath::FVectorRotate(Up, GetWorldRotation());
     return Up;
 }
 
@@ -120,29 +120,29 @@ void USceneComponent::AttachToComponent(USceneComponent* InParent)
     }
 }
 
-FVector USceneComponent::GetComponentLocation() const
+FVector USceneComponent::GetWorldLocation() const
 {
     if (AttachParent)
     {
-        return AttachParent->GetComponentLocation() + RelativeLocation;
+        return AttachParent->GetWorldLocation() + RelativeLocation;
     }
     return RelativeLocation;
 }
 
-FRotator USceneComponent::GetComponentRotation() const
+FRotator USceneComponent::GetWorldRotation() const
 {
     if (AttachParent)
     {
-        return AttachParent->GetComponentRotation().ToQuaternion() * RelativeRotation.ToQuaternion();
+        return AttachParent->GetWorldRotation().ToQuaternion() * RelativeRotation.ToQuaternion();
     }
     return RelativeRotation;
 }
 
-FVector USceneComponent::GetComponentScale() const
+FVector USceneComponent::GetWorldScale() const
 {
     if (AttachParent)
     {
-        return AttachParent->GetComponentScale() * RelativeScale;
+        return AttachParent->GetWorldScale() * RelativeScale;
     }
     return RelativeScale;
 }
