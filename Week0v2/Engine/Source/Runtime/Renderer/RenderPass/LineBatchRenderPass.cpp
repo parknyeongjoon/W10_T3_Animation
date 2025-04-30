@@ -7,13 +7,14 @@
 #include "UnrealEd/PrimitiveBatch.h"
 #include "Engine/World.h"
 #include <Math/JungleMath.h>
-
+#include "LevelEditor/SLevelEditor.h"
 #include "Components/LightComponents/PointLightComponent.h"
 #include "Components/LightComponents/SpotLightComponent.h"
 #include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
+#include "PropertyEditor/ShowFlags.h"
 class USpotLightComponent;
 extern UEditorEngine* GEngine;
 
@@ -32,6 +33,13 @@ FLineBatchRenderPass::FLineBatchRenderPass(const FName& InShaderName)
 
 void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
+    std::shared_ptr<FViewportClient> ViewportClient = 
+        GEngine->GetLevelEditor()->GetActiveViewportClient();
+    std::shared_ptr<FEditorViewportClient> curEditorViewportClient = 
+        std::dynamic_pointer_cast<FEditorViewportClient>(ViewportClient);
+    if (!(curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB)))
+        return;
+
     UPrimitiveBatch& PrimitiveBatch = UPrimitiveBatch::GetInstance();
     for (const AActor* actor : InWorld->GetActors())
     {

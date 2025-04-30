@@ -17,11 +17,19 @@ AGPlayer::AGPlayer(const AGPlayer& Other) : Super(Other)
 void AGPlayer::BeginPlay()
 {
     Super::BeginPlay();
-    ShowCursor(FALSE);
-    bShowCursor = false;
+
+    CURSORINFO cursorInfo = { sizeof(CURSORINFO) };
+    GetCursorInfo(&cursorInfo);
+    if (cursorInfo.flags == CURSOR_SHOWING)
+    {
+        ShowCursor(FALSE);
+        bShowCursor = false;
+    }
+
     GetCursorPos(&lastMousePos);
     UCameraComponent* Camera = GetComponentByClass<UCameraComponent>();
     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(Camera);
+    UE_LOG(LogLevel::Display, "AGamePlayer Begin Play");
 }
 
 void AGPlayer::Tick(float DeltaTime)
@@ -33,9 +41,15 @@ void AGPlayer::Tick(float DeltaTime)
 void AGPlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     Super::EndPlay(EndPlayReason);
-    ShowCursor(TRUE);
-    bShowCursor = true;
+    CURSORINFO cursorInfo = { sizeof(CURSORINFO) };
+    GetCursorInfo(&cursorInfo);
+    if (cursorInfo.flags != CURSOR_SHOWING)
+    {
+        ShowCursor(TRUE);
+        bShowCursor = true;
+    }
     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
+    UE_LOG(LogLevel::Display, "AGamePlayer End Play");
 }
 
 UObject* AGPlayer::Duplicate() const
@@ -104,6 +118,9 @@ void AGPlayer::Input(float DeltaTime)
         POINT currentMousePos;
         GetCursorPos(&currentMousePos);
 
+
+
+
         int32 deltaX = currentMousePos.x - lastMousePos.x;
         int32 deltaY = currentMousePos.y - lastMousePos.y;
 
@@ -117,8 +134,15 @@ void AGPlayer::Input(float DeltaTime)
 
         SetActorRotation(Rotation);
 
+        RECT rect;
+        GetClientRect(GetActiveWindow(), &rect);
+        POINT center;
+        center.x = (rect.right - rect.left) / 2;
+        center.y = (rect.bottom - rect.top) / 2;
+        ClientToScreen(GetActiveWindow(), &center);
+        SetCursorPos(center.x, center.y);
         // 다음 프레임을 위해 현재 마우스 위치 저장
-        lastMousePos = currentMousePos;
+        lastMousePos = center;
     }
 
     FVector MoveDirection = FVector::ZeroVector;
