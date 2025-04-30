@@ -167,9 +167,9 @@ struct alignas(16) FFadeConstants
 struct alignas(16) FBlurConstants
 {
     float BlurStrength;
-    float BlurRadius;
-    float NDCX;
-    float NDCY;
+    float TexelSize;
+    float Padding0;
+    float Padding1;
 };
 
 struct alignas(16) FFlagConstants

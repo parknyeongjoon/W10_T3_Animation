@@ -64,7 +64,7 @@ void FBlurRenderPass::UpdateBlurConstant(float BlurStrength, float BlurRadius) c
 
     FBlurConstants BlurConstants;
     BlurConstants.BlurStrength = BlurStrength;
-    BlurConstants.BlurRadius = BlurRadius;
+    BlurConstants.TexelSize = BlurRadius;
     
     renderResourceManager->UpdateConstantBuffer(BlurConstantBuffer, &BlurConstants);
     Graphics.DeviceContext->PSSetConstantBuffers(0, 1, &BlurConstantBuffer);

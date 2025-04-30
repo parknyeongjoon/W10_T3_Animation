@@ -1,93 +1,67 @@
-Texture2D BlurTexture : register(t0);        // 핑퐁 버퍼의 최종 결과
-SamplerState PointSampler : register(s0);     // 포인트 필터링 샘플러
-
-cbuffer BlurConstants : register(b0) // 레지스터 슬롯은 엔진의 다른 버퍼와 겹치지 않게 선택 (b0는 예시)
+cbuffer BlurConstants : register(b0) // 다른 상수 버퍼와 겹치지 않는 슬롯 사용
 {
-    float TargetBlurStrength;  // 블러 강도
-    float BlurRadius;          // 블러 반경
-    float NDCX;                // 정규화된 텍셀 크기 X (1.0/화면 너비)
-    float NDCY;                // 정규화된 텍셀 크기 Y (1.0/화면 높이)
-}
-
+    // 블러 강도 (가우시안 함수의 표준 편차(sigma) 역할)
+    float BlurStrength;
+    // 텍셀(텍스처 픽셀 하나)의 UV 공간 크기 (x: 가로 크기, y: 세로 크기)
+    float TexelSize;
+    // 필요시 패딩
+    float2 Padding;
+};
+// 입력 텍스처 (원본 씬 텍스처)
+Texture2D InputTexture : register(t0);
+SamplerState SamplerLinear : register(s0);
 struct VS_OUT
 {
-    float4 position : SV_POSITION; // 변환된 화면 좌표
-    float2 uv : TEXCOORD0; // UV 좌표
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD0;
 };
-
+// 가우시안 함수 (상대 가중치 계산용)
+// exp(-(x^2) / (2 * sigma^2))
+float GaussianWeight(float offset, float sigma)
+{
+    if (sigma <= 0.001f)
+    {
+        return (abs(offset) < 0.001f) ? 1.0f : 0.0f;
+    }
+    float sigmaSq = sigma * sigma;
+    return exp(-(offset * offset) / (2.0f * sigmaSq));
+}
+// --- 단일 패스 가우시안 블러 픽셀 셰이더 ---
+// 블러 샘플링 반경 (예: 3이면 -3 ~ +3 범위, 총 7x7 커널)
+// **주의: 이 값이 커지면 성능이 급격히 저하됩니다!** (샘플링 횟수 = (2*RADIUS+1)^2)
+static const int KERNEL_RADIUS = 3; // 7x7 커널 예시 (49 샘플)
 float4 mainPS(VS_OUT input) : SV_TARGET
 {
-    // 블러 세기 결정 (0에서 1 사이의 값)
-    float blurStrength = saturate(TargetBlurStrength);
-    
-    // 블러 세기가 0이면 원본 이미지 반환
-    if (blurStrength <= 0.001f)
+    float4 totalColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    float totalWeight = 0.0f;
+    float sigma = BlurStrength; // 가우시안 표준 편차
+    // 2D 커널 전체를 순회 (-KERNEL_RADIUS 부터 +KERNEL_RADIUS 까지)
+    [unroll] // 바깥 루프 풀기
+    for (int j = -KERNEL_RADIUS; j <= KERNEL_RADIUS; ++j)
     {
-        return BlurTexture.Sample(PointSampler, input.uv);
+        [unroll] // 안쪽 루프 풀기
+        for (int i = -KERNEL_RADIUS; i <= KERNEL_RADIUS; ++i)
+        {
+            // 현재 샘플링할 픽셀의 UV 오프셋 계산
+            float2 offsetUV = input.uv + float2(TexelSize * i, TexelSize * j);
+            // 2D 가우시안 가중치 계산 (1D 가중치의 곱으로 계산 가능 - 분리성 활용)
+            // 또는 거리 기반으로 계산: float distSq = i*i + j*j; weight = exp(-distSq / (2*sigmaSq));
+            float weightX = GaussianWeight(float(i), sigma);
+            float weightY = GaussianWeight(float(j), sigma);
+            float weight = weightX * weightY; // 2D 가중치
+            // 텍스처 샘플링 및 가중치 적용하여 누적
+            totalColor += InputTexture.Sample(SamplerLinear, offsetUV) * weight;
+            totalWeight += weight;
+        }
     }
-    
-    // 블러를 적용할 가우시안 반경과 시그마
-    float radius = max(1.0, BlurRadius);
-    float sigma = radius / 2.0;
-    
-    // 최종 색상 초기화
-    float4 finalColor = float4(0, 0, 0, 0);
-    float totalWeight = 0.0;
-    
-    // 수평 및 수직 블러를 동시에 적용 (단일 패스)
-    // 최적화를 위해 고정된 샘플 수 사용
-    const int MAX_RADIUS = 5;
-    
-    // 중앙 픽셀 먼저 샘플링
-    float weight = 1.0;
-    float4 centerColor = BlurTexture.Sample(PointSampler, input.uv);
-    finalColor += centerColor * weight;
-    totalWeight += weight;
-    
-    // 가우시안 블러 샘플링
-    for (int x = 1; x <= MAX_RADIUS; x++)
+    // 최종 색상 계산 (가중 평균)
+    if (totalWeight > 0.0f)
     {
-        // 수평 방향 가중치
-        weight = exp(-(x*x) / (2.0f * sigma * sigma));
-        
-        // 왼쪽 샘플
-        float2 offset = float2(-x * NDCX, 0);
-        float4 sampleColor = BlurTexture.Sample(PointSampler, input.uv + offset);
-        finalColor += sampleColor * weight;
-        
-        // 오른쪽 샘플
-        offset = float2(x * NDCX, 0);
-        sampleColor = BlurTexture.Sample(PointSampler, input.uv + offset);
-        finalColor += sampleColor * weight;
-        
-        // 가중치 두 번 추가 (왼쪽/오른쪽)
-        totalWeight += weight * 2.0;
+        return totalColor / totalWeight;
     }
-    
-    for (int y = 1; y <= MAX_RADIUS; y++)
+    else // 블러 강도가 0에 가까워 가중치 합이 0이 되는 경우 등
     {
-        // 수직 방향 가중치
-        weight = exp(-(y*y) / (2.0f * sigma * sigma));
-        
-        // 위쪽 샘플
-        float2 offset = float2(0, -y * NDCY);
-        float4 sampleColor = BlurTexture.Sample(PointSampler, input.uv + offset);
-        finalColor += sampleColor * weight;
-        
-        // 아래쪽 샘플
-        offset = float2(0, y * NDCY);
-        sampleColor = BlurTexture.Sample(PointSampler, input.uv + offset);
-        finalColor += sampleColor * weight;
-        
-        // 가중치 두 번 추가 (위/아래)
-        totalWeight += weight * 2.0;
+        // 중앙 픽셀 색상 반환 (블러 없음)
+        return InputTexture.Sample(SamplerLinear, input.uv);
     }
-    
-    // 가중치 합으로 정규화
-    finalColor /= totalWeight;
-    
-    // 블러 강도에 따라 원본 이미지와 블러된 이미지 보간
-    float4 result = lerp(centerColor, finalColor, blurStrength);
-    
-    return float4(result.rgb, 1.0);
 }
