@@ -22,12 +22,12 @@ void FGameManager::BeginPlay()
     CurrentGameState= EGameState::Playing;
     Score = 0;
     GameTimer = 0.0f;
-    for (int i=0;i<3;i++)
+    for (int i = 0; i < 3; i++)
     {
-        for (int j=0;j<3;j++)
+        for (int j = 0; j < 3; j++)
         {
             AActor* enemy = GEngine->GetWorld()->SpawnActor<AGEnemy>();
-            enemy->SetActorLocation(FVector(i * 10,j * 10,0));
+            enemy->SetActorLocation(FVector(i * 10, j * 10, 2));
         }
     }
 }
@@ -51,7 +51,7 @@ void FGameManager::EndGame()
 
 void FGameManager::SpawnEnemy()
 {
-    GEngine->GetWorld()->SpawnActor<AGEnemy>();
+    GEngine->GetWorld()->SpawnActor<AGEnemy>()->SetActorLocation(FVector(0, 0, 2));
 }
 
 void FGameManager::Tick(float DeltaTime)

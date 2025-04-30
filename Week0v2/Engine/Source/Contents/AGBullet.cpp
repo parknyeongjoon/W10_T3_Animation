@@ -29,8 +29,8 @@ AGBullet::AGBullet(const AGBullet& Other)
 }
 
 AGBullet::~AGBullet()
-{
-}
+{}
+
 
 void AGBullet::BeginPlay()
 {
