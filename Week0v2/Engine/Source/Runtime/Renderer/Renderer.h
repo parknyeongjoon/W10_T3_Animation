@@ -11,6 +11,7 @@
 #include "RenderPass/FogRenderPass.h"
 #include "RenderPass/ShadowRenderPass.h"
 
+class FFinalRenderPass;
 class FFadeRenderPass;
 class FComputeTileLightCulling;
 class FEditorIconRenderPass;
@@ -104,6 +105,7 @@ private:
     std::shared_ptr<FFogRenderPass> FogRenderPass;
     std::shared_ptr<FShadowRenderPass> ShadowRenderPass;
     std::shared_ptr<FFadeRenderPass> FadeRenderPass;
+    std::shared_ptr<FFinalRenderPass> FinalRenderPass;
 
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
     EViewModeIndex CurrentViewMode = VMI_Lit_Goroud;

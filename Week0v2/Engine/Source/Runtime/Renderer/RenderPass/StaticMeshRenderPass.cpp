@@ -81,9 +81,10 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
     Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState());
 
     // RTVs 배열의 유효성을 확인합니다.
-    if (Graphics.RTVs[0] != nullptr)
+    const auto CurRTV = Graphics.GetCurrentRenderTargetView();
+    if (CurRTV != nullptr)
     {
-        Graphics.DeviceContext->OMSetRenderTargets(2, Graphics.RTVs, Graphics.DepthStencilView); // 렌더 타겟 설정
+        Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.DepthStencilView); // 렌더 타겟 설정
     }
     else
     {

@@ -1,0 +1,53 @@
+﻿#include "FinalRenderPass.h"
+
+#include "EditorEngine.h"
+#include "D3D11RHI/CBStructDefine.h"
+#include "D3D11RHI/GraphicDevice.h"
+#include "UObject/UObjectIterator.h"
+
+FFinalRenderPass::FFinalRenderPass(const FName& InShaderName)
+    : FBaseRenderPass(InShaderName)
+{
+    bRender = true;
+}
+
+void FFinalRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
+{
+}
+
+void FFinalRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+{
+    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    
+    bRender = true;    
+    if (bRender)
+    {
+        FBaseRenderPass::Prepare(InViewportClient);
+        const FRenderer& Renderer = GEngine->renderer;
+        
+        Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.FrameBufferRTV, nullptr);
+        Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
+
+        Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        
+        ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
+        Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
+
+        const auto PreviousSRV = Graphics.GetPreviousShaderResourceView();
+        Graphics.DeviceContext->PSSetShaderResources(0, 1, &PreviousSRV);
+    }
+}
+
+void FFinalRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
+{
+    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+
+    if (bRender)
+    {
+        Graphics.DeviceContext->Draw(6, 0);
+
+        bRender = false;
+    }
+
+    Graphics.SwapPingPongBuffers();
+}

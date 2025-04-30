@@ -48,20 +48,20 @@ void AEditorPlayer::MultiSelectingEnd()
 
     GEngine->GetWorld()->ClearSelectedActors();
     
-    // TODO : 현재 UUID 가 높은 애들은 선택이 안됩니다.
-    for (long i = leftTopX; i <= rightBottomX; i +=10)
-    {
-        for (long j = leftTopY ; j <= rightBottomY; j +=10)
-        {
-            uint32 UUID = GetEngine()->graphicDevice.GetPixelUUID(POINT(i,j));
-             for ( USceneComponent* obj : TObjectRange<USceneComponent>())
-             {
-                 if (obj->GetUUID() != UUID) continue;
-                 UE_LOG(LogLevel::Display, *obj->GetOwner()->GetName());
-                 GEngine->GetWorld()->AddSelectedActor(obj->GetOwner());
-             }
-        }
-    }
+    // // TODO : 현재 UUID 가 높은 애들은 선택이 안됩니다.
+    // for (long i = leftTopX; i <= rightBottomX; i +=10)
+    // {
+    //     for (long j = leftTopY ; j <= rightBottomY; j +=10)
+    //     {
+    //         uint32 UUID = GetEngine()->graphicDevice.GetPixelUUID(POINT(i,j));
+    //          for ( USceneComponent* obj : TObjectRange<USceneComponent>())
+    //          {
+    //              if (obj->GetUUID() != UUID) continue;
+    //              UE_LOG(LogLevel::Display, *obj->GetOwner()->GetName());
+    //              GEngine->GetWorld()->AddSelectedActor(obj->GetOwner());
+    //          }
+    //     }
+    // }
 
     bMultiSeleting = false;
 }

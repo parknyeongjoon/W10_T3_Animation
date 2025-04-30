@@ -40,7 +40,7 @@ void FFogRenderPass::PrePrepare()
         if (iter->GetWorld() == GEngine->GetWorld())
         {
             FogComp = iter;
-            Graphics.SwitchRTV();
+            Graphics.SwapPingPongBuffers();
             bRender = true;
             return;
         }
@@ -54,9 +54,9 @@ void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
         FBaseRenderPass::Prepare(InViewportClient);
         const FRenderer& Renderer = GEngine->renderer;
         FGraphicsDevice& Graphics = GEngine->graphicDevice;
-        Graphics.ReturnRTV();
 
-        Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.FrameBufferRTV, nullptr);
+        const auto CurRTV = Graphics.GetCurrentRenderTargetView();
+        Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, nullptr);
         Graphics.DeviceContext->CopyResource(Graphics.DepthCopyTexture, Graphics.DepthStencilBuffer);
         Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
 
@@ -65,8 +65,10 @@ void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
 
         ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Linear);
         Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
+
+        const auto PreviousSRV = Graphics.GetPreviousShaderResourceView();
         Graphics.DeviceContext->PSSetShaderResources(0, 1, &Graphics.DepthCopySRV);
-        Graphics.DeviceContext->PSSetShaderResources(1, 1, &Graphics.SceneColorSRV);
+        Graphics.DeviceContext->PSSetShaderResources(1, 1, &PreviousSRV);
     }
 }
 

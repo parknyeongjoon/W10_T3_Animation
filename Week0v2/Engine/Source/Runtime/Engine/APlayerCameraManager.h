@@ -55,7 +55,7 @@ private:
     TArray<FActiveCameraShakeInfo> ActiveShakes;
 
     void UpdateViewTarget();           // ViewTarget.Target → ViewInfo 갱신
-    void ApplyCameraShakes(float DeltaTime, FViewInfo& ViewInfo);         // ActiveShake 계산
+    void ApplyCameraShakes(float DeltaTime, FSimpleViewInfo& ViewInfo);         // ActiveShake 계산
     void ApplyFinalViewToCamera(); // ViewInfo + 흔들림 → 실제 카메라 적용
 
 };

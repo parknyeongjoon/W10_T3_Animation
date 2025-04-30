@@ -82,7 +82,7 @@ void APlayerCameraManager::UpdateViewTarget()
     }
 }
 
-void APlayerCameraManager::ApplyCameraShakes(float DeltaTime, FViewInfo& ViewInfo)
+void APlayerCameraManager::ApplyCameraShakes(float DeltaTime, FSimpleViewInfo& ViewInfo)
 {
     for (int32 i = ActiveShakes.Num() - 1; i >= 0; --i)
     {
@@ -112,7 +112,7 @@ void APlayerCameraManager::ApplyFinalViewToCamera()
     UCameraComponent* Cam = ViewTarget.Target->GetComponentByClass<UCameraComponent>();
     if (!Cam) return;
 
-    const FViewInfo& View = ViewTarget.ViewInfo;
+    const FSimpleViewInfo& View = ViewTarget.ViewInfo;
 
     Cam->SetRelativeLocation(View.Location);
     Cam->SetRelativeRotation(View.Rotation);
