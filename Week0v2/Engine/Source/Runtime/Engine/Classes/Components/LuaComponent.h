@@ -91,7 +91,7 @@ private:
     sol::protected_function LuaFunctionDestroyComponent;
     // ...
 
-        /**
+        /**"
      * @brief 주어진 Lua 함수를 액터 및 액터의 Lua 데이터 컨텍스트 내에서 안전하게 실행합니다.
      *        임의의 개수의 인자를 Lua 함수로 전달할 수 있습니다.
      *

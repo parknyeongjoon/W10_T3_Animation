@@ -171,9 +171,26 @@ void UEditorEngine::Input()
         bTestInput = false;
     }
 
-    if (GetAsyncKeyState('L') & 0x8000)
+    if (GetAsyncKeyState('L') & 0x8000 or GetAsyncKeyState(VK_ESCAPE) & 0x8000)
     {
         LevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
+    }
+
+
+    if (GetAsyncKeyState('P') & 0x8000 and GetAsyncKeyState(VK_MENU) & 0x8000)
+    {
+        if (LevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
+        {
+            LevelEditor->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
+        }
+        // else if (LevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Paused)
+        // {
+        //     LevelEditor->GetEditorStateManager().SetState(EEditorState::Playing);
+        // }
+        // else
+        // {
+        //     LevelEditor->GetEditorStateManager().SetState(EEditorState::Paused);
+        // }
     }
 }
 
