@@ -175,6 +175,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShakeBase.cpp" />
@@ -289,6 +290,7 @@
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\EditorArrowRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\EditorIconRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FadeRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FBaseRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FogRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\GizmoRenderPass.cpp" />
@@ -321,8 +323,13 @@
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.cpp" />
+    <ClCompile Include="Shaders\FadeVertexShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShakeBase.h" />
@@ -465,6 +472,7 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\EditorArrowRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\EditorIconRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\DebugDepthRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FadeRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FBaseRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FogRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\GizmoRenderPass.h" />
@@ -640,6 +648,7 @@
     <Content Include=".editorconfig" />
     <Content Include="Engine\Source\Editor\Script\LuaUtils\LuaBindMacros.h" />
     <Content Include="Engine\Source\Editor\Script\LuaUtils\LuaBindUtils.h" />
+    <Content Include="Shaders\FadePixelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week0v2.natvis" />

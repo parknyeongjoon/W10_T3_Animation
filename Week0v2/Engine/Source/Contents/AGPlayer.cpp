@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "AGBullet.h"
 #include "APlayerCameraManager.h"
+#include "GameManager.h"
 
 AGPlayer::AGPlayer()
 {
@@ -125,6 +126,14 @@ void AGPlayer::Input(float DeltaTime)
     {
         bSpacePressedLastFrame = false;
     }
+
+
+
+    // if (FGameManager::Get().GetGameState() == EGameState::Ended)
+    // {
+    //     bShowCursor = true;
+    // }
+     
 
     if (!bShowCursor) // 커서 숨김 상태일 때만 마우스 회전
     {
