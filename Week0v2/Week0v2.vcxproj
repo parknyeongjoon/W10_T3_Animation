@@ -187,7 +187,7 @@
     <ClCompile Include="Engine\Source\Contents\UI\GameUIPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\Script\LuaManagerBind.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\FPlayerCameraManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\APlayerCameraManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\FCollisionManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.cpp" />
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SLevelEditor.cpp" />
@@ -337,7 +337,7 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.impl.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\FPlayerCameraManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\APlayerCameraManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Physics\FCollisionManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.h" />
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SLevelEditor.h" />
