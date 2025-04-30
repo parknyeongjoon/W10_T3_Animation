@@ -322,6 +322,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\USphereShapeComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\USpringArmComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.cpp" />
     <ClCompile Include="Shaders\FadeVertexShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -512,6 +513,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\USphereShapeComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\LuaCoroutine.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\USpringArmComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.h" />
   </ItemGroup>
   <ItemGroup>

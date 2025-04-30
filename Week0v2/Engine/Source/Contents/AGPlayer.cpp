@@ -8,6 +8,8 @@
 #include "APlayerCameraManager.h"
 #include "GameManager.h"
 
+#include "Camera/GunRecoilShake.h"
+#include "Curves/CurveFloat.h"
 AGPlayer::AGPlayer()
 {
     //Camera = AddComponent<UCameraComponent>(EComponentOrigin::Constructor);
@@ -39,6 +41,7 @@ void AGPlayer::BeginPlay()
         if (APlayerCameraManager* APCM = Cast<APlayerCameraManager>(Actor))
         {
             APCM->AssignViewTarget(ViewTarget);
+            PlayerCameraManager = APCM;
             break;
         }
     }
@@ -93,6 +96,22 @@ void AGPlayer::Input(float DeltaTime)
             bLeftMouseDown = true;
             AGBullet* bullet = GEngine->GetWorld()->SpawnActor<AGBullet>();
             bullet->Fire(GetActorLocation(), GetActorForwardVector(), 50);
+
+            if (PlayerCameraManager)
+            {
+                UGunRecoilShake* Shake = FObjectFactory::ConstructObject<UGunRecoilShake>();
+                Shake->Duration = 0.5f;
+                
+                // Pitch 튐 → 복귀 곡선
+                UCurveFloat* PitchCurve = FObjectFactory::ConstructObject<UCurveFloat>();
+                PitchCurve->AddKey(0.0f, 0.0f);
+                PitchCurve->AddKey(0.1f, 10.f);
+                PitchCurve->AddKey(0.5f, 0.0f);
+
+                Shake->PitchCurve = PitchCurve;
+
+                PlayerCameraManager->StartCameraShake(Shake);
+            }
         }
     }
     else
@@ -139,9 +158,6 @@ void AGPlayer::Input(float DeltaTime)
     {
         POINT currentMousePos;
         GetCursorPos(&currentMousePos);
-
-
-
 
         int32 deltaX = currentMousePos.x - lastMousePos.x;
         int32 deltaY = currentMousePos.y - lastMousePos.y;

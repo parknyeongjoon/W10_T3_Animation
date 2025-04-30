@@ -1,15 +1,41 @@
 #include "GunRecoilShake.h"
+#include "Curves/CurveFloat.h"
+#include "UObject/UObjectArray.h"
+
+UGunRecoilShake::UGunRecoilShake()
+{
+}
+
+UGunRecoilShake::~UGunRecoilShake()
+{
+
+}
+
+void UGunRecoilShake::MarkRemoveObject()
+{
+    GUObjectArray.MarkRemoveObject(this);
+    if (PitchCurve) GUObjectArray.MarkRemoveObject(PitchCurve);
+    if (YawCurve) GUObjectArray.MarkRemoveObject(YawCurve);
+    if (RollCurve) GUObjectArray.MarkRemoveObject(RollCurve);
+}
 
 void UGunRecoilShake::UpdateShake(float DeltaTime, FVector& OutLoc, FRotator& OutRot, float& OutFOV)
 {
-    Elapsed += DeltaTime;
-    float Alpha = Elapsed / Duration;
+    ElapsedTime += DeltaTime;
+    float T = ElapsedTime;
+    float W = GetBlendWeight();
 
-    float Curve = FMath::InterpEaseOut(1.0f, 0.0f, Alpha, 2.0f); // 감쇠 커브
+    float Pitch = PitchCurve ? PitchCurve->GetFloatValue(T) * Scale * W : 0.f;
+    float Yaw = YawCurve ? YawCurve->GetFloatValue(T) * Scale * W : 0.f;
+    float Roll = RollCurve ? RollCurve->GetFloatValue(T) * Scale * W : 0.f;
 
-    OutRot.Pitch = TotalRecoil * Curve;
-    OutRot.Yaw = 0.f;
-    OutRot.Roll = 0.f;
+    OutRot.Pitch = Pitch - LastPitch;
+    OutRot.Yaw = Yaw - LastYaw;
+    OutRot.Roll = Roll - LastRoll;
+
+    LastPitch = Pitch;
+    LastYaw = Yaw;
+    LastRoll = Roll;
 
     OutLoc = FVector::ZeroVector;
     OutFOV = 0.f;

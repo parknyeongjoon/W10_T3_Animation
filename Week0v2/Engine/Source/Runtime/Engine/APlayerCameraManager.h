@@ -1,9 +1,11 @@
-﻿#pragma once
+#pragma once
 #include "Camera/CameraDefine.h"
 #include "Container/Array.h"
 #include "GameFramework/Actor.h"
+#include "Camera/CameraShakeBase.h"
 
 class UCameraModifier;
+
 enum EViewTargetBlendOrder : int
 {
     VTBlendOrder_Base,
@@ -13,6 +15,8 @@ enum EViewTargetBlendOrder : int
 class APlayerCameraManager : public AActor
 {
     DECLARE_CLASS(APlayerCameraManager, AActor)
+public:
+    virtual void Tick(float DeltaTime) override;
 public:
     APlayerCameraManager();
     APlayerCameraManager(const APlayerCameraManager& Other);
@@ -53,4 +57,13 @@ private:
     TArray<FPostProcessSettings> PostProcessBlendCache;
     TArray<float> PostProcessBlendCacheWeights;
     TArray<EViewTargetBlendOrder> PostProcessBlendCacheOrders;
+public:
+    void StartCameraShake(UCameraShakeBase* Shake);
+private:
+    TArray<FActiveCameraShakeInfo> ActiveShakes;
+
+    void UpdateViewTarget();           // ViewTarget.Target → ViewInfo 갱신
+    void ApplyCameraShakes(float DeltaTime, FViewInfo& ViewInfo);         // ActiveShake 계산
+    void ApplyFinalViewToCamera(); // ViewInfo + 흔들림 → 실제 카메라 적용
+
 };

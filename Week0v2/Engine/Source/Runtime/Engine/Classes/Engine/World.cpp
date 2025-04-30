@@ -57,7 +57,6 @@ void UWorld::CreateBaseObject()
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
 
-
     
     PlayerCameraManager = SpawnActor<APlayerCameraManager>();
     

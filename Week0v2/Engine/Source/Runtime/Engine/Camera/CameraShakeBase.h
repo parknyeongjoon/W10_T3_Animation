@@ -20,6 +20,8 @@ class UCameraShakeBase : public UObject
 public:
     UCameraShakeBase();
     virtual ~UCameraShakeBase();
+
+    virtual void MarkRemoveObject();
 public:
     float Duration = 0.2f;
     float ElapsedTime = 0.0f;
