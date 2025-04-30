@@ -186,18 +186,15 @@ FMatrix USceneComponent::GetWorldMatrix() const
     FMatrix RotationMat = FMatrix::GetRotationMatrix(RelativeRotation.ToQuaternion());
     FMatrix TranslationMat = FMatrix::GetTranslationMatrix(RelativeLocation);
 
-    FMatrix RTMat = RotationMat * TranslationMat;
+    FMatrix WorldMatrix = ScaleMat * RotationMat * TranslationMat;
+
     if (AttachParent)
     {
-        FMatrix ParentScaleMat = AttachParent->GetScaleMatrix();
-        FMatrix ParentRotationMat = AttachParent->GetRotationMatrix();
-        FMatrix ParentTranslationMat = AttachParent->GetTranslationMatrix();
-        
-        ScaleMat = ScaleMat * ParentScaleMat;
-        FMatrix ParentRTMat = ParentRotationMat * ParentTranslationMat;
-        RTMat = RTMat * ParentRTMat;
+        FMatrix ParentWorldMatrix = AttachParent->GetWorldMatrix();
+        WorldMatrix = WorldMatrix * ParentWorldMatrix;
     }
-    return ScaleMat * RTMat;
+
+    return WorldMatrix;
 }
 
 
