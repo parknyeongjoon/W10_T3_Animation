@@ -22,6 +22,7 @@ public:
      * @param InDuration 활성화 전환 시간 (초).
      */
     void ActivateLetterbox(float TargetRatio, float InDuration);
+    void AddRenderObjectsToRenderPass(UWorld* InWorld);
 
     /**
      * @brief 활성화된 레터박스/필러박스를 비활성화합니다.

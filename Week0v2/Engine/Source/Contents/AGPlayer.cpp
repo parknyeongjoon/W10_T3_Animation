@@ -224,14 +224,14 @@ void AGPlayer::Input(float DeltaTime)
     if (GetAsyncKeyState('D') & 0x8000) MoveDirection += GetActorRightVector();
     if (GetAsyncKeyState('A') & 0x8000) MoveDirection -= GetActorRightVector();
     
-    if (GetAsyncKeyState('W') & 0x8000
+    if ((GetAsyncKeyState('W') & 0x8000
         or GetAsyncKeyState('S') & 0x8000
          or GetAsyncKeyState('A') & 0x8000
-         or GetAsyncKeyState('D') & 0x8000)
+         or GetAsyncKeyState('D') & 0x8000) and (bIsMoveStarted == false))
     {
         bIsMoveStarted = true;
         UCameraLetterBox* CameraModifier = FObjectFactory::ConstructObject<UCameraLetterBox>();
-        CameraModifier->ActivateLetterbox(1.0f, 3.f);
+        CameraModifier->ActivateLetterbox(4.f/3.f, 1.f);
         GEngine->GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
     }
         

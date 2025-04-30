@@ -20,6 +20,8 @@ void UCameraLetterBox::ActivateLetterbox(float TargetRatio, float InDuration)
     }
 }
 
+
+
 void UCameraLetterBox::DeactivateLetterbox(float OutDuration)
 {
     // AlphaOutTime은 부모 클래스 멤버

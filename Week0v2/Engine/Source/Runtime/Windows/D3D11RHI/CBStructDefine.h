@@ -156,13 +156,26 @@ struct alignas(16) FLightingConstants
 
 struct alignas(16) FFadeConstants
 {
-    FLinearColor TargetFadeColor; // 페이드 목표 색상 (예: 검은색 float4(0,0,0,1))
+    FLinearColor FadeColor = {0.f,0.f,0.f,1.f}; // 페이드 목표 색상 (예: 검은색 float4(0,0,0,1))
     
-    float  FadeAlpha = 0.0f;       // 보간 계수 (0.0 = SceneColor, 1.0 = TargetFadeColor)
+    float FadeAlpha = 0.0f;       // 보간 계수 (0.0 = SceneColor, 1.0 = FadeColor)
     float Padding;   
     float Padding1;   
     float Padding2;   
 };
+
+struct alignas(16)  FLetterBoxConstants // 레지스터 슬롯은 다른 버퍼와 겹치지 않게 선택 (b0가 Fade에 사용되었다면 b1 사용)
+{
+    // 레터박스 바의 색상 (보통 검은색 float4(0,0,0,1))
+    FLinearColor LetterboxColor = {0.f,0.f,0.f,1.f};
+    
+    float  LetterboxSize = 0.0f; 
+    float  PillarboxSize = 0.0f; 
+    float Padding;   
+    float Padding2;  
+    
+};
+
 
 struct alignas(16) FBlurConstants
 {

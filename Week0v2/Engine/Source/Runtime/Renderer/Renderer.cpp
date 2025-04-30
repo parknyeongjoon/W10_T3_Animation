@@ -16,6 +16,7 @@
 #include "RenderPass/FadeRenderPass.h"
 #include "RenderPass/FinalRenderPass.h"
 #include "RenderPass/GizmoRenderPass.h"
+#include "RenderPass/LetterBoxRenderPass.h"
 #include "RenderPass/LineBatchRenderPass.h"
 #include "RenderPass/StaticMeshRenderPass.h"
 
@@ -98,6 +99,9 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
 
     CreateVertexPixelShader(TEXT("Fade"), nullptr);
     FadeRenderPass = std::make_shared<FFadeRenderPass>(TEXT("Fade"));
+
+    CreateVertexPixelShader(TEXT("LetterBox"), nullptr);
+    LetterBoxRenderPass = std::make_shared<FLetterBoxRenderPass>(TEXT("LetterBox"));
 
     CreateVertexPixelShader(TEXT("Blur"), nullptr);
     BlurRenderPass = std::make_shared<FBlurRenderPass>(TEXT("Blur"));
@@ -305,6 +309,9 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
         GizmoRenderPass->Execute(ActiveViewport);
     }
     
+    LetterBoxRenderPass->Prepare(ActiveViewport);
+    LetterBoxRenderPass->Execute(ActiveViewport);
+    
     FadeRenderPass->Prepare(ActiveViewport);
     FadeRenderPass->Execute(ActiveViewport);
 
@@ -322,6 +329,9 @@ void FRenderer::ClearRenderObjects() const
     DebugDepthRenderPass->ClearRenderObjects();
     EditorIconRenderPass->ClearRenderObjects();
     ShadowRenderPass->ClearRenderObjects();
+    FadeRenderPass->ClearRenderObjects();
+    LetterBoxRenderPass->ClearRenderObjects();
+    
 }
 
 void FRenderer::SetViewMode(const EViewModeIndex evi)
@@ -392,6 +402,9 @@ void FRenderer::AddRenderObjectsToRenderPass(UWorld* InWorld) const
     ShadowRenderPass->AddRenderObjectsToRenderPass(InWorld);
 
     LineBatchRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    FadeRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    LetterBoxRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    
 }
 
 void FRenderer::MappingVSPSInputLayout(const FName InShaderProgramName, FName VSName, FName PSName, FName InInputLayoutName)

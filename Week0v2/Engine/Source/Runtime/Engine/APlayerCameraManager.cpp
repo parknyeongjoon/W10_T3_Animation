@@ -7,6 +7,7 @@
 
 void APlayerCameraManager::Tick(float DeltaTime)
 {
+    ClearCachedPPBlends();
     float DeltaTimeSecond = DeltaTime * 0.001f;
     UpdateViewTarget();
     ApplyCameraModifiers(DeltaTimeSecond, ViewTarget.ViewInfo);
@@ -21,16 +22,23 @@ APlayerCameraManager::APlayerCameraManager()
 }
 
 APlayerCameraManager::APlayerCameraManager(const APlayerCameraManager& Other)
-    : AActor(Other),
-    CameraModifiers(Other.CameraModifiers),
-    ViewTarget(Other.ViewTarget),
-    PostProcessBlendCache(Other.PostProcessBlendCache),
-    PostProcessBlendCacheWeights(Other.PostProcessBlendCacheWeights),
-    PostProcessBlendCacheOrders(Other.PostProcessBlendCacheOrders)
+    : AActor(Other)
+    // CameraModifiers(Other.CameraModifiers),
+    // ViewTarget(Other.ViewTarget),
+    // PostProcessBlendCache(Other.PostProcessBlendCache),
+    // PostProcessBlendCacheWeights(Other.PostProcessBlendCacheWeights),
+    // PostProcessBlendCacheOrders(Other.PostProcessBlendCacheOrders)
 {
     //GEngine->GetWorld()->SetPlayerCameraManager(this);
 }
 
+void APlayerCameraManager::AddCameraModifier(UCameraModifier* Modifier)
+{
+    {
+        Modifier->AddedToCamera(this);
+        CameraModifiers.Add(Modifier);
+    }
+}
 
 UObject* APlayerCameraManager::Duplicate() const
 {

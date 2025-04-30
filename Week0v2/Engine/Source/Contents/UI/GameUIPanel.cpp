@@ -30,7 +30,7 @@ void FGameUIPanel::Render()
         // --- 반투명 배경 및 입력 차단 창 설정 ---
         // 화면 전체를 덮는 반투명 창 생성 (기존 게임 화면을 어둡게)
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0)); // 패딩 제거
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.7f)); // 검정색 반투명 배경 (알파값 0.7)
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f)); // 검정색 반투명 배경 (알파값 0.7)
 
         ImGuiWindowFlags gameOverFlags =
             ImGuiWindowFlags_NoDecoration | // 제목 표시줄 없음
@@ -109,7 +109,7 @@ void FGameUIPanel::Render()
         {
             // 1. 점수 표시
             int score = GameMgr.GetScore();
-            ImGui::SetCursorPos(ImVec2(20, 20));
+            ImGui::SetCursorPos(ImVec2(250, 30));
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
             ImGui::SetWindowFontScale(1.5f);
             char scoreText[64];
@@ -125,7 +125,7 @@ void FGameUIPanel::Render()
             char timeText[64];
             sprintf_s(timeText, "Time: %.1f", remainingTime > 0.0f ? remainingTime : 0.0f);
             ImVec2 textSize = ImGui::CalcTextSize(timeText);
-            ImGui::SetCursorPos(ImVec2(displaySize.x - textSize.x - 20, 20));
+            ImGui::SetCursorPos(ImVec2(displaySize.x - textSize.x - 250, 30));
             ImGui::Text(timeText);
             ImGui::SetWindowFontScale(1.0f);
             ImGui::PopStyleColor();

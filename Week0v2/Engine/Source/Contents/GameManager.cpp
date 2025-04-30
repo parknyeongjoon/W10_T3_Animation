@@ -4,6 +4,7 @@
 #include "APlayerCameraManager.h"
 #include "EditorEngine.h"
 #include "Camera/CameraFadeInOut.h"
+#include "Camera/CameraLetterBox.h"
 #include "Engine/World.h"
 #include "LevelEditor/SLevelEditor.h"
 
@@ -50,7 +51,7 @@ void FGameManager::RestartGame()
     GEngine->GetLevelEditor()->GetEditorStateManager().SetState(EEditorState::Stopped);
 
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
-    CameraModifier->StartFadeOut(2.0f, FLinearColor::Black);
+    CameraModifier->StartFadeIn(2.0f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
 }
 
@@ -59,8 +60,8 @@ void FGameManager::StartGame()
     //GEngine->GetWorld()->LoadScene("Assets/Scenes/Game.scene");
 
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
-    CameraModifier->StartFadeOut(2.0f, FLinearColor::Black);
-   PlayerCameraManager->AddCameraModifier(CameraModifier);
+    CameraModifier->StartFadeIn(2.0f);
+    PlayerCameraManager->AddCameraModifier(CameraModifier);
     
 }
 
@@ -69,7 +70,10 @@ void FGameManager::EndGame()
     CurrentGameState  = EGameState::Ended;
 
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
-    CameraModifier->StartFadeIn(2.0f);
+    CameraModifier->StartFadeOut(1.0f);
+    PlayerCameraManager->AddCameraModifier(CameraModifier);
+    UCameraLetterBox* CameraLetterBox = FObjectFactory::ConstructObject<UCameraLetterBox>();
+    CameraLetterBox->DeactivateLetterbox(1.0f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
     
     //GEngine->GetWorld()->ReloadScene("Assets/Scenes/EndGame.scene");
@@ -83,10 +87,11 @@ void FGameManager::SpawnEnemy()
 void FGameManager::Tick(float DeltaTime)
 {
     UpdateGameTimer( DeltaTime);
-    if (GameOverTimer - GameTimer <= 0.0f)
+    if (GameOverTimer - GameTimer <= 0.0f and CurrentGameState == EGameState::Playing)
     {
         EndGame();
     }
+    
 }
 
 void FGameManager::EditorTick(float DeltaTime)

@@ -17,6 +17,7 @@ void UCameraFadeInOut::StartFadeOut(float Duration, FLinearColor Color)
     // 목표 색상 및 블렌드 시간 설정
     FadeColor = Color;
     AlphaInTime = FMath::Max(0.001f, Duration); // 0 또는 음수 방지
+    Alpha = 0.0f; // 초기 알파값 설정 (1.0f로 시작)
 
     // 모디파이어 활성화 (Alpha가 0에서 1로 블렌딩 시작)
     EnableModifier();
@@ -26,6 +27,7 @@ void UCameraFadeInOut::StartFadeIn(float Duration)
 {
     // 블렌드 아웃 시간 설정
     AlphaOutTime = FMath::Max(0.001f, Duration); // 0 또는 음수 방지
+    Alpha = 1.0f;
 
     // 모디파이어 비활성화 시작 (Alpha가 1에서 0으로 블렌딩 시작)
     // bImmediate = false 이므로 부드럽게 사라짐

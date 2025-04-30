@@ -32,10 +32,8 @@ public:
     }
 
     
-    void AddCameraModifier(UCameraModifier* Modifier)
-    {
-        CameraModifiers.Add(Modifier);
-    }
+    void AddCameraModifier(UCameraModifier* Modifier);
+
     void RemoveCameraModifier(UCameraModifier* Modifier)
     {
         CameraModifiers.Remove(Modifier);
@@ -49,6 +47,7 @@ public:
     /** Returns active post process info. */
     void GetCachedPostProcessBlends(TArray<FPostProcessSettings> const*& OutPPSettings, TArray<float> const*& OutBlendWeights) const;
     void GetCachedPostProcessBlends(TArray<FPostProcessSettings> const*& OutPPSettings, TArray<float> const*& OutBlendWeights, TArray<EViewTargetBlendOrder> const*& OutBlendOrders) const;
+
 private:
     FTViewTarget ViewTarget;
     TArray<UCameraModifier*> CameraModifiers;

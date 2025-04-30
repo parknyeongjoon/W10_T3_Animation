@@ -11,6 +11,8 @@
 #include "RenderPass/FogRenderPass.h"
 #include "RenderPass/ShadowRenderPass.h"
 
+class FLetterBoxRenderPass;
+struct FLetterBoxConstants;
 class FBlurRenderPass;
 class FFinalRenderPass;
 class FFadeRenderPass;
@@ -106,6 +108,7 @@ private:
     std::shared_ptr<FFogRenderPass> FogRenderPass;
     std::shared_ptr<FShadowRenderPass> ShadowRenderPass;
     std::shared_ptr<FFadeRenderPass> FadeRenderPass;
+    std::shared_ptr<FLetterBoxRenderPass> LetterBoxRenderPass;
     std::shared_ptr<FBlurRenderPass> BlurRenderPass;
     std::shared_ptr<FFinalRenderPass> FinalRenderPass;
 

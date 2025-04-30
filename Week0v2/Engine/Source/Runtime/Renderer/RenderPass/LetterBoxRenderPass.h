@@ -3,22 +3,22 @@
 #include "FBaseRenderPass.h"
 #include "Container/Array.h"
 
-
-class FFadeRenderPass : public FBaseRenderPass
+class FLetterBoxRenderPass : public FBaseRenderPass
 {
 public:
-    explicit FFadeRenderPass(const FName& InShaderName);
+    explicit FLetterBoxRenderPass(const FName& InShaderName);
 
-    virtual ~FFadeRenderPass() {}
+    virtual ~FLetterBoxRenderPass() {}
+    
     void AddRenderObjectsToRenderPass(UWorld* InWorld) override;
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
     void ClearRenderObjects() override;
     bool bRender;
 
-    class ID3D11Buffer* FadeConstantBuffer = nullptr;
+    class ID3D11Buffer* LetterBoxConstantBuffer = nullptr;
 
-    void UpdateFadeConstant();
+    void UpdateLetterConstant();
 
     TArray<APlayerCameraManager*> PlayerCameraManagers;
 };

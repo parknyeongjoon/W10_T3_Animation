@@ -65,6 +65,7 @@ void UCameraModifier::EnableModifier()
 
 void UCameraModifier::ModifyCamera(float DeltaTime, FSimpleViewInfo& ViewInfo)
 {
+    UpdateAlpha(DeltaTime);
     ModifyCamera(DeltaTime, ViewInfo.Location, ViewInfo.Rotation, ViewInfo.FOV, ViewInfo.Location, ViewInfo.Rotation, ViewInfo.FOV);
 
     if (CameraOwner)
@@ -76,7 +77,7 @@ void UCameraModifier::ModifyCamera(float DeltaTime, FSimpleViewInfo& ViewInfo)
             float PPBlendWeight = 0.f;
             FPostProcessSettings PPSettings;
 			
-            //  Let native code modify the post process settings.
+            //  Let native code modify the post process s ettings.
             ModifyPostProcess(DeltaTime, PPBlendWeight, PPSettings);
 			
             if (PPBlendWeight > 0.f)
