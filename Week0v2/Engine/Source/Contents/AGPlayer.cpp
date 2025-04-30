@@ -13,7 +13,16 @@ AGPlayer::AGPlayer()
     //Camera = AddComponent<UCameraComponent>(EComponentOrigin::Constructor);
 }
 
-AGPlayer::AGPlayer(const AGPlayer& Other) : Super(Other)
+AGPlayer::AGPlayer(const AGPlayer& Other)
+    : Super(Other)
+    , bLeftMouseDown(Other.bLeftMouseDown)
+    , bRightMouseDown(Other.bRightMouseDown)
+    , bShowCursor(Other.bShowCursor)
+    , bSpacePressedLastFrame(Other.bSpacePressedLastFrame)
+    , lastMousePos(Other.lastMousePos)
+    , YawSpeed(Other.YawSpeed)
+    , PitchSpeed(Other.PitchSpeed)
+    , MoveSpeed(Other.MoveSpeed)
 {
 }
 
@@ -127,13 +136,11 @@ void AGPlayer::Input(float DeltaTime)
         bSpacePressedLastFrame = false;
     }
 
-
-
     // if (FGameManager::Get().GetGameState() == EGameState::Ended)
     // {
     //     bShowCursor = true;
     // }
-     
+
 
     if (!bShowCursor) // 커서 숨김 상태일 때만 마우스 회전
     {
@@ -142,16 +149,26 @@ void AGPlayer::Input(float DeltaTime)
 
         int32 deltaX = currentMousePos.x - lastMousePos.x;
         int32 deltaY = currentMousePos.y - lastMousePos.y;
+        deltaX *= -1;
+        deltaY *= -1;
 
-        FRotator Rotation = GetActorRotation();
-        Rotation.Yaw += deltaX * YawSpeed;    // 좌우 마우스 이동 -> Yaw 회전
-        Rotation.Pitch -= deltaY * PitchSpeed;  // 위아래 마우스 이동 -> Pitch 회전 (보통 위로 올리면 Pitch 감소)
+        FVector cameraForward = GetEngine()->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetForwardVector();
+        FVector cameraRight = GetEngine()->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetRightVector();
+         FVector cameraUp = GetEngine()->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetUpVector();
 
-        // Pitch 클램프
-        if (Rotation.Pitch > 89.0f) Rotation.Pitch = 89.0f;
-        if (Rotation.Pitch < -89.0f) Rotation.Pitch = -89.0f;
+        FQuat currentRotation = GetRootComponent()->GetWorldRotation().ToQuaternion();
 
-        SetActorRotation(Rotation);
+        float rotationAmountZ = (cameraForward.x <= 0 ? -1.0f : 1.0f) * deltaX * 0.001f;
+        FQuat rotationDeltaZ = FQuat(FVector(0.0f, 0.0f, 1.0f), rotationAmountZ);
+        currentRotation = currentRotation * rotationDeltaZ;
+        GetRootComponent()->SetRelativeRotation(currentRotation);
+
+        GetRootComponent()->GetAttachChildren()[0];
+
+        float rotationAmountY = (cameraUp.z >= 0 ? 1.0f : -1.0f) * deltaY * 0.001f;
+        FQuat rotationDeltaX = FQuat(GetRootComponent()->GetRightVector(), rotationAmountY);
+        
+        GetRootComponent()->SetRelativeRotation(currentRotation * rotationDeltaX);
 
         RECT rect;
         GetClientRect(GetActiveWindow(), &rect);
@@ -169,7 +186,19 @@ void AGPlayer::Input(float DeltaTime)
     if (GetAsyncKeyState('S') & 0x8000) MoveDirection -= GetActorForwardVector();
     if (GetAsyncKeyState('D') & 0x8000) MoveDirection += GetActorRightVector();
     if (GetAsyncKeyState('A') & 0x8000) MoveDirection -= GetActorRightVector();
-    
+    if (GetAsyncKeyState('V') & 0x8000)
+    {
+        if (!bVPressed)
+        {
+            USpringArmComponent* SpringComp = Cast<USpringArmComponent>(GetRootComponent()->GetAttachChildren()[0]);
+            float DesiredArmLength = SpringComp->GetTargetArmLength() == 0 ? 10 : 0;
+            SpringComp->SetTargetArmLength(DesiredArmLength);
+            bVPressed = true;
+        }
+    }
+    else
+        bVPressed = false;
+
     if (!MoveDirection.IsNearlyZero())
     {
         MoveDirection.z = 0.0f;

@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/StaticMeshActor.h"
+#include "Components/USpringArmComponent.h"
 
 class UCameraComponent;
 class AGPlayer :
@@ -28,6 +29,7 @@ private:
     
     bool bShowCursor = false;
     bool bSpacePressedLastFrame = false;
+    bool bVPressed = false;
     POINT lastMousePos;
 };
 
