@@ -5,7 +5,9 @@
 #include "Math/Quat.h"
 #include "UObject/ObjectMacros.h"
 #include "ActorComponentInfo.h"
+#include "GameFramework/Actor.h"
 #include "Math/Rotator.h"
+#include "Script/LuaManager.h"
 
 struct FLuaComponentInfo : public FActorComponentInfo
 {
@@ -74,16 +76,117 @@ public:
     std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
     virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     void LoadAndConstruct(const FActorComponentInfo& Info) override;
+    //void ExecuteLuaFunction(sol::protected_function LuaFunction);
 
-    //sol::table LuaData;
+    void CallLuaFunction(const FString& FunctionName, const TArray<sol::object>& Args = TArray<sol::object>());
 
+    sol::table ActorLuaData;
+    sol::table ScriptTable;
 private:
     // Lua 함수 포인터들 (AActor 대신 컴포넌트가 소유)
     sol::protected_function LuaFunctionBeginPlay;
     sol::protected_function LuaFunctionTick;
-    sol::protected_function LuaOnOverlapFunction;
+    sol::protected_function LuaFunctionOnOverlap;
+    sol::protected_function LuaFunctionEndPlay;
+    sol::protected_function LuaFunctionDestroyComponent;
     // ...
 
-    // 내부적으로 스크립트 테이블을 잠시 저장할 수도 있지만,
-    // 주로 필요한 함수 포인터를 추출하여 멤버로 가지는 것이 일반적입니다.
+        /**
+     * @brief 주어진 Lua 함수를 액터 및 액터의 Lua 데이터 컨텍스트 내에서 안전하게 실행합니다.
+     *        임의의 개수의 인자를 Lua 함수로 전달할 수 있습니다.
+     *
+     * 함수 실행 전에 Lua 전역 환경에 'Actor'와 'ActorLuaData'를 설정하고,
+     * 실행 후에는 초기화합니다.
+     *
+     * @tparam Args Lua 함수에 전달될 인자들의 타입들.
+     * @param LuaFunction 실행할 보호된 Lua 함수 객체.
+     * @param args Lua 함수에 전달할 가변 인자들.
+     */
+    template <typename... Args> // 가변 인자 템플릿 사용
+    sol::protected_function_result ExecuteLuaFunction(sol::protected_function LuaFunction, Args&&... args) // 인자를 완벽 전달(forwarding)
+    {
+        // 함수 유효성 검사
+        if (!LuaFunction.valid()) {
+            // 유효하지 않은 결과를 반환하거나, 특정 오류 코드를 반환할 수 있음
+             return sol::protected_function_result(); // 기본 생성 (보통 실패 상태)
+        }
+
+        AActor* OwnerActor = GetOwner();
+
+
+        FLuaManager& LuaMan = FLuaManager::Get();
+        sol::state& lua = LuaMan.GetLuaState();
+
+        // --- 컨텍스트 설정 ---
+        sol::object previousActor = lua["Actor"];
+        sol::object previousActorLuaData = lua["ActorLuaData"];
+        lua["Actor"] = OwnerActor;
+        lua["ActorLuaData"] = ActorLuaData;
+
+        // --- Lua 함수 실행 (가변 인자 전달!) ---
+        // std::forward를 사용하여 인자들을 Lua 함수 호출로 완벽하게 전달합니다.
+        // Sol2는 이 인자들을 Lua 타입으로 변환하여 함수를 호출합니다.
+        sol::protected_function_result result = LuaFunction(std::forward<Args>(args)...);
+
+        // --- 컨텍스트 복원/정리 ---
+        lua["Actor"] = previousActor;
+        lua["ActorLuaData"] = previousActorLuaData;
+
+        // --- 결과 확인 및 로깅 (선택 사항) ---
+        if (!result.valid()) {
+            sol::error err = result;
+            UE_LOG(LogLevel::Error, TEXT("Error executing Lua function for Actor %s: %hs"),
+                   *OwnerActor->GetName(), // GetName() 사용 권장
+                   err.what());
+        }
+
+        // 실행 결과를 반환
+        return result;
+    }
+
+    // --- 새로 추가할 함수 ---
+    /**
+     * @brief ScriptTable 내의 함수를 이름으로 찾아 컨텍스트 내에서 실행합니다.
+     *
+     * ScriptTable에서 FunctionName에 해당하는 함수를 찾아 ExecuteLuaFunction을 호출합니다.
+     * 임의의 개수의 인자를 Lua 함수로 전달할 수 있습니다.
+     *
+     * @tparam Args Lua 함수에 전달될 인자들의 타입들.
+     * @param FunctionName ScriptTable 내에서 찾을 함수의 이름 (문자열).
+     * @param args Lua 함수에 전달할 가변 인자들.
+     * @return Lua 함수의 실행 결과. 함수를 찾지 못하거나 유효하지 않으면 실패 상태 반환.
+     */
+    template <typename... Args>
+    sol::protected_function_result ExecuteFunctionByName(const std::string& FunctionName, Args&&... args)
+    {
+        // 1. ScriptTable 유효성 확인
+        if (!ScriptTable.valid()) {
+            UE_LOG(LogLevel::Error, TEXT("ExecuteFunctionByName failed: ScriptTable is invalid for Actor %s."),
+                   *GetOwner()->GetName());
+            return sol::protected_function_result(); // 실패 반환
+        }
+
+        // 2. ScriptTable에서 이름으로 함수 객체 가져오기
+        sol::object luaFuncObj = ScriptTable[FunctionName];
+
+        // 3. 가져온 객체가 유효한 함수인지 확인
+        if (!luaFuncObj.valid() || !luaFuncObj.is<sol::protected_function>()) {
+            // 함수가 없거나 함수 타입이 아닌 경우
+            UE_LOG(LogLevel::Error, TEXT("ExecuteFunctionByName: Function '%hs' not found or not a function in ScriptTable for Actor %s."),
+                   FunctionName.c_str(),
+                   *GetOwner()->GetName());
+            return sol::protected_function_result(); // 실패 반환
+        }
+
+        // 4. 유효한 함수 객체로 변환
+        sol::protected_function luaFunc = luaFuncObj.as<sol::protected_function>();
+
+        // 5. 기존 ExecuteLuaFunction 함수를 호출하여 실행 위임
+        //    컨텍스트 설정, 인자 전달, 실행, 컨텍스트 복원은 ExecuteLuaFunction이 처리
+        return ExecuteLuaFunction(luaFunc, std::forward<Args>(args)...);
+    }
+
 };
+
+
+

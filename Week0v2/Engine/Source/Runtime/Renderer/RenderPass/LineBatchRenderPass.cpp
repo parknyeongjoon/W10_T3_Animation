@@ -48,7 +48,7 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
             if (UShapeComponent* pShapeComponent = Cast<UShapeComponent>(actorComp))
             {
                 const FBoundingBox& Box = pShapeComponent->GetBroadAABB();
-                FVector Center = pShapeComponent->GetComponentLocation();
+                FVector Center = pShapeComponent->GetWorldLocation();
 
                 PrimitiveBatch.AddAABB(Box, Center, FMatrix::Identity);
 
@@ -200,9 +200,9 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                     if (SpotLight->GetOuterConeAngle() > 0)
                     {
                         UPrimitiveBatch::GetInstance().AddCone(
-                            SpotLight->GetComponentLocation(),
+                            SpotLight->GetWorldLocation(),
                             tan(SpotLight->GetOuterConeAngle()) * 15.0f,
-                            SpotLight->GetComponentLocation() + SpotLight->GetForwardVector() * 15.0f,
+                            SpotLight->GetWorldLocation() + SpotLight->GetForwardVector() * 15.0f,
                             15,
                             SpotLight->GetLightColor()
                         );
@@ -210,9 +210,9 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                     if (SpotLight->GetInnerConeAngle() > 0)
                     {
                         UPrimitiveBatch::GetInstance().AddCone(
-                            SpotLight->GetComponentLocation(),
+                            SpotLight->GetWorldLocation(),
                             tan(SpotLight->GetInnerConeAngle()) * 15.0f,
-                            SpotLight->GetComponentLocation() + SpotLight->GetForwardVector() * 15.0f,
+                            SpotLight->GetWorldLocation() + SpotLight->GetForwardVector() * 15.0f,
                             15,
                             SpotLight->GetLightColor()
                         );
@@ -224,7 +224,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                     for (int i = 0; i < 4; ++i)
                     {
                         UPrimitiveBatch::GetInstance().AddLine(
-                            DirectionalLight->GetComponentLocation() + Right * (-1.5f + i),
+                            DirectionalLight->GetWorldLocation() + Right * (-1.5f + i),
                             DirectionalLight->GetForwardVector(),
                             15.0f,
                             DirectionalLight->GetLightColor()
@@ -236,7 +236,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                     if (PointLight->GetRadius() > 0)
                     {
                         UPrimitiveBatch::GetInstance().AddSphere(
-                            PointLight->GetComponentLocation(),
+                            PointLight->GetWorldLocation(),
                             PointLight->GetRadius(),
                             PointLight->GetLightColor()
                         );

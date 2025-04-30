@@ -43,9 +43,9 @@ void UShapeComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
-    const FVector CurLocation = GetComponentLocation();
-    const FRotator CurRotation = GetComponentRotation();
-    const FVector CurScale = GetComponentScale();
+    const FVector CurLocation = GetWorldLocation();
+    const FRotator CurRotation = GetWorldRotation();
+    const FVector CurScale = GetWorldScale();
 
     if (PrevLocation != CurLocation || PrevRotation != CurRotation || PrevScale != CurScale)
     {

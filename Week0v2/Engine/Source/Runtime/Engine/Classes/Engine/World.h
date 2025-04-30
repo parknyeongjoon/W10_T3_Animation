@@ -69,12 +69,7 @@ public:
         return Actor;
     }
 
-    AActor* SpawnActorByName(const FString& ActorName, bool bCallBeginPlay)
-    {
-        UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorName);
 
-        return SpawnActorByClass(ActorClass, bCallBeginPlay);
-    }
 
     void DuplicateSeletedActors();
     void DuplicateSeletedActorsOnLocation();
@@ -146,3 +141,6 @@ T* UWorld::SpawnActor()
     Level->PendingBeginPlayActors.Add(Actor);
     return Actor;
 }
+
+//LUA용
+static AActor* SpawnActorByName(const FString& ActorName, bool bCallBeginPlay);

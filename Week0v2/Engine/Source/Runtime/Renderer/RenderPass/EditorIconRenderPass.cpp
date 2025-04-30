@@ -89,7 +89,7 @@ void FEditorIconRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     USceneComponent* overrideComp = curEditorViewportClient->GetOverrideComponent();
     if (overrideComp)
     {
-        SceneConstants.CameraPos = overrideComp->GetComponentLocation();
+        SceneConstants.CameraPos = overrideComp->GetWorldLocation();
         SceneConstants.CameraLookAt = curEditorViewportClient->ViewTransformPerspective.GetLookAt();
     }
     else
@@ -104,7 +104,7 @@ void FEditorIconRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     for (const UBillboardComponent* item : BillboardComponents)
     {
         FDebugIconConstant DebugConstant;
-        DebugConstant.IconPosition = item->GetComponentLocation();
+        DebugConstant.IconPosition = item->GetWorldLocation();
         DebugConstant.IconScale = 0.2f; //TODO: 게임잼용 임시 스케일 변경
 
         renderResourceManager->UpdateConstantBuffer(TEXT("FDebugIconConstant"), &DebugConstant);

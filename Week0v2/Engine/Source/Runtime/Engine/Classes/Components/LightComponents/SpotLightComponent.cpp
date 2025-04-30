@@ -107,7 +107,7 @@ FMatrix USpotLightComponent::GetViewMatrix() const
     float dot = abs(Up.Dot(Forward));
     if (dot > 0.99f)
         Up = FVector(1.0f, 0.0f, 0.0f);
-    return JungleMath::CreateViewMatrix(GetComponentLocation(), Forward + GetComponentLocation(), Up);
+    return JungleMath::CreateViewMatrix(GetWorldLocation(), Forward + GetWorldLocation(), Up);
 } 
 
 FMatrix USpotLightComponent::GetProjectionMatrix() const

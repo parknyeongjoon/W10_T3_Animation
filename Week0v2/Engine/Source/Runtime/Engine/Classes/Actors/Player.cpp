@@ -404,17 +404,17 @@ void AEditorPlayer::ScreenToViewSpace(int screenX, int screenY, const FMatrix& v
 int AEditorPlayer::RayIntersectsObject(const FVector& pickPosition, USceneComponent* obj, float& hitDistance, int& intersectCount)
 {
 	FMatrix scaleMatrix = FMatrix::CreateScaleMatrix(
-		obj->GetComponentScale().x,
-		obj->GetComponentScale().y,
-		obj->GetComponentScale().z
+		obj->GetWorldScale().x,
+		obj->GetWorldScale().y,
+		obj->GetWorldScale().z
 	);
 	FMatrix rotationMatrix = FMatrix::CreateRotationMatrix(
-		obj->GetComponentRotation().Roll,
-		obj->GetComponentRotation().Pitch,
-		obj->GetComponentRotation().Yaw
+		obj->GetWorldRotation().Roll,
+		obj->GetWorldRotation().Pitch,
+		obj->GetWorldRotation().Yaw
 	);
 
-	FMatrix translationMatrix = FMatrix::CreateTranslationMatrix(obj->GetComponentLocation());
+	FMatrix translationMatrix = FMatrix::CreateTranslationMatrix(obj->GetWorldLocation());
 
 	// ���� ��ȯ ���
 	FMatrix worldMatrix = scaleMatrix * rotationMatrix * translationMatrix;
@@ -502,7 +502,7 @@ void AEditorPlayer::ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* 
     FVector cameraRight = GetEngine()->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetRightVector();
     FVector cameraUp = GetEngine()->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetUpVector();
 
-    FQuat currentRotation = pObj->GetComponentRotation().ToQuaternion();
+    FQuat currentRotation = pObj->GetWorldRotation().ToQuaternion();
 
     FQuat rotationDelta;
 

@@ -83,7 +83,7 @@ FMatrix UBillboardComponent::CreateBillboardMatrix()
 	CameraView.M[2][2] = -CameraView.M[2][2];
 	FMatrix LookAtCamera = FMatrix::Transpose(CameraView);
 	
-	FVector worldLocation = GetComponentLocation();
+	FVector worldLocation = GetWorldLocation();
 	FVector worldScale = RelativeScale;
 	FMatrix S = FMatrix::CreateScaleMatrix(worldScale.x, worldScale.y, worldScale.z);
 	FMatrix R = LookAtCamera;
