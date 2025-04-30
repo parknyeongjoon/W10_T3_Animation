@@ -32,7 +32,7 @@ void AGPlayer::BeginPlay()
     UCameraComponent* Camera = GetComponentByClass<UCameraComponent>();
     FTViewTarget ViewTarget;
     ViewTarget.Target = this;
-    ViewTarget.ViewInfo = FViewInfo(Camera->GetComponentLocation(), Camera->GetComponentRotation(), Camera->GetFOV());
+    ViewTarget.ViewInfo = FViewInfo(Camera->GetWorldLocation(), Camera->GetWorldRotation(), Camera->GetFOV());
     for (auto& Actor : GEngine->GetWorld()->GetActors())
     {
         if (APlayerCameraManager* APCM = Cast<APlayerCameraManager>(Actor))
