@@ -5,6 +5,7 @@ class UCurveFloat;
 
 class UGunRecoilShake : public UCameraShakeBase
 {
+    DECLARE_CLASS(UGunRecoilShake, UCameraShakeBase)
 public:
     UGunRecoilShake();
     virtual ~UGunRecoilShake() override;

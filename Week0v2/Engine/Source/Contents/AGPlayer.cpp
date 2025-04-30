@@ -9,6 +9,7 @@
 #include "GameManager.h"
 
 #include "Camera/GunRecoilShake.h"
+#include "Camera/ExplosionShake.h"
 #include "Curves/CurveFloat.h"
 AGPlayer::AGPlayer()
 {
@@ -124,6 +125,20 @@ void AGPlayer::Input(float DeltaTime)
         if (!bRightMouseDown)
         {
             bRightMouseDown = true;
+
+            if (PlayerCameraManager)
+            {
+                UExplosionShake* Shake = FObjectFactory::ConstructObject<UExplosionShake>();
+                Shake->Duration = 0.6f;
+                Shake->BlendInTime = 0.f;
+                Shake->BlendOutTime = 0.3f;
+                Shake->MaxPitch = 6.f;
+                Shake->MaxYaw = 6.f;
+                Shake->MaxRoll = 2.f;
+                Shake->Frequency = 25.f;
+
+                PlayerCameraManager->StartCameraShake(Shake);
+            }
         }
     }
     else

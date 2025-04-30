@@ -444,6 +444,9 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\APlayerCameraManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FadeRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\USpringArmComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\ExplosionShake.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -618,6 +621,9 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\APlayerCameraManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FadeRenderPass.cpp" />
     <ClCompile Include="Shaders\FadeVertexShader.hlsl" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\USpringArmComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\ExplosionShake.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

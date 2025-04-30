@@ -324,6 +324,7 @@
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\WaitObjects.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\USpringArmComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\ExplosionShake.cpp" />
     <ClCompile Include="Shaders\FadeVertexShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -495,6 +496,7 @@
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.h" />
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
     <ClInclude Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\ExplosionShake.h" />
     <ClInclude Include="Font\IconDefs.h" />
     <ClInclude Include="Font\RawFonts.h" />
     <ClInclude Include="Engine\Source\ThirdParty\include\ImGUI\imconfig.h" />
