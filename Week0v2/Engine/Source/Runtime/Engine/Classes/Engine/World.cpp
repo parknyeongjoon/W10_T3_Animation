@@ -64,6 +64,14 @@ void UWorld::CreateBaseObject()
     APointLightActor* Light2 = SpawnActor<APointLightActor>();
     APointLightActor* Light3 = SpawnActor<APointLightActor>();
     APointLightActor* Light4 = SpawnActor<APointLightActor>();
+    AStaticMeshActor* Ground = SpawnActor<AStaticMeshActor>();
+    Ground->SetActorLabel(TEXT("Cube"));
+    UStaticMeshComponent* MeshComp = Ground->GetStaticMeshComponent();
+    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Cube.obj");
+    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
+    Ground->AddComponent<UBoxShapeComponent>(EComponentOrigin::Editor);
+
+    Ground->SetActorScale(FVector(1000.0f, 1000.0f, 2.0f));
 
     Light1->SetActorLocation(FVector(-75, -75, 20));
     Light2->SetActorLocation(FVector(-75, 75, 20));
