@@ -17,6 +17,8 @@ public:
     UObject* Duplicate() const override;
     void DuplicateSubObjects(const UObject* Source) override;
     void PostDuplicate() override;
+
+    void OnCollision(const UPrimitiveComponent* Other);
 private:
     void Input(float DeltaTime);
 private:

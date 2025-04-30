@@ -2,7 +2,7 @@
 #include "Camera/CameraDefine.h"
 #include "Container/Array.h"
 #include "GameFramework/Actor.h"
-#include "Camera/CameraShakeBase.h"
+#include "Camera/CameraShake/CameraShakeBase.h"
 
 class UCameraModifier;
 

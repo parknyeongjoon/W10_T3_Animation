@@ -98,9 +98,9 @@ void APlayerCameraManager::ApplyCameraShakes(float DeltaTime, FViewInfo& ViewInf
         Info.Instance->UpdateShake(DeltaTime, Loc, Rot, FOV);
 
         float W = Info.Instance->GetBlendWeight();
-        ViewInfo.Location += Loc * W;
-        ViewInfo.Rotation += Rot * W;
-        ViewInfo.FOV += FOV * W;
+        ViewInfo.Location += Loc;
+        ViewInfo.Rotation += Rot;
+        ViewInfo.FOV += FOV;
     }
 }
 

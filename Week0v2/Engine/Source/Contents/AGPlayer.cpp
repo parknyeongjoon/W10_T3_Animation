@@ -7,13 +7,19 @@
 #include "AGBullet.h"
 #include "APlayerCameraManager.h"
 #include "GameManager.h"
-
-#include "Camera/GunRecoilShake.h"
-#include "Camera/ExplosionShake.h"
+#include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
+#include "Camera/CameraShake/GunRecoilShake.h"
+#include "Camera/CameraShake/ExplosionShake.h"
+#include "Camera/CameraShake/DashShake.h"
+#include "Camera/CameraShake/RollCameraShake.h"
+#include "Camera/CameraShake/HitCameraShake.h"
 #include "Curves/CurveFloat.h"
+#include "Contents/AGEnemy.h"
 AGPlayer::AGPlayer()
 {
     //Camera = AddComponent<UCameraComponent>(EComponentOrigin::Constructor);
+
+    //AddComponent<USphereShapeComponent>(EComponentOrigin::Constructor);
 }
 
 AGPlayer::AGPlayer(const AGPlayer& Other) : Super(Other)
@@ -24,6 +30,7 @@ void AGPlayer::BeginPlay()
 {
     Super::BeginPlay();
 
+    //AddComponent<UCapsuleShapeComponent>(EComponentOrigin::Editor);
     CURSORINFO cursorInfo = { sizeof(CURSORINFO) };
     GetCursorInfo(&cursorInfo);
     if (cursorInfo.flags == CURSOR_SHOWING)
@@ -46,6 +53,8 @@ void AGPlayer::BeginPlay()
             break;
         }
     }
+
+    AddBeginOverlapUObject(this, &AGPlayer::OnCollision);
     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(Camera);
     UE_LOG(LogLevel::Display, "AGamePlayer Begin Play");
 }
@@ -88,6 +97,15 @@ void AGPlayer::PostDuplicate()
     Super::PostDuplicate();
 }
 
+void AGPlayer::OnCollision(const UPrimitiveComponent* Other)
+{
+    if (Other->GetOwner()->IsA(AGEnemy::StaticClass()))
+    {
+        UExplosionShake* Shake = FObjectFactory::ConstructObject<UExplosionShake>();
+        PlayerCameraManager->StartCameraShake(Shake);
+    }
+}
+
 void AGPlayer::Input(float DeltaTime)
 {
     if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
@@ -125,19 +143,16 @@ void AGPlayer::Input(float DeltaTime)
         if (!bRightMouseDown)
         {
             bRightMouseDown = true;
-
             if (PlayerCameraManager)
             {
-                UExplosionShake* Shake = FObjectFactory::ConstructObject<UExplosionShake>();
-                Shake->Duration = 0.6f;
-                Shake->BlendInTime = 0.f;
-                Shake->BlendOutTime = 0.3f;
-                Shake->MaxPitch = 6.f;
-                Shake->MaxYaw = 6.f;
-                Shake->MaxRoll = 2.f;
-                Shake->Frequency = 25.f;
+                UHitCameraShake* Shake = FObjectFactory::ConstructObject<UHitCameraShake>();
+
+                Shake->ImpactDirection = FVector(0,0,0); // 또는 HitResult.ImpactPoint
+                Shake->CameraLocation = PlayerCameraManager->GetViewTarget()->GetActorLocation();
+                Shake->CameraRotation = PlayerCameraManager->GetViewTarget()->GetActorRotation();
 
                 PlayerCameraManager->StartCameraShake(Shake);
+
             }
         }
     }

@@ -17,6 +17,9 @@ public:
     float LastYaw = 0.f;
     float LastRoll = 0.f;
 
+    float AccumPitch = 0.f;
+    float AccumYaw = 0.f;
+    float AccumRoll = 0.f;
 
     virtual void UpdateShake(float DeltaTime, FVector& OutLoc, FRotator& OutRot, float& OutFOV) override;
 };

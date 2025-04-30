@@ -349,6 +349,8 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     USpringArmComponent* SpringComp = SpawnedActor->AddComponent<USpringArmComponent>(EComponentOrigin::Editor);
                     UCameraComponent* Camera = SpawnedActor->AddComponent<UCameraComponent>(EComponentOrigin::Editor);
                     SpringComp->SetTargetComponent(Camera);
+
+                    SpawnedActor->AddComponent<UBoxShapeComponent>(EComponentOrigin::Editor);
                     break;
                 }
                     //  셰이프

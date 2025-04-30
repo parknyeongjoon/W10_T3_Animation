@@ -108,7 +108,7 @@ void UEditorEngine::Tick(float deltaSeconds)
         CollisionManager.UpdateCollision(deltaSeconds);
     }
 
-    //CollisionManager.UpdateCollision(deltaSeconds);
+    CollisionManager.UpdateCollision(deltaSeconds);
     
     Input();
     // GWorld->Tick(LEVELTICK_All, deltaSeconds);
