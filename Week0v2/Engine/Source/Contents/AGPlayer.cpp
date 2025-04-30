@@ -5,6 +5,8 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "Engine/World.h"
 #include "AGBullet.h"
+#include "APlayerCameraManager.h"
+
 AGPlayer::AGPlayer()
 {
     //Camera = AddComponent<UCameraComponent>(EComponentOrigin::Constructor);
@@ -28,6 +30,17 @@ void AGPlayer::BeginPlay()
 
     GetCursorPos(&lastMousePos);
     UCameraComponent* Camera = GetComponentByClass<UCameraComponent>();
+    FTViewTarget ViewTarget;
+    ViewTarget.Target = this;
+    ViewTarget.ViewInfo = FViewInfo(Camera->GetWorldLocation(), Camera->GetWorldRotation(), Camera->GetFOV());
+    for (auto& Actor : GEngine->GetWorld()->GetActors())
+    {
+        if (APlayerCameraManager* APCM = Cast<APlayerCameraManager>(Actor))
+        {
+            APCM->AssignViewTarget(ViewTarget);
+            break;
+        }
+    }
     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(Camera);
     UE_LOG(LogLevel::Display, "AGamePlayer Begin Play");
 }

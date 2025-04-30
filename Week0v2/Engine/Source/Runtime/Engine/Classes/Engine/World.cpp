@@ -1,5 +1,6 @@
 #include "World.h"
 
+#include "APlayerCameraManager.h"
 #include "Actors/Player.h"
 #include "BaseGizmos/TransformGizmo.h"
 #include "Camera/CameraComponent.h"
@@ -55,6 +56,8 @@ void UWorld::CreateBaseObject()
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
+
+    SpawnActor<APlayerCameraManager>();
 
     APointLightActor* Light1 = SpawnActor<APointLightActor>();
     APointLightActor* Light2 = SpawnActor<APointLightActor>();
