@@ -41,14 +41,14 @@ void UCapsuleShapeComponent::TickComponent(float DeltaTime)
 
 const FShapeInfo* UCapsuleShapeComponent::GetShapeInfo() const
 {
-    FVector Center = GetComponentLocation();
+    FVector Center = GetWorldLocation();
     FMatrix WorldMatrix = GetWorldMatrix();
 
     // GetUpVector() 문제 있음. (회전 고치기 전이랑 같은 문제)
     FVector Up = FVector(WorldMatrix.M[2][0], WorldMatrix.M[2][1], WorldMatrix.M[2][2]);
-    FMatrix RotationMatrix = GetComponentRotation().ToMatrix();
-    float RadiusValue = GetRadius() * FMath::Max(GetComponentScale().x, GetComponentScale().y);
-    float HalfHeightValue = GetHalfHeight() * GetComponentScale().z;
+    FMatrix RotationMatrix = GetWorldRotation().ToMatrix();
+    float RadiusValue = GetRadius() * FMath::Max(GetWorldScale().x, GetWorldScale().y);
+    float HalfHeightValue = GetHalfHeight() * GetWorldScale().z;
 
     ShapeInfo.Center = Center;
     ShapeInfo.WorldMatrix = WorldMatrix;
@@ -130,9 +130,9 @@ bool UCapsuleShapeComponent::NarrowPhaseCollisionCheck(const UShapeComponent* Ot
 bool UCapsuleShapeComponent::CollisionCheckWithBox(const UBoxShapeComponent* OtherBox) const
 {
     // 1. Capsule 세그먼트 엔드포인트 계산
-    FVector CenterC = GetComponentLocation();
+    FVector CenterC = GetWorldLocation();
     float HalfH = GetHalfHeight();
-    float RadiusC = GetRadius() * GetComponentScale().MaxValue();
+    float RadiusC = GetRadius() * GetWorldScale().MaxValue();
     // 캡슐 로컬 Z축을 기준으로 세그먼트 방향 정의
     FMatrix RotC = GetRotationMatrix();
     FVector AxisC = FVector(RotC.M[0][2], RotC.M[1][2], RotC.M[2][2]);
@@ -140,7 +140,7 @@ bool UCapsuleShapeComponent::CollisionCheckWithBox(const UBoxShapeComponent* Oth
     FVector P1 = CenterC - AxisC * HalfH;
 
     // 2. 박스 로컬 좌표로 변환
-    FVector CenterB = OtherBox->GetComponentLocation();
+    FVector CenterB = OtherBox->GetWorldLocation();
     FMatrix RotB = OtherBox->GetRotationMatrix();
     FVector AxisBX(RotB.M[0][0], RotB.M[1][0], RotB.M[2][0]);
     FVector AxisBY(RotB.M[0][1], RotB.M[1][1], RotB.M[2][1]);
@@ -153,7 +153,7 @@ bool UCapsuleShapeComponent::CollisionCheckWithBox(const UBoxShapeComponent* Oth
     FVector L1 = ToLocal(P1);
 
     // 3. 확장된 AABB extents
-    FVector ExtentB = OtherBox->GetBoxExtent() * GetComponentScale();
+    FVector ExtentB = OtherBox->GetBoxExtent() * GetWorldScale();
     FVector Exp = ExtentB + FVector(RadiusC, RadiusC, RadiusC);
 
     // 4. 세그먼트-AABB 교차 (슬랩 방법)
@@ -187,15 +187,15 @@ bool UCapsuleShapeComponent::CollisionCheckWithBox(const UBoxShapeComponent* Oth
 
 bool UCapsuleShapeComponent::CollisionCheckWithSphere(const USphereShapeComponent* OtherSphere) const
 {
-    FVector SphereCenter = OtherSphere->GetComponentLocation();
-    float SphereRadius = OtherSphere->GetRadius() * OtherSphere->GetComponentScale().MaxValue();
+    FVector SphereCenter = OtherSphere->GetWorldLocation();
+    float SphereRadius = OtherSphere->GetRadius() * OtherSphere->GetWorldScale().MaxValue();
 
-    FVector CapsuleCenter = GetComponentLocation();
+    FVector CapsuleCenter = GetWorldLocation();
     FMatrix CapsuleRotation = GetRotationMatrix();
     FVector CapsuleUp = FVector(CapsuleRotation.M[0][1], CapsuleRotation.M[1][1], CapsuleRotation.M[2][1]); // Y축 기준
 
-    float CapsuleHalfHeight = GetHalfHeight() * GetComponentScale().y;
-    float CapsuleRadius = GetRadius() * GetComponentScale().MaxValue();
+    float CapsuleHalfHeight = GetHalfHeight() * GetWorldScale().y;
+    float CapsuleRadius = GetRadius() * GetWorldScale().MaxValue();
 
     // 캡슐의 세그먼트 끝점 계산
     FVector Top = CapsuleCenter + CapsuleUp * CapsuleHalfHeight;
@@ -214,22 +214,22 @@ bool UCapsuleShapeComponent::CollisionCheckWithSphere(const USphereShapeComponen
 
 bool UCapsuleShapeComponent::CollisionCheckWithCapsule(const UCapsuleShapeComponent* OtherCapsule) const
 {
-    FVector CenterA = GetComponentLocation();
+    FVector CenterA = GetWorldLocation();
     FMatrix RotA = GetRotationMatrix();
     FVector UpA(RotA.M[0][1], RotA.M[1][1], RotA.M[2][1]);
 
-    float HalfHeightA = GetHalfHeight() * GetComponentScale().y;
-    float RadiusA = GetRadius() * GetComponentScale().MaxValue();
+    float HalfHeightA = GetHalfHeight() * GetWorldScale().y;
+    float RadiusA = GetRadius() * GetWorldScale().MaxValue();
 
     FVector TopA = CenterA + UpA * HalfHeightA;
     FVector BottomA = CenterA - UpA * HalfHeightA;
 
-    FVector CenterB = OtherCapsule->GetComponentLocation();
+    FVector CenterB = OtherCapsule->GetWorldLocation();
     FMatrix RotB = OtherCapsule->GetRotationMatrix();
     FVector UpB(RotB.M[0][1], RotB.M[1][1], RotB.M[2][1]);
 
-    float HalfHeightB = OtherCapsule->GetHalfHeight() * OtherCapsule->GetComponentScale().y;
-    float RadiusB = OtherCapsule->GetRadius() * OtherCapsule->GetComponentScale().MaxValue();
+    float HalfHeightB = OtherCapsule->GetHalfHeight() * OtherCapsule->GetWorldScale().y;
+    float RadiusB = OtherCapsule->GetRadius() * OtherCapsule->GetWorldScale().MaxValue();
 
     FVector TopB = CenterB + UpB * HalfHeightB;
     FVector BottomB = CenterB - UpB * HalfHeightB;

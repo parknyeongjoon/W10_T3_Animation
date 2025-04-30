@@ -8,6 +8,15 @@
  */
 #define Lua_NewUserType(TypeName, ...) new_usertype<TypeName>(#TypeName, __VA_ARGS__)
 
-#define LUA_BIND_MEMBER(MemberName) LuaBindUtils::GetMemberName(#MemberName, true), MemberName
 
-#define LUA_BIND_VAR(MemberName) LuaBindUtils::GetMemberName(#MemberName, false), sol::var(MemberName)
+#define LUA_BIND_CONSTRUCTORS(...) \
+sol::call_constructor, \
+sol::constructors<__VA_ARGS__>()
+
+#define LUA_BIND_MEMBER(MemberName) \
+LuaBindUtils::GetMemberName(#MemberName, true), MemberName
+
+#define LUA_BIND_FUNC(MemberName) LUA_BIND_MEMBER(MemberName)
+
+#define LUA_BIND_VAR(MemberName) \
+LuaBindUtils::GetMemberName(#MemberName), sol::var(MemberName)

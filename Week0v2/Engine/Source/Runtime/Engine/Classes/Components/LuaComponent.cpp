@@ -41,20 +41,14 @@ void ULuaComponent::InitializeComponent()
     Super::InitializeComponent();
 }
 
+
+
 void ULuaComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
-    if (LuaFunctionTick.valid())
-    {
-        sol::state& lua = FLuaManager::Get().GetLuaState();
-        lua["Actor"] = GetOwner(); // 컨텍스트 설정
-        //lua["comp"] = this;     // 컨텍스트 설정
-        sol::protected_function_result result = LuaFunctionTick(DeltaTime);
-        // 오류 처리...
-        lua["Actor"] = sol::lua_nil;
-        //lua["comp"] = sol::lua_nil; // 컨텍스트 해제
-    }
+    ExecuteLuaFunction(LuaFunctionTick, DeltaTime);;
+
 }
 
 void ULuaComponent::UninitializeComponent()
@@ -67,15 +61,18 @@ void ULuaComponent::BeginPlay()
     Super::BeginPlay();
 
     FLuaManager& LuaMan = FLuaManager::Get();
-        sol::state& lua = LuaMan.GetLuaState();
+        
 
-        sol::table ScriptTable = LuaMan.GetOrLoadScriptTable(LuaScriptPath);
+        ScriptTable = LuaMan.GetOrLoadScriptTable(LuaScriptPath);
         if (ScriptTable.valid())
         {
             // 함수 추출
             LuaFunctionBeginPlay = ScriptTable["BeginPlay"];
             LuaFunctionTick = ScriptTable["Tick"];
-            LuaOnOverlapFunction = ScriptTable["OnOverlap"];
+            LuaFunctionOnOverlap = ScriptTable["OnOverlap"];
+            LuaFunctionEndPlay = ScriptTable["EndPlay"];
+            LuaFunctionDestroyComponent = ScriptTable["DestroyComponent"];
+            
             // ...
 
             // // 컴포넌트의 LuaData 초기화
@@ -83,13 +80,13 @@ void ULuaComponent::BeginPlay()
             //     LuaData = lua.create_table();
             // }
 
-            // Lua의 BeginPlay 호출 (컨텍스트 설정 주의!)
-            if (LuaFunctionBeginPlay.valid()) {
-                lua["Actor"] = GetOwner(); 
-                }
-
-                sol::protected_function_result result = LuaFunctionBeginPlay();
-                lua["Actor"] = sol::lua_nil;
+            // LuaData 테이블 초기화 (여기서 해주는 것이 좋음)
+            if (!ActorLuaData.valid()) {
+                sol::state& lua = FLuaManager::Get().GetLuaState();
+                ActorLuaData = lua.create_table(); // 빈 테이블로 초기화
+            }
+            
+            ExecuteLuaFunction(LuaFunctionBeginPlay);
         } else {
             // 스크립트 로드 실패 처리
         }
@@ -98,16 +95,21 @@ void ULuaComponent::BeginPlay()
 void ULuaComponent::OnComponentDestroyed()
 {
     Super::OnComponentDestroyed();
+    ExecuteLuaFunction(LuaFunctionOnOverlap);
+    
 }
 
 void ULuaComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     Super::EndPlay(EndPlayReason);
+    ExecuteLuaFunction(LuaFunctionEndPlay);
 }
 
 void ULuaComponent::DestroyComponent()
 {
     Super::DestroyComponent();
+    
+    ExecuteLuaFunction(LuaFunctionDestroyComponent);
 }
 
 std::unique_ptr<FActorComponentInfo> ULuaComponent::GetComponentInfo()
@@ -133,4 +135,12 @@ void ULuaComponent::LoadAndConstruct(const FActorComponentInfo& Info)
     // cast
     const FLuaComponentInfo& TextInfo = static_cast<const FLuaComponentInfo&>(Info);
     LuaScriptPath = TextInfo.LuaScriptPath;
+}
+
+
+
+void ULuaComponent::CallLuaFunction(const FString& FunctionName, const TArray<sol::object>& Args)
+{
+    sol::protected_function LuaFunction = ScriptTable[FunctionName];
+    ExecuteLuaFunction(LuaFunction);
 }

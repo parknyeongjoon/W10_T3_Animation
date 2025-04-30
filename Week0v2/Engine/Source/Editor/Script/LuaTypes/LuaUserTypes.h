@@ -1,6 +1,10 @@
 #pragma once
 #include <sol/sol.hpp>
 
+class UObject;
+class UStaticMeshComponent;
+class USceneComponent;
+class UActorComponent;
 class UWorld;
 class AActor;
 class ALuaActor;
@@ -36,7 +40,11 @@ namespace LuaTypes
 
     // Object Types
     //template <> struct FBindLua<ALuaActor>    { static void Bind(sol::table& Table); };
+    template <> struct FBindLua<UObject>    { static void Bind(sol::table& Table); };
     template <> struct FBindLua<AActor>    { static void Bind(sol::table& Table); };
+    template <> struct FBindLua<UActorComponent>    { static void Bind(sol::table& Table); };
+    template <> struct FBindLua<USceneComponent>    { static void Bind(sol::table& Table); };
+    template <> struct FBindLua<UStaticMeshComponent>    { static void Bind(sol::table& Table); };
     template <> struct FBindLua<UWorld>    { static void Bind(sol::table& Table); };
 
 }

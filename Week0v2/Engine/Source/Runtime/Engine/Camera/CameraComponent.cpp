@@ -147,7 +147,7 @@ void UCameraComponent::PostDuplicate()
 
 FMatrix UCameraComponent::GetViewMatrix() const
 {
-    FVector CameraPos = GetComponentLocation();
+    FVector CameraPos = GetWorldLocation();
     FVector CameraForward = GetForwardVector();
     FVector CameraUP = FVector(0,0,1);
 

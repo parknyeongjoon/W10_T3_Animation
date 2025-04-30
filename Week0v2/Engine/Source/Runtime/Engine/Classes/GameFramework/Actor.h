@@ -71,7 +71,7 @@ public:
 
     template<typename T>
         requires std::derived_from<T, UActorComponent>
-    T* GetComponentByClass();
+    T* GetComponentByClass() const;
 
     void InitializeComponents();
     void UninitializeComponents();
@@ -84,9 +84,9 @@ public:
     void SetOwner(AActor* NewOwner) { Owner = NewOwner; }
 
 public:
-    FVector GetActorLocation() const { return RootComponent ? RootComponent->GetComponentLocation() : FVector::ZeroVector; }
-    FRotator GetActorRotation() const { return RootComponent ? RootComponent->GetComponentRotation() : FRotator(); }
-    FVector GetActorScale() const { return RootComponent ? RootComponent->GetComponentScale() : FVector::ZeroVector; }
+    FVector GetActorLocation() const { return RootComponent ? RootComponent->GetWorldLocation() : FVector::ZeroVector; }
+    FRotator GetActorRotation() const { return RootComponent ? RootComponent->GetWorldRotation() : FRotator(); }
+    FVector GetActorScale() const { return RootComponent ? RootComponent->GetWorldScale() : FVector::ZeroVector; }
 
     FVector GetActorForwardVector() const { return RootComponent ? RootComponent->GetForwardVector() : FVector::ForwardVector; }
     FVector GetActorRightVector() const { return RootComponent ? RootComponent->GetRightVector() : FVector::RightVector; }
@@ -107,6 +107,31 @@ public:
 public:
     bool ShouldTickInEditor() const { return bTickInEditor; }
     void SetTickInEditor(bool bEnable) { bTickInEditor = bEnable; }
+    
+    UActorComponent* GetComponentByName(const FString& ComponentName) const
+    {
+        for (UActorComponent* Component : OwnedComponents)
+        {
+            if (Component->GetName() == ComponentName)
+            {
+                return Component;
+            }
+        }
+        return nullptr;
+    }
+
+    // TODO : 우선 첫번째 컴포넌트만 리턴 
+    UActorComponent* GetComponentByClass(const FString& ComponentClassName) const
+    {
+        for (UActorComponent* Component : OwnedComponents)
+        {
+            if (Component->GetClass()->GetName() == ComponentClassName)
+            {
+                return Component;
+            }
+        }
+        return nullptr;
+    }
 
 public:
 #pragma region Event Delegate
@@ -247,7 +272,7 @@ T* AActor::AddComponent(EComponentOrigin Origin)
 
 
 template <typename T> requires std::derived_from<T, UActorComponent>
-T* AActor::GetComponentByClass()
+T* AActor::GetComponentByClass() const
 {
     for (UActorComponent* Component : OwnedComponents)
     {
