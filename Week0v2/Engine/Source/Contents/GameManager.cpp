@@ -32,6 +32,16 @@ void FGameManager::BeginPlay()
             enemy->SetActorLocation(FVector(i * 10, j * 10, 2));
         }
     }
+
+    for (auto Actor :GEngine->GetWorld()->GetActors())
+    {
+        if (APlayerCameraManager* CameraManager = Cast<APlayerCameraManager>(Actor))
+        {
+            PlayerCameraManager = CameraManager;
+        }
+    }
+
+    StartGame();
 }
 
 void FGameManager::RestartGame()
@@ -41,16 +51,16 @@ void FGameManager::RestartGame()
 
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
     CameraModifier->StartFadeOut(2.0f, FLinearColor::Black);
-    GEngine->GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
+    PlayerCameraManager->AddCameraModifier(CameraModifier);
 }
 
 void FGameManager::StartGame()
 {
-    GEngine->GetWorld()->LoadScene("Assets/Scenes/Game.scene");
+    //GEngine->GetWorld()->LoadScene("Assets/Scenes/Game.scene");
 
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
     CameraModifier->StartFadeOut(2.0f, FLinearColor::Black);
-    GEngine->GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
+   PlayerCameraManager->AddCameraModifier(CameraModifier);
     
 }
 
@@ -60,7 +70,7 @@ void FGameManager::EndGame()
 
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
     CameraModifier->StartFadeIn(2.0f);
-    GEngine->GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
+    PlayerCameraManager->AddCameraModifier(CameraModifier);
     
     //GEngine->GetWorld()->ReloadScene("Assets/Scenes/EndGame.scene");
 }

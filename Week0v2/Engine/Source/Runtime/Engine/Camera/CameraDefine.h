@@ -30,4 +30,7 @@ struct FPostProcessSettings
     
     float FadeAlpha;
     FLinearColor FadeColor;
+
+    float LetterboxSize = 0.0f; 
+    float PillarboxSize = 0.0f;
 };

@@ -1,6 +1,10 @@
 #include "APlayerCameraManager.h"
+
+#include "EditorEngine.h"
 #include "Camera/UCameraModifier.h"
 #include "Camera/CameraComponent.h"
+#include "Engine/World.h"
+
 void APlayerCameraManager::Tick(float DeltaTime)
 {
     float DeltaTimeSecond = DeltaTime * 0.001f;
@@ -24,6 +28,7 @@ APlayerCameraManager::APlayerCameraManager(const APlayerCameraManager& Other)
     PostProcessBlendCacheWeights(Other.PostProcessBlendCacheWeights),
     PostProcessBlendCacheOrders(Other.PostProcessBlendCacheOrders)
 {
+    //GEngine->GetWorld()->SetPlayerCameraManager(this);
 }
 
 

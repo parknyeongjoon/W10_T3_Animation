@@ -33,5 +33,6 @@ private:
 
 private:
     APlayerCameraManager* PlayerCameraManager = nullptr;
+    bool bIsMoveStarted;
 };
 
