@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Math/Rotator.h"
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
@@ -29,5 +29,5 @@ struct FPostProcessSettings
     uint8 bOverride_ColorGamma = false;
     FVector4 ColorGamma = FVector4();
 
-    FPostProcessSettings();
+    FPostProcessSettings() {};
 };
