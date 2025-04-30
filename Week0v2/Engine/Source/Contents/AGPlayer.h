@@ -3,6 +3,7 @@
 #include "Components/USpringArmComponent.h"
 
 class UCameraComponent;
+class APlayerCameraManager;
 class AGPlayer :
     public AActor
 {
@@ -17,6 +18,8 @@ public:
     UObject* Duplicate() const override;
     void DuplicateSubObjects(const UObject* Source) override;
     void PostDuplicate() override;
+
+    void OnCollision(const UPrimitiveComponent* Other);
 private:
     void Input(float DeltaTime);
 private:
@@ -31,5 +34,9 @@ private:
     bool bSpacePressedLastFrame = false;
     bool bVPressed = false;
     POINT lastMousePos;
+
+private:
+    APlayerCameraManager* PlayerCameraManager = nullptr;
+    bool bIsMoveStarted;
 };
 

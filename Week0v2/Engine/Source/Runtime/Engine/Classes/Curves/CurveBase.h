@@ -1,7 +1,12 @@
 #pragma once
 #include "UObject/Object.h"
+#include "UObject/ObjectMacros.h"
 class UCurveBase : public UObject
 {
+    DECLARE_CLASS(UCurveBase, UObject);
+public:
+    UCurveBase();
+    virtual ~UCurveBase();
 public:
     virtual float GetStartTime() const { return 0.f; }
     virtual float GetEndTime() const { return 1.f; }

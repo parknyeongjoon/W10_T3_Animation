@@ -288,4 +288,14 @@ struct FMath
         return A + (B - A) * FMath::Pow(1 - FMath::Pow(1 - Alpha, Exp));
     }
 
+    static bool IsNearlyEqual(float A, float B, float Epsilon)
+	{
+	    if (A > B && A < B + B * Epsilon)
+	        return true;
+	    
+	    if (A < B && A > B - B * Epsilon)
+	        return true;
+
+	    return false;
+	}
 };

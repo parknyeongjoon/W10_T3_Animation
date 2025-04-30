@@ -5,14 +5,20 @@ class UCurveFloat;
 
 class UGunRecoilShake : public UCameraShakeBase
 {
+    DECLARE_CLASS(UGunRecoilShake, UCameraShakeBase)
 public:
-    float TotalRecoil = 5.f; // 튀는 각도
-    float Duration = 0.2f;
-    float Elapsed = 0.f;
+    UGunRecoilShake();
+    virtual ~UGunRecoilShake() override;
 
+    virtual void MarkRemoveObject() override;
+public:
     UCurveFloat* PitchCurve = nullptr;
     UCurveFloat* YawCurve = nullptr;
     UCurveFloat* RollCurve = nullptr;
+
+    float LastPitch = 0.f;
+    float LastYaw = 0.f;
+    float LastRoll = 0.f;
 
     virtual void UpdateShake(float DeltaTime, FVector& OutLoc, FRotator& OutRot, float& OutFOV) override;
 };

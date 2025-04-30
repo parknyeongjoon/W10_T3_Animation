@@ -20,9 +20,9 @@ public:
     bool ShouldRender() { return bRender; }
 
 private:
-    void UpdateCameraConstant(const std::shared_ptr<FViewportClient> InViewportClient);
+    void UpdateCameraConstant(const std::shared_ptr<FViewportClient> InViewportClient) const;
     void UpdateScreenConstant(std::shared_ptr<FViewportClient> InViewportClient);
-    void UpdateFogConstant(const std::shared_ptr<FViewportClient> InViewportClient);
+    void UpdateFogConstant(const std::shared_ptr<FViewportClient> InViewportClient) const;
 
 private:
     bool bRender = false;

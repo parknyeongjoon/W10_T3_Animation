@@ -40,6 +40,9 @@ public:
     void StopPIE();
     void GetLevel();
 
+    float testBlurStrength;
+    float testBlurRadius;
+
 private:
     void WindowInit(HINSTANCE hInstance);
     void ResizeGizmo();

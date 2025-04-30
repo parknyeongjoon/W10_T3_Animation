@@ -437,13 +437,19 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.impl.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Misc\Guid.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShakeBase.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\CameraShakeBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\GunRecoilShake.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\APlayerCameraManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FadeRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\USpringArmComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\ExplosionShake.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\DashShake.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\RollCameraShake.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\HitCameraShake.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -611,13 +617,19 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Misc\Guid.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\ActorInfo.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShakeBase.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\CameraShakeBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\GunRecoilShake.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\APlayerCameraManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FadeRenderPass.cpp" />
     <ClCompile Include="Shaders\FadeVertexShader.hlsl" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\USpringArmComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\ExplosionShake.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\DashShake.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\RollCameraShake.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\HitCameraShake.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

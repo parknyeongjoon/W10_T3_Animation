@@ -158,10 +158,19 @@ struct alignas(16) FFadeConstants
 {
     FLinearColor TargetFadeColor; // 페이드 목표 색상 (예: 검은색 float4(0,0,0,1))
     
-    float  FadeAlpha;       // 보간 계수 (0.0 = SceneColor, 1.0 = TargetFadeColor)
+    float  FadeAlpha = 0.0f;       // 보간 계수 (0.0 = SceneColor, 1.0 = TargetFadeColor)
     float Padding;   
     float Padding1;   
     float Padding2;   
+};
+
+struct alignas(16) FBlurConstants
+{
+    // 블러 강도 (가우시안 함수의 표준 편차(sigma) 역할)
+    float BlurStrength;
+    float TexelSizeX;
+    float TexelSizeY;
+    float Padding;
 };
 
 struct alignas(16) FFlagConstants

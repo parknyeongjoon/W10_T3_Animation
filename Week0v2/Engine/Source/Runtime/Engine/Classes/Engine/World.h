@@ -86,13 +86,22 @@ private:
     TSet<AActor*> SelectedActors;
     USceneComponent* pickingGizmo = nullptr;
     AEditorPlayer* EditorPlayer = nullptr;
+    
+    APlayerCameraManager* PlayerCameraManager = nullptr;
 public:
+
+
     
     EWorldType::Type WorldType = EWorldType::None;
     const TArray<AActor*>& GetActors() const { return Level->GetActors(); }
     ULevel* GetLevel() const { return Level; }
     UTransformGizmo* LocalGizmo = nullptr;
     AEditorPlayer* GetEditorPlayer() const { return EditorPlayer; }
+    APlayerCameraManager* GetPlayerCameraManager() const { return PlayerCameraManager; }
+    void SetPlayerCameraManager(APlayerCameraManager* InPlayerCameraManager)
+    {
+        PlayerCameraManager = InPlayerCameraManager;
+    }
     // EditorManager 같은데로 보내기
     TSet<AActor*>& GetSelectedActors() { return SelectedActors; }
     void SetSelectedActor(AActor* InActor)

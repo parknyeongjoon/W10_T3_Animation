@@ -1,7 +1,9 @@
 #include "GameManager.h"
 
 #include "AGEnemy.h"
+#include "APlayerCameraManager.h"
 #include "EditorEngine.h"
+#include "Camera/CameraFadeInOut.h"
 #include "Engine/World.h"
 #include "LevelEditor/SLevelEditor.h"
 
@@ -30,22 +32,46 @@ void FGameManager::BeginPlay()
             enemy->SetActorLocation(FVector(i * 10, j * 10, 2));
         }
     }
+
+    for (auto Actor :GEngine->GetWorld()->GetActors())
+    {
+        if (APlayerCameraManager* CameraManager = Cast<APlayerCameraManager>(Actor))
+        {
+            PlayerCameraManager = CameraManager;
+        }
+    }
+
+    StartGame();
 }
 
 void FGameManager::RestartGame()
 {
     CurrentGameState = EGameState::PrepareRestart;
     GEngine->GetLevelEditor()->GetEditorStateManager().SetState(EEditorState::Stopped);
+
+    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
+    CameraModifier->StartFadeOut(2.0f, FLinearColor::Black);
+    PlayerCameraManager->AddCameraModifier(CameraModifier);
 }
 
 void FGameManager::StartGame()
 {
-    GEngine->GetWorld()->LoadScene("Assets/Scenes/Game.scene");
+    //GEngine->GetWorld()->LoadScene("Assets/Scenes/Game.scene");
+
+    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
+    CameraModifier->StartFadeOut(2.0f, FLinearColor::Black);
+   PlayerCameraManager->AddCameraModifier(CameraModifier);
+    
 }
 
 void FGameManager::EndGame()
 {
     CurrentGameState  = EGameState::Ended;
+
+    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
+    CameraModifier->StartFadeIn(2.0f);
+    PlayerCameraManager->AddCameraModifier(CameraModifier);
+    
     //GEngine->GetWorld()->ReloadScene("Assets/Scenes/EndGame.scene");
 }
 

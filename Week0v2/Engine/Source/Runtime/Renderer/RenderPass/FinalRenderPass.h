@@ -1,18 +1,14 @@
-#pragma once
+﻿#pragma once
 #include "FBaseRenderPass.h"
 
-class FFadeRenderPass : public FBaseRenderPass
+class FFinalRenderPass : public FBaseRenderPass
 {
 public:
-    explicit FFadeRenderPass(const FName& InShaderName);
+    explicit FFinalRenderPass(const FName& InShaderName);
 
-    virtual ~FFadeRenderPass() {}
+    virtual ~FFinalRenderPass() {}
     void AddRenderObjectsToRenderPass(UWorld* InWorld) override;
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
     bool bRender;
-
-    class ID3D11Buffer* FadeConstantBuffer = nullptr;
-
-    void UpdateFadeConstant();
 };

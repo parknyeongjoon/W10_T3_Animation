@@ -4,7 +4,7 @@
 #include "Engine/World.h"
 #include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
-
+#include "Contents/AGPlayer.h"
 AGBullet::AGBullet()
     : Super()
     , Velocity(FVector::ZeroVector)
@@ -97,6 +97,7 @@ void AGBullet::ReturnToPool()
 
 void AGBullet::OnHit(const UPrimitiveComponent* Other)
 {
+    if (Other->GetOwner()->IsA<AGPlayer>()) return;
     if (Other->IsA<UBoxShapeComponent>())
     {
         if (Other->GetAttachParent()->GetRelativeScale().z > 20)

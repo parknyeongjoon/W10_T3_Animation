@@ -1,7 +1,10 @@
 #include "APlayerCameraManager.h"
+
+#include "EditorEngine.h"
 #include "Camera/UCameraModifier.h"
 #include "Camera/CameraComponent.h"
-#include "UObject/UObjectArray.h"
+#include "Engine/World.h"
+
 void APlayerCameraManager::Tick(float DeltaTime)
 {
     float DeltaTimeSecond = DeltaTime * 0.001f;
@@ -17,6 +20,18 @@ APlayerCameraManager::APlayerCameraManager()
     RootComponent = SceneComp;
 }
 
+APlayerCameraManager::APlayerCameraManager(const APlayerCameraManager& Other)
+    : AActor(Other),
+    CameraModifiers(Other.CameraModifiers),
+    ViewTarget(Other.ViewTarget),
+    PostProcessBlendCache(Other.PostProcessBlendCache),
+    PostProcessBlendCacheWeights(Other.PostProcessBlendCacheWeights),
+    PostProcessBlendCacheOrders(Other.PostProcessBlendCacheOrders)
+{
+    //GEngine->GetWorld()->SetPlayerCameraManager(this);
+}
+
+
 UObject* APlayerCameraManager::Duplicate() const
 {
     APlayerCameraManager* ClonedActor = FObjectFactory::ConstructObjectFrom<APlayerCameraManager>(this);
@@ -25,7 +40,7 @@ UObject* APlayerCameraManager::Duplicate() const
     return ClonedActor;
 }
 
-void APlayerCameraManager::ApplyCameraModifiers(float DeltaTime, FViewInfo& ViewInfo)
+void APlayerCameraManager::ApplyCameraModifiers(float DeltaTime, FSimpleViewInfo& ViewInfo)
 {
     for (auto CameraModifier : CameraModifiers)
     {
@@ -82,14 +97,14 @@ void APlayerCameraManager::UpdateViewTarget()
     }
 }
 
-void APlayerCameraManager::ApplyCameraShakes(float DeltaTime, FViewInfo& ViewInfo)
+void APlayerCameraManager::ApplyCameraShakes(float DeltaTime, FSimpleViewInfo& ViewInfo)
 {
     for (int32 i = ActiveShakes.Num() - 1; i >= 0; --i)
     {
         FActiveCameraShakeInfo& Info = ActiveShakes[i];
         if (Info.IsFinished())
         {
-            //GUObjectArray.MarkRemoveObject(Info.Instance);
+            Info.Instance->MarkRemoveObject();
             ActiveShakes.RemoveAt(i);
             continue;
         }
@@ -99,9 +114,9 @@ void APlayerCameraManager::ApplyCameraShakes(float DeltaTime, FViewInfo& ViewInf
         Info.Instance->UpdateShake(DeltaTime, Loc, Rot, FOV);
 
         float W = Info.Instance->GetBlendWeight();
-        ViewInfo.Location += Loc * W;
-        ViewInfo.Rotation += Rot * W;
-        ViewInfo.FOV += FOV * W;
+        ViewInfo.Location += Loc;
+        ViewInfo.Rotation += Rot;
+        ViewInfo.FOV += FOV;
     }
 }
 
@@ -112,7 +127,7 @@ void APlayerCameraManager::ApplyFinalViewToCamera()
     UCameraComponent* Cam = ViewTarget.Target->GetComponentByClass<UCameraComponent>();
     if (!Cam) return;
 
-    const FViewInfo& View = ViewTarget.ViewInfo;
+    const FSimpleViewInfo& View = ViewTarget.ViewInfo;
 
     Cam->SetRelativeLocation(View.Location);
     Cam->SetRelativeRotation(View.Rotation);

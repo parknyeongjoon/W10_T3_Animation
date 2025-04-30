@@ -26,17 +26,17 @@ UCameraComponent::~UCameraComponent()
 
 void UCameraComponent::InitializeComponent()
 {
-    Super::InitializeComponent();
-    //RelativeLocation = FVector(0.0f, 0.0f, 0.5f);
-    FOV = 60.f;
+	Super::InitializeComponent();
+	//RelativeLocation = FVector(0.0f, 0.0f, 0.5f);
+	FOV = 60.f;
 }
 
 void UCameraComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
-    //Input();
-    //SetRelativeRotation(RelativeRotation);
+    Input();
+    SetRelativeRotation(RelativeRotation);
 }
 
 void UCameraComponent::Input()

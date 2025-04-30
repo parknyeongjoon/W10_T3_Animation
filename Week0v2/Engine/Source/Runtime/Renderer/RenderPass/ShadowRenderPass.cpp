@@ -303,7 +303,8 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
     }
 
     Graphics.DeviceContext->RSSetViewports(1, &curEditorViewportClient->GetD3DViewport());
-    Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.RTVs[0], Graphics.DepthStencilView);
+    const auto CurRTV = Graphics.GetCurrentRenderTargetView();
+    Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.DepthStencilView);
     
     // 아틀라스 텍스쳐 바인딩
     ID3D11ShaderResourceView* SpotLightAtlasSRV = (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ?

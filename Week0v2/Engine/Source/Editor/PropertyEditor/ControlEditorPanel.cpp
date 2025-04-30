@@ -266,6 +266,15 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             GEngine->GetLevelEditor()->GetActiveViewportClient()->SetCameraSpeedScalar(CameraSpeed);
         }
 
+        ImGui::Text("Blur Strength");
+        float BlurStrength = GEngine->testBlurStrength;
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::DragFloat("##Blur Strength", &BlurStrength, 0.02f, 0.0f, 5.0f, "%.1f"))
+        {
+            GEngine->testBlurStrength = BlurStrength;
+        }
+        ImGui::Separator();
+
         ImGui::EndPopup();
     }
 
@@ -352,6 +361,8 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     UCameraComponent* Camera = SpawnedActor->AddComponent<UCameraComponent>(EComponentOrigin::Editor);
                     //SpawnedActor->AddComponent<USphereShapeComponent>(EComponentOrigin::Editor)->SetAttachParent(SpringComp);
                     SpringComp->SetTargetComponent(Camera);
+
+                    SpawnedActor->AddComponent<UBoxShapeComponent>(EComponentOrigin::Editor);
                     break;
                 }
                     //  셰이프
