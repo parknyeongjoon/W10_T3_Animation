@@ -16,7 +16,7 @@ public:
 
     void AddedToCamera(APlayerCameraManager* Camera);
     AActor* GetViewTarget() const;
-    float GetTargetAlpha() const;
+    virtual float GetTargetAlpha() const;
     void UpdateAlpha(float DeltaTime);
 
     virtual bool IsDisabled() const { return bDisabled; };
@@ -24,16 +24,17 @@ public:
     virtual void DisableModifier(bool bImmediate = false);
     virtual void EnableModifier();
     
-    virtual void ModifyCamera(float DeltaTime, FViewInfo& ViewInfo);
+    virtual void ModifyCamera(float DeltaTime, FSimpleViewInfo& ViewInfo);
     virtual void ModifyCamera(float DeltaTime, FVector ViewLocation, const FRotator& ViewRotation, float FOV, FVector& NewViewLocation, FRotator& NewViewRotation, float& NewFOV) {}
     virtual void ModifyPostProcess(float DeltaTime, float& PostProcessBlendWeight, FPostProcessSettings& PostProcessSettings) {}
 protected:
     APlayerCameraManager* CameraOwner = nullptr;
-private:
-    bool bDisabled = false;
-    bool bPendingDisable = false;
 
     float Alpha = 0;
     float AlphaInTime = 0;
     float AlphaOutTime = 0;
+    
+private:
+    bool bDisabled = false;
+    bool bPendingDisable = false;
 };

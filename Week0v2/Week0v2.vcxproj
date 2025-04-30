@@ -175,6 +175,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraBlur.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShakeBase.cpp" />
@@ -323,6 +324,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\GunRecoilShake.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraBlur.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShakeBase.h" />

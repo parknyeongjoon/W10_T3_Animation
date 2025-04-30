@@ -21,7 +21,7 @@ public:
     UObject* Duplicate() const override;
     
     AActor* GetViewTarget() const { return ViewTarget.Target; }
-    FViewInfo& GetViewInfo() { return ViewTarget.ViewInfo; }
+    FSimpleViewInfo& GetViewInfo() { return ViewTarget.ViewInfo; }
     void AssignViewTarget(const FTViewTarget& InViewTarget)
     {
         ViewTarget = InViewTarget;
@@ -30,7 +30,7 @@ public:
     void AddCameraModifier(UCameraModifier* Modifier) { CameraModifiers.Add(Modifier); }
     void RemoveCameraModifier(UCameraModifier* Modifier) { CameraModifiers.Remove(Modifier); }
     void CleanCameraModifiers() { CameraModifiers.Empty(); }
-    void ApplyCameraModifiers(float DeltaTime, FViewInfo& ViewInfo);
+    void ApplyCameraModifiers(float DeltaTime, FSimpleViewInfo& ViewInfo);
 
     /** Adds a postprocess effect at the given weight. */
     void AddCachedPPBlend(FPostProcessSettings& PPSettings, float BlendWeight, EViewTargetBlendOrder BlendOrder = VTBlendOrder_Base);

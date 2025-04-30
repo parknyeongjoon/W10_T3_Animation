@@ -29,10 +29,10 @@ void AGPlayer::BeginPlay()
     }
 
     GetCursorPos(&lastMousePos);
-    UCameraComponent* Camera = GetComponentByClass<UCameraComponent>();
+    UCameraComponent* Camera = GetComponentByClass<UCameraComponent>(); // PIE Render 따로 만들어서 거기서 쓸 Camera Component는 따로 생성해주기
     FTViewTarget ViewTarget;
     ViewTarget.Target = this;
-    ViewTarget.ViewInfo = FViewInfo(Camera->GetWorldLocation(), Camera->GetWorldRotation(), Camera->GetFOV());
+    ViewTarget.ViewInfo = FSimpleViewInfo(Camera->GetWorldLocation(), Camera->GetWorldRotation(), Camera->GetFOV());
     for (auto& Actor : GEngine->GetWorld()->GetActors())
     {
         if (APlayerCameraManager* APCM = Cast<APlayerCameraManager>(Actor))

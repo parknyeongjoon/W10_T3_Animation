@@ -15,7 +15,7 @@ UObject* APlayerCameraManager::Duplicate() const
     return ClonedActor;
 }
 
-void APlayerCameraManager::ApplyCameraModifiers(float DeltaTime, FViewInfo& ViewInfo)
+void APlayerCameraManager::ApplyCameraModifiers(float DeltaTime, FSimpleViewInfo& ViewInfo)
 {
     for (auto CameraModifier : CameraModifiers)
     {

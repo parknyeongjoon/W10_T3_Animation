@@ -58,7 +58,7 @@ void UCameraModifier::EnableModifier()
     bPendingDisable = false;
 }
 
-void UCameraModifier::ModifyCamera(float DeltaTime, FViewInfo& ViewInfo)
+void UCameraModifier::ModifyCamera(float DeltaTime, FSimpleViewInfo& ViewInfo)
 {
     ModifyCamera(DeltaTime, ViewInfo.Location, ViewInfo.Rotation, ViewInfo.FOV, ViewInfo.Location, ViewInfo.Rotation, ViewInfo.FOV);
 
