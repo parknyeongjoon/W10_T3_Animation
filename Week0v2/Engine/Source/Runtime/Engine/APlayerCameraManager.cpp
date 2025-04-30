@@ -7,12 +7,34 @@ APlayerCameraManager::APlayerCameraManager()
     RootComponent = SceneComp;
 }
 
+APlayerCameraManager::APlayerCameraManager(const APlayerCameraManager& Other)
+    : AActor(Other),
+    CameraModifiers(Other.CameraModifiers),
+    ViewTarget(Other.ViewTarget),
+    PostProcessBlendCache(Other.PostProcessBlendCache),
+    PostProcessBlendCacheWeights(Other.PostProcessBlendCacheWeights),
+    PostProcessBlendCacheOrders(Other.PostProcessBlendCacheOrders)
+{
+}
+
+
 UObject* APlayerCameraManager::Duplicate() const
 {
     APlayerCameraManager* ClonedActor = FObjectFactory::ConstructObjectFrom<APlayerCameraManager>(this);
     ClonedActor->DuplicateSubObjects(this);
     ClonedActor->PostDuplicate();
     return ClonedActor;
+}
+
+void APlayerCameraManager::Tick(float DeltaTime)
+{
+    AActor::Tick(DeltaTime);
+
+    // ToDo: 뷰정보 넣어주기
+    FViewInfo ViewInfo;
+    ApplyCameraModifiers(DeltaTime, ViewInfo);
+
+
 }
 
 void APlayerCameraManager::ApplyCameraModifiers(float DeltaTime, FViewInfo& ViewInfo)

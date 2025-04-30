@@ -57,8 +57,10 @@ void UWorld::CreateBaseObject()
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
 
-    SpawnActor<APlayerCameraManager>();
 
+    
+    PlayerCameraManager = SpawnActor<APlayerCameraManager>();
+    
     APointLightActor* Light1 = SpawnActor<APointLightActor>();
     APointLightActor* Light2 = SpawnActor<APointLightActor>();
     APointLightActor* Light3 = SpawnActor<APointLightActor>();
@@ -121,8 +123,6 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
         }
 
         FGameManager::Get().Tick(deltaSeconds);
-
-
     }
 }
 

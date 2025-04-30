@@ -1,4 +1,5 @@
 #pragma once
+#include "Math/Color.h"
 #include "Math/Rotator.h"
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
@@ -26,4 +27,7 @@ struct FPostProcessSettings
 {
     uint8 bOverride_ColorGamma;
     FVector4 ColorGamma;
+    
+    float FadeAlpha;
+    FLinearColor FadeColor;
 };

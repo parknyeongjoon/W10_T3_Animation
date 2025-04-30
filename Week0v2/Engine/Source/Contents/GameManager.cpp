@@ -1,7 +1,9 @@
 #include "GameManager.h"
 
 #include "AGEnemy.h"
+#include "APlayerCameraManager.h"
 #include "EditorEngine.h"
+#include "Camera/CameraFadeInOut.h"
 #include "Engine/World.h"
 #include "LevelEditor/SLevelEditor.h"
 
@@ -36,16 +38,30 @@ void FGameManager::RestartGame()
 {
     CurrentGameState = EGameState::PrepareRestart;
     GEngine->GetLevelEditor()->GetEditorStateManager().SetState(EEditorState::Stopped);
+
+    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
+    CameraModifier->StartFadeOut(2.0f, FLinearColor::Black);
+    GEngine->GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
 }
 
 void FGameManager::StartGame()
 {
     GEngine->GetWorld()->LoadScene("Assets/Scenes/Game.scene");
+
+    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
+    CameraModifier->StartFadeOut(2.0f, FLinearColor::Black);
+    GEngine->GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
+    
 }
 
 void FGameManager::EndGame()
 {
     CurrentGameState  = EGameState::Ended;
+
+    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
+    CameraModifier->StartFadeIn(2.0f);
+    GEngine->GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
+    
     //GEngine->GetWorld()->ReloadScene("Assets/Scenes/EndGame.scene");
 }
 
