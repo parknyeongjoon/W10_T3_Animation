@@ -1,20 +1,20 @@
-#include "AGamePlayer.h"
+#include "AGPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "EditorEngine.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "Engine/World.h"
 #include "AGBullet.h"
-AGamePlayer::AGamePlayer()
+AGPlayer::AGPlayer()
 {
     //Camera = AddComponent<UCameraComponent>(EComponentOrigin::Constructor);
 }
 
-AGamePlayer::AGamePlayer(const AGamePlayer& Other) : Super(Other)
+AGPlayer::AGPlayer(const AGPlayer& Other) : Super(Other)
 {
 }
 
-void AGamePlayer::BeginPlay()
+void AGPlayer::BeginPlay()
 {
     Super::BeginPlay();
     ShowCursor(FALSE);
@@ -24,13 +24,13 @@ void AGamePlayer::BeginPlay()
     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(Camera);
 }
 
-void AGamePlayer::Tick(float DeltaTime)
+void AGPlayer::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     Input(DeltaTime);
 }
 
-void AGamePlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void AGPlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     Super::EndPlay(EndPlayReason);
     ShowCursor(TRUE);
@@ -38,25 +38,25 @@ void AGamePlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
     GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
 }
 
-UObject* AGamePlayer::Duplicate() const
+UObject* AGPlayer::Duplicate() const
 {
-    AGamePlayer* NewActor = FObjectFactory::ConstructObjectFrom<AGamePlayer>(this);
+    AGPlayer* NewActor = FObjectFactory::ConstructObjectFrom<AGPlayer>(this);
     NewActor->DuplicateSubObjects(this);
     return NewActor;
 }
 
-void AGamePlayer::DuplicateSubObjects(const UObject* Source)
+void AGPlayer::DuplicateSubObjects(const UObject* Source)
 {
     Super::DuplicateSubObjects(Source);
-    AGamePlayer* Origin = Cast<AGamePlayer>(Source);
+    AGPlayer* Origin = Cast<AGPlayer>(Source);
 }
 
-void AGamePlayer::PostDuplicate()
+void AGPlayer::PostDuplicate()
 {
     Super::PostDuplicate();
 }
 
-void AGamePlayer::Input(float DeltaTime)
+void AGPlayer::Input(float DeltaTime)
 {
     if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
     {
