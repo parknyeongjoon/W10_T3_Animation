@@ -19,7 +19,7 @@ public:
     virtual void Tick(float DeltaTime) override;
 public:
     APlayerCameraManager();
-    APlayerCameraManager(const APlayerCameraManager& Other) {};
+    APlayerCameraManager(const APlayerCameraManager& Other);
     virtual ~APlayerCameraManager() override {};
 
     UObject* Duplicate() const override;
@@ -30,9 +30,16 @@ public:
     {
         ViewTarget = InViewTarget;
     }
+
     
-    void AddCameraModifier(UCameraModifier* Modifier) { CameraModifiers.Add(Modifier); }
-    void RemoveCameraModifier(UCameraModifier* Modifier) { CameraModifiers.Remove(Modifier); }
+    void AddCameraModifier(UCameraModifier* Modifier)
+    {
+        CameraModifiers.Add(Modifier);
+    }
+    void RemoveCameraModifier(UCameraModifier* Modifier)
+    {
+        CameraModifiers.Remove(Modifier);
+    }
     void CleanCameraModifiers() { CameraModifiers.Empty(); }
     void ApplyCameraModifiers(float DeltaTime, FSimpleViewInfo& ViewInfo);
 

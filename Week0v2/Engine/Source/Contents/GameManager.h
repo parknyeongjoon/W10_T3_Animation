@@ -7,6 +7,7 @@ enum class EGameState
     PrepareRestart,
     Playing,
     //Paused,
+    PrepareEnded,
     Ended
 };
 

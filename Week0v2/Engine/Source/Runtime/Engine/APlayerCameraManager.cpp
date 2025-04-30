@@ -1,7 +1,6 @@
 #include "APlayerCameraManager.h"
 #include "Camera/UCameraModifier.h"
 #include "Camera/CameraComponent.h"
-#include "UObject/UObjectArray.h"
 void APlayerCameraManager::Tick(float DeltaTime)
 {
     float DeltaTimeSecond = DeltaTime * 0.001f;
@@ -16,6 +15,17 @@ APlayerCameraManager::APlayerCameraManager()
     auto SceneComp = AddComponent<USceneComponent>(EComponentOrigin::Constructor);
     RootComponent = SceneComp;
 }
+
+APlayerCameraManager::APlayerCameraManager(const APlayerCameraManager& Other)
+    : AActor(Other),
+    CameraModifiers(Other.CameraModifiers),
+    ViewTarget(Other.ViewTarget),
+    PostProcessBlendCache(Other.PostProcessBlendCache),
+    PostProcessBlendCacheWeights(Other.PostProcessBlendCacheWeights),
+    PostProcessBlendCacheOrders(Other.PostProcessBlendCacheOrders)
+{
+}
+
 
 UObject* APlayerCameraManager::Duplicate() const
 {
@@ -89,7 +99,7 @@ void APlayerCameraManager::ApplyCameraShakes(float DeltaTime, FSimpleViewInfo& V
         FActiveCameraShakeInfo& Info = ActiveShakes[i];
         if (Info.IsFinished())
         {
-            //GUObjectArray.MarkRemoveObject(Info.Instance);
+            Info.Instance->MarkRemoveObject();
             ActiveShakes.RemoveAt(i);
             continue;
         }

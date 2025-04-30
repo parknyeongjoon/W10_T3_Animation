@@ -1,5 +1,5 @@
 #include "CameraShakeBase.h"
-
+#include "UObject/UObjectArray.h"
 bool FActiveCameraShakeInfo::IsFinished() const
 {
     return Instance == nullptr || Instance->bFinished;
@@ -11,6 +11,11 @@ UCameraShakeBase::UCameraShakeBase()
 
 UCameraShakeBase::~UCameraShakeBase()
 {
+}
+
+void UCameraShakeBase::MarkRemoveObject()
+{
+    GUObjectArray.MarkRemoveObject(this);
 }
 
 void UCameraShakeBase::UpdateShake(float DeltaTime, FVector& OutLocShake, FRotator& OutRotShake, float& OutFOVShake)

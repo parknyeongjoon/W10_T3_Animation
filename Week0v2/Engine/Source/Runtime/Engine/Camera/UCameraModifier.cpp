@@ -1,6 +1,11 @@
 #include "UCameraModifier.h"
 #include "APlayerCameraManager.h"
 
+// void UCameraModifier::Initialize(APlayerCameraManager* InCameraOwner, float InAlphaInTime, float InAlphaOutTime)
+// {
+//     CameraOwner = InCameraOwner;
+// }
+
 void UCameraModifier::AddedToCamera(APlayerCameraManager* Camera)
 {
     CameraOwner = Camera;
