@@ -1,7 +1,7 @@
 ﻿#include "UCameraModifier.h"
-#include "FPlayerCameraManager.h"
+#include "APlayerCameraManager.h"
 
-void UCameraModifier::AddedToCamera(FPlayerCameraManager* Camera)
+void UCameraModifier::AddedToCamera(APlayerCameraManager* Camera)
 {
     CameraOwner = Camera;
 }

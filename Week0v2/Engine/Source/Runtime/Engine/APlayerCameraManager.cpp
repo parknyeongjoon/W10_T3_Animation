@@ -1,7 +1,7 @@
-﻿#include "FPlayerCameraManager.h"
+﻿#include "APlayerCameraManager.h"
 #include "Camera/UCameraModifier.h"
 
-void FPlayerCameraManager::ApplyCameraModifiers(float DeltaTime, FViewInfo& ViewInfo)
+void APlayerCameraManager::ApplyCameraModifiers(float DeltaTime, FViewInfo& ViewInfo)
 {
     for (auto CameraModifier : CameraModifiers)
     {
@@ -12,27 +12,27 @@ void FPlayerCameraManager::ApplyCameraModifiers(float DeltaTime, FViewInfo& View
     }
 }
 
-void FPlayerCameraManager::AddCachedPPBlend(struct FPostProcessSettings& PPSettings, float BlendWeight, EViewTargetBlendOrder BlendOrder)
+void APlayerCameraManager::AddCachedPPBlend(struct FPostProcessSettings& PPSettings, float BlendWeight, EViewTargetBlendOrder BlendOrder)
 {
     PostProcessBlendCache.Add(PPSettings);
     PostProcessBlendCacheWeights.Add(BlendWeight);
     PostProcessBlendCacheOrders.Add(BlendOrder);
 }
 
-void FPlayerCameraManager::ClearCachedPPBlends()
+void APlayerCameraManager::ClearCachedPPBlends()
 {
     PostProcessBlendCache.Empty();
     PostProcessBlendCacheWeights.Empty();
     PostProcessBlendCacheOrders.Empty();
 }
 
-void FPlayerCameraManager::GetCachedPostProcessBlends(TArray<FPostProcessSettings> const*& OutPPSettings, TArray<float> const*& OutBlendWeights) const
+void APlayerCameraManager::GetCachedPostProcessBlends(TArray<FPostProcessSettings> const*& OutPPSettings, TArray<float> const*& OutBlendWeights) const
 {
     OutPPSettings = &PostProcessBlendCache;
     OutBlendWeights = &PostProcessBlendCacheWeights;
 }
 
-void FPlayerCameraManager::GetCachedPostProcessBlends(TArray<FPostProcessSettings> const*& OutPPSettings, TArray<float> const*& OutBlendWeights, TArray<EViewTargetBlendOrder> const*& OutBlendOrders) const
+void APlayerCameraManager::GetCachedPostProcessBlends(TArray<FPostProcessSettings> const*& OutPPSettings, TArray<float> const*& OutBlendWeights, TArray<EViewTargetBlendOrder> const*& OutBlendOrders) const
 {
     OutPPSettings = &PostProcessBlendCache;
     OutBlendWeights = &PostProcessBlendCacheWeights;
