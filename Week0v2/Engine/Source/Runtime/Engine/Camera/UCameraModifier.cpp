@@ -1,5 +1,5 @@
 #include "UCameraModifier.h"
-#include "APlayerCameraManager.h"
+#include "PlayerCameraManager.h"
 
 // void UCameraModifier::Initialize(APlayerCameraManager* InCameraOwner, float InAlphaInTime, float InAlphaOutTime)
 // {
