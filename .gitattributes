@@ -1,0 +1,2 @@
+Week0v2EngineSourceFBXlibx64debug*.lib filter=lfs diff=lfs merge=lfs -text
+Week0v2EngineSourceFBXlibx64release*.lib filter=lfs diff=lfs merge=lfs -text
