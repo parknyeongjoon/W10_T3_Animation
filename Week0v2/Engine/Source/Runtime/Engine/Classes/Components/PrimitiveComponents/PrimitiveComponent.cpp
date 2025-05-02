@@ -4,6 +4,7 @@
 #include "UObject/ObjectFactory.h"
 
 #include "Physics/FCollisionManager.h"
+#include "UserInterface/Console.h"
 
 UPrimitiveComponent::UPrimitiveComponent()
     : Super()

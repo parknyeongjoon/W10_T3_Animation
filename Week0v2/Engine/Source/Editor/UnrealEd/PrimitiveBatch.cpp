@@ -1,7 +1,7 @@
 #include "PrimitiveBatch.h"
 #include "EditorEngine.h"
 #include "UnrealEd/EditorViewportClient.h"
-extern UEditorEngine* GEngine;
+extern UEngine* GEngine;
 
 UPrimitiveBatch::UPrimitiveBatch()
 {

@@ -1,21 +1,13 @@
 #pragma once
-#include "Core/HAL/PlatformType.h"
-#include "D3D11RHI/GraphicDevice.h"
 #include "Engine/Engine.h"
-#include "Renderer/Renderer.h"
-#include "Engine/ResourceManager.h"
-#include "Physics/FCollisionManager.h"
-#include "Script/LuaManager.h"
+#include "EngineBaseTypes.h"
 #include "Coroutine/CoroutineManager.h"
 
+class FCollisionManager;
+class FRenderer;
+class UEditorPlayer;
 class FContentsUI;
-class FSceneMgr;
 class UnrealEd;
-class UImGuiManager;
-class UWorld;
-class FEditorViewportClient;
-class SSplitterV;
-class SSplitterH;
 class SLevelEditor;
 
 extern UWorld* GWorld;
@@ -26,52 +18,54 @@ class UEditorEngine : public UEngine
     
 public:
     UEditorEngine();
-    int32 Init(HWND hwnd);
-    void Render();
-    void Tick(float deltaSeconds);
-    void Exit();
-    float GetAspectRatio(IDXGISwapChain* swapChain) const;
+    int32 Init(HWND hWnd) override;
+    void Tick(float deltaSeconds) override;
+    void Release() override;
     void Input();
 
+    UWorld* GetWorld() override;
+    
     void PreparePIE();
     void StartPIE();
     void PausedPIE();
     void ResumingPIE();
     void StopPIE();
-    void GetLevel();
 
-    float testBlurStrength;
-    float testBlurRadius;
+    
+    void UpdateGizmos();
+    UEditorPlayer* GetEditorPlayer() const { return EditorPlayer; }
 
-private:
-    void WindowInit(HINSTANCE hInstance);
-    void ResizeGizmo();
 public:
-    static FGraphicsDevice graphicDevice;
-    static FRenderer renderer;
-    static FResourceManager ResourceManager;
+
     static FCollisionManager CollisionManager;
     static FCoroutineManager CoroutineManager;
-    HWND hWnd;
-    ELevelTick levelType = ELevelTick::LEVELTICK_ViewportsOnly;
+    ELevelTick LevelType = ELevelTick::LEVELTICK_ViewportsOnly;
     bool bUButtonDown = false;
 
     void ForceEditorUIOnOff() { bForceEditorUI = !bForceEditorUI; }
     
     bool bForceEditorUI = false;
+public:
+    UWorld* GetWorld() const { return ActiveWorld; }
+    SLevelEditor* GetLevelEditor() const { return LevelEditor; }
+    UnrealEd* GetUnrealEditor() const { return UnrealEditor; }    
+
+    float testBlurStrength;
+
 private:
-    UImGuiManager* UIMgr;
-    UWorld* GWorld;
+    FWorldContext& CreateNewWorldContext(EWorldType::Type InWorldType);
+
+private:
+    UWorld* PIEWorld = nullptr;
+    UWorld* EditorWorld = nullptr;
+    
     SLevelEditor* LevelEditor;
     UnrealEd* UnrealEditor;
 
+    UWorld* ActiveWorld;
+
     FContentsUI* ContentsUI;
     
-    bool bTestInput = false;
-
-public:
-    UWorld* GetWorld() const { return GWorld; }
-    SLevelEditor* GetLevelEditor() const { return LevelEditor; }
-    UnrealEd* GetUnrealEditor() const { return UnrealEditor; }
+    bool bIsMKeyDown = false;
+    UEditorPlayer* EditorPlayer = nullptr;
 };
-extern UEditorEngine* GEngine;

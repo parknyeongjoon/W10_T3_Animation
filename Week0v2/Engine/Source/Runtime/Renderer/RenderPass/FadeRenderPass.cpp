@@ -2,32 +2,37 @@
 
 #include "APlayerCameraManager.h"
 #include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Engine/World.h"
+#include "Renderer/Renderer.h"
+#include "Renderer/RenderResourceManager.h"
 #include "UObject/UObjectIterator.h"
+
+extern UEngine* GEngine;
 
 FFadeRenderPass::FFadeRenderPass(const FName& InShaderName)
     : FBaseRenderPass(InShaderName)
 {
 
-    FRenderer& Renderer = GEngine->renderer;
+    FRenderer& Renderer = GEngineLoop.Renderer;
     FRenderResourceManager* RenderResourceManager = Renderer.GetResourceManager();
     bRender = true;
     FadeConstantBuffer = RenderResourceManager->CreateConstantBuffer(sizeof(FFadeConstants));
 }
 
-void FFadeRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
+void FFadeRenderPass::AddRenderObjectsToRenderPass()
 {
-    for (const AActor* actor : InWorld->GetActors())
+    for (APlayerCameraManager* PlayerCameraManager : TObjectRange<APlayerCameraManager>())
     {
-        if (APlayerCameraManager* pCameraManager = Cast<APlayerCameraManager>(actor))
+        if (PlayerCameraManager->GetWorld() != GEngine->GetWorld())
         {
-            PlayerCameraManagers.Add(pCameraManager);
+            continue;
         }
+        PlayerCameraManagers.Add(PlayerCameraManager);
     }
 }
-
 
 void FFadeRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
 {
@@ -36,9 +41,9 @@ void FFadeRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
     if (bRender)
     {
         FBaseRenderPass::Prepare(InViewportClient);
-        const FRenderer& Renderer = GEngine->renderer;
+        const FRenderer& Renderer = GEngineLoop.Renderer;
 
-        FGraphicsDevice& Graphics = GEngine->graphicDevice;
+        FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
         Graphics.SwapPingPongBuffers();
 
         const auto CurRTV = Graphics.GetCurrentRenderTargetView();
@@ -61,7 +66,7 @@ void FFadeRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
     if (bRender)
     {
         UpdateFadeConstant();
-        FGraphicsDevice& Graphics = GEngine->graphicDevice;
+        FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
         Graphics.DeviceContext->Draw(6, 0);
 
         bRender = false;
@@ -134,8 +139,8 @@ void FFadeRenderPass::UpdateFadeConstant()
         
 
 
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
 
     renderResourceManager->UpdateConstantBuffer(FadeConstantBuffer, &FadeConstants);
     Graphics.DeviceContext->PSSetConstantBuffers(0, 1, &FadeConstantBuffer);

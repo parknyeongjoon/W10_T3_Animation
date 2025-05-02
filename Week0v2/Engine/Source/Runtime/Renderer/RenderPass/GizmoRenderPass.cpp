@@ -1,37 +1,31 @@
 #include "GizmoRenderPass.h"
 #include "EditorEngine.h"
-#include "Actors/Player.h"
+#include "LaunchEngineLoop.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "Components/Mesh/StaticMesh.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
-#include "Math/JungleMath.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/VBIBTopologyMapping.h"
+#include "UnrealEd/EditorPlayer.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/ObjectTypes.h"
 #include "UObject/UObjectIterator.h"
 
 
-extern UEditorEngine* GEngine;
+extern UEngine* GEngine;
 
-void FGizmoRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
+void FGizmoRenderPass::AddRenderObjectsToRenderPass()
 {
-    if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
+    for (UGizmoBaseComponent* GizmoBaseComponent : TObjectRange<UGizmoBaseComponent>())
     {
-        return;
-    }
-    
-    if (InWorld->WorldType == EWorldType::Editor)
-    {
-        for (const auto iter : TObjectRange<USceneComponent>())
+        if (GizmoBaseComponent->GetWorld()->WorldType != EWorldType::Editor || GizmoBaseComponent->GetWorld() != GEngine->GetWorld())
         {
-            if (UGizmoBaseComponent* pGizmoComp = Cast<UGizmoBaseComponent>(iter))
-            {
-                GizmoComponents.Add(pGizmoComp);
-            }
+            continue;
         }
+        
+        GizmoComponents.Add(GizmoBaseComponent);
     }
 }
 
@@ -39,8 +33,8 @@ void FGizmoRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewport
 {
     FBaseRenderPass::Prepare(InViewportClient);
 
-    const FRenderer& Renderer = GEngine->renderer;
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    const FRenderer& Renderer = GEngineLoop.Renderer;
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
     Graphics.DeviceContext->RSSetState(Renderer.GetResourceManager()->GetRasterizerState(ERasterizerState::SolidBack));
@@ -69,8 +63,8 @@ void FGizmoRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewport
     FMatrix View = FMatrix::Identity;
     FMatrix Proj = FMatrix::Identity;
 
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderer& Renderer = GEngine->renderer;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderer& Renderer = GEngineLoop.Renderer;
     
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
     if (curEditorViewportClient != nullptr)
@@ -79,25 +73,27 @@ void FGizmoRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewport
         Proj = curEditorViewportClient->GetProjectionMatrix();
     }
 
-    UWorld* World = GEngine->GetWorld();
     for (auto GizmoComp : GizmoComponents)
     {
-        if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowX ||
-            GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowY ||
-            GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
-            && World->GetEditorPlayer()->GetControlMode() != CM_TRANSLATION)
-            continue;
-        else if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::ScaleX ||
-            GizmoComp->GetGizmoType() == UGizmoBaseComponent::ScaleY ||
-            GizmoComp->GetGizmoType() == UGizmoBaseComponent::ScaleZ)
-            && World->GetEditorPlayer()->GetControlMode() != CM_SCALE)
-            continue;
-        else if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::CircleX ||
-            GizmoComp->GetGizmoType() == UGizmoBaseComponent::CircleY ||
-            GizmoComp->GetGizmoType() == UGizmoBaseComponent::CircleZ)
-            && World->GetEditorPlayer()->GetControlMode() != CM_ROTATION)
-            continue;
-        
+        if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+        {
+            ControlMode ControlMode = EditorEngine->GetEditorPlayer()->GetControlMode();
+            if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowX ||
+                GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowY ||
+                GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
+                && ControlMode != CM_TRANSLATION)
+                continue;
+            else if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::ScaleX ||
+                GizmoComp->GetGizmoType() == UGizmoBaseComponent::ScaleY ||
+                GizmoComp->GetGizmoType() == UGizmoBaseComponent::ScaleZ)
+                && ControlMode != CM_SCALE)
+                continue;
+            else if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::CircleX ||
+                GizmoComp->GetGizmoType() == UGizmoBaseComponent::CircleY ||
+                GizmoComp->GetGizmoType() == UGizmoBaseComponent::CircleZ)
+                && ControlMode != CM_ROTATION)
+                continue;
+        }
         std::shared_ptr<FEditorViewportClient> CurrentEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
         
         UpdateMatrixConstants(GizmoComp, View, Proj);
@@ -128,7 +124,7 @@ void FGizmoRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewport
             const uint64 startIndex = renderData->MaterialSubsets[subMeshIndex].IndexStart;
             const uint64 indexCount = renderData->MaterialSubsets[subMeshIndex].IndexCount;
             Graphics.DeviceContext->DrawIndexed(indexCount, startIndex, 0);
-        }
+        }                           
     }
 }
 
@@ -139,7 +135,7 @@ void FGizmoRenderPass::ClearRenderObjects()
 
 void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoComponent, const FMatrix& InView, const FMatrix& InProjection)
 {
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     // MVP Update
     const FMatrix Model = InGizmoComponent->GetWorldMatrix();
     const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
@@ -161,8 +157,8 @@ void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoCompone
 
 void FGizmoRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
 {
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     
     FMaterialConstants MaterialConstants;
     MaterialConstants.DiffuseColor = MaterialInfo.Diffuse;
@@ -176,7 +172,7 @@ void FGizmoRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialI
     
     if (MaterialInfo.bHasTexture == true)
     {
-        const std::shared_ptr<FTexture> texture = GEngine->ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
+        const std::shared_ptr<FTexture> texture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
         Graphics.DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
         ID3D11SamplerState* linearSampler = renderResourceManager->GetSamplerState(ESamplerType::Linear);
         Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &linearSampler);

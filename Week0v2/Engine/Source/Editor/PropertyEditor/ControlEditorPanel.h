@@ -1,7 +1,9 @@
 #pragma once
-#include "Components/ActorComponent.h"
+#include "HAL/PlatformType.h"
 #include "UnrealEd/EditorPanel.h"
 
+struct ImFont;
+struct ImVec2;
 class SLevelEditor;
 
 class ControlEditorPanel : public UEditorPanel

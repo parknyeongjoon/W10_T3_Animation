@@ -81,7 +81,8 @@ void ADodge::PostDuplicate()
     Super::PostDuplicate();
     // TODO: PIE world 받아오는 다른 방법 생각해보기 지금은 하드코딩
     // 아직 Duplicate 중이라 GetWorld가 Editor World를 뱉음
-    TestDelegate = TestDelegate.Duplicate(GetWorld()->GetPIEWorld()->GetLevel()->GetDuplicatedObjects());
+    // TestDelegate = TestDelegate.Duplicate(GetWorld()->GetPIEWorld()->GetLevel()->GetDuplicatedObjects());
+    TestDelegate = TestDelegate.Duplicate(GetWorld()->GetLevel()->GetDuplicatedObjects());
 }
 
 void ADodge::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray)

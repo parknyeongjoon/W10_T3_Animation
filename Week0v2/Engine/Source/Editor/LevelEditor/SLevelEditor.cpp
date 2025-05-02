@@ -1,14 +1,12 @@
 #pragma once
 #include "SLevelEditor.h"
-#include "SlateCore/Widgets/SWindow.h"
 #include "Slate/Widgets/Layout/SSplitter.h"
 #include "UnrealClient.h"
 #include "UnrealEd/EditorViewportClient.h"
-#include "EditorEngine.h"
-#include "fstream"
-#include "sstream"
-#include "ostream"
-extern UEditorEngine* GEngine;
+#include "LaunchEngineLoop.h"
+#include "ImGUI/imgui.h"
+
+extern UEngine* GEngine;
 
 SLevelEditor::SLevelEditor() : bInitialize(false), HSplitter(nullptr), VSplitter(nullptr),
 World(nullptr), bMultiViewportMode(false)
@@ -19,12 +17,12 @@ SLevelEditor::~SLevelEditor()
 {
 }
 
-void SLevelEditor::Initialize()
+void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
 {
     for (size_t i = 0; i < 4; i++)
     {
-        viewportClients[i] = std::make_shared<FEditorViewportClient>();
-        viewportClients[i]->Initialize(i);
+        ViewportClients.Add(std::make_shared<FEditorViewportClient>());
+        ViewportClients[i]->Initialize(i);
     }
 
     OnResize();
@@ -45,7 +43,7 @@ void SLevelEditor::Tick(ELevelTick tickType, double deltaTime)
         if (bMultiViewportMode) {
             POINT pt;
             GetCursorPos(&pt);
-            ScreenToClient(GEngine->hWnd, &pt);
+            ScreenToClient(GEngineLoop.AppWnd, &pt);
             if (VSplitter->IsHover(FPoint(pt.x, pt.y)) || HSplitter->IsHover(FPoint(pt.x, pt.y)))
             {
                 SetCursor(LoadCursor(NULL, IDC_SIZEALL));
@@ -75,7 +73,7 @@ void SLevelEditor::Input()
             POINT pt;
             GetCursorPos(&pt);
             GetCursorPos(&lastMousePos);
-            ScreenToClient(GEngine->hWnd, &pt);
+            ScreenToClient(GEngineLoop.AppWnd, &pt);
 
             SelectViewport(pt);
 
@@ -117,7 +115,7 @@ void SLevelEditor::Input()
             POINT pt;
             GetCursorPos(&pt);
             GetCursorPos(&lastMousePos);
-            ScreenToClient(GEngine->hWnd, &pt);
+            ScreenToClient(GEngineLoop.AppWnd, &pt);
 
             SelectViewport(pt);
         }
@@ -139,7 +137,7 @@ void SLevelEditor::SelectViewport(POINT point)
 {
     for (int i = 0; i < 4; i++)
     {
-        if (viewportClients[i]->IsSelected(point))
+        if (ViewportClients[i]->IsSelected(point))
         {
             SetViewportClient(i);
             break;
@@ -151,8 +149,8 @@ void SLevelEditor::OnResize()
 {
     float PrevWidth = EditorWidth;
     float PrevHeight = EditorHeight;
-    EditorWidth = GEngine->graphicDevice.screenWidth;
-    EditorHeight = GEngine->graphicDevice.screenHeight;
+    EditorWidth = GEngineLoop.GraphicDevice.screenWidth;
+    EditorHeight = GEngineLoop.GraphicDevice.screenHeight;
     if (bInitialize) {
         //HSplitter 에는 바뀐 width 비율이 들어감 
         HSplitter->OnResize(EditorWidth / PrevWidth, EditorHeight);
@@ -208,7 +206,7 @@ void SLevelEditor::LoadConfig()
     bMultiViewportMode = false;
     for (size_t i = 0; i < 4; i++)
     {
-        viewportClients[i]->LoadConfig(config);
+        ViewportClients[i]->LoadConfig(config);
     }
     if (HSplitter)
         HSplitter->LoadConfig(config);
@@ -226,7 +224,7 @@ void SLevelEditor::SaveConfig()
         VSplitter->SaveConfig(config);
     for (size_t i = 0; i < 4; i++)
     {
-        viewportClients[i]->SaveConfig(config);
+        ViewportClients[i]->SaveConfig(config);
     }
     ActiveViewportClient->SaveConfig(config);
     config["bMutiView"] = std::to_string(bMultiViewportMode);

@@ -3,10 +3,13 @@
 #include "CoreUObject/UObject/Casts.h"
 #include "EditorEngine.h"
 #include "Engine/World.h"
-#include "LevelEditor/SLevelEditor.h"
 #include "Math/JungleMath.h"
-#include "UnrealEd/EditorViewportClient.h"
 #include "Define.h"
+#include "LaunchEngineLoop.h"
+#include "LevelEditor/SLevelEditor.h"
+#include "UnrealEd/EditorViewportClient.h"
+
+extern UEngine* GEngine;
 
 UDirectionalLightComponent::UDirectionalLightComponent()
 {
@@ -14,7 +17,7 @@ UDirectionalLightComponent::UDirectionalLightComponent()
     for (int i =0;i<CASCADE_COUNT;i++)
     {
         UINT temp = pow(2,4-i);
-        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight, 256 * temp, false);
+        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::DirectionalLight, 256 * temp, false);
         ShadowResource[i] = *resource;
         ShadowResources.Add(resource);
     }
@@ -29,7 +32,7 @@ UDirectionalLightComponent::UDirectionalLightComponent(const UDirectionalLightCo
     for (int i = 0; i < CASCADE_COUNT; i++)
     {
         UINT temp = pow(2, 4 - i);
-        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight, 256 * temp, false);
+        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::DirectionalLight, 256 * temp, false);
         ShadowResource[i] = *resource;
         ShadowResources.Add(resource);
     }
@@ -81,7 +84,14 @@ FMatrix UDirectionalLightComponent::GetViewMatrix() const
 
 FMatrix UDirectionalLightComponent::GetCascadeViewMatrix(UINT CascadeIndex) const
 {
-    FVector* CascadeCorner = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeCorner(CascadeIndex);
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+
+    if (EditorEngine == nullptr)
+    {
+        return FMatrix::Identity;
+    }
+    
+    FVector* CascadeCorner = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeCorner(CascadeIndex);
     FVector center = FVector::ZeroVector;
     for (int i=0;i<8;i++)
     {
@@ -109,7 +119,14 @@ FMatrix UDirectionalLightComponent::GetProjectionMatrix() const
 
 FMatrix UDirectionalLightComponent::GetCascadeProjectionMatrix(UINT CascadeIndex) const
 {
-    FVector* CascadeCorner = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeCorner(CascadeIndex);
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+
+    if (EditorEngine == nullptr)
+    {
+        return FMatrix::Identity;
+    }
+    
+    FVector* CascadeCorner = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeCorner(CascadeIndex);
     FMatrix viewMatrix = GetCascadeViewMatrix(CascadeIndex);
 
     FVector minExtents = FVector(FLT_MAX, FLT_MAX, FLT_MAX);

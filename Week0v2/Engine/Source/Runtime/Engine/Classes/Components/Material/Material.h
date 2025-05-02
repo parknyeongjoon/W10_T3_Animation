@@ -1,4 +1,5 @@
 #pragma once
+#include "Define.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 

@@ -2,14 +2,11 @@
 
 #include "Engine/World.h"
 #include "Engine/FLoaderOBJ.h"
-#include "Math/MathUtility.h"
 #include "UnrealEd/ImGuiWidget.h"
-#include "UObject/Casts.h"
 
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Components/GameFramework/RotatingMovementComponent.h"
 #include <Math/JungleMath.h>
-#include <UObject/UObjectIterator.h>
 
 #include "Components/LuaComponent.h"
 #include "Components/LightComponents/DirectionalLightComponent.h"
@@ -20,22 +17,28 @@
 #include "Components/PrimitiveComponents/UParticleSubUVComp.h"
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/CubeComp.h"
-#include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
-#include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 
 #include "LevelEditor/SLevelEditor.h"
 #include "tinyfiledialogs/tinyfiledialogs.h"
-#include "UnrealEd/EditorViewportClient.h"
-#include <windows.h> // 기본적인 Windows API 포함
 #include <shellapi.h> // ShellExecute 관련 함수 정의 포함
-#include <filesystem> // C++17 filesystem 사용
+
+#include "LaunchEngineLoop.h"
+#include "Light/ShadowMapAtlas.h"
+#include "UnrealEd/EditorViewportClient.h"
 #include "UObject/FunctionRegistry.h"
 
+extern UEngine* GEngine;
 
 void PropertyEditorPanel::Render()
 {
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    if (EditorEngine == nullptr)
+    {
+        return;
+    }
+    
     // TODO PickedComponent 패널에서 뺴기 우선 임시용으로 배치
     if ((GetAsyncKeyState(VK_DELETE) & 0x8000))
     {
@@ -78,9 +81,11 @@ void PropertyEditorPanel::Render()
     ImGui::Begin("Detail", nullptr, PanelFlags);
 
     AActor* PickedActor = nullptr;
-    AEditorPlayer* player = GEngine->GetWorld()->GetEditorPlayer();
+
     if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
-            PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
+    {
+        PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
+    }
 
     ImVec2 imageSize = ImVec2(256, 256); // 이미지 출력 크기
 
@@ -409,19 +414,20 @@ void PropertyEditorPanel::Render()
         ImGui::Spacing();
 
         if (PickedComponent->IsA<UDirectionalLightComponent>())
-        {
+        {            
             // direction
             UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(PickedComponent);
-            bool override = Cast<UDirectionalLightComponent>(GEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
+            
+            bool override = Cast<UDirectionalLightComponent>(EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
             if (ImGui::Checkbox("Override Camera", &override))
             {
                 if (override)
                 {
-                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(DirectionalLight);
+                    EditorEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(DirectionalLight);
                 }
                 else
                 {
-                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
+                    EditorEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
                 }
             }
             ImTextureID LightDepth = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()->GetSRV());
@@ -498,7 +504,7 @@ void PropertyEditorPanel::Render()
             FShadowResource* ShadowResouce = PointLight->GetShadowResource();
             if (ShadowResouce->GetAtlasSlotIndex() != -1)
             {
-                ID3D11ShaderResourceView* CubeFaceSRV = ShadowResouce->GetCubeAtlasSRVFace(GEngine->GetEngine()->graphicDevice.Device,
+                ID3D11ShaderResourceView* CubeFaceSRV = ShadowResouce->GetCubeAtlasSRVFace(GEngineLoop.GraphicDevice.Device,
                     ShadowResouce->GetAtlasSlotIndex(), selectedFace);
 
                 if (CubeFaceSRV)
@@ -552,16 +558,16 @@ void PropertyEditorPanel::Render()
                 ImGui::Image(LightDepth, imageSize, uv0, uv1);
             }
             
-            bool override = Cast<USpotLightComponent>(GEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
+            bool override = Cast<USpotLightComponent>(EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
             if (ImGui::Checkbox("Override Camera", &override))
             {
                 if (override)
                 {
-                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(SpotLight);
+                    EditorEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(SpotLight);
                 }
                 else
                 {
-                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
+                    EditorEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
                 }
             }
         }
@@ -758,8 +764,6 @@ void PropertyEditorPanel::Render()
     RenderShapeProperty(PickedActor);
 
     ImGui::End();
-
-
 }
 
 void PropertyEditorPanel::DrawSceneComponentTree(USceneComponent* Component, UActorComponent*& PickedComponent)

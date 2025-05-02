@@ -1,6 +1,4 @@
 #pragma once
-#include <cmath>
-#include <algorithm>
 #include "Core/Container/String.h"
 #include "Core/Container/Array.h"
 #include "UObject/NameTypes.h"
@@ -9,14 +7,10 @@
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
 
-#define UE_LOG Console::GetInstance().AddLog
-
 #define _TCHAR_DEFINED
 #include <d3d11.h>
 
 #include "Math/Matrix.h"
-#include "UserInterface/Console.h"
-#include "Serialization/Archive.h"
 
 
 struct FVertexSimple

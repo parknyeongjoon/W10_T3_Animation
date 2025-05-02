@@ -1,16 +1,15 @@
 #include "Renderer.h"
 #include <d3dcompiler.h>
 
+#include "ShowFlags.h"
 #include "VBIBTopologyMapping.h"
 #include "ComputeShader/ComputeTileLightCulling.h"
 #include "Engine/World.h"
 #include "D3D11RHI/GraphicDevice.h"
-#include "Launch/EditorEngine.h"
 #include "UnrealEd/EditorViewportClient.h"
-#include "UnrealEd/PrimitiveBatch.h"
-#include "PropertyEditor/ShowFlags.h"
-#include "UObject/UObjectIterator.h"
 #include "D3D11RHI/FShaderProgram.h"
+#include "Engine/Engine.h"
+#include "Engine/FEditorStateManager.h"
 #include "RenderPass/BlurRenderPass.h"
 #include "RenderPass/EditorIconRenderPass.h"
 #include "RenderPass/FadeRenderPass.h"
@@ -243,8 +242,9 @@ void FRenderer::CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACR
 //    SAFE_RELEASE(CSBlob_LightCulling)
 //}
 
-void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
+void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
 {
+    AddRenderObjectsToRenderPass();
     SetViewMode(ActiveViewport->GetViewMode());
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
 
@@ -303,7 +303,7 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
     EditorIconRenderPass->Prepare(ActiveViewport);
     EditorIconRenderPass->Execute(ActiveViewport);
 
-    if (!World->GetSelectedActors().IsEmpty())
+    if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
     {
         GizmoRenderPass->Prepare(ActiveViewport);
         GizmoRenderPass->Execute(ActiveViewport);
@@ -317,6 +317,13 @@ void FRenderer::Render(UWorld* World, const std::shared_ptr<FEditorViewportClien
 
     FinalRenderPass->Prepare(ActiveViewport);
     FinalRenderPass->Execute(ActiveViewport);
+
+    EndRender();
+}
+
+void FRenderer::EndRender() const
+{
+    ClearRenderObjects();
 }
 
 void FRenderer::ClearRenderObjects() const
@@ -331,7 +338,6 @@ void FRenderer::ClearRenderObjects() const
     ShadowRenderPass->ClearRenderObjects();
     FadeRenderPass->ClearRenderObjects();
     LetterBoxRenderPass->ClearRenderObjects();
-    
 }
 
 void FRenderer::SetViewMode(const EViewModeIndex evi)
@@ -389,21 +395,21 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
     }
 }
 
-void FRenderer::AddRenderObjectsToRenderPass(UWorld* InWorld) const
+void FRenderer::AddRenderObjectsToRenderPass() const
 {
     //ComputeTileLightCulling->AddRenderObjectsToRenderPass(InWorld);
 
-    GoroudRenderPass->AddRenderObjectsToRenderPass(InWorld);
-    LambertRenderPass->AddRenderObjectsToRenderPass(InWorld);
-    PhongRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    GoroudRenderPass->AddRenderObjectsToRenderPass();
+    LambertRenderPass->AddRenderObjectsToRenderPass();
+    PhongRenderPass->AddRenderObjectsToRenderPass();
     
-    GizmoRenderPass->AddRenderObjectsToRenderPass(InWorld);
-    EditorIconRenderPass->AddRenderObjectsToRenderPass(InWorld);
-    ShadowRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    GizmoRenderPass->AddRenderObjectsToRenderPass();
+    EditorIconRenderPass->AddRenderObjectsToRenderPass();
+    ShadowRenderPass->AddRenderObjectsToRenderPass();
 
-    LineBatchRenderPass->AddRenderObjectsToRenderPass(InWorld);
-    FadeRenderPass->AddRenderObjectsToRenderPass(InWorld);
-    LetterBoxRenderPass->AddRenderObjectsToRenderPass(InWorld);
+    LineBatchRenderPass->AddRenderObjectsToRenderPass();
+    FadeRenderPass->AddRenderObjectsToRenderPass();
+    LetterBoxRenderPass->AddRenderObjectsToRenderPass();
     
 }
 

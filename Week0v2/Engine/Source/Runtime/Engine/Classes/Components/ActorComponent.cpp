@@ -1,6 +1,7 @@
 #include "ActorComponent.h"
 
 #include "GameFramework/Actor.h"
+#include "UObject/UObjectArray.h"
 
 UActorComponent::UActorComponent()
     : ComponentID(FGuid::NewGuid())

@@ -1,10 +1,18 @@
 #pragma once
-#include "ImGUI/imgui.h"
-#include "Define.h"
+#include <string>
+
+#include "D3D11RHI/GraphicDevice.h"
 #include "PropertyEditor/IWindowToggleable.h"
-#include <windows.h>
-#include <psapi.h>
-enum class LogLevel { Display, Warning, Error };
+
+#define UE_LOG Console::GetInstance().AddLog
+
+enum class LogLevel
+{
+    Display,
+    Warning,
+    Error
+};
+
 class StatOverlay 
 {
 public:
@@ -41,10 +49,7 @@ private:
         return 0.0f;
     }
 
-    void DrawTextOverlay(const std::string& text, int x, int y) {
-        ImGui::SetNextWindowPos(ImVec2(x, y));
-        ImGui::Text("%s", text.c_str());
-    }
+    void DrawTextOverlay(const std::string& text, int x, int y);
 };
 class Console : public IWindowToggleable
 {
@@ -79,9 +84,7 @@ public:
     int32 historyPos = -1;
     char inputBuf[256] = "";
     bool scrollToBottom = false;
-
-    ImGuiTextFilter filter;  // 필터링을 위한 ImGuiTextFilter
-
+    
     // 추가된 멤버 변수들
     bool showLogTemp = true;   // LogTemp 체크박스
     bool showWarning = true;   // Warning 체크박스

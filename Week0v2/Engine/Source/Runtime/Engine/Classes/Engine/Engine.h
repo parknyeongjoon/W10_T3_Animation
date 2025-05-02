@@ -1,20 +1,21 @@
 #pragma once
 #include "EngineTypes.h"
 #include "Container/Array.h"
-#include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
-
-class UWorld;
 struct FWorldContext
 {
-    FWorldContext() : WorldType(EWorldType::None), thisCurrentWorld(nullptr){}
+public:
+    FWorldContext() : WorldType(EWorldType::None), World(nullptr){}
 
-    UWorld* thisCurrentWorld;
     EWorldType::Type WorldType;
     TArray<FWorldContext*> ExternalReferences;
 
-    UWorld* World() { return thisCurrentWorld; }
+    UWorld* GetWorld() { return World; }
+    void SetWorld(UWorld* InWorld) { World = InWorld; }
+    
+private:
+    UWorld* World;
 };
 
 class UEngine : public UObject
@@ -22,18 +23,18 @@ class UEngine : public UObject
     DECLARE_CLASS(UEngine, UObject)
 
 public:
-    UEngine();
-    ~UEngine();
-    virtual int32 Init(HWND hwnd);
-    virtual void Tick(float deltaSceconds);
-
-protected:
-    TArray<FWorldContext> worldContexts;
-    FWorldContext* GetEditorWorldContext() { return &worldContexts[0]; }
-    FWorldContext* GetPIEWorldContext() { return &worldContexts[1]; }
+    UEngine() = default;
+    virtual ~UEngine() = default;
 
 public:
-    TArray<FWorldContext>& GetWorldContexts() { return worldContexts; }
+    virtual int32 Init(HWND hWnd);
+    virtual void Tick(float DeltaTime);
+    virtual void Release() {}
+    UWorld* GetWorld() override;
+
+protected:
+    TArray<FWorldContext*> WorldContexts;
+    
 public:
     static inline UINT GFrameCount = 0;
 };

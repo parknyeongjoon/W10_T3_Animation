@@ -1,19 +1,15 @@
 ﻿#include "Engine.h"
 
-
-UEngine::UEngine()
-{
-}
-
-UEngine::~UEngine()
-{
-}
-
-int32 UEngine::Init(HWND hwnd)
+int32 UEngine::Init(HWND hWnd)
 {
     return 0;
 }
 
-void UEngine::Tick(float deltaSceconds)
+void UEngine::Tick(float DeltaTime)
 {
+}
+
+UWorld* UEngine::GetWorld()
+{
+    return nullptr;
 }

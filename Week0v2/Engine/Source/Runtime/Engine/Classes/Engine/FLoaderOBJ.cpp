@@ -1,4 +1,6 @@
 #include "FLoaderOBJ.h"
+
+#include "LaunchEngineLoop.h"
 #include "UObject/ObjectFactory.h"
 #include "Components/Material/Material.h"
 #include "Components/Mesh/StaticMesh.h"
@@ -442,12 +444,12 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
 
 bool FLoaderOBJ::CreateTextureFromFile(const FWString& Filename)
 {
-    if (UEditorEngine::ResourceManager.GetTexture(Filename))
+    if (GEngineLoop.ResourceManager.GetTexture(Filename))
     {
         return true;
     }
 
-    HRESULT hr = UEditorEngine::ResourceManager.LoadTextureFromFile(UEditorEngine::graphicDevice.Device, UEditorEngine::graphicDevice.DeviceContext, Filename.c_str());
+    HRESULT hr = GEngineLoop.ResourceManager.LoadTextureFromFile(GEngineLoop.GraphicDevice.Device, GEngineLoop.GraphicDevice.DeviceContext, Filename.c_str());
 
     if (FAILED(hr))
     {
@@ -671,9 +673,9 @@ bool FManagerOBJ::LoadStaticMeshFromBinary(const FWString& FilePath, OBJ::FStati
     {
         for (const FWString& Texture : Textures)
         {
-            if (UEditorEngine::ResourceManager.GetTexture(Texture) == nullptr)
+            if (GEngineLoop.ResourceManager.GetTexture(Texture) == nullptr)
             {
-                UEditorEngine::ResourceManager.LoadTextureFromFile(UEditorEngine::graphicDevice.Device, UEditorEngine::graphicDevice.DeviceContext, Texture.c_str());
+                GEngineLoop.ResourceManager.LoadTextureFromFile(GEngineLoop.GraphicDevice.Device, GEngineLoop.GraphicDevice.DeviceContext, Texture.c_str());
             }
         }
     }

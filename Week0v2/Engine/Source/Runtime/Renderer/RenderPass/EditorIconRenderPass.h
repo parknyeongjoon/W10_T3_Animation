@@ -13,7 +13,7 @@ public:
     
     ~FEditorIconRenderPass() override;
     
-    void AddRenderObjectsToRenderPass(UWorld* InLevel) override;
+    void AddRenderObjectsToRenderPass() override;
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
     void ClearRenderObjects() override;

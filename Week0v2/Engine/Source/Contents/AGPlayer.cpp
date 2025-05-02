@@ -69,7 +69,10 @@ void AGPlayer::BeginPlay()
     }
 
     AddBeginOverlapUObject(this, &AGPlayer::OnCollision);
-    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(Camera);
+    if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+    {
+        EditorEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(Camera);
+    }
     UE_LOG(LogLevel::Display, "AGamePlayer Begin Play");
 }
 
@@ -89,7 +92,10 @@ void AGPlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
         ShowCursor(TRUE);
         bShowCursor = true;
     }
-    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
+    if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+    {
+        EditorEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
+    }
     UE_LOG(LogLevel::Display, "AGamePlayer End Play");
 }
 
@@ -198,6 +204,12 @@ void AGPlayer::Input(float DeltaTime)
 
     if (!bShowCursor) // 커서 숨김 상태일 때만 마우스 회전
     {
+        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+        if (EditorEngine == nullptr)
+        {
+            return;
+        }
+        
         POINT currentMousePos;
         GetCursorPos(&currentMousePos);
 
@@ -205,10 +217,9 @@ void AGPlayer::Input(float DeltaTime)
         int32 deltaY = currentMousePos.y - lastMousePos.y;
         deltaX *= -1;
         deltaY *= -1;
-
-        FVector cameraForward = GetEngine()->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetForwardVector();
-        FVector cameraRight = GetEngine()->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetRightVector();
-         FVector cameraUp = GetEngine()->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetUpVector();
+        FVector cameraForward = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetForwardVector();
+        FVector cameraRight = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetRightVector();
+        FVector cameraUp = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetUpVector();
 
         FQuat currentRotation = GetRootComponent()->GetWorldRotation().ToQuaternion();
 

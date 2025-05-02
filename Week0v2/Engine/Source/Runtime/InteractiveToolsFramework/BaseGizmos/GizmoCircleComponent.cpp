@@ -1,10 +1,7 @@
 #include "GizmoCircleComponent.h"
 
-#include "Engine/World.h"
-#include "Math/JungleMath.h"
-#include "Actors/Player.h"
 #include "UnrealEd/EditorViewportClient.h"
-#include "LevelEditor/SLevelEditor.h"
+
 #define DISC_RESOLUTION 128
 
 UGizmoCircleComponent::UGizmoCircleComponent()

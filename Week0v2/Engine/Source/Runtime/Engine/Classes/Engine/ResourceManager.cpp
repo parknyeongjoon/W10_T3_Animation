@@ -5,8 +5,9 @@
 #include "D3D11RHI/GraphicDevice.h"
 #include "DirectXTK/Include/DDSTextureLoader.h"
 #include "Engine/FLoaderOBJ.h"
+#include "UserInterface/Console.h"
 
-void FResourceManager::Initialize(FRenderer* renderer, FGraphicsDevice* device)
+void FResourceManager::Initialize(FGraphicsDevice* device)
 {
     GraphicDevice = device;
     //RegisterMesh(renderer, "Quad", quadVertices, sizeof(quadVertices) / sizeof(FVertexSimple), quadInices, sizeof(quadInices)/sizeof(uint32));
@@ -33,7 +34,7 @@ void FResourceManager::Initialize(FRenderer* renderer, FGraphicsDevice* device)
 	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/spotLight.png");
 }
 
-void FResourceManager::Release(FRenderer* renderer)
+void FResourceManager::Release()
 {
     for (auto& Pair : Textures)
     {

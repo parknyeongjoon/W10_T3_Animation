@@ -1,5 +1,7 @@
 #include "EngineStatics.h"
-#include "Define.h"
+
+#include "UserInterface/Console.h"
+
 uint32 UEngineStatics::NextUUID = 0;
 
 UEngineStatics::UEngineStatics()

@@ -1,18 +1,21 @@
 #include "EditorViewportClient.h"
-#include "fstream"
-#include "sstream"
-#include "ostream"
+
+#include "ImGUI/imgui.h"
+
 #include "Math/JungleMath.h"
-#include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
 #include "UnrealClient.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
-#include "Engine/Classes/Engine/StaticMeshActor.h"
-#include "Components/SceneComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/LightComponents/DirectionalLightComponent.h"
+#include "Components/LightComponents/SpotLightComponent.h"
+#include "Engine/FEditorStateManager.h"
+
 FVector FEditorViewportClient::Pivot = FVector(0.0f, 0.0f, 0.0f);
 float FEditorViewportClient::orthoSize = 10.0f;
+
 FEditorViewportClient::FEditorViewportClient()
     : Viewport(nullptr), ViewMode(VMI_Lit_Phong), ViewportType(LVT_Perspective), ShowFlag(31)
 {
@@ -34,7 +37,7 @@ void FEditorViewportClient::Initialize(int32 viewportIndex)
     ViewTransformPerspective.SetLocation(FVector(8.0f, 8.0f, 8.f));
     ViewTransformPerspective.SetRotation(FVector(0.0f, 45.0f, -135.0f));
     Viewport = new FViewport(static_cast<EViewScreenLocation>(viewportIndex));
-    ResizeViewport(GEngine->graphicDevice.SwapchainDesc);
+    ResizeViewport(GEngineLoop.GraphicDevice.SwapchainDesc);
     ViewportIndex = viewportIndex;
 }
 
@@ -76,16 +79,20 @@ void FEditorViewportClient::Tick(float DeltaTime)
 
 void FEditorViewportClient::Release()
 {
-    if (Viewport)
-        delete Viewport;
- 
+    delete Viewport;
 }
-
-
 
 void FEditorViewportClient::Input()
 {
-    if (GEngine->levelType != LEVELTICK_ViewportsOnly) return;
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    if (EditorEngine == nullptr)
+    {
+        return;
+    }
+    if (EditorEngine->LevelType != LEVELTICK_ViewportsOnly)
+    {
+        return;
+    }
     ImGuiIO& io = ImGui::GetIO();
     if (io.WantCaptureMouse) return;
     if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) // VK_RBUTTON은 마우스 오른쪽 버튼을 나타냄
@@ -185,7 +192,7 @@ void FEditorViewportClient::ResizeViewport(const DXGI_SWAP_CHAIN_DESC& swapchain
     else {
         UE_LOG(LogLevel::Error, "Viewport is nullptr");
     }
-    AspectRatio = GEngine->GetAspectRatio(GEngine->graphicDevice.SwapChain);
+    AspectRatio = GEngineLoop.GraphicDevice.GetAspectRatio();
     UpdateProjectionMatrix();
     UpdateViewMatrix();
 }
@@ -197,7 +204,7 @@ void FEditorViewportClient::ResizeViewport(FRect Top, FRect Bottom, FRect Left, 
     else {
         UE_LOG(LogLevel::Error, "Viewport is nullptr");
     }
-    AspectRatio = GEngine->GetAspectRatio(GEngine->graphicDevice.SwapChain);
+    AspectRatio = GEngineLoop.GraphicDevice.GetAspectRatio();
     UpdateProjectionMatrix();
     UpdateViewMatrix();
 }

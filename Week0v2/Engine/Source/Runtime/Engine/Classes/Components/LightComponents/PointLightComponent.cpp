@@ -3,10 +3,11 @@
 #include "CoreUObject/UObject/Casts.h"
 #include <Math/JungleMath.h>
 #include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
 
 UPointLightComponent::UPointLightComponent()
 {
-    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::PointLight, 1024);
+    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::PointLight, 1024);
     Radius = 25.f;
     Intensity = 5.f;
 }
@@ -17,7 +18,7 @@ UPointLightComponent::UPointLightComponent(const UPointLightComponent& Other)
     , AttenuationFalloff(Other.AttenuationFalloff)
 {
     // deepcopy
-    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::PointLight, 1024);
+    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::PointLight, 1024);
 }
 
 UObject* UPointLightComponent::Duplicate() const

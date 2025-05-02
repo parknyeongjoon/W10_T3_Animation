@@ -1,19 +1,22 @@
 #pragma once
-#include "GameFramework/Actor.h"
+#include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 #include "UObject/ObjectTypes.h"
-class UGizmoBaseComponent;
-class UGizmoArrowComponent;
+
+struct FMatrix;
+struct FVector;
 class USceneComponent;
-class UPrimitiveComponent;
+class UGizmoBaseComponent;
 
-class AEditorPlayer : public AActor
+class UEditorPlayer : public UObject
 {
-    DECLARE_CLASS(AEditorPlayer, AActor)
+    DECLARE_CLASS(UEditorPlayer, UObject)
 
-    AEditorPlayer();
+    UEditorPlayer() = default;
+    ~UEditorPlayer() = default;
 
-    virtual void Tick(float DeltaTime) override;
+    virtual void Tick();
+    
 
     void Input();
     bool PickGizmo(FVector& rayOrigin);

@@ -1,22 +1,24 @@
 #include "ShadowRenderPass.h"
 #include "Components/LightComponents/PointLightComponent.h"
 #include "Components/LightComponents/SpotLightComponent.h"
-#include <Renderer/Renderer.h>
-#include "EditorEngine.h"
+#include "Renderer/Renderer.h"
+#include "Math/JungleMath.h"
+#include "Engine/Engine.h"
+#include "LaunchEngineLoop.h"
 #include "UnrealEd/EditorViewportClient.h"
-#include "LevelEditor/SLevelEditor.h"
-#include <Math/JungleMath.h>
-#include "Engine/World.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
+#include "Components/LightComponents/DirectionalLightComponent.h"
 #include "Renderer/VBIBTopologyMapping.h"
 #include "GameFramework/Actor.h"
 #include "Components/Mesh/StaticMesh.h"
+#include "Engine/FEditorStateManager.h"
+#include "UObject/UObjectIterator.h"
 
 
 FShadowRenderPass::FShadowRenderPass(const FName& InShaderName)
     :FBaseRenderPass(InShaderName)
 {
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     D3D11_BUFFER_DESC cbDesc = {};
     cbDesc.ByteWidth = sizeof(FLightCameraConstant);
     cbDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -36,22 +38,26 @@ FShadowRenderPass::FShadowRenderPass(const FName& InShaderName)
     PointLightShadowMapAtlas = std::make_unique<FShadowMapAtlas>(Graphics.Device, EAtlasType::PointLightCube, 1024);
 }
 
-void FShadowRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
+void FShadowRenderPass::AddRenderObjectsToRenderPass()
 {
-    for (const AActor* actor : InWorld->GetActors())
+    for (USceneComponent* SceneComponent : TObjectRange<USceneComponent>())
     {
-        for (const UActorComponent* actorComp : actor->GetComponents())
+        if (SceneComponent->GetWorld() != GEngine->GetWorld())
         {
-            if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(actorComp))
-            {
-                if (!Cast<UGizmoBaseComponent>(actorComp))
-                    StaticMeshComponents.Add(pStaticMeshComp);
-            }
+            continue;
+        }
 
-            if (ULightComponentBase* pGizmoComp = Cast<ULightComponentBase>(actorComp))
+        if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(SceneComponent))
+        {
+            if (!Cast<UGizmoBaseComponent>(StaticMeshComponent))
             {
-                Lights.Add(pGizmoComp);
+                StaticMeshComponents.Add(StaticMeshComponent);
             }
+        }
+
+        if (ULightComponentBase* LightComponentBase = Cast<ULightComponentBase>(SceneComponent))
+        {
+            Lights.Add(LightComponentBase);
         }
     }
 }
@@ -66,8 +72,8 @@ void FShadowRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClien
 {
     FBaseRenderPass::Prepare(InViewportClient);
 
-    const FRenderer& Renderer = GEngine->renderer;
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    const FRenderer& Renderer = GEngineLoop.Renderer;
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
     Graphics.DeviceContext->VSSetConstantBuffers(0, 1, &CameraConstantBuffer);
     
@@ -112,8 +118,8 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
 {
     Prepare(InViewportClient);
     
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderer& Renderer = GEngine->renderer;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderer& Renderer = GEngineLoop.Renderer;
 
     FMatrix View = FMatrix::Identity;
     FMatrix Proj = FMatrix::Identity;
@@ -255,7 +261,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
         Proj = SpotLight->GetProjectionMatrix();
         RenderStaticMesh(View, Proj);
         //VSM
-        if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
+        if (GEngineLoop.Renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
         {
             if (!SpotLightShadowMapAtlas->GetVSMTexture2D())
                 SpotLightShadowMapAtlas->CreateVSMResource(Graphics.Device, EAtlasType::SpotLight2D);
@@ -271,7 +277,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
             ID3D11RenderTargetView* RTV = SpotLightShadowMapAtlas->GetVSMRTV2D();
             Graphics.DeviceContext->ClearRenderTargetView(RTV, ClearColor);
             Graphics.DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
-            GEngine->renderer.PrepareShader(TEXT("LightDepth"));
+            GEngineLoop.Renderer.PrepareShader(TEXT("LightDepth"));
             ID3D11ShaderResourceView* SRV = SpotLightShadowMapAtlas->GetSRV2D();
             Graphics.DeviceContext->PSSetShaderResources(0, 1, &SRV);
             Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -307,7 +313,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
     Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.DepthStencilView);
     
     // 아틀라스 텍스쳐 바인딩
-    ID3D11ShaderResourceView* SpotLightAtlasSRV = (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ?
+    ID3D11ShaderResourceView* SpotLightAtlasSRV = (GEngineLoop.Renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ?
         SpotLightShadowMapAtlas->GetVSMSRV2D() : SpotLightShadowMapAtlas->GetSRV2D();
     Graphics.DeviceContext->PSSetShaderResources(3, 1, &SpotLightAtlasSRV);
     ID3D11ShaderResourceView* PointLightAtlasSRV = PointLightShadowMapAtlas->GetSRVCube();
@@ -316,7 +322,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
 
 void FShadowRenderPass::SetShaderResource(FShadowResource* ShadowResource)
 {
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     
     if (ShadowResource == nullptr)
         return;
@@ -329,7 +335,7 @@ void FShadowRenderPass::SetShaderResource(FShadowResource* ShadowResource)
 
 void FShadowRenderPass::UpdateCameraConstant(FMatrix Model, FMatrix View, FMatrix Proj) const
 {
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
 
     FLightCameraConstant CameraConstants;
     CameraConstants.Model = Model;
@@ -442,8 +448,8 @@ bool FShadowRenderPass::IsSpotLightInFrustum(USpotLightComponent* SpotLightComp,
 void FShadowRenderPass::RenderStaticMesh(FMatrix View, FMatrix Projection)
 {
     FMatrix Model = FMatrix::Identity;
-    FRenderer& Renderer = GEngine->renderer;
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderer& Renderer = GEngineLoop.Renderer;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     
     for (const auto& StaticMesh : StaticMeshComponents)
     {

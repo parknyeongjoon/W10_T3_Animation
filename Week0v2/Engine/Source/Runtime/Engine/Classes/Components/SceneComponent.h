@@ -7,6 +7,8 @@
 #include "Misc/Guid.h"
 #include <sol\sol.hpp>
 
+#include "Define.h"
+
 class USceneComponent;
 
 struct FSceneComponentInfo : public FActorComponentInfo

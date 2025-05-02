@@ -1,34 +1,33 @@
 #include "StaticMeshRenderPass.h"
 
 #include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
+#include "ShowFlags.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
-#include "Math/JungleMath.h"
-#include "PropertyEditor/ShowFlags.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/VBIBTopologyMapping.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/PrimitiveBatch.h"
 
-#include "UnrealClient.h"
 #include "Components/LightComponents/DirectionalLightComponent.h"
 #include "Components/LightComponents/PointLightComponent.h"
 #include "Components/LightComponents/SpotLightComponent.h"
 #include "Components/Material/Material.h"
 #include "Components/Mesh/StaticMesh.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/SkySphereComponent.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "Renderer/ComputeShader/ComputeTileLightCulling.h"
 
-#include "LevelEditor/SLevelEditor.h"
+#include "UObject/UObjectIterator.h"
 
-extern UEditorEngine* GEngine;
+extern UEngine* GEngine;
 
-FStaticMeshRenderPass::FStaticMeshRenderPass(const FName& InShaderName)
-    :FBaseRenderPass(InShaderName)
+FStaticMeshRenderPass::FStaticMeshRenderPass(const FName& InShaderName) : FBaseRenderPass(InShaderName)
 {
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
     D3D11_SAMPLER_DESC desc = {};
     desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -49,22 +48,26 @@ FStaticMeshRenderPass::FStaticMeshRenderPass(const FName& InShaderName)
     Graphics.Device->CreateBuffer(&constdesc, nullptr, &LightConstantBuffer);
 }
 
-void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
+void FStaticMeshRenderPass::AddRenderObjectsToRenderPass()
 {
-    for (const AActor* actor : InWorld->GetActors())
+    for (USceneComponent* SceneComponent : TObjectRange<USceneComponent>())
     {
-        for (const UActorComponent* actorComp : actor->GetComponents())
+        if (SceneComponent->GetWorld() != GEngine->GetWorld())
         {
-            if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(actorComp))
+            continue;
+        }
+                
+        if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(SceneComponent))
+        {
+            if (!Cast<UGizmoBaseComponent>(StaticMeshComponent))
             {
-                if (!Cast<UGizmoBaseComponent>(actorComp))
-                    StaticMesheComponents.Add(pStaticMeshComp);
+                StaticMesheComponents.Add(StaticMeshComponent);
             }
+        }
             
-            if (ULightComponentBase* pGizmoComp = Cast<ULightComponentBase>(actorComp))
-            {
-                LightComponents.Add(pGizmoComp);
-            }
+        if (ULightComponentBase* LightComponent = Cast<ULightComponentBase>(SceneComponent))
+        {
+            LightComponents.Add(LightComponent);
         }
     }
 }
@@ -73,8 +76,8 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
 {
     FBaseRenderPass::Prepare(InViewportClient);
 
-    const FRenderer& Renderer = GEngine->renderer;
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    const FRenderer& Renderer = GEngineLoop.Renderer;
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
     Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
@@ -104,8 +107,8 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
 
 void FStaticMeshRenderPass::UpdateComputeResource()
 {
-    FRenderer& Renderer = GEngine->renderer;
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderer& Renderer = GEngineLoop.Renderer;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     FRenderResourceManager* renderResourceManager = Renderer.GetResourceManager(); 
 
     ID3D11ShaderResourceView* TileCullingSRV = renderResourceManager->GetStructuredBufferSRV("TileLightCulling");
@@ -117,8 +120,8 @@ void FStaticMeshRenderPass::UpdateComputeResource()
 
 void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
-    FRenderer& Renderer = GEngine->renderer;
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderer& Renderer = GEngineLoop.Renderer;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     
     FMatrix View = FMatrix::Identity;
     FMatrix Proj = FMatrix::Identity;
@@ -141,14 +144,13 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     {
         const FMatrix Model = staticMeshComp->GetWorldMatrix();
         UpdateMatrixConstants(staticMeshComp, View, Proj);
-        FVector4 UUIDColor = staticMeshComp->EncodeUUID() / 255.0f ;
-        uint32 isSelected = 0;
-        if (GEngine->GetWorld()->GetSelectedActors().Contains(staticMeshComp->GetOwner()))
-        {
-            isSelected = 1;
-        }
-        // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
-        UpdateContstantBufferActor(UUIDColor , isSelected);
+        // uint32 isSelected = 0;
+        // if (GEngine->GetWorld()->GetSelectedActors().Contains(staticMeshComp->GetOwner()))
+        // {
+        //     isSelected = 1;
+        // }
+        // // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
+        // UpdateContstantBufferActor(UUIDColor , isSelected);
 
         UpdateLightConstants();
 
@@ -208,7 +210,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
 
 //void FStaticMeshRenderPass::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient)
 //{
-//    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+//    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
 //    // MVP Update
 //    FComputeConstants ComputeConstants;
 //    
@@ -248,7 +250,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
 
 void FStaticMeshRenderPass::CreateDummyTexture()
 {
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     // 1x1 흰색 텍스처
     uint32_t whitePixel = 0xFFFFFFFF; // RGBA (1.0, 1.0, 1.0, 1.0)
 
@@ -287,7 +289,7 @@ void FStaticMeshRenderPass::ClearRenderObjects()
 
 void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStaticMeshComponent, const FMatrix& InView, const FMatrix& InProjection)
 {
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     // MVP Update
     const FMatrix Model = InStaticMeshComponent->GetWorldMatrix();
     const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
@@ -308,30 +310,36 @@ void FStaticMeshRenderPass::UpdateMatrixConstants(UStaticMeshComponent* InStatic
 
 void FStaticMeshRenderPass::UpdateFlagConstant()
 {
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
 
     FFlagConstants FlagConstant;
 
-    FlagConstant.IsLit = GEngine->renderer.bIsLit;
+    FlagConstant.IsLit = GEngineLoop.Renderer.bIsLit;
 
-    FlagConstant.IsNormal = GEngine->renderer.bIsNormal;
+    FlagConstant.IsNormal = GEngineLoop.Renderer.bIsNormal;
 
-    FlagConstant.IsVSM = GEngine->renderer.GetShadowFilterMode();
+    FlagConstant.IsVSM = GEngineLoop.Renderer.GetShadowFilterMode();
 
     renderResourceManager->UpdateConstantBuffer(TEXT("FFlagConstants"), &FlagConstant);
 }
 
 void FStaticMeshRenderPass::UpdateLightConstants()
 {
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    if (EditorEngine == nullptr)
+    {
+        return;
+    }
+    
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
     FLightingConstants LightConstant;
     uint32 PointLightCount = 0;
     uint32 SpotLightCount = 0;
 
-    FMatrix View = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
-    FMatrix Projection = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
+    FMatrix View = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();
+    FMatrix Projection = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
     FFrustum CameraFrustum = FFrustum::ExtractFrustum(View*Projection);
     ID3D11ShaderResourceView* ShadowMaps[8] = { nullptr };
     ID3D11ShaderResourceView* ShadowCubeMap[8] = { nullptr };
@@ -378,13 +386,13 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.DirLight.CastShadow = DirectionalLightComp->CanCastShadows();
 
             TArray<ID3D11ShaderResourceView*> DirectionalShadowMaps;
-            for (int i=0;i<CASCADE_COUNT;i++)
+            for (uint32 i = 0; i < CASCADE_COUNT; i++)
             {
                 LightConstant.DirLight.View[i] = DirectionalLightComp->GetCascadeViewMatrix(i);
                 LightConstant.DirLight.Projection[i] = DirectionalLightComp->GetCascadeProjectionMatrix(i);
-                LightConstant.DirLight.CascadeSplit[i] = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeSplit(i);
+                LightConstant.DirLight.CascadeSplit[i] = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeSplit(i);
                 ID3D11ShaderResourceView* DirectionalLightSRV = DirectionalLightComp->GetShadowResource()[i].GetSRV();
-                //if (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
+                //if (GEngineLoop.Renderer.GetShadowFilterMode() == EShadowFilterMode::VSM)
                 //{
                 //    DirectionalLightSRV = DirectionalLightComp->GetShadowResource()[i].GetVSMSRV();
                 //}
@@ -412,7 +420,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.SpotLights[SpotLightCount].Proj = (SpotLightComp->GetProjectionMatrix());
             LightConstant.SpotLights[SpotLightCount].CastShadow = SpotLightComp->CanCastShadows();
             LightConstant.SpotLights[SpotLightCount].AtlasUVTransform = SpotLightComp->GetLightAtlasUV();
-            ShadowMaps[SpotLightCount] = (GEngine->renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ? 
+            ShadowMaps[SpotLightCount] = (GEngineLoop.Renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ? 
                 SpotLightComp->GetShadowResource()->GetVSMSRV() : SpotLightComp->GetShadowResource()->GetSRV();
             SpotLightCount++;
             continue;
@@ -442,21 +450,21 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     Graphics.DeviceContext->PSSetConstantBuffers(2, 1, &LightConstantBuffer);
 }
 
-void FStaticMeshRenderPass::UpdateContstantBufferActor(const FVector4 UUID, int32 isSelected)
-{
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
-    
-    FConstatntBufferActor ConstatntBufferActor;
-
-    ConstatntBufferActor.UUID = UUID;
-    ConstatntBufferActor.IsSelectedActor = isSelected;
-    
-    renderResourceManager->UpdateConstantBuffer(TEXT("FConstatntBufferActor"), &ConstatntBufferActor);
-}
+// void FStaticMeshRenderPass::UpdateContstantBufferActor(const FVector4 UUID, int32 isSelected)
+// {
+//     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
+//     
+//     FConstatntBufferActor ConstatntBufferActor;
+//
+//     ConstatntBufferActor.UUID = UUID;
+//     ConstatntBufferActor.IsSelectedActor = isSelected;
+//     
+//     renderResourceManager->UpdateConstantBuffer(TEXT("FConstatntBufferActor"), &ConstatntBufferActor);
+// }
 
 void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent)
 {
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     
     FSubUVConstant UVBuffer;
     
@@ -476,8 +484,8 @@ void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComp
 
 void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
 {
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     
     FMaterialConstants MaterialConstants;
     MaterialConstants.DiffuseColor = MaterialInfo.Diffuse;
@@ -492,8 +500,8 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
     
     if (MaterialInfo.bHasTexture == true)
     {
-        const std::shared_ptr<FTexture> texture = GEngine->ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
-        const std::shared_ptr<FTexture> NormalTexture = GEngine->ResourceManager.GetTexture(MaterialInfo.NormalTexturePath);
+        const std::shared_ptr<FTexture> texture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
+        const std::shared_ptr<FTexture> NormalTexture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.NormalTexturePath);
         if (texture)
         {
             Graphics.DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
@@ -517,8 +525,8 @@ void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Mate
 
 void FStaticMeshRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewportClient>& InViewportClient)
 {
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     const std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
 
     FCameraConstant CameraConstants;

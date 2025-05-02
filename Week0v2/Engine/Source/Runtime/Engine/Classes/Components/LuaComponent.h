@@ -8,6 +8,7 @@
 #include "GameFramework/Actor.h"
 #include "Math/Rotator.h"
 #include "Script/LuaManager.h"
+#include "UserInterface/Console.h"
 
 struct FLuaComponentInfo : public FActorComponentInfo
 {

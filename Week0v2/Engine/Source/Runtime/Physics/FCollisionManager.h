@@ -1,8 +1,5 @@
 #pragma once
-#include "Core/HAL/PlatformType.h"
 #include "Core/Math/Vector.h"
-#include "Core/Math/Vector4.h"
-#include "Core/Container/Set.h"
 #include "Core/Container/Array.h"
 #include "Core/Container/Pair.h"
 

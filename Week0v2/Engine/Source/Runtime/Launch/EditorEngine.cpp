@@ -1,136 +1,82 @@
 #include "EditorEngine.h"
-#include "ImGuiManager.h"
+
+#include "LaunchEngineLoop.h"
 #include "Engine/World.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/UnrealEd.h"
-#include "Actors/Player.h"
-#include "GameFramework/Actor.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "UObject/UObjectIterator.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
-#include "BaseGizmos/TransformGizmo.h"
 #include "Contents/UI/ContentsUI.h"
 #include "Coroutine/LuaCoroutine.h"
-class ULevel;
+#include "GameFramework/Actor.h"
+#include "Physics/FCollisionManager.h"
+#include "Script/LuaManager.h"
+#include "UnrealEd/EditorPlayer.h"
+#include "UObject/Casts.h"
 
-FGraphicsDevice UEditorEngine::graphicDevice;
-FRenderer UEditorEngine::renderer;
-FResourceManager UEditorEngine::ResourceManager;
+
 FCollisionManager UEditorEngine::CollisionManager;
 FCoroutineManager UEditorEngine::CoroutineManager;
 
 UEditorEngine::UEditorEngine()
-    : hWnd(nullptr)
-    , UIMgr(nullptr)
-    , GWorld(nullptr)
-    , LevelEditor(nullptr)
+    : LevelEditor(nullptr)
     , UnrealEditor(nullptr)
+    , ActiveWorld(nullptr)
+    , ContentsUI(nullptr)
 {
 }
 
-int32 UEditorEngine::Init(HWND hwnd)
+int32 UEditorEngine::Init(HWND hWnd)
 {
+    Super::Init(hWnd);
+    LevelEditor = new SLevelEditor();
+    UnrealEditor = new UnrealEd();
+    ContentsUI = new FContentsUI();
+
+    RECT ClientRect = {};
+    GetClientRect(GEngineLoop.AppWnd, &ClientRect);
+    float ClientWidth = ClientRect.right - ClientRect.left;
+    float ClientHeight = ClientRect.bottom - ClientRect.top;
+
     /* must be initialized before window. */
-    hWnd = hwnd;
-    graphicDevice.Initialize(hWnd);
-    renderer.Initialize(&graphicDevice);
-    UIMgr = new UImGuiManager;
-    UIMgr->Initialize(hWnd, graphicDevice.Device, graphicDevice.DeviceContext);
-    ResourceManager.Initialize(&renderer, &graphicDevice);
+    LevelEditor->Initialize(ClientWidth, ClientHeight);
+    UnrealEditor->Initialize(LevelEditor);
+    ContentsUI->Initialize();
     CollisionManager.Initialize();
     FLuaManager::Get().Initialize();
     
-    FWorldContext EditorContext;
-    EditorContext.WorldType = EWorldType::Editor;
-    EditorContext.thisCurrentWorld = FObjectFactory::ConstructObject<UWorld>();
-    UWorld* EditWorld  =EditorContext.thisCurrentWorld;
-    EditWorld->InitWorld();
-    EditWorld->WorldType = EWorldType::Editor;
-    GWorld = EditWorld;
-    worldContexts.Add(EditorContext);
-    
-    FWorldContext PIEContext;
-    EditorContext.WorldType = EWorldType::PIE;
-    worldContexts.Add(PIEContext);
-    
-    LevelEditor = new SLevelEditor();
-    LevelEditor->Initialize();
-    
-    UnrealEditor = new UnrealEd();
-    UnrealEditor->Initialize(LevelEditor);
-    UnrealEditor->OnResize(hWnd); // 현재 윈도우 사이즈에 대한 재조정
-
-    ContentsUI = new FContentsUI();
-    ContentsUI->Initialize();
+    UnrealEditor->OnResize(hWnd);
     ContentsUI->OnResize(hWnd);
+
+    FWorldContext& EditorContext = CreateNewWorldContext(EWorldType::Editor);
+
+    EditorWorld = FObjectFactory::ConstructObject<UWorld>();
+    EditorWorld->WorldType = EWorldType::Editor;
     
-    graphicDevice.OnResize(hWnd);
+    EditorContext.SetWorld(EditorWorld);
+    ActiveWorld = EditorWorld;
+    ActiveWorld->InitWorld(); // UISOO Check
+
+    EditorPlayer = FObjectFactory::ConstructObject<UEditorPlayer>();
+    // EditorPlayer->Initialize();
     
     RegisterWaitHelpers(FLuaManager::Get().GetLuaState());
     return 0;
 }
 
-void UEditorEngine::Render()
-{
-    graphicDevice.Prepare();
-    if (LevelEditor->IsMultiViewport())
-    {
-        const std::shared_ptr<FEditorViewportClient> viewportClient = GetLevelEditor()->GetActiveViewportClient();
-        for (int i = 0; i < 4; ++i)
-        {
-            LevelEditor->SetViewportClient(i);
-            ResizeGizmo();
-            renderer.AddRenderObjectsToRenderPass(GWorld);
-            renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
-        }
-        GetLevelEditor()->SetViewportClient(viewportClient);
-    }
-    else
-    {
-        renderer.AddRenderObjectsToRenderPass(GWorld);
-        renderer.Render(GWorld, LevelEditor->GetActiveViewportClient());
-    }
-    ResizeGizmo();
-    renderer.ClearRenderObjects();
-}
-
 void UEditorEngine::Tick(float deltaSeconds)
 {
-    GWorld->Tick(levelType, deltaSeconds);
-
-    if (GWorld->WorldType == EWorldType::PIE)
-    {
-        CollisionManager.UpdateCollision(deltaSeconds);
-    }
-
+    ActiveWorld->Tick(LevelType, deltaSeconds);
+    EditorPlayer->Tick();
+    
     CollisionManager.UpdateCollision(deltaSeconds);
     
     Input();
-    // GWorld->Tick(LEVELTICK_All, deltaSeconds);
-    LevelEditor->Tick(levelType, deltaSeconds);
-
-    Render();
     
-    UIMgr->BeginFrame();
+    LevelEditor->Tick(LevelType, deltaSeconds);
 
-    if (GetAsyncKeyState('U') & 0x8000)
-    {
-        if (!bUButtonDown)
-        {
-            bUButtonDown= true;
-            GEngine->ForceEditorUIOnOff();
-        }
-    }
-    else
-    {
-        if (bUButtonDown)
-        {
-            bUButtonDown = false;
-        }
-    }
-
-
-    if (GEngine->GetLevelEditor()->GetEditorStateManager().GetEditorState() != EEditorState::Playing or bForceEditorUI == true )
+    if (LevelEditor->GetEditorStateManager().GetEditorState() != EEditorState::Playing || bForceEditorUI == true )
     {
         UnrealEditor->Render();
     }
@@ -138,49 +84,45 @@ void UEditorEngine::Tick(float deltaSeconds)
     {
         ContentsUI->Render();
     }
-    //UnrealEditor->Render();
-
-    //ContentsUI->Render();
-    
-    Console::GetInstance().Draw();
-    
-    UIMgr->EndFrame();
-
-    // Pending 처리된 오브젝트 제거
-    //GUObjectArray.ProcessPendingDestroyObjects();
-
-    graphicDevice.SwapBuffer();
-    FVector CurRotation = GetLevelEditor()->GetActiveViewportClient()->ViewTransformPerspective.GetRotation();
 
     CoroutineManager.Tick(deltaSeconds);
     CoroutineManager.CleanupCoroutines();
 }
 
-float UEditorEngine::GetAspectRatio(IDXGISwapChain* swapChain) const
+void UEditorEngine::Release()
 {
-    DXGI_SWAP_CHAIN_DESC desc;
-    swapChain->GetDesc(&desc);
-    return static_cast<float>(desc.BufferDesc.Width) / static_cast<float>(desc.BufferDesc.Height);
+    ActiveWorld->Release();
+    LevelEditor->Release();
+    
+    CollisionManager.Release();
+
+    FLuaManager::Get().Shutdown();
+    
+    delete LevelEditor;
+    delete UnrealEditor;
+    delete ContentsUI;
 }
 
 void UEditorEngine::Input()
 {
     if (GetAsyncKeyState('M') & 0x8000)
     {
-        if (!bTestInput)
+        if (!bIsMKeyDown)
         {
-            bTestInput = true;
+            bIsMKeyDown = true;
             if (LevelEditor->IsMultiViewport())
             {
                 LevelEditor->OffMultiViewport();
             }
             else
+            {
                 LevelEditor->OnMultiViewport();
+            }
         }
     }
     else
     {
-        bTestInput = false;
+        bIsMKeyDown = false;
     }
 
     if (GetAsyncKeyState('L') & 0x8000 or GetAsyncKeyState(VK_ESCAPE) & 0x8000)
@@ -204,33 +146,60 @@ void UEditorEngine::Input()
         //     LevelEditor->GetEditorStateManager().SetState(EEditorState::Paused);
         // }
     }
+
+    if (GetAsyncKeyState('U') & 0x8000)
+    {
+        if (!bUButtonDown)
+        {
+            bUButtonDown= true;
+            ForceEditorUIOnOff();
+        }
+    }
+    else
+    {
+        if (bUButtonDown)
+        {
+            bUButtonDown = false;
+        }
+    }
 }
 
+UWorld* UEditorEngine::GetWorld()
+{
+    return ActiveWorld;
+}
 
 void UEditorEngine::PreparePIE()
 {
-    // 1. World 복제
-    worldContexts[1].thisCurrentWorld = Cast<UWorld>(worldContexts[0].thisCurrentWorld->Duplicate());
-    GWorld = worldContexts[1].thisCurrentWorld;
-    GWorld->WorldType = EWorldType::PIE;
-    levelType = LEVELTICK_All;
+    FWorldContext& PIEWorldContext = CreateNewWorldContext(EWorldType::PIE);
     
+    PIEWorld = Cast<UWorld>(EditorWorld->Duplicate());
+    PIEWorld->WorldType = EWorldType::PIE;
+
+    PIEWorldContext.SetWorld(PIEWorld);
+    ActiveWorld = PIEWorld;
+    
+    LevelType = LEVELTICK_All;    
 }
 
 void UEditorEngine::StartPIE()
 {
     // 1. BeingPlay() 호출
-    GWorld->BeginPlay();
-    levelType = LEVELTICK_All;
+    ActiveWorld->BeginPlay();
+    LevelType = LEVELTICK_All;
     UE_LOG(LogLevel::Error, "Start PIE");
 }
 
 void UEditorEngine::PausedPIE()
 {
-    if (levelType == LEVELTICK_All)
-        levelType = LEVELTICK_PauseTick;
-    else if (levelType == LEVELTICK_PauseTick)
-        levelType = LEVELTICK_All;
+    if (LevelType == LEVELTICK_All)
+    {
+        LevelType = LEVELTICK_PauseTick;
+    }
+    else if (LevelType == LEVELTICK_PauseTick)
+    {
+        LevelType = LEVELTICK_All;
+    }
     UE_LOG(LogLevel::Error, "Pause PIE");
 }
 
@@ -241,45 +210,32 @@ void UEditorEngine::ResumingPIE()
 
 void UEditorEngine::StopPIE()
 {
-    // 1. World Clear
-    GWorld = worldContexts[0].thisCurrentWorld;
-
-    for (auto iter : worldContexts[1].World()->GetActors())
+    if (PIEWorld == nullptr)
     {
-        iter->Destroy();
-        GUObjectArray.MarkRemoveObject(iter);
+        MessageBox(nullptr, L"PIE WORLD is not exist", nullptr, MB_OK | MB_ICONERROR);
     }
-    GUObjectArray.MarkRemoveObject(worldContexts[1].World()->GetLevel());
-    worldContexts[1].World()->GetEditorPlayer()->Destroy();
-    worldContexts[1].World()->LocalGizmo->Destroy();
-    GUObjectArray.MarkRemoveObject( worldContexts[1].World());
-    worldContexts[1].thisCurrentWorld = nullptr; 
+
+    ActiveWorld->Release();
     
-    // GWorld->WorldType = EWorldType::Editor;
-    levelType = LEVELTICK_ViewportsOnly;
+    PIEWorld = nullptr;
+    WorldContexts.Remove(WorldContexts[1]);
+    
+    ActiveWorld = EditorWorld;
+    LevelType = LEVELTICK_ViewportsOnly;
 }
 
-void UEditorEngine::Exit()
+void UEditorEngine::UpdateGizmos()
 {
-    GWorld->Release();
-    LevelEditor->Release();
-    UIMgr->Shutdown();
-    delete UIMgr;
-    ResourceManager.Release(&renderer);
-    CollisionManager.Release();
-    renderer.Release();
-
-    FLuaManager::Get().Shutdown();
-    graphicDevice.Release();
-}
-
-void UEditorEngine::ResizeGizmo()
-{
-    for (auto GizmoComp : TObjectRange<UGizmoBaseComponent>())
+    for (UGizmoBaseComponent* GizmoComp : TObjectRange<UGizmoBaseComponent>())
     {
-        if (!GWorld->GetSelectedActors().IsEmpty())
+        if (ActiveWorld != GizmoComp->GetWorld())
         {
-            AActor* PickedActor = *GWorld->GetSelectedActors().begin();
+            continue;
+        }
+        
+        if (!ActiveWorld->GetSelectedActors().IsEmpty())
+        {
+            AActor* PickedActor = *ActiveWorld->GetSelectedActors().begin();
             if (PickedActor == nullptr)
                 break;
             std::shared_ptr<FEditorViewportClient> activeViewport = GetLevelEditor()->GetActiveViewportClient();
@@ -298,4 +254,14 @@ void UEditorEngine::ResizeGizmo()
             }
         }
     }
+}
+
+FWorldContext& UEditorEngine::CreateNewWorldContext(EWorldType::Type InWorldType)
+{
+    FWorldContext* NewWorldContext = new FWorldContext();
+    NewWorldContext->WorldType = InWorldType;
+    WorldContexts.Add(NewWorldContext);
+    
+
+    return *NewWorldContext;
 }

@@ -1,18 +1,10 @@
 #pragma once
-
-#include "Define.h"
 #include "NameTypes.h"
-#include "Container/Map.h"
 #include "Container/String.h"
 
-class FFunctionRegistry;
-
-class UEditorEngine;
-extern UEditorEngine* GEngine;
-
-class UClass;
 class UWorld;
-
+class UClass;
+class FFunctionRegistry;
 
 class UObject
 {
@@ -57,13 +49,7 @@ public:
     UObject();
     virtual ~UObject();
 
-    UWorld* GetWorld();
-    UWorld* GetPIEWorld();
-
-    UEditorEngine* GetEngine()
-    {
-        return GEngine;
-    }
+    virtual UWorld* GetWorld();
 
     FName GetFName() const { return NamePrivate; }
     FString GetName() const { return NamePrivate.ToString(); }
@@ -91,36 +77,9 @@ public:
     }
 
 public:
-    void* operator new(size_t size)
-    {
-        UE_LOG(LogLevel::Display, "UObject Created : %d", size);
+    void* operator new(size_t size);
 
-        void* RawMemory = FPlatformMemory::Malloc<EAT_Object>(size);
-        UE_LOG(
-            LogLevel::Display,
-            "TotalAllocationBytes : %d, TotalAllocationCount : %d",
-            FPlatformMemory::GetAllocationBytes<EAT_Object>(),
-            FPlatformMemory::GetAllocationCount<EAT_Object>()
-        );
-        return RawMemory;
-    }
-
-    void operator delete(void* ptr, size_t size)
-    {
-        UE_LOG(LogLevel::Display, "UObject Deleted : %d", size);
-        FPlatformMemory::Free<EAT_Object>(ptr, size);
-    }
-
-    FVector4 EncodeUUID() const {
-        FVector4 result;
-
-        result.X = UUID & 0xFF;
-        result.Y = (UUID >> 8) & 0xFF;
-        result.Z = (UUID >> 16) & 0xFF;
-        result.W = (UUID >> 24) & 0xFF;
-
-        return result;
-    }
+    void operator delete(void* ptr, size_t size);
 public:
     // Serialize
 

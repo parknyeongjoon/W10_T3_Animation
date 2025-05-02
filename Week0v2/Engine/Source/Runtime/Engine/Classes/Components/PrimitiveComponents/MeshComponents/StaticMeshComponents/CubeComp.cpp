@@ -1,12 +1,8 @@
 #include "CubeComp.h"
 #include "Math/JungleMath.h"
 #include "Engine/World.h"
-#include "UnrealEd/PrimitiveBatch.h"
-#include "UObject/ObjectFactory.h"
-#include "PropertyEditor/ShowFlags.h"
 
 #include "UnrealEd/EditorViewportClient.h"
-#include "LevelEditor/SLevelEditor.h"
 
 #include "Engine/FLoaderOBJ.h"
 

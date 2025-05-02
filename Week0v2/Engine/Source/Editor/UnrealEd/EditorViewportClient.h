@@ -1,17 +1,18 @@
 #pragma once
-#include <sstream>
-
 #include "Define.h"
-#include "EditorEngine.h"
-#include "Container/Map.h"
-#include "UObject/ObjectMacros.h"
-#include "ViewportClient.h"
 #include "EngineBaseTypes.h"
+#include "ViewportClient.h"
+#include "Container/Map.h"
+#include "Container/String.h"
+#include "HAL/PlatformType.h"
 #include "Math/Matrix.h"
+#include "Math/Vector.h"
+#include "UObject/ObjectMacros.h"
 
 #define MIN_ORTHOZOOM				1.0							/* 2D ortho viewport zoom >= MIN_ORTHOZOOM */
 #define MAX_ORTHOZOOM				1e25	
 
+class AActor;
 class USceneComponent;
 
 struct FViewportCameraTransform
@@ -99,6 +100,8 @@ protected:
     /** Camera speed setting */
     int32 CameraSpeedSetting = 1;
     /** Camera speed scalar */
+
+public:
     float CameraSpeedScalar = 1.0f;
     float GridSize;
 
@@ -201,8 +204,6 @@ private:
     void WriteIniFile(const FString& filePath, const TMap<FString, FString>& config);
 	
 public:
-    PROPERTY(int32, CameraSpeedSetting)
-    PROPERTY(float, GridSize)
     float GetCameraSpeedScalar() const { return CameraSpeedScalar * 0.1f; };
     void SetCameraSpeedScalar(float value);
 

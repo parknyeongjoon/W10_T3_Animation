@@ -1,14 +1,18 @@
 #include "VBIBTopologyMapping.h"
 
-#include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
+#include "Renderer.h"
+#include "RenderResourceManager.h"
+#include "D3D11RHI/GraphicDevice.h"
+#include "Engine/Engine.h"
 
-extern UEditorEngine* GEngine;
+extern UEngine* GEngine;
 
 void FVBIBTopologyMapping::Bind() const
 {
-    FGraphicsDevice GraphicDevice = GEngine->graphicDevice;
+    FGraphicsDevice GraphicDevice = GEngineLoop.GraphicDevice;
     
-    FRenderResourceManager* RenderReourcesManager = GEngine->renderer.GetResourceManager();
+    FRenderResourceManager* RenderReourcesManager = GEngineLoop.Renderer.GetResourceManager();
     ID3D11Buffer* VB = RenderReourcesManager->GetVertexBuffer(VBName);
     ID3D11Buffer* IB = RenderReourcesManager->GetIndexBuffer(IBName);
     

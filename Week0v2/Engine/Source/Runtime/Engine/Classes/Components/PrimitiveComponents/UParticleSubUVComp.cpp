@@ -1,8 +1,7 @@
 #include "UParticleSubUVComp.h"
 
-#include "EditorEngine.h"
-#include "UnrealEd/EditorViewportClient.h"
-#include "Engine/World.h"
+#include "LaunchEngineLoop.h"
+#include "Renderer/Renderer.h"
 
 
 UParticleSubUVComp::UParticleSubUVComp()
@@ -148,9 +147,9 @@ void UParticleSubUVComp::CreateSubUVVertexBuffer()
 	vertices[3].u = normalWidthOffset;
 	vertices[3].v = normalHeightOffset;
 
-	ID3D11Buffer* VB = UEditorEngine::renderer.GetResourceManager()->CreateImmutableVertexBuffer<FVertexTexture>(vertices);
-    UEditorEngine::renderer.GetResourceManager()->AddOrSetVertexBuffer(TEXT("QuadVB"), VB);
-    UEditorEngine::renderer.MappingVBTopology(TEXT("Quad"), TEXT("QuadVB"), sizeof(FVertexTexture), 4);
+	ID3D11Buffer* VB = GEngineLoop.Renderer.GetResourceManager()->CreateImmutableVertexBuffer<FVertexTexture>(vertices);
+    GEngineLoop.Renderer.GetResourceManager()->AddOrSetVertexBuffer(TEXT("QuadVB"), VB);
+    GEngineLoop.Renderer.MappingVBTopology(TEXT("Quad"), TEXT("QuadVB"), sizeof(FVertexTexture), 4);
 
     VBIBTopologyMappingName = TEXT("Quad");
 }

@@ -1,17 +1,15 @@
 ﻿#include "FinalRenderPass.h"
 
-#include "EditorEngine.h"
-#include "D3D11RHI/CBStructDefine.h"
+#include "LaunchEngineLoop.h"
 #include "D3D11RHI/GraphicDevice.h"
-#include "UObject/UObjectIterator.h"
+#include "Renderer/Renderer.h"
 
-FFinalRenderPass::FFinalRenderPass(const FName& InShaderName)
-    : FBaseRenderPass(InShaderName)
+FFinalRenderPass::FFinalRenderPass(const FName& InShaderName) : FBaseRenderPass(InShaderName)
 {
     bRender = true;
 }
 
-void FFinalRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
+void FFinalRenderPass::AddRenderObjectsToRenderPass()
 {
 }
 
@@ -22,9 +20,9 @@ void FFinalRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient
     if (bRender)
     {
         FBaseRenderPass::Prepare(InViewportClient);
-        const FRenderer& Renderer = GEngine->renderer;
+        const FRenderer& Renderer = GEngineLoop.Renderer;
         
-        FGraphicsDevice& Graphics = GEngine->graphicDevice;
+        FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
         Graphics.SwapPingPongBuffers();
         
         Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.FrameBufferRTV, nullptr);
@@ -42,7 +40,7 @@ void FFinalRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient
 
 void FFinalRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
 {
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
     if (bRender)
     {

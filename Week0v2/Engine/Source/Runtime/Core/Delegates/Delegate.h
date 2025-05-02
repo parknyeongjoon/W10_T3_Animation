@@ -4,6 +4,7 @@
 #include <typeindex>
 #include "Core/Container/Map.h"
 
+#include "Core/Container/Array.h"
 
 #include "UObject/Object.h"
 

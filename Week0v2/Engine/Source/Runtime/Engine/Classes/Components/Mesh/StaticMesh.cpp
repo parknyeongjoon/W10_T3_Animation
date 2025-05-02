@@ -1,5 +1,9 @@
 #include "StaticMesh.h"
+
+#include "LaunchEngineLoop.h"
 #include "Engine/FLoaderOBJ.h"
+#include "Renderer/Renderer.h"
+#include "Renderer/RenderResourceManager.h"
 #include "UObject/ObjectFactory.h"
 
 UStaticMesh::UStaticMesh()
@@ -39,10 +43,10 @@ void UStaticMesh::SetData(OBJ::FStaticMeshRenderData* renderData)
     const uint32 verticeNum = staticMeshRenderData->Vertices.Num();
     if (verticeNum <= 0) return;
 
-    FRenderResourceManager* renderResourceManager = GetEngine()->renderer.GetResourceManager();
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     VB = renderResourceManager->CreateImmutableVertexBuffer<FVertexSimple>(staticMeshRenderData->Vertices);
     renderResourceManager->AddOrSetVertexBuffer(staticMeshRenderData->DisplayName, VB);
-    GetEngine()->renderer.MappingVBTopology(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, sizeof(FVertexSimple), verticeNum);
+    GEngineLoop.Renderer.MappingVBTopology(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, sizeof(FVertexSimple), verticeNum);
     
     const uint32 indexNum = staticMeshRenderData->Indices.Num();
     if (indexNum > 0)
@@ -50,8 +54,8 @@ void UStaticMesh::SetData(OBJ::FStaticMeshRenderData* renderData)
         IB = renderResourceManager->CreateIndexBuffer(staticMeshRenderData->Indices);
         renderResourceManager->AddOrSetIndexBuffer(staticMeshRenderData->DisplayName, IB);
     }
-    GetEngine()->renderer.MappingVBTopology(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, sizeof(FVertexSimple), verticeNum);
-    GetEngine()->renderer.MappingIB(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, indexNum);
+    GEngineLoop.Renderer.MappingVBTopology(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, sizeof(FVertexSimple), verticeNum);
+    GEngineLoop.Renderer.MappingIB(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, indexNum);
     
     for (int materialIndex = 0; materialIndex < staticMeshRenderData->Materials.Num(); materialIndex++) {
         FStaticMaterial* newMaterialSlot = new FStaticMaterial();

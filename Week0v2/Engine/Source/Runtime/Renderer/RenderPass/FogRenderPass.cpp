@@ -4,15 +4,19 @@
 #include <UObject/UObjectIterator.h>
 #include <D3D11RHI/CBStructDefine.h>
 
+#include "LaunchEngineLoop.h"
 #include "Components/PrimitiveComponents/HeightFogComponent.h"
+#include "Renderer/Renderer.h"
 #include "UnrealEd/EditorViewportClient.h"
+
+extern UEngine* GEngine;
 
 FFogRenderPass::FFogRenderPass(const FName& InShaderName)
     :FBaseRenderPass(InShaderName)
 {
     if (FogCameraConstantBuffer)
         return;
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     D3D11_BUFFER_DESC cbDesc = {};
     cbDesc.ByteWidth = sizeof(FFogCameraConstant);
     cbDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -28,13 +32,13 @@ FFogRenderPass::FFogRenderPass(const FName& InShaderName)
     }
 }
 
-void FFogRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
+void FFogRenderPass::AddRenderObjectsToRenderPass()
 {
 }
 
 void FFogRenderPass::PrePrepare()
 {
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     for (const auto iter : TObjectRange<UHeightFogComponent>())
     {
         if (iter->GetWorld() == GEngine->GetWorld())
@@ -52,8 +56,8 @@ void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
     if (bRender)
     {
         FBaseRenderPass::Prepare(InViewportClient);
-        const FRenderer& Renderer = GEngine->renderer;
-        FGraphicsDevice& Graphics = GEngine->graphicDevice;
+        const FRenderer& Renderer = GEngineLoop.Renderer;
+        FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
         const auto CurRTV = Graphics.GetCurrentRenderTargetView();
         Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, nullptr);
@@ -76,7 +80,7 @@ void FFogRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
 {
     if (bRender)
     {
-        FGraphicsDevice& Graphics = GEngine->graphicDevice;
+        FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
         UpdateCameraConstant(InViewportClient);
         UpdateScreenConstant(InViewportClient);
@@ -90,8 +94,8 @@ void FFogRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
 
 void FFogRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewportClient> InViewportClient) const
 {
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
 
     FFogCameraConstant CameraConstants;
@@ -109,8 +113,8 @@ void FFogRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewportClient>
 
 void FFogRenderPass::UpdateScreenConstant(std::shared_ptr<FViewportClient> InViewportClient)
 {
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
 
     FViewportInfo ScreenConstans;
@@ -124,8 +128,8 @@ void FFogRenderPass::UpdateScreenConstant(std::shared_ptr<FViewportClient> InVie
 
 void FFogRenderPass::UpdateFogConstant(const std::shared_ptr<FViewportClient> InViewportClient) const
 {
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
 
     FFogParams FogParams;
     FogParams.FogColor = FogComp->GetFogColor();

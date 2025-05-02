@@ -1,6 +1,6 @@
 #include "ComputeTileLightCulling.h"
 
-#include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
 #include "UnrealClient.h"
 #include "Components/LightComponents/DirectionalLightComponent.h"
 #include "Components/LightComponents/PointLightComponent.h"
@@ -8,16 +8,13 @@
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "Renderer/Renderer.h"
-#include "Renderer/VBIBTopologyMapping.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
 
-extern UEditorEngine* GEngine;
-
 FComputeTileLightCulling::FComputeTileLightCulling(const FName& InShaderName)
 {
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     
     ID3D11Buffer* SB = nullptr;
     ID3D11ShaderResourceView* SBSRV = nullptr;
@@ -52,11 +49,15 @@ void FComputeTileLightCulling::AddRenderObjectsToRenderPass(UWorld* InWorld)
     }
 }
 
+void FComputeTileLightCulling::OnResize(int screenWidth, int screenHeight)
+{
+}
+
 void FComputeTileLightCulling::Dispatch(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     //Dispatch
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
     ID3D11UnorderedAccessView* TileCullingUAV = renderResourceManager->GetStructuredBufferUAV("TileLightCulling");
         
@@ -113,8 +114,8 @@ void FComputeTileLightCulling::Dispatch(const std::shared_ptr<FViewportClient> I
 
 void FComputeTileLightCulling::UpdateLightConstants()
 {
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     
     FLightingConstants LightConstant;
     uint32 PointLightCount = 0;
@@ -150,8 +151,8 @@ void FComputeTileLightCulling::UpdateLightConstants()
 
 void FComputeTileLightCulling::UpdateComputeConstants(const std::shared_ptr<FViewportClient> InViewportClient, int NumTileX, int NumTileY)
 {
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
     FEditorViewportClient* ViewPort = dynamic_cast<FEditorViewportClient*>(InViewportClient.get());
     
