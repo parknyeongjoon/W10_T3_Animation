@@ -9,9 +9,9 @@ UEngine::~UEngine()
 {
 }
 
-int32 UEngine::Init(HWND hwnd)
+void UEngine::Init(HWND hwnd)
 {
-    return 0;
+    
 }
 
 void UEngine::Tick(float deltaSceconds)

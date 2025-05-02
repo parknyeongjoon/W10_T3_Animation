@@ -26,7 +26,7 @@ class UEditorEngine : public UEngine
     
 public:
     UEditorEngine();
-    int32 Init(HWND hwnd);
+    void Init(HWND hwnd);
     void Render();
     void Tick(float deltaSeconds);
     void Exit();

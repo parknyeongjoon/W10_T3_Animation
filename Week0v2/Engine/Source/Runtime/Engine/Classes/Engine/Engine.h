@@ -5,6 +5,7 @@
 #include "UObject/ObjectMacros.h"
 
 
+class UAssetManager;
 class UWorld;
 struct FWorldContext
 {
@@ -24,16 +25,17 @@ class UEngine : public UObject
 public:
     UEngine();
     ~UEngine();
-    virtual int32 Init(HWND hwnd);
+    virtual void Init(HWND hwnd);
     virtual void Tick(float deltaSceconds);
+
+    UAssetManager* AssetManager = nullptr;
+    
+    TArray<FWorldContext>& GetWorldContexts() { return worldContexts; }
+
+    static inline UINT GFrameCount = 0;
 
 protected:
     TArray<FWorldContext> worldContexts;
     FWorldContext* GetEditorWorldContext() { return &worldContexts[0]; }
     FWorldContext* GetPIEWorldContext() { return &worldContexts[1]; }
-
-public:
-    TArray<FWorldContext>& GetWorldContexts() { return worldContexts; }
-public:
-    static inline UINT GFrameCount = 0;
 };
