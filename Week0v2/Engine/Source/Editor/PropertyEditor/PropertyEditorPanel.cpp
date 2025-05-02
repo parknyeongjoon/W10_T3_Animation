@@ -273,9 +273,9 @@ void PropertyEditorPanel::Render()
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
         {
-            Location = SceneComp->GetRelativeLocation();
-            Rotation = SceneComp->GetRelativeRotation().ToVector();
-            Scale = SceneComp->GetRelativeScale();
+            FVector Location = SceneComp->GetRelativeLocation();
+            FRotator Rotation = SceneComp->GetRelativeRotation();
+            FVector Scale = SceneComp->GetRelativeScale();
             if (PickedComponent != LastComponent)
             {
                 LastComponent = PickedComponent;
@@ -287,7 +287,7 @@ void PropertyEditorPanel::Render()
             bChanged |= FImGuiWidget::DrawVec3Control("Location", Location, 0, 85);
             ImGui::Spacing();
 
-            bChanged |= FImGuiWidget::DrawVec3Control("Rotation", Rotation, 0, 85);
+            bChanged |= FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0, 85);
             ImGui::Spacing();
 
             bChanged |= FImGuiWidget::DrawVec3Control("Scale", Scale, 0, 85);
@@ -325,10 +325,10 @@ void PropertyEditorPanel::Render()
         {
             FVector4 currColor = lightObj->GetLightColor();
 
-            float r = currColor.x;
-            float g = currColor.y;
-            float b = currColor.z;
-            float a = currColor.w;
+            float r = currColor.X;
+            float g = currColor.Y;
+            float b = currColor.Z;
+            float a = currColor.W;
             float h, s, v;
             float lightColor[4] = { r, g, b, a };
 
@@ -545,8 +545,8 @@ void PropertyEditorPanel::Render()
                 ImTextureID LightDepth = reinterpret_cast<ImTextureID>(ShadowMapAtlas->GetSRV2D());
                 FVector4 UV = SpotLight->GetLightAtlasUV(); // x,y,width,height
 
-                ImVec2 uv0 = ImVec2(UV.x, UV.y);
-                ImVec2 uv1 = ImVec2(UV.x + UV.z, UV.y + UV.w);
+                ImVec2 uv0 = ImVec2(UV.X, UV.Y);
+                ImVec2 uv1 = ImVec2(UV.X + UV.Z, UV.Y + UV.W);
 
                 ImGui::Text("Shadow Map");
                 ImGui::Image(LightDepth, imageSize, uv0, uv1);
@@ -702,9 +702,9 @@ void PropertyEditorPanel::Render()
 
             // 안개 색상 편집
             float FogColor[3] = {
-                HeightFogComp->GetFogColor().x,
-                HeightFogComp->GetFogColor().y,
-                HeightFogComp->GetFogColor().z,
+                HeightFogComp->GetFogColor().X,
+                HeightFogComp->GetFogColor().Y,
+                HeightFogComp->GetFogColor().Z,
             };
 
             if (ImGui::ColorEdit3("Fog Color", FogColor))
@@ -744,9 +744,9 @@ void PropertyEditorPanel::Render()
 
         if (ImGui::TreeNodeEx("RotatingMovement", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
         {
-            FVector RotationRate = RotatingComp->RotationRate;
+            FRotator RotationRate = RotatingComp->RotationRate;
 
-            if (FImGuiWidget::DrawVec3Control("RotationRate", RotationRate, 0, 85))
+            if (FImGuiWidget::DrawRot3Control("RotationRate", RotationRate, 0, 85))
             {
                 RotatingComp->RotationRate = RotationRate;
             }
@@ -977,9 +977,9 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
     FVector MatAmbientColor = Material->GetMaterialInfo().Ambient;
     FVector MatEmissiveColor = Material->GetMaterialInfo().Emissive;
 
-    float dr = MatDiffuseColor.x;
-    float dg = MatDiffuseColor.y;
-    float db = MatDiffuseColor.z;
+    float dr = MatDiffuseColor.X;
+    float dg = MatDiffuseColor.Y;
+    float db = MatDiffuseColor.Z;
     float da = 1.0f;
     float DiffuseColorPick[4] = { dr, dg, db, da };
 
@@ -996,9 +996,9 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
         Material->SetDiffuse(NewColor);
     }
 
-    float sr = MatSpecularColor.x;
-    float sg = MatSpecularColor.y;
-    float sb = MatSpecularColor.z;
+    float sr = MatSpecularColor.X;
+    float sg = MatSpecularColor.Y;
+    float sb = MatSpecularColor.Z;
     float sa = 1.0f;
     float SpecularColorPick[4] = { sr, sg, sb, sa };
 
@@ -1011,9 +1011,9 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
     }
 
 
-    float ar = MatAmbientColor.x;
-    float ag = MatAmbientColor.y;
-    float ab = MatAmbientColor.z;
+    float ar = MatAmbientColor.X;
+    float ag = MatAmbientColor.Y;
+    float ab = MatAmbientColor.Z;
     float aa = 1.0f;
     float AmbientColorPick[4] = { ar, ag, ab, aa };
 
@@ -1026,9 +1026,9 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
     }
 
 
-    float er = MatEmissiveColor.x;
-    float eg = MatEmissiveColor.y;
-    float eb = MatEmissiveColor.z;
+    float er = MatEmissiveColor.X;
+    float eg = MatEmissiveColor.Y;
+    float eb = MatEmissiveColor.Z;
     float ea = 1.0f;
     float EmissiveColorPick[4] = { er, eg, eb, ea };
 
@@ -1098,9 +1098,9 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     FVector MatAmbientColor = tempMaterialInfo.Ambient;
     FVector MatEmissiveColor = tempMaterialInfo.Emissive;
 
-    float dr = MatDiffuseColor.x;
-    float dg = MatDiffuseColor.y;
-    float db = MatDiffuseColor.z;
+    float dr = MatDiffuseColor.X;
+    float dg = MatDiffuseColor.Y;
+    float db = MatDiffuseColor.Z;
     float da = 1.0f;
     float DiffuseColorPick[4] = { dr, dg, db, da };
 
@@ -1115,9 +1115,9 @@ void PropertyEditorPanel::RenderCreateMaterialView()
         tempMaterialInfo.Diffuse = NewColor;
     }
 
-    float sr = MatSpecularColor.x;
-    float sg = MatSpecularColor.y;
-    float sb = MatSpecularColor.z;
+    float sr = MatSpecularColor.X;
+    float sg = MatSpecularColor.Y;
+    float sb = MatSpecularColor.Z;
     float sa = 1.0f;
     float SpecularColorPick[4] = { sr, sg, sb, sa };
 
@@ -1130,9 +1130,9 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     }
 
 
-    float ar = MatAmbientColor.x;
-    float ag = MatAmbientColor.y;
-    float ab = MatAmbientColor.z;
+    float ar = MatAmbientColor.X;
+    float ag = MatAmbientColor.Y;
+    float ab = MatAmbientColor.Z;
     float aa = 1.0f;
     float AmbientColorPick[4] = { ar, ag, ab, aa };
 
@@ -1145,9 +1145,9 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     }
 
 
-    float er = MatEmissiveColor.x;
-    float eg = MatEmissiveColor.y;
-    float eb = MatEmissiveColor.z;
+    float er = MatEmissiveColor.X;
+    float eg = MatEmissiveColor.Y;
+    float eb = MatEmissiveColor.Z;
     float ea = 1.0f;
     float EmissiveColorPick[4] = { er, eg, eb, ea };
 

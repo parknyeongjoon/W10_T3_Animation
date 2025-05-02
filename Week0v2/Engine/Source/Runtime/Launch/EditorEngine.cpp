@@ -1,15 +1,11 @@
 #include "EditorEngine.h"
 #include "ImGuiManager.h"
 #include "Engine/World.h"
-#include "PropertyEditor/ViewportTypePanel.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/UnrealEd.h"
-#include "UnrealClient.h"
 #include "Actors/Player.h"
 #include "GameFramework/Actor.h"
-#include "slate/Widgets/Layout/SSplitter.h"
 #include "LevelEditor/SLevelEditor.h"
-#include "UnrealEd/SceneMgr.h"
 #include "UObject/UObjectIterator.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "BaseGizmos/TransformGizmo.h"
@@ -70,7 +66,6 @@ int32 UEditorEngine::Init(HWND hwnd)
     
     graphicDevice.OnResize(hWnd);
     
-    SceneMgr = new FSceneMgr();
     RegisterWaitHelpers(FLuaManager::Get().GetLuaState());
     return 0;
 }
@@ -270,7 +265,6 @@ void UEditorEngine::Exit()
     LevelEditor->Release();
     UIMgr->Shutdown();
     delete UIMgr;
-    delete SceneMgr;
     ResourceManager.Release(&renderer);
     CollisionManager.Release();
     renderer.Release();
@@ -292,7 +286,7 @@ void UEditorEngine::ResizeGizmo()
             if (activeViewport->IsPerspective())
             {
                 float scalar = abs(
-                    (activeViewport->ViewTransformPerspective.GetLocation() - PickedActor->GetRootComponent()->GetLocalLocation()).Magnitude()
+                    (activeViewport->ViewTransformPerspective.GetLocation() - PickedActor->GetRootComponent()->GetRelativeLocation()).Magnitude()
                 );
                 scalar *= 0.1f;
                 GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));

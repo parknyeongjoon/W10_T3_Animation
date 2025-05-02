@@ -78,9 +78,9 @@ void LuaTypes::FBindLua<FVector>::Bind(sol::table& Table)
         sol::constructors<FVector(), FVector(float, float, float)>(),
 
         // Member variables
-        LUA_BIND_MEMBER(&FVector::x),
-        LUA_BIND_MEMBER(&FVector::y),
-        LUA_BIND_MEMBER(&FVector::z),
+        LUA_BIND_MEMBER(&FVector::X),
+        LUA_BIND_MEMBER(&FVector::Y),
+        LUA_BIND_MEMBER(&FVector::Z),
 
         // Operators
         sol::meta_function::equal_to, &FVector::operator==,
@@ -124,8 +124,8 @@ void LuaTypes::FBindLua<FVector2D>::Bind(sol::table& Table)
         sol::constructors<FVector2D(), FVector2D(float, float)>(),
 
         // Member variables
-        LUA_BIND_MEMBER(&FVector2D::x),
-        LUA_BIND_MEMBER(&FVector2D::y),
+        LUA_BIND_MEMBER(&FVector2D::X),
+        LUA_BIND_MEMBER(&FVector2D::Y),
 
         // Operators
         //sol::meta_function::equal_to, &FVector2D::operator==,
@@ -156,10 +156,10 @@ void LuaTypes::FBindLua<FVector4>::Bind(sol::table& Table)
         sol::constructors<FVector4(), FVector4(float, float, float, float)>(),
 
         // Member variables
-        LUA_BIND_MEMBER(&FVector4::x),
-        LUA_BIND_MEMBER(&FVector4::y),
-        LUA_BIND_MEMBER(&FVector4::z),
-        LUA_BIND_MEMBER(&FVector4::w)
+        LUA_BIND_MEMBER(&FVector4::X),
+        LUA_BIND_MEMBER(&FVector4::Y),
+        LUA_BIND_MEMBER(&FVector4::Z),
+        LUA_BIND_MEMBER(&FVector4::W)
     );
 }
 
@@ -201,10 +201,10 @@ void LuaTypes::FBindLua<FQuat>::Bind(sol::table& Table)
         sol::constructors<FQuat(), FQuat(float, float, float, float)>(),
 
         // Member variables
-        LUA_BIND_MEMBER(&FQuat::x),
-        LUA_BIND_MEMBER(&FQuat::y),
-        LUA_BIND_MEMBER(&FQuat::z),
-        LUA_BIND_MEMBER(&FQuat::w),
+        LUA_BIND_MEMBER(&FQuat::X),
+        LUA_BIND_MEMBER(&FQuat::Y),
+        LUA_BIND_MEMBER(&FQuat::Z),
+        LUA_BIND_MEMBER(&FQuat::W),
 
         // Utility functions
         LUA_BIND_MEMBER(&FQuat::Normalize),
@@ -353,14 +353,15 @@ void LuaTypes::FBindLua<USceneComponent>::Bind(sol::table& engineTable)
         , "GetForwardVector", &USceneComponent::GetForwardVector
         , "GetRightVector", &USceneComponent::GetRightVector
         , "GetUpVector", &USceneComponent::GetUpVector
-        , "AddLocation", &USceneComponent::AddLocation
-        , "AddRotation", &USceneComponent::AddRotation
-        , "AddScale", &USceneComponent::AddScale
+        , "AddLocation", &USceneComponent::AddRelativeLocation
+        , "AddRotation", &USceneComponent::AddRelativeRotation
+        , "AddScale", &USceneComponent::AddRelativeScale
         , "GetWorldLocation", &USceneComponent::GetWorldLocation
         , "GetWorldRotation", &USceneComponent::GetWorldRotation
         , "GetWorldScale", &USceneComponent::GetWorldScale
-        , "GetLocalLocation", &USceneComponent::GetLocalLocation
-        , "GetLocalScale", &USceneComponent::GetLocalScale
+        , "GetLocalLocation", &USceneComponent::GetRelativeLocation
+        , "GetLocalRotation", &USceneComponent::GetRelativeRotation
+        , "GetLocalScale", &USceneComponent::GetScaleMatrix
     );
 }
 

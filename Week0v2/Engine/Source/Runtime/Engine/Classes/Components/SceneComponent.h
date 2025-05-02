@@ -62,26 +62,12 @@ public:
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
     void DestroyComponent() override;
-    virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance);
-    virtual FVector GetForwardVector() const;
-    virtual FVector GetRightVector() const;
-    virtual FVector GetUpVector() const;
-    void AddLocation(FVector _added);
-    void AddRotation(FRotator _added);
-    void AddScale(FVector _added);
-    FVector GetWorldLocation() const;
-    FRotator GetWorldRotation() const;
-    FVector GetWorldScale() const;
-    FMatrix GetScaleMatrix() const;
-    FMatrix GetRotationMatrix() const;
-    FMatrix GetTranslationMatrix() const;
-    FMatrix GetWorldMatrix() const;
 
-    void SetWorldLocation(const FVector& NewWorldLocation);
-    FMatrix GetWorldToLocalMatrix() const;
+    virtual UObject* Duplicate() const override;
+    virtual void DuplicateSubObjects(const UObject* Source) override;
+    
+    virtual void PostDuplicate() {};
 
-    FBoundingBox GetBoundingBox() const { return AABB; }
-    void SetBoundingBox(const FBoundingBox& InAABB) { AABB = InAABB; }
 protected:
     FVector RelativeLocation;
     FRotator RelativeRotation;
@@ -91,29 +77,55 @@ protected:
     TArray<USceneComponent*> AttachChildren;
 
     FBoundingBox AABB;
+    
 public:
-    PROPERTY(FVector, RelativeLocation)
-    PROPERTY(FRotator, RelativeRotation)
-    PROPERTY(FVector, RelativeScale)
+    FVector GetForwardVector() const;
+    FVector GetRightVector() const;
+    FVector GetUpVector() const;
     
-    void AttachToComponent(USceneComponent* InParent);
+    void AddRelativeLocation(const FVector& InAddValue);
+    void AddRelativeRotation(const FRotator& InAddValue);
+    void AddRelativeScale(const FVector& InAddValue);
+    
+    void SetRelativeLocation(const FVector& InLocation);
+    void SetRelativeRotation(const FRotator& InRotation);
+    void SetRelativeRotation(const FQuat& InQuat);
+    void SetRelativeScale(const FVector& InScale);
+    
+    FVector GetRelativeLocation() const;
+    FRotator GetRelativeRotation() const;
+    FVector GetRelativeScale() const;
 
-#define region
-    FVector GetLocalScale() const { return RelativeScale; }
-    FVector GetLocalLocation() const { return RelativeLocation; }
-    
+    FVector GetWorldLocation() const;
+    FRotator GetWorldRotation() const;
+    FVector GetWorldScale() const;
+
+    void SetWorldLocation(const FVector& InLocation);
+    void SetWorldRotation(const FRotator& InRotation);
+    void SetWorldRotation(const FQuat& InQuat);
+    void SetWorldScale(const FVector& InScale);
+
+    FMatrix GetScaleMatrix() const;
+    FMatrix GetRotationMatrix() const;
+    FMatrix GetTranslationMatrix() const;
+
+    FMatrix GetWorldMatrix() const;
+    FMatrix GetWorldRTMatrix() const;
+
+public:
+    void AttachToComponent(USceneComponent* InParent);
     void SetupAttachment(USceneComponent* InParent);
     void DetachFromParent();
-#define endregion
-public:
-    USceneComponent* GetAttachParent() const;
     void SetAttachParent(USceneComponent* InParent);
     TArray<USceneComponent*> GetAttachChildren() const { return AttachChildren; }
+    USceneComponent* GetAttachParent() const;
 
-    virtual UObject* Duplicate() const override;
-    virtual void DuplicateSubObjects(const UObject* Source) override;
-    virtual void PostDuplicate();
+public:
+    virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance);
 
+    FBoundingBox GetBoundingBox() const { return AABB; }
+    void SetBoundingBox(const FBoundingBox& InAABB) { AABB = InAABB; }
+    
 public:
     virtual bool MoveComponent(const FVector& Delta) { return false; }
     std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;

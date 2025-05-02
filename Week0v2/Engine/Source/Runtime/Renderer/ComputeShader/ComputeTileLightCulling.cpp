@@ -73,14 +73,14 @@ void FComputeTileLightCulling::Dispatch(const std::shared_ptr<FViewportClient> I
     int numTilesX = (screenWidth + TILE_SIZE_X - 1) / TILE_SIZE_X; // 1024/16=64
     int numTilesY = (screenHeight + TILE_SIZE_Y - 1) / TILE_SIZE_Y; // 768/16=48
     
-    if (PreviousTileCount.x != numTilesX || PreviousTileCount.y != numTilesY)
+    if (PreviousTileCount.X != numTilesX || PreviousTileCount.Y != numTilesY)
     {
         ID3D11Buffer* SB = nullptr;
         ID3D11ShaderResourceView* SBSRV = nullptr;
         ID3D11UnorderedAccessView* SBUAV = nullptr;
 
-        PreviousTileCount.x = numTilesX;
-        PreviousTileCount.y = numTilesY;
+        PreviousTileCount.X = numTilesX;
+        PreviousTileCount.Y = numTilesY;
         
         int MaxPointLightCount = 16;
         int UAVElementCount = MaxPointLightCount * numTilesX * numTilesY;

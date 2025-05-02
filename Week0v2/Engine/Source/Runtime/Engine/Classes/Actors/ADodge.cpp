@@ -59,7 +59,7 @@ void ADodge::TestTranslate()
 
 void ADodge::TestRotate()
 {
-    SetActorRotation(GetActorRotation() + FVector(0.01,0,0));
+    SetActorRotation(GetActorRotation() + FRotator(0.01,0,0));
 }
 
 UObject* ADodge::Duplicate() const

@@ -23,12 +23,12 @@ void UHitCameraShake::UpdateShake(float DeltaTime, FVector& OutLoc, FRotator& Ou
 
     // 2. 카메라 기준으로 변환
     FQuat CameraQuat = CameraRotation.ToQuaternion();
-    FQuat CameraQuatInv = FQuat(CameraQuat.w, -CameraQuat.x, -CameraQuat.y, -CameraQuat.z);
+    FQuat CameraQuatInv = FQuat(CameraQuat.W, -CameraQuat.X, -CameraQuat.Y, -CameraQuat.Z);
     FVector LocalDir = CameraQuatInv.RotateVector(Dir);
 
     // 3. 성분에 비례한 회전
-    float TargetPitch = -LocalDir.x * RotationScale; // 앞에서 맞으면 아래로 밀림 (Pitch 증가)
-    float TargetYaw = LocalDir.y * RotationScale; // 왼쪽에서 맞으면 오른쪽으로 흔들림 (Yaw 증가)
+    float TargetPitch = -LocalDir.X * RotationScale; // 앞에서 맞으면 아래로 밀림 (Pitch 증가)
+    float TargetYaw = LocalDir.Y * RotationScale; // 왼쪽에서 맞으면 오른쪽으로 흔들림 (Yaw 증가)
 
     float CurrentPitch = TargetPitch * Curve * W;
     float CurrentYaw = TargetYaw * Curve * W;

@@ -175,6 +175,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\Quat.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraBlur.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\DashShake.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.cpp" />
@@ -207,7 +208,6 @@
     <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorViewportClient.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\PrimitiveBatch.cpp" />
-    <ClCompile Include="Engine\Source\Editor\UnrealEd\SceneMgr.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\UnrealEd.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\UnrealEdEventRouter.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Casts.cpp" />
@@ -363,6 +363,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\MathSSE.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraBlur.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\DashShake.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.h" />
@@ -400,7 +401,6 @@
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorViewportClient.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\PrimitiveBatch.h" />
-    <ClInclude Include="Engine\Source\Editor\UnrealEd\SceneMgr.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\UnrealEd.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\UnrealEdEventRouter.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Casts.h" />

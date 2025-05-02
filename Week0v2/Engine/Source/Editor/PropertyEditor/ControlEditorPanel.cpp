@@ -115,8 +115,6 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 
     if (bOpenMenu)
     {
-        //std::unique_ptr<FSceneMgr> SceneMgr = std::make_unique<FSceneMgr>();
-        FSceneMgr* SceneMgr = GEngine->GetSceneManager();
         ImGui::SetNextWindowPos(ImVec2(10, 55), ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2(135, 170), ImGuiCond_Always);
 

@@ -32,10 +32,7 @@ private:
     void RenderDelegate(ULevel* level);
 private:
     float Width = 0, Height = 0;
-    FVector Location = FVector(0, 0, 0);
-    FVector Rotation = FVector(0, 0, 0);
-    FVector Scale = FVector(0, 0, 0);
-
+    
     /* Material Property */
     int SelectedMaterialIndex = -1;
     int CurMaterialIndex = -1;

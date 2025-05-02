@@ -298,4 +298,15 @@ struct FMath
 
 	    return false;
 	}
+
+    [[nodiscard]] static float Fmod(float X, float Y)
+	{
+	    const float AbsY = FMath::Abs(Y);
+	    if (AbsY <= SMALL_NUMBER)
+	    {
+	        return 0.0;
+	    }
+
+	    return fmodf(X, Y);
+	}
 };

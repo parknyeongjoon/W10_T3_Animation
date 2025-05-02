@@ -64,7 +64,6 @@ private:
     UWorld* GWorld;
     SLevelEditor* LevelEditor;
     UnrealEd* UnrealEditor;
-    FSceneMgr* SceneMgr;
 
     FContentsUI* ContentsUI;
     
@@ -74,6 +73,5 @@ public:
     UWorld* GetWorld() const { return GWorld; }
     SLevelEditor* GetLevelEditor() const { return LevelEditor; }
     UnrealEd* GetUnrealEditor() const { return UnrealEditor; }
-    FSceneMgr* GetSceneManager() const { return SceneMgr; }
 };
 extern UEditorEngine* GEngine;

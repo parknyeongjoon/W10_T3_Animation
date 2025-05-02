@@ -101,10 +101,10 @@ struct FLinearColor
     constexpr FLinearColor(const float InR, const float InG, const float InB, const float InA = 1.0f) : R(InR), G(InG), B(InB), A(InA) {}
 
     // FVector4 생성자와의 혼동을 피하기 위해 explicit으로 유지할 것.
-    explicit FLinearColor(const FVector& InVector) : R(InVector.x), G(InVector.y), B(InVector.z), A(1.0f) {}
+    explicit FLinearColor(const FVector& InVector) : R(InVector.X), G(InVector.Y), B(InVector.Z), A(1.0f) {}
 
     // FVector 생성자와의 혼동을 피하기 위해 explicit으로 유지할 것.
-    explicit FLinearColor(const FVector4& InVector) : R(InVector.x), G(InVector.y), B(InVector.z), A(InVector.w) {}
+    explicit FLinearColor(const FVector4& InVector) : R(InVector.X), G(InVector.Y), B(InVector.Z), A(InVector.W) {}
 
     constexpr FLinearColor(const FColor& InColor)
         : R(InColor.R / 255.0f), G(InColor.G / 255.0f), B(InColor.B / 255.0f), A(InColor.A / 255.0f) {

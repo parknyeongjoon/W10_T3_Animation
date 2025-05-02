@@ -94,6 +94,8 @@ void UTransformGizmo::Tick(float DeltaTime)
             SetActorRotation(PickedActor->GetActorRotation());
         }
         else if (GetWorld()->GetEditorPlayer()->GetCoordiMode() == CoordiMode::CDM_WORLD)
-            SetActorRotation(FVector(0.0f, 0.0f, 0.0f));
+        {
+            SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
+        }
     }
 }
