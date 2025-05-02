@@ -15,6 +15,8 @@
 #include "BaseGizmos/TransformGizmo.h"
 #include "Contents/UI/ContentsUI.h"
 #include "Coroutine/LuaCoroutine.h"
+#include "Engine/AssetManager.h"
+
 class ULevel;
 
 FGraphicsDevice UEditorEngine::graphicDevice;
@@ -32,7 +34,7 @@ UEditorEngine::UEditorEngine()
 {
 }
 
-int32 UEditorEngine::Init(HWND hwnd)
+void UEditorEngine::Init(HWND hwnd)
 {
     /* must be initialized before window. */
     hWnd = hwnd;
@@ -72,7 +74,13 @@ int32 UEditorEngine::Init(HWND hwnd)
     
     SceneMgr = new FSceneMgr();
     RegisterWaitHelpers(FLuaManager::Get().GetLuaState());
-    return 0;
+
+    if (AssetManager == nullptr)
+    {
+        AssetManager = FObjectFactory::ConstructObject<UAssetManager>();
+        assert(AssetManager);
+        AssetManager->InitAssetManager();
+    }
 }
 
 void UEditorEngine::Render()
