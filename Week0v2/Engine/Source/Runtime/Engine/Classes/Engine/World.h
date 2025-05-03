@@ -13,10 +13,10 @@ class AActor;
 class UObject;
 class UGizmoArrowComponent;
 class UCameraComponent;
-class AEditorPlayer;
 class USceneComponent;
 class UTransformGizmo;
 class APlayerCameraManager;
+
 class UWorld final : public UObject
 {
     DECLARE_CLASS(UWorld, UObject)
@@ -85,7 +85,6 @@ private:
     /** Actor가 Spawn되었고, 아직 BeginPlay가 호출되지 않은 Actor들 */
     TSet<AActor*> SelectedActors;
     USceneComponent* pickingGizmo = nullptr;
-    AEditorPlayer* EditorPlayer = nullptr;
     
     APlayerCameraManager* PlayerCameraManager = nullptr;
 public:
@@ -96,7 +95,6 @@ public:
     const TArray<AActor*>& GetActors() const { return Level->GetActors(); }
     ULevel* GetLevel() const { return Level; }
     UTransformGizmo* LocalGizmo = nullptr;
-    AEditorPlayer* GetEditorPlayer() const { return EditorPlayer; }
     APlayerCameraManager* GetPlayerCameraManager() const { return PlayerCameraManager; }
     void SetPlayerCameraManager(APlayerCameraManager* InPlayerCameraManager)
     {

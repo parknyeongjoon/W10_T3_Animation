@@ -28,7 +28,10 @@ void ADodge::BeginPlay()
         std::cout << function.Key.ToString();
     }
     // TestDelegate.AddUObject(this, &ADodge::test);
-    // TestDelegate.AddLambda([this]{SetActorLocation(GetActorLocation() + FVector(0.1,0,0));});
+    // TestDelegate.AddLambda([this]
+    // {
+    //     SetActorLocation(GetActorLocation() + FVector(0.1,0,0));
+    // });
 }
 
 void ADodge::Tick(float DeltaTime)
@@ -59,7 +62,7 @@ void ADodge::TestTranslate()
 
 void ADodge::TestRotate()
 {
-    SetActorRotation(GetActorRotation() + FVector(0.01,0,0));
+    SetActorRotation(GetActorRotation() + FRotator(0.01,0,0));
 }
 
 UObject* ADodge::Duplicate() const
@@ -81,7 +84,8 @@ void ADodge::PostDuplicate()
     Super::PostDuplicate();
     // TODO: PIE world 받아오는 다른 방법 생각해보기 지금은 하드코딩
     // 아직 Duplicate 중이라 GetWorld가 Editor World를 뱉음
-    TestDelegate = TestDelegate.Duplicate(GetWorld()->GetPIEWorld()->GetLevel()->GetDuplicatedObjects());
+    // TestDelegate = TestDelegate.Duplicate(GetWorld()->GetPIEWorld()->GetLevel()->GetDuplicatedObjects());
+    TestDelegate = TestDelegate.Duplicate(GetWorld()->GetLevel()->GetDuplicatedObjects());
 }
 
 void ADodge::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray)

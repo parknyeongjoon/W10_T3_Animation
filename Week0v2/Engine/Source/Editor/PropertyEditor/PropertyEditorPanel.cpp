@@ -2,14 +2,11 @@
 
 #include "Engine/World.h"
 #include "Engine/FLoaderOBJ.h"
-#include "Math/MathUtility.h"
 #include "UnrealEd/ImGuiWidget.h"
-#include "UObject/Casts.h"
 
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Components/GameFramework/RotatingMovementComponent.h"
 #include <Math/JungleMath.h>
-#include <UObject/UObjectIterator.h>
 
 #include "Components/LuaComponent.h"
 #include "Components/LightComponents/DirectionalLightComponent.h"
@@ -20,22 +17,28 @@
 #include "Components/PrimitiveComponents/UParticleSubUVComp.h"
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/CubeComp.h"
-#include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
-#include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 
 #include "LevelEditor/SLevelEditor.h"
 #include "tinyfiledialogs/tinyfiledialogs.h"
-#include "UnrealEd/EditorViewportClient.h"
-#include <windows.h> // 기본적인 Windows API 포함
 #include <shellapi.h> // ShellExecute 관련 함수 정의 포함
-#include <filesystem> // C++17 filesystem 사용
+
+#include "LaunchEngineLoop.h"
+#include "Light/ShadowMapAtlas.h"
+#include "UnrealEd/EditorViewportClient.h"
 #include "UObject/FunctionRegistry.h"
 
+extern UEngine* GEngine;
 
 void PropertyEditorPanel::Render()
 {
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    if (EditorEngine == nullptr)
+    {
+        return;
+    }
+    
     // TODO PickedComponent 패널에서 뺴기 우선 임시용으로 배치
     if ((GetAsyncKeyState(VK_DELETE) & 0x8000))
     {
@@ -78,9 +81,11 @@ void PropertyEditorPanel::Render()
     ImGui::Begin("Detail", nullptr, PanelFlags);
 
     AActor* PickedActor = nullptr;
-    AEditorPlayer* player = GEngine->GetWorld()->GetEditorPlayer();
+
     if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
-            PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
+    {
+        PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
+    }
 
     ImVec2 imageSize = ImVec2(256, 256); // 이미지 출력 크기
 
@@ -273,9 +278,9 @@ void PropertyEditorPanel::Render()
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
         {
-            Location = SceneComp->GetRelativeLocation();
-            Rotation = SceneComp->GetRelativeRotation().ToVector();
-            Scale = SceneComp->GetRelativeScale();
+            FVector Location = SceneComp->GetRelativeLocation();
+            FRotator Rotation = SceneComp->GetRelativeRotation();
+            FVector Scale = SceneComp->GetRelativeScale();
             if (PickedComponent != LastComponent)
             {
                 LastComponent = PickedComponent;
@@ -287,7 +292,7 @@ void PropertyEditorPanel::Render()
             bChanged |= FImGuiWidget::DrawVec3Control("Location", Location, 0, 85);
             ImGui::Spacing();
 
-            bChanged |= FImGuiWidget::DrawVec3Control("Rotation", Rotation, 0, 85);
+            bChanged |= FImGuiWidget::DrawRot3Control("Rotation", Rotation, 0, 85);
             ImGui::Spacing();
 
             bChanged |= FImGuiWidget::DrawVec3Control("Scale", Scale, 0, 85);
@@ -325,10 +330,10 @@ void PropertyEditorPanel::Render()
         {
             FVector4 currColor = lightObj->GetLightColor();
 
-            float r = currColor.x;
-            float g = currColor.y;
-            float b = currColor.z;
-            float a = currColor.w;
+            float r = currColor.X;
+            float g = currColor.Y;
+            float b = currColor.Z;
+            float a = currColor.W;
             float h, s, v;
             float lightColor[4] = { r, g, b, a };
 
@@ -409,19 +414,20 @@ void PropertyEditorPanel::Render()
         ImGui::Spacing();
 
         if (PickedComponent->IsA<UDirectionalLightComponent>())
-        {
+        {            
             // direction
             UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(PickedComponent);
-            bool override = Cast<UDirectionalLightComponent>(GEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
+            
+            bool override = Cast<UDirectionalLightComponent>(EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
             if (ImGui::Checkbox("Override Camera", &override))
             {
                 if (override)
                 {
-                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(DirectionalLight);
+                    EditorEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(DirectionalLight);
                 }
                 else
                 {
-                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
+                    EditorEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
                 }
             }
             ImTextureID LightDepth = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()->GetSRV());
@@ -498,7 +504,7 @@ void PropertyEditorPanel::Render()
             FShadowResource* ShadowResouce = PointLight->GetShadowResource();
             if (ShadowResouce->GetAtlasSlotIndex() != -1)
             {
-                ID3D11ShaderResourceView* CubeFaceSRV = ShadowResouce->GetCubeAtlasSRVFace(GEngine->GetEngine()->graphicDevice.Device,
+                ID3D11ShaderResourceView* CubeFaceSRV = ShadowResouce->GetCubeAtlasSRVFace(GEngineLoop.GraphicDevice.Device,
                     ShadowResouce->GetAtlasSlotIndex(), selectedFace);
 
                 if (CubeFaceSRV)
@@ -545,23 +551,23 @@ void PropertyEditorPanel::Render()
                 ImTextureID LightDepth = reinterpret_cast<ImTextureID>(ShadowMapAtlas->GetSRV2D());
                 FVector4 UV = SpotLight->GetLightAtlasUV(); // x,y,width,height
 
-                ImVec2 uv0 = ImVec2(UV.x, UV.y);
-                ImVec2 uv1 = ImVec2(UV.x + UV.z, UV.y + UV.w);
+                ImVec2 uv0 = ImVec2(UV.X, UV.Y);
+                ImVec2 uv1 = ImVec2(UV.X + UV.Z, UV.Y + UV.W);
 
                 ImGui::Text("Shadow Map");
                 ImGui::Image(LightDepth, imageSize, uv0, uv1);
             }
             
-            bool override = Cast<USpotLightComponent>(GEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
+            bool override = Cast<USpotLightComponent>(EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetOverrideComponent());
             if (ImGui::Checkbox("Override Camera", &override))
             {
                 if (override)
                 {
-                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(SpotLight);
+                    EditorEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(SpotLight);
                 }
                 else
                 {
-                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
+                    EditorEngine->GetLevelEditor()->GetActiveViewportClient()->SetOverrideComponent(nullptr);
                 }
             }
         }
@@ -702,9 +708,9 @@ void PropertyEditorPanel::Render()
 
             // 안개 색상 편집
             float FogColor[3] = {
-                HeightFogComp->GetFogColor().x,
-                HeightFogComp->GetFogColor().y,
-                HeightFogComp->GetFogColor().z,
+                HeightFogComp->GetFogColor().X,
+                HeightFogComp->GetFogColor().Y,
+                HeightFogComp->GetFogColor().Z,
             };
 
             if (ImGui::ColorEdit3("Fog Color", FogColor))
@@ -744,9 +750,9 @@ void PropertyEditorPanel::Render()
 
         if (ImGui::TreeNodeEx("RotatingMovement", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
         {
-            FVector RotationRate = RotatingComp->RotationRate;
+            FRotator RotationRate = RotatingComp->RotationRate;
 
-            if (FImGuiWidget::DrawVec3Control("RotationRate", RotationRate, 0, 85))
+            if (FImGuiWidget::DrawRot3Control("RotationRate", RotationRate, 0, 85))
             {
                 RotatingComp->RotationRate = RotationRate;
             }
@@ -758,8 +764,6 @@ void PropertyEditorPanel::Render()
     RenderShapeProperty(PickedActor);
 
     ImGui::End();
-
-
 }
 
 void PropertyEditorPanel::DrawSceneComponentTree(USceneComponent* Component, UActorComponent*& PickedComponent)
@@ -977,9 +981,9 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
     FVector MatAmbientColor = Material->GetMaterialInfo().Ambient;
     FVector MatEmissiveColor = Material->GetMaterialInfo().Emissive;
 
-    float dr = MatDiffuseColor.x;
-    float dg = MatDiffuseColor.y;
-    float db = MatDiffuseColor.z;
+    float dr = MatDiffuseColor.X;
+    float dg = MatDiffuseColor.Y;
+    float db = MatDiffuseColor.Z;
     float da = 1.0f;
     float DiffuseColorPick[4] = { dr, dg, db, da };
 
@@ -996,9 +1000,9 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
         Material->SetDiffuse(NewColor);
     }
 
-    float sr = MatSpecularColor.x;
-    float sg = MatSpecularColor.y;
-    float sb = MatSpecularColor.z;
+    float sr = MatSpecularColor.X;
+    float sg = MatSpecularColor.Y;
+    float sb = MatSpecularColor.Z;
     float sa = 1.0f;
     float SpecularColorPick[4] = { sr, sg, sb, sa };
 
@@ -1011,9 +1015,9 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
     }
 
 
-    float ar = MatAmbientColor.x;
-    float ag = MatAmbientColor.y;
-    float ab = MatAmbientColor.z;
+    float ar = MatAmbientColor.X;
+    float ag = MatAmbientColor.Y;
+    float ab = MatAmbientColor.Z;
     float aa = 1.0f;
     float AmbientColorPick[4] = { ar, ag, ab, aa };
 
@@ -1026,9 +1030,9 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
     }
 
 
-    float er = MatEmissiveColor.x;
-    float eg = MatEmissiveColor.y;
-    float eb = MatEmissiveColor.z;
+    float er = MatEmissiveColor.X;
+    float eg = MatEmissiveColor.Y;
+    float eb = MatEmissiveColor.Z;
     float ea = 1.0f;
     float EmissiveColorPick[4] = { er, eg, eb, ea };
 
@@ -1098,9 +1102,9 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     FVector MatAmbientColor = tempMaterialInfo.Ambient;
     FVector MatEmissiveColor = tempMaterialInfo.Emissive;
 
-    float dr = MatDiffuseColor.x;
-    float dg = MatDiffuseColor.y;
-    float db = MatDiffuseColor.z;
+    float dr = MatDiffuseColor.X;
+    float dg = MatDiffuseColor.Y;
+    float db = MatDiffuseColor.Z;
     float da = 1.0f;
     float DiffuseColorPick[4] = { dr, dg, db, da };
 
@@ -1115,9 +1119,9 @@ void PropertyEditorPanel::RenderCreateMaterialView()
         tempMaterialInfo.Diffuse = NewColor;
     }
 
-    float sr = MatSpecularColor.x;
-    float sg = MatSpecularColor.y;
-    float sb = MatSpecularColor.z;
+    float sr = MatSpecularColor.X;
+    float sg = MatSpecularColor.Y;
+    float sb = MatSpecularColor.Z;
     float sa = 1.0f;
     float SpecularColorPick[4] = { sr, sg, sb, sa };
 
@@ -1130,9 +1134,9 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     }
 
 
-    float ar = MatAmbientColor.x;
-    float ag = MatAmbientColor.y;
-    float ab = MatAmbientColor.z;
+    float ar = MatAmbientColor.X;
+    float ag = MatAmbientColor.Y;
+    float ab = MatAmbientColor.Z;
     float aa = 1.0f;
     float AmbientColorPick[4] = { ar, ag, ab, aa };
 
@@ -1145,9 +1149,9 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     }
 
 
-    float er = MatEmissiveColor.x;
-    float eg = MatEmissiveColor.y;
-    float eb = MatEmissiveColor.z;
+    float er = MatEmissiveColor.X;
+    float eg = MatEmissiveColor.Y;
+    float eb = MatEmissiveColor.Z;
     float ea = 1.0f;
     float EmissiveColorPick[4] = { er, eg, eb, ea };
 

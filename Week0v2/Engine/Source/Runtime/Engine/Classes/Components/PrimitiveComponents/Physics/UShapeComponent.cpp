@@ -1,6 +1,7 @@
 #include "UShapeComponent.h"
 #include "Launch/EditorEngine.h"
 #include "Components/SceneComponent.h"
+#include "Physics/FCollisionManager.h"
 
 UShapeComponent::UShapeComponent()
     : ShapeColor(FLinearColor::Green)

@@ -1,6 +1,8 @@
 #include "CurveFloat.h"
 #include <cfloat> // for FLT_MAX
 
+#include "Math/MathUtility.h"
+
 UCurveFloat::UCurveFloat()
 {
 }

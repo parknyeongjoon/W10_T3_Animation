@@ -8,16 +8,16 @@
 
 void UnrealEd::Initialize(SLevelEditor* leveleditor)
 {
-    auto ControlPanel = std::make_shared<ControlEditorPanel>();
-    Panels["ControlPanel"] = ControlPanel;
-    ControlPanel->Initialize(leveleditor);
+     auto ControlPanel = std::make_shared<ControlEditorPanel>();
+     Panels["ControlPanel"] = ControlPanel;
+     ControlPanel->Initialize(leveleditor);
     
     auto OutlinerPanel = std::make_shared<OutlinerEditorPanel>();
     Panels["OutlinerPanel"] = OutlinerPanel;
     
     auto PropertyPanel = std::make_shared<PropertyEditorPanel>();
     Panels["PropertyPanel"] = PropertyPanel;
-
+    
     auto PrimitiveDrawer = std::make_shared<PrimitiveDrawEditor>();
     Panels["PrimitiveDrawEditor"] = PrimitiveDrawer;
 }

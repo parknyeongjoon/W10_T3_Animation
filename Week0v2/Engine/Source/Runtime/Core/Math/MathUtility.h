@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <numbers>
 #include "Core/HAL/PlatformType.h"
 
 
@@ -38,6 +39,13 @@ struct FMath
 	[[nodiscard]] static FORCEINLINE constexpr T Abs(const T A)
 	{
 		return A < T(0) ? -A : A;
+	}
+
+    /** Returns 1, 0, or -1 depending on relation of T to 0 */
+    template< class T >
+    static constexpr FORCEINLINE T Sign(const T A)
+	{
+	    return (A > (T)0) ? (T)1 : ((A < (T)0) ? (T)-1 : (T)0);
 	}
 
 	/** A의 제곱을 구합니다. */
@@ -102,6 +110,37 @@ struct FMath
 	[[nodiscard]] static FORCEINLINE constexpr double DegreesToRadians(double DegVal)
 	{
 		return DegVal * (PI_DOUBLE / 180.0);
+	}
+
+    static FORCEINLINE float Loge(float Value) { return logf(Value); }
+    static FORCEINLINE double Loge(double Value) { return log(Value); }
+
+    static FORCEINLINE float LogX(float Base, float Value) { return Loge(Value) / Loge(Base); }
+    static FORCEINLINE double LogX(double Base, double Value) { return Loge(Value) / Loge(Base); }
+
+    // 1.0 / Loge(2) = 1.4426950f
+    static FORCEINLINE float Log2(float Value) { return Loge(Value) * std::numbers::log2e_v<float>; }
+    // 1.0 / Loge(2) = 1.442695040888963387
+    static FORCEINLINE double Log2(double Value) { return Loge(Value) * std::numbers::log2e; }
+
+    [[nodiscard]] static FORCEINLINE bool IsNearlyEqual(float A, float B, float ErrorTolerance = KINDA_SMALL_NUMBER)
+	{
+	    return Abs<float>(A - B) <= ErrorTolerance;
+	}
+
+    [[nodiscard]] static FORCEINLINE bool IsNearlyEqual(double A, double B, double ErrorTolerance = SMALL_NUMBER)
+	{
+	    return Abs<double>(A - B) <= ErrorTolerance;
+	}
+
+    [[nodiscard]] static FORCEINLINE bool IsNearlyZero(float Value, float ErrorTolerance = KINDA_SMALL_NUMBER)
+	{
+	    return Abs<float>(Value) <= ErrorTolerance;
+	}
+
+    [[nodiscard]] static FORCEINLINE bool IsNearlyZero(double Value, double ErrorTolerance = SMALL_NUMBER)
+	{
+	    return Abs<double>(Value) <= ErrorTolerance;
 	}
 
 	[[nodiscard]] static FORCEINLINE double Cos(double RadVal)
@@ -288,14 +327,14 @@ struct FMath
         return A + (B - A) * FMath::Pow(1 - FMath::Pow(1 - Alpha, Exp));
     }
 
-    static bool IsNearlyEqual(float A, float B, float Epsilon)
+    [[nodiscard]] static float Fmod(float X, float Y)
 	{
-	    if (A > B && A < B + B * Epsilon)
-	        return true;
-	    
-	    if (A < B && A > B - B * Epsilon)
-	        return true;
+	    const float AbsY = FMath::Abs(Y);
+	    if (AbsY <= SMALL_NUMBER)
+	    {
+	        return 0.0;
+	    }
 
-	    return false;
+	    return fmodf(X, Y);
 	}
 };

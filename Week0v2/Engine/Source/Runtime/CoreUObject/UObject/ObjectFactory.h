@@ -1,8 +1,11 @@
 #pragma once
-#include "Object.h"
-#include "UObjectHash.h"
+#include <concepts>
+
 #include "EngineStatics.h"
+#include "Object.h"
 #include "UObjectArray.h"
+#include "HAL/PlatformType.h"
+#include "UserInterface/Console.h"
 
 class FObjectFactory
 {
@@ -24,7 +27,6 @@ public:
         UE_LOG(LogLevel::Display, "Created New Object : %s", *Name);
         return Obj;
     }
-
     template <typename T>
         requires std::derived_from<T, UObject>
     static T* ConstructObjectFrom(const T* Source)

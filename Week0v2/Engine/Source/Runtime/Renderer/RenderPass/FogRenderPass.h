@@ -13,7 +13,7 @@ public:
     explicit FFogRenderPass(const FName& InShaderName);
 
     virtual ~FFogRenderPass() {}
-    void AddRenderObjectsToRenderPass(UWorld* InWorld) override;
+    void AddRenderObjectsToRenderPass() override;
     void PrePrepare();
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;

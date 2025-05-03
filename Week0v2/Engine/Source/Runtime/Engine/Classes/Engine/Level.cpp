@@ -1,8 +1,8 @@
 #include "Level.h"
 
-#include "Actors/ADodge.h"
 #include "GameFramework/Actor.h"
 #include "Delegates/Delegate.impl.h"
+#include "UserInterface/Console.h"
 
 ULevel::ULevel()
 {

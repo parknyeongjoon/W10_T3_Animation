@@ -1,30 +1,35 @@
 #pragma once
 #include "Container/String.h"
+#include "MathUtility.h"
 
 struct FVector;
 struct FQuat;
 struct FMatrix;
 
-#include "MathUtility.h"
-
 // 회전 정보를 Degree 단위로 저장하는 구조체
 struct FRotator
 {
-    float Roll;
+    /** Rotation around the right axis (around Y axis), Looking up and down (0=Straight Ahead, +Up, -Down) */
     float Pitch;
+    /** Rotation around the up axis (around Z axis), Turning around (0=Forward, +Right, -Left)*/
     float Yaw;
+    /** Rotation around the forward axis (around X axis), Tilting your head, (0=Straight, +Clockwise, -CCW) */
+    float Roll;
 
-    FRotator()
+    explicit FRotator()
         : Pitch(0.0f), Yaw(0.0f), Roll(0.0f)
     {}
 
-    FRotator(float InPitch, float InYaw, float InRoll)
+    explicit FRotator(float InPitch, float InYaw, float InRoll)
         : Pitch(InPitch), Yaw(InYaw), Roll(InRoll)
     {}
 
     FRotator(const FRotator& Other)
         : Pitch(Other.Pitch), Yaw(Other.Yaw), Roll(Other.Roll)
     {}
+
+    explicit FRotator(const FVector& InVector);
+    explicit FRotator(const FQuat& InQuat);
 
     void Serialize(FArchive& Ar) const
     {
@@ -35,9 +40,6 @@ struct FRotator
     {
         Ar >> Pitch >> Yaw >> Roll;
     }
-
-    FRotator(const FVector& InVector);
-    FRotator(const FQuat& InQuat);
 
     FRotator operator+(const FRotator& Other) const;
     FRotator& operator+=(const FRotator& Other);
@@ -69,13 +71,19 @@ struct FRotator
     FVector ToVector() const;
     FMatrix ToMatrix() const;
 
-    float Clamp(float Angle) const;
     FRotator GetNormalized() const;
     void Normalize();
-
     
-    FString ToString() const;
-    bool InitFromString(const FString& InSourceString);
+    FVector RotateVector(const FVector& Vec) const;
+    
+    static float ClampAxis(float Angle);
+    static float NormalizeAxis(float Angle);
 
+    FVector GetForwardVector() const;
+    FVector GetRightVector() const;
+    FVector GetUpVector() const;
+
+    FVector Vector() const;
+    
     static const FRotator ZeroRotator;
 };

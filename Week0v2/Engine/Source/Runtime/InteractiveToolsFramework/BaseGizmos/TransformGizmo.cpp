@@ -1,11 +1,12 @@
 #include "TransformGizmo.h"
 #include "GizmoArrowComponent.h"
-#include "Define.h"
 #include "GizmoCircleComponent.h"
-#include "Actors/Player.h"
 #include "GizmoRectangleComponent.h"
 #include "Engine/World.h"
 #include "Engine/FLoaderOBJ.h"
+#include "UnrealEd/EditorPlayer.h"
+
+extern UEngine* GEngine;
 
 UTransformGizmo::UTransformGizmo()
 {
@@ -88,12 +89,18 @@ void UTransformGizmo::Tick(float DeltaTime)
         if (PickedActor == nullptr)
             return;
         SetActorLocation(PickedActor->GetActorLocation());
-        if (GetWorld()->GetEditorPlayer()->GetCoordiMode() == CoordiMode::CDM_LOCAL)
+        if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
         {
-            // TODO: 임시로 RootComponent의 정보로 사용
-            SetActorRotation(PickedActor->GetActorRotation());
+            ControlMode ControlMode = EditorEngine->GetEditorPlayer()->GetControlMode();
+            if (ControlMode == CoordiMode::CDM_LOCAL)
+            {
+                // TODO: 임시로 RootComponent의 정보로 사용
+                SetActorRotation(PickedActor->GetActorRotation());
+            }
+            else if (ControlMode == CoordiMode::CDM_WORLD)
+            {
+                SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
+            }
         }
-        else if (GetWorld()->GetEditorPlayer()->GetCoordiMode() == CoordiMode::CDM_WORLD)
-            SetActorRotation(FVector(0.0f, 0.0f, 0.0f));
     }
 }

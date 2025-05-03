@@ -1,14 +1,12 @@
 #include "FShaderProgram.h"
 
-#include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
 #include "Renderer/Renderer.h"
-
-extern UEditorEngine* GEngine;
 
 void FShaderProgram::Bind() const
 {
-    const FGraphicsDevice GraphicDevice = GEngine->graphicDevice;
-    FRenderResourceManager* RenderResourceManager = GEngine->renderer.GetResourceManager();
+    const FGraphicsDevice GraphicDevice = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* RenderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     
     ID3D11VertexShader* VertexShader = RenderResourceManager->GetVertexShader(VSName);
     ID3D11PixelShader* PixelShader = RenderResourceManager->GetPixelShader(PSName);

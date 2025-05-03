@@ -1,6 +1,5 @@
 #pragma once
 #include "LightComponent.h"
-#include "Actors/Light.h"
 
 struct FDirectionalLightComponentInfo : public FLightComponentInfo
 {

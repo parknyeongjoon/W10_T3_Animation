@@ -6,7 +6,11 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/PrimitiveBatch.h"
 #include "Engine/World.h"
-#include <Math/JungleMath.h>
+
+#include "LaunchEngineLoop.h"
+#include "ShowFlags.h"
+#include "Actors/Light.h"
+#include "Components/LightComponents/DirectionalLightComponent.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Components/LightComponents/PointLightComponent.h"
 #include "Components/LightComponents/SpotLightComponent.h"
@@ -14,104 +18,112 @@
 #include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
-#include "PropertyEditor/ShowFlags.h"
-class USpotLightComponent;
-extern UEditorEngine* GEngine;
+#include "Renderer/Renderer.h"
+#include "Renderer/RenderResourceManager.h"
+#include "UObject/UObjectIterator.h"
 
-FLineBatchRenderPass::FLineBatchRenderPass(const FName& InShaderName)
-    : FBaseRenderPass(InShaderName)
+class USpotLightComponent;
+extern UEngine* GEngine;
+
+FLineBatchRenderPass::FLineBatchRenderPass(const FName& InShaderName) : FBaseRenderPass(InShaderName)
 {
     FSimpleVertex vertices[2]{ {0}, {0} };
 
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     ID3D11Buffer* pVertexBuffer = renderResourceManager->CreateStaticVertexBuffer<FSimpleVertex>(vertices, 2);
     renderResourceManager->AddOrSetVertexBuffer(TEXT("LineBatchVB"), pVertexBuffer);
 
-    GEngine->renderer.MappingVBTopology(TEXT("LineBatch"), TEXT("LineBatchVB"), sizeof(FSimpleVertex), 2, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    GEngineLoop.Renderer.MappingVBTopology(TEXT("LineBatch"), TEXT("LineBatchVB"), sizeof(FSimpleVertex), 2, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
     VBIBTopologyMappingName = TEXT("LineBatch");
 }
 
-void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
+void FLineBatchRenderPass::AddRenderObjectsToRenderPass()
 {
-    std::shared_ptr<FViewportClient> ViewportClient = 
-        GEngine->GetLevelEditor()->GetActiveViewportClient();
-    std::shared_ptr<FEditorViewportClient> curEditorViewportClient = 
-        std::dynamic_pointer_cast<FEditorViewportClient>(ViewportClient);
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    if (EditorEngine == nullptr)
+    {
+        return;
+    }
+    
+    std::shared_ptr<FViewportClient> ViewportClient = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
+    std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(ViewportClient);
     if (!(curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB)))
         return;
 
     UPrimitiveBatch& PrimitiveBatch = UPrimitiveBatch::GetInstance();
-    for (const AActor* actor : InWorld->GetActors())
+
+    for (UShapeComponent* ShapeComponent : TObjectRange<UShapeComponent>())
     {
-        for (const UActorComponent* actorComp : actor->GetComponents())
+        if (ShapeComponent->GetWorld() != GEngine->GetWorld())
         {
-            if (UShapeComponent* pShapeComponent = Cast<UShapeComponent>(actorComp))
+            continue;
+        }
+
+        const FShapeInfo* BaseShapeInfo = ShapeComponent->GetShapeInfo();
+
+        if (BaseShapeInfo == nullptr)
+        {
+            continue;
+        }
+        
+        const FBoundingBox& Box = ShapeComponent->GetBroadAABB();
+        FVector Center = ShapeComponent->GetWorldLocation();
+
+        PrimitiveBatch.AddAABB(Box, Center, FMatrix::Identity);
+
+        switch (BaseShapeInfo->Type)
+        {
+        case EShapeType::Box:
             {
-                const FBoundingBox& Box = pShapeComponent->GetBroadAABB();
-                FVector Center = pShapeComponent->GetWorldLocation();
+                const FBoxShapeInfo* BoxInfo = static_cast<const FBoxShapeInfo*>(BaseShapeInfo);
 
-                PrimitiveBatch.AddAABB(Box, Center, FMatrix::Identity);
+                FVector BoxExtent = BoxInfo->Extent;
+                FVector Center = BoxInfo->Center;
+                FMatrix WorldMatrix = BoxInfo->WorldMatrix;
 
-                const FShapeInfo* BaseShapeInfo = pShapeComponent->GetShapeInfo();
+                FBoundingBox localOBB;
+                localOBB.min = FVector(-BoxExtent.X, -BoxExtent.Y, -BoxExtent.Z);
+                localOBB.max = FVector(BoxExtent.X, BoxExtent.Y, BoxExtent.Z);
 
-                if (!BaseShapeInfo)
-                    continue;
-
-                switch (BaseShapeInfo->Type)
-                {
-                case EShapeType::Box:
-                {
-                    const FBoxShapeInfo* BoxInfo = static_cast<const FBoxShapeInfo*>(BaseShapeInfo);
-
-                    FVector BoxExtent = BoxInfo->Extent;
-                    FVector Center = BoxInfo->Center;
-                    FMatrix WorldMatrix = BoxInfo->WorldMatrix;
-
-                    FBoundingBox localOBB;
-                    localOBB.min = FVector(-BoxExtent.x, -BoxExtent.y, -BoxExtent.z);
-                    localOBB.max = FVector(BoxExtent.x, BoxExtent.y, BoxExtent.z);
-
-                    PrimitiveBatch.AddOBB(localOBB, Center, WorldMatrix);
-                    break;
-                }
-                case EShapeType::Sphere:
-                {
-                    const FSphereShapeInfo* SphereInfo = static_cast<const FSphereShapeInfo*>(BaseShapeInfo);
-
-                    FVector Center = SphereInfo->Center;
-                    float Radius = SphereInfo->Radius;
-                    FVector4 Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f); // 사용 안됨.
-
-                    PrimitiveBatch.AddSphere(Center, Radius, Color);
-                    break;
-                }
-                case EShapeType::Capsule:
-                {
-                    const FCapsuleShapeInfo* CapsuleInfo = static_cast<const FCapsuleShapeInfo*>(BaseShapeInfo);
-
-                    FVector Center = CapsuleInfo->Center;
-                    FVector UpV = CapsuleInfo->Up;
-                    float Radius = CapsuleInfo->Radius;
-                    float HalfHeight = CapsuleInfo->HalfHeight;
-                    FVector4 Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f); // 사용 안됨.
-
-                    UpV.Normalize();
-
-                    PrimitiveBatch.AddCapsule(Center, UpV, HalfHeight, Radius, Color);
-                    break;
-                }
-                default:
-                    break;
-                }
+                PrimitiveBatch.AddOBB(localOBB, Center, WorldMatrix);
+                break;
             }
+        case EShapeType::Sphere:
+            {
+                const FSphereShapeInfo* SphereInfo = static_cast<const FSphereShapeInfo*>(BaseShapeInfo);
+
+                FVector Center = SphereInfo->Center;
+                float Radius = SphereInfo->Radius;
+                FVector4 Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f); // 사용 안됨.
+
+                PrimitiveBatch.AddSphere(Center, Radius, Color);
+                break;
+            }
+        case EShapeType::Capsule:
+            {
+                const FCapsuleShapeInfo* CapsuleInfo = static_cast<const FCapsuleShapeInfo*>(BaseShapeInfo);
+
+                FVector Center = CapsuleInfo->Center;
+                FVector UpV = CapsuleInfo->Up;
+                float Radius = CapsuleInfo->Radius;
+                float HalfHeight = CapsuleInfo->HalfHeight;
+                FVector4 Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f); // 사용 안됨.
+
+                UpV.Normalize();
+
+                PrimitiveBatch.AddCapsule(Center, UpV, HalfHeight, Radius, Color);
+                break;
+            }
+        default:
+            break;
         }
     }
 }
 
 void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
-    FRenderer& Renderer = GEngine->renderer;
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderer& Renderer = GEngineLoop.Renderer;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     FRenderResourceManager* renderResourceManager = Renderer.GetResourceManager();
     UPrimitiveBatch& PrimitveBatch = UPrimitiveBatch::GetInstance();
 
@@ -178,8 +190,8 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
 {
     FBaseRenderPass::Prepare(InViewportClient);
 
-    FRenderer& Renderer = GEngine->renderer;
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FRenderer& Renderer = GEngineLoop.Renderer;
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     FRenderResourceManager* renderResourceManager = Renderer.GetResourceManager();
 
     Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState()); //레스터 라이저 상태 설정
@@ -204,7 +216,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                         UPrimitiveBatch::GetInstance().AddCone(
                             SpotLight->GetWorldLocation(),
                             tan(SpotLight->GetOuterConeAngle()) * 15.0f,
-                            SpotLight->GetWorldLocation() + SpotLight->GetForwardVector() * 15.0f,
+                            SpotLight->GetWorldLocation() + SpotLight->GetWorldForwardVector() * 15.0f,
                             15,
                             SpotLight->GetLightColor()
                         );
@@ -214,7 +226,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                         UPrimitiveBatch::GetInstance().AddCone(
                             SpotLight->GetWorldLocation(),
                             tan(SpotLight->GetInnerConeAngle()) * 15.0f,
-                            SpotLight->GetWorldLocation() + SpotLight->GetForwardVector() * 15.0f,
+                            SpotLight->GetWorldLocation() + SpotLight->GetWorldForwardVector() * 15.0f,
                             15,
                             SpotLight->GetLightColor()
                         );
@@ -222,12 +234,12 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                 }
                 else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Comp))
                 {
-                    FVector Right = DirectionalLight->GetRightVector();
+                    FVector Right = DirectionalLight->GetWorldRightVector();
                     for (int i = 0; i < 4; ++i)
                     {
                         UPrimitiveBatch::GetInstance().AddLine(
                             DirectionalLight->GetWorldLocation() + Right * (-1.5f + i),
-                            DirectionalLight->GetForwardVector(),
+                            DirectionalLight->GetWorldForwardVector(),
                             15.0f,
                             DirectionalLight->GetLightColor()
                         );
@@ -269,9 +281,8 @@ void FLineBatchRenderPass::ClearRenderObjects()
 
 void FLineBatchRenderPass::UpdateBatchResources()
 {
-    FRenderer& Renderer = GEngine->renderer;
+    FRenderer& Renderer = GEngineLoop.Renderer;
     FRenderResourceManager* renderResourceManager = Renderer.GetResourceManager();
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
 
     UPrimitiveBatch& PrimitveBatch = UPrimitiveBatch::GetInstance();
 

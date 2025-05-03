@@ -2,6 +2,10 @@
 
 #include "EditorEngine.h"
 #include "GraphicDevice.h"
+#include "LaunchEngineLoop.h"
+#include "Renderer/Renderer.h"
+
+class FRenderResourceManager;
 
 FVertexShader::FVertexShader(const FName InShaderName, const FString& InFullPath, ID3D11VertexShader* InVs, ID3DBlob* InShaderBlob,
                              D3D_SHADER_MACRO* InShaderMacro, const std::filesystem::file_time_type InWriteTime)
@@ -20,8 +24,8 @@ FVertexShader::FVertexShader(const FName InShaderName, const FString& InFullPath
 
 void FVertexShader::Bind()
 {
-    const FGraphicsDevice GraphicDevice = GEngine->graphicDevice;
-    FRenderResourceManager* RenderResourceManager = GEngine->renderer.GetResourceManager();
+    const FGraphicsDevice GraphicDevice = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* RenderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     
     ID3D11VertexShader* VertexShader = RenderResourceManager->GetVertexShader(ShaderName);
 
@@ -45,9 +49,7 @@ void FVertexShader::Release()
 
 void FVertexShader::UpdateShader()
 {
-    const FGraphicsDevice GraphicDevice = GEngine->graphicDevice;
-    FRenderer Renderer = GEngine->renderer;
-    FRenderResourceManager* RenderResourceManager = GEngine->renderer.GetResourceManager();
+    FRenderResourceManager* RenderResourceManager = GEngineLoop.Renderer.GetResourceManager();
 
     if (ShaderMacro != nullptr)
         RenderResourceManager->UpdateVertexShader(ShaderName.ToString(), FullPath, ShaderMacro);

@@ -1,48 +1,49 @@
 #pragma once
-#include "Define.h"
+#include "Math/Vector.h"
 #include "Runtime/Engine/Classes/Engine/FEditorStateManager.h"
-#include "Container/Map.h"
 
 class SSplitterH;
 class SSplitterV;
-class UWorld;
 class FEditorViewportClient;
+
 class SLevelEditor
 {
 public:
     SLevelEditor();
     ~SLevelEditor();
-    void Initialize();
-    void Tick(ELevelTick tickType, double deltaTime);
-    void Input();
+    void Initialize(uint32 InEditorWidth, uint32 InEditorHeight);
+    void Tick(ELevelTick tickType, double DeltaTime);
     void Release();
     
-    void SelectViewport(POINT point);
+    void SelectViewport(FVector2D Point);
     void OnResize();
     void ResizeViewports();
-    void OnMultiViewport();
-    void OffMultiViewport();
+    void SetEnableMultiViewport(bool bIsEnable);
     bool IsMultiViewport();
 private:
     bool bInitialize;
     SSplitterH* HSplitter;
     SSplitterV* VSplitter;
     UWorld* World;
-    std::shared_ptr<FEditorViewportClient> viewportClients[4];
+    TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients;
     std::shared_ptr<FEditorViewportClient> ActiveViewportClient;
 
+    /** 우클릭 시 캡처된 마우스 커서의 초기 위치 (스크린 좌표계) */
+    FVector2D MousePinPosition;
+
+    
     bool bLButtonDown = false;
     bool bRButtonDown = false;
     
     bool bMultiViewportMode;
 
-    POINT lastMousePos;
     float EditorWidth;
     float EditorHeight;
 
     FEditorStateManager EditorStateManager;
 public:
-    std::shared_ptr<FEditorViewportClient>* GetViewports() { return viewportClients; }
+    TArray<std::shared_ptr<FEditorViewportClient>> GetViewports() { return ViewportClients; }
+    std::shared_ptr<FEditorViewportClient> GetViewport(uint32 Index) { return ViewportClients[Index]; }
     std::shared_ptr<FEditorViewportClient> GetActiveViewportClient() const
     {
         return ActiveViewportClient;
@@ -53,7 +54,7 @@ public:
     }
     void SetViewportClient(int index)
     {
-        ActiveViewportClient = viewportClients[index];
+        ActiveViewportClient = ViewportClients[index];
     }
 
     FEditorStateManager& GetEditorStateManager() { return EditorStateManager; }

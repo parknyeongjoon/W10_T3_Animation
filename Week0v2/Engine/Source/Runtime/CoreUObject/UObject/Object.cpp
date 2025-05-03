@@ -1,10 +1,10 @@
 #include "Object.h"
 
-#include "EditorEngine.h"
-#include "UClass.h"
+#include "Engine/Engine.h"
 #include "FunctionRegistry.h"
-#include "UObjectHash.h"
+#include "UserInterface/Console.h"
 
+extern UEngine* GEngine;
 
 UClass* UObject::StaticClass()
 {
@@ -37,15 +37,39 @@ UWorld* UObject::GetWorld()
     return GEngine->GetWorld();
 }
 
-UWorld* UObject::GetPIEWorld()
-{
-    return GEngine->GetPIEWorld();
-}
-
 bool UObject::IsA(const UClass* SomeBase) const
 {
     const UClass* ThisClass = GetClass();
     return ThisClass->IsChildOf(SomeBase);
 }
 
+void* UObject::operator new(size_t size)
+{
+    UE_LOG(LogLevel::Display, "UObject Created : %d", size);
 
+    void* RawMemory = FPlatformMemory::Malloc<EAT_Object>(size);
+    UE_LOG(
+        LogLevel::Display,
+        "TotalAllocationBytes : %d, TotalAllocationCount : %d",
+        FPlatformMemory::GetAllocationBytes<EAT_Object>(),
+        FPlatformMemory::GetAllocationCount<EAT_Object>()
+    );
+    return RawMemory;
+}
+
+void UObject::operator delete(void* ptr, size_t size)
+{
+    UE_LOG(LogLevel::Display, "UObject Deleted : %d", size);
+    FPlatformMemory::Free<EAT_Object>(ptr, size);
+}
+
+// FVector4 UObject::EncodeUUID() const {
+//     FVector4 result;
+//
+//     result.X = UUID & 0xFF;
+//     result.Y = (UUID >> 8) & 0xFF;
+//     result.Z = (UUID >> 16) & 0xFF;
+//     result.W = (UUID >> 24) & 0xFF;
+//
+//     return result;
+// }

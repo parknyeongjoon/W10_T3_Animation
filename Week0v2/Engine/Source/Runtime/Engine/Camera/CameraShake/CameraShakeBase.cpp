@@ -1,5 +1,6 @@
 #include "CameraShakeBase.h"
 #include "UObject/UObjectArray.h"
+
 bool FActiveCameraShakeInfo::IsFinished() const
 {
     return Instance == nullptr || Instance->bFinished;

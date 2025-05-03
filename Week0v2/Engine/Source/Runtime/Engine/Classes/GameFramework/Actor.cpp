@@ -3,6 +3,9 @@
 #include "EditorEngine.h"
 #include "Engine/World.h"
 #include "Script/LuaManager.h"
+#include "UserInterface/Console.h"
+
+extern UEngine* GEngine;
 
 AActor::AActor(const AActor& Other)
     : UObject(Other),
@@ -242,7 +245,7 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
         UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate());
         dupComponent->Owner = this;
         OwnedComponents.Add(dupComponent);
-        GetEngine()->GetWorld()->GetLevel()->GetDuplicatedObjects().Add(Component, dupComponent);
+        GEngine->GetWorld()->GetLevel()->GetDuplicatedObjects().Add(Component, dupComponent);
 
         /** Todo. UActorComponent를 상속 받는 컴포넌트는 오류가 발생 코드 로직 수정 필요
          *   임시로 IsA 검사 후 Root 설정

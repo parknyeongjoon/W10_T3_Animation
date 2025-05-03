@@ -4,6 +4,7 @@
 #include <typeindex>
 #include "Core/Container/Map.h"
 
+#include "Core/Container/Array.h"
 
 #include "UObject/Object.h"
 
@@ -386,6 +387,22 @@ public:
             std::move(LambdaFunc)
         ));
         
+        return DelegateHandle;
+    }
+
+    template <typename FunctorType>
+    FDelegateHandle AddLambda(FunctorType&& InFunctor)
+    {
+        FDelegateHandle DelegateHandle = FDelegateHandle::CreateHandle();
+
+        DelegateHandles.Add(
+            DelegateHandle, FDelegateInfo(
+            EDelegateType::LambdaFunction,
+            [Func = std::forward<FunctorType>(InFunctor)](ParamTypes... Params) mutable
+            {
+                Func(std::forward<ParamTypes>(Params)...);
+            }
+        ));
         return DelegateHandle;
     }
 

@@ -1,7 +1,10 @@
 #include "LuaCoroutine.h"
-#include "WaitObjects.h"
 #include "Delegates/DelegateCombination.h"
+#include "WaitObjects.h"
 #include "Launch/EditorEngine.h"
+#include "UObject/Casts.h"
+
+extern UEngine* GEngine;
 
 FLuaCoroutine::FLuaCoroutine(sol::coroutine coroutine)
     : Co(std::move(coroutine))
@@ -124,7 +127,10 @@ void TestCoroutine(sol::state& lua)
     delegate.BindLambda([coroutineFunc] {
         sol::coroutine Co(coroutineFunc.lua_state(), coroutineFunc);
         FLuaCoroutine* NewCoroutine = new FLuaCoroutine(Co);
-        GEngine->CoroutineManager.StartCoroutine(NewCoroutine);
+        if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+        {
+            EditorEngine->CoroutineManager.StartCoroutine(NewCoroutine);
+        }
         });
     delegate.Execute();
     //Test Code.

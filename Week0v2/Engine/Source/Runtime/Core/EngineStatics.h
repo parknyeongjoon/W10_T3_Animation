@@ -1,5 +1,6 @@
 #pragma once
-#include "Define.h"
+#include "HAL/PlatformType.h"
+
 class UEngineStatics
 {
 public:

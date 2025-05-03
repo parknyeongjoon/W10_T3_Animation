@@ -5,6 +5,7 @@
 #include "Serialization/Archive.h"
 
 class AActor;
+
 class ULevel : public UObject
 {
     DECLARE_CLASS(ULevel, UObject)

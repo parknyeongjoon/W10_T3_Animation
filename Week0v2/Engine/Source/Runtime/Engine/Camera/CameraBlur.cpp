@@ -17,7 +17,7 @@ void CameraBlur::SetBlurStrength(float NewStrength)
     TargetBlurStrength = FMath::Clamp(NewStrength, 0.0f, 1.0f);
     
     // 블러 강도가 0이면 모디파이어를 비활성화
-    if (FMath::IsNearlyEqual(TargetBlurStrength, 0, 0.01))
+    if (FMath::IsNearlyEqual(TargetBlurStrength, 0, 0.01f))
     {
         DisableModifier(true); // 즉시 비활성화
     }

@@ -1,49 +1,40 @@
 #include "EditorIconRenderPass.h"
 
 #include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
 #include "Components/PrimitiveComponents/UBillboardComponent.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "Renderer/Renderer.h"
 #include "UnrealEd/EditorViewportClient.h"
+#include "UObject/UObjectIterator.h"
+
+extern UEngine* GEngine;
 
 FEditorIconRenderPass::~FEditorIconRenderPass()
 {
     BillboardComponents.Empty();
 }
 
-void FEditorIconRenderPass::AddRenderObjectsToRenderPass(UWorld* InLevel)
+void FEditorIconRenderPass::AddRenderObjectsToRenderPass()
 {
-
-    //TODO: 게임잼 끝나고 돌리기
-    
-    // if (InLevel->WorldType != EWorldType::Editor)
-    // {
-    //     return;
-    // }
-
-    for (const auto actor : InLevel->GetActors())
+    for (UBillboardComponent* BillboardComponent : TObjectRange<UBillboardComponent>())
     {
-        for (const auto comp : actor->GetComponents())
+        if ((BillboardComponent->GetWorld()->WorldType != EWorldType::Editor && BillboardComponent->bOnlyForEditor == true) || BillboardComponent->GetWorld() != GEngine->GetWorld())
         {
-            if (UBillboardComponent* billboardComp = Cast<UBillboardComponent>(comp))
-            {
-                if (InLevel->WorldType != EWorldType::Editor and billboardComp->bOnlyForEditor == true)
-                {
-                    continue;
-                }
-                BillboardComponents.Add(billboardComp);
-            }
+            continue;
         }
+        
+        BillboardComponents.Add(BillboardComponent);
     }
 }
 
 void FEditorIconRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     FBaseRenderPass::Prepare(InViewportClient);
-    const FRenderer& Renderer = GEngine->renderer;
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    const FRenderer& Renderer = GEngineLoop.Renderer;
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
     Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
@@ -73,9 +64,8 @@ void FEditorIconRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     FMatrix View = FMatrix::Identity;
     FMatrix Proj = FMatrix::Identity;
 
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderer& Renderer = GEngine->renderer;
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
 
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
     if (curEditorViewportClient != nullptr)

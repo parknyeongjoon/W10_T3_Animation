@@ -13,13 +13,6 @@ public:
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
 
-    void Input();
-    void MoveForward(float _Value);
-    void MoveRight(float _Value);
-    void MoveUp(float _Value);
-    void RotateYaw(float _Value);
-    void RotatePitch(float _Value);
-
     bool IsCameraMode() const { return bRightMouseDown; }
 
     virtual UObject* Duplicate() const override;

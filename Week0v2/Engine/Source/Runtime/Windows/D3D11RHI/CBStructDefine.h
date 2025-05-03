@@ -1,11 +1,11 @@
 // Auto-generated constant buffer structures with padding
 #pragma once
 
-#include "HAL/PlatformType.h"
-#include "Math/Matrix.h"
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
+#include "Math/Matrix.h"
 #include "Math/Color.h"
+#include "Define.h"
 
 const int MAX_POINTLIGHT = 8;
 const int MAX_SPOTLIGHT = 8;

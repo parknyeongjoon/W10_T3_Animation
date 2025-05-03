@@ -2,7 +2,6 @@
 #include "Container/Array.h"
 #include "Container/Set.h"
 
-class UClass;
 class UObject;
 
 
