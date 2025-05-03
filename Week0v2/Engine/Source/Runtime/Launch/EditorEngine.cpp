@@ -52,12 +52,12 @@ void UEditorEngine::Init(HWND hWnd)
     UnrealEditor->OnResize(hWnd);
     ContentsUI->OnResize(hWnd);
 
-    FWorldContext& EditorContext = CreateNewWorldContext(EWorldType::Editor);
+    std::shared_ptr<FWorldContext> EditorContext = CreateNewWorldContext(EWorldType::Editor);
 
     EditorWorld = FObjectFactory::ConstructObject<UWorld>();
     EditorWorld->WorldType = EWorldType::Editor;
     
-    EditorContext.SetWorld(EditorWorld);
+    EditorContext->SetWorld(EditorWorld);
     ActiveWorld = EditorWorld;
     ActiveWorld->InitWorld(); // UISOO Check
 
@@ -160,12 +160,12 @@ UWorld* UEditorEngine::GetWorld()
 
 void UEditorEngine::PreparePIE()
 {
-    FWorldContext& PIEWorldContext = CreateNewWorldContext(EWorldType::PIE);
+    std::shared_ptr<FWorldContext> PIEWorldContext = CreateNewWorldContext(EWorldType::PIE);
     
     PIEWorld = Cast<UWorld>(EditorWorld->Duplicate());
     PIEWorld->WorldType = EWorldType::PIE;
 
-    PIEWorldContext.SetWorld(PIEWorld);
+    PIEWorldContext->SetWorld(PIEWorld);
     ActiveWorld = PIEWorld;
     
     LevelType = LEVELTICK_All;    
@@ -245,12 +245,12 @@ void UEditorEngine::UpdateGizmos()
     }
 }
 
-FWorldContext& UEditorEngine::CreateNewWorldContext(EWorldType::Type InWorldType)
+std::shared_ptr<FWorldContext> UEditorEngine::CreateNewWorldContext(EWorldType::Type InWorldType)
 {
-    FWorldContext* NewWorldContext = new FWorldContext();
+    std::shared_ptr<FWorldContext> NewWorldContext = std::make_shared<FWorldContext>();
     NewWorldContext->WorldType = InWorldType;
     WorldContexts.Add(NewWorldContext);
     
 
-    return *NewWorldContext;
+    return NewWorldContext;
 }

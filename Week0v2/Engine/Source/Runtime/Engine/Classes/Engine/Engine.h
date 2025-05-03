@@ -11,7 +11,7 @@ public:
     FWorldContext() : WorldType(EWorldType::None), World(nullptr){}
 
     EWorldType::Type WorldType;
-    TArray<FWorldContext*> ExternalReferences;
+    // TArray<FWorldContext*> ExternalReferences;
 
     UWorld* GetWorld() { return World; }
     void SetWorld(UWorld* InWorld) { World = InWorld; }
@@ -25,8 +25,8 @@ class UEngine : public UObject
     DECLARE_CLASS(UEngine, UObject)
 
 public:
-    UEngine();
-    virtual ~UEngine();
+    UEngine() = default;
+    virtual ~UEngine() = default;
 
 public:
     virtual void Init(HWND hWnd);
@@ -36,10 +36,10 @@ public:
 
     UAssetManager* AssetManager = nullptr;
     
-    TArray<FWorldContext>& GetWorldContexts() { return worldContexts; }
+    TArray<std::shared_ptr<FWorldContext>>& GetWorldContexts() { return WorldContexts; }
 
     static inline UINT GFrameCount = 0;
 
 protected:
-    TArray<FWorldContext*> WorldContexts;
+    TArray<std::shared_ptr<FWorldContext>> WorldContexts;
 };

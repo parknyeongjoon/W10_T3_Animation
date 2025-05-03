@@ -53,7 +53,7 @@ public:
     float testBlurStrength;
 
 private:
-    FWorldContext& CreateNewWorldContext(EWorldType::Type InWorldType);
+    std::shared_ptr<FWorldContext> CreateNewWorldContext(EWorldType::Type InWorldType);
 
 private:
     UWorld* PIEWorld = nullptr;
