@@ -40,7 +40,7 @@ private:
     bool IsSpotLightInFrustum(USpotLightComponent* SpotLightComp, const FFrustum& CameraFrustum) const;
 private:        
     TArray<ULightComponentBase*> LightComponents;
-    TArray<UStaticMeshComponent*> StaticMesheComponents;
+    TArray<UStaticMeshComponent*> StaticMeshComponents;
     ID3D11ShaderResourceView* DummyWhiteTextureSRV = nullptr;
     ID3D11SamplerState* ShadowMapSampler = nullptr;
     ID3D11Buffer* LightConstantBuffer = nullptr;

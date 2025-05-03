@@ -286,8 +286,13 @@ void TestFBXLoader::ExtractIndices(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshD
 void TestFBXLoader::ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData) const
 {
     int MaterialCount = Node->GetMaterialCount();
-    int BaseIndexOffset = MeshData->Indices.Num() - (Mesh->GetPolygonCount() * 3); // 이 메쉬의 시작 인덱스 저장
-    
+    int BaseIndexOffset = MeshData->Indices.Num();
+    int TotalTriangleCount = 0;
+    for (int PolyIndex = 0; PolyIndex < Mesh->GetPolygonCount(); PolyIndex++) {
+        int PolySize = Mesh->GetPolygonSize(PolyIndex);
+        TotalTriangleCount += (PolySize - 2); // 폴리곤을 삼각형으로 분할한 개수
+    }
+    BaseIndexOffset -= TotalTriangleCount * 3; // 총 삼각형 개수 * 3
     
     // 재질 정보 추출
     for (int i = 0; i < MaterialCount; i++)
@@ -327,6 +332,8 @@ void TestFBXLoader::ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMesh
         Subset.MaterialName = MaterialName;
         Subset.IndexCount = TriangleCount * 3; // 삼각형 당 인덱스 3개
         MeshData->MaterialSubsets.Add(Subset);
+
+        BaseIndexOffset += TriangleCount * 3;
     }
     
     // 메시에 재질이 없는 경우 기본 재질 생성
@@ -371,6 +378,8 @@ void TestFBXLoader::UpdateBoundingBox(FSkeletalMeshRenderData* MeshData) const
     }
     
     // 바운딩 박스 설정
+    MeshData->BoundingBox.min = Min;
+    MeshData->BoundingBox.max = Max;
     MeshData->BoundingBox.Center = (Min + Max) * 0.5f;
     MeshData->BoundingBox.Extents = (Max - Min) * 0.5f;
 }

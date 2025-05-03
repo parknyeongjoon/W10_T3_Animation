@@ -61,7 +61,7 @@ void FStaticMeshRenderPass::AddRenderObjectsToRenderPass()
         {
             if (!Cast<UGizmoBaseComponent>(StaticMeshComponent))
             {
-                StaticMesheComponents.Add(StaticMeshComponent);
+                StaticMeshComponents.Add(StaticMeshComponent);
             }
         }
             
@@ -80,7 +80,7 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
     const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
-    Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
+    Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정점 연결 방식 설정
     Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState());
 
     // RTVs 배열의 유효성을 확인합니다.
@@ -140,7 +140,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     
     UpdateCameraConstant(InViewportClient);
     
-    for (UStaticMeshComponent* staticMeshComp : StaticMesheComponents)
+    for (UStaticMeshComponent* staticMeshComp : StaticMeshComponents)
     {
         const FMatrix Model = staticMeshComp->GetWorldMatrix();
         UpdateMatrixConstants(staticMeshComp, View, Proj);
@@ -283,7 +283,7 @@ void FStaticMeshRenderPass::CreateDummyTexture()
 
 void FStaticMeshRenderPass::ClearRenderObjects()
 {
-    StaticMesheComponents.Empty();
+    StaticMeshComponents.Empty();
     LightComponents.Empty();
 }
 

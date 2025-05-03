@@ -26,7 +26,7 @@ public:
     
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance) override;
     
-    USkeletalMesh* GetStaticMesh() const { return SkeletalMesh; }
+    USkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
     void SetSkeletalMesh(USkeletalMesh* value);
 
     
