@@ -350,9 +350,9 @@ void LuaTypes::FBindLua<USceneComponent>::Bind(sol::table& engineTable)
         , sol::no_constructor
         , sol::base_classes, sol::bases<UActorComponent>() // 상속 명시
         // 멤버들 직접 바인딩 (LUA_BIND_MEMBER를 풀어서)
-        , "GetForwardVector", &USceneComponent::GetForwardVector
-        , "GetRightVector", &USceneComponent::GetRightVector
-        , "GetUpVector", &USceneComponent::GetUpVector
+        , "GetForwardVector", &USceneComponent::GetWorldForwardVector
+        , "GetRightVector", &USceneComponent::GetWorldRightVector
+        , "GetUpVector", &USceneComponent::GetWorldUpVector
         , "AddLocation", &USceneComponent::AddRelativeLocation
         , "AddRotation", &USceneComponent::AddRelativeRotation
         , "AddScale", &USceneComponent::AddRelativeScale

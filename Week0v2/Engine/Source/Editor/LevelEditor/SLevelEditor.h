@@ -1,4 +1,5 @@
 #pragma once
+#include "Math/Vector.h"
 #include "Runtime/Engine/Classes/Engine/FEditorStateManager.h"
 
 class SSplitterH;
@@ -11,15 +12,13 @@ public:
     SLevelEditor();
     ~SLevelEditor();
     void Initialize(uint32 InEditorWidth, uint32 InEditorHeight);
-    void Tick(ELevelTick tickType, double deltaTime);
-    void Input();
+    void Tick(ELevelTick tickType, double DeltaTime);
     void Release();
     
-    void SelectViewport(POINT point);
+    void SelectViewport(FVector2D Point);
     void OnResize();
     void ResizeViewports();
-    void OnMultiViewport();
-    void OffMultiViewport();
+    void SetEnableMultiViewport(bool bIsEnable);
     bool IsMultiViewport();
 private:
     bool bInitialize;
@@ -29,12 +28,15 @@ private:
     TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients;
     std::shared_ptr<FEditorViewportClient> ActiveViewportClient;
 
+    /** 우클릭 시 캡처된 마우스 커서의 초기 위치 (스크린 좌표계) */
+    FVector2D MousePinPosition;
+
+    
     bool bLButtonDown = false;
     bool bRButtonDown = false;
     
     bool bMultiViewportMode;
 
-    POINT lastMousePos;
     float EditorWidth;
     float EditorHeight;
 

@@ -20,6 +20,131 @@
 
 using namespace DirectX;
 
+void UEditorPlayer::Initialize()
+{
+    FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
+    Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    {
+        if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
+        {
+            return;
+        }
+        
+        if (ImGui::GetIO().WantCaptureMouse) return;
+    
+        if (InMouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
+        {
+            return;
+        }
+        
+        POINT mousePos;
+        GetCursorPos(&mousePos);
+        GetCursorPos(&LastMousePosision);
+        if (bLAltDown && bLCtrlDown)
+        {
+            MultiSelectingStart();
+        }
+
+        ScreenToClient(GEngineLoop.AppWnd, &mousePos);
+    
+        FVector pickPosition;
+
+        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+        if (EditorEngine)
+        {
+            std::shared_ptr<FEditorViewportClient> ActiveViewport = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
+            ScreenToViewSpace(mousePos.x, mousePos.y, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix(), pickPosition);
+            bool Result = PickGizmo(pickPosition);
+            if (Result == false)
+            {
+                PickActor(pickPosition);
+            }
+        }
+    });
+    
+    Handler->OnMouseMoveDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    {
+        if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
+        {
+            return;
+        }
+        
+        if (ImGui::GetIO().WantCaptureMouse)
+        {
+            return;
+        }
+
+        if (bMultiSeleting)
+        {
+            MakeMulitRect();
+        }
+        PickedObjControl();
+    });
+    
+    Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    {
+        if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
+        {
+            return;
+        }
+        
+        if (InMouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
+        {
+            return;
+        }
+        
+        bAlreadyDup = false;
+        if (bMultiSeleting)
+        {
+            MultiSelectingEnd();
+        }
+        else
+        {
+            GetWorld()->SetPickingGizmo(nullptr);
+        }
+    });
+
+    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
+    {
+        if (GetKeyState(VK_RBUTTON) & 0x8000)
+        {
+            return;
+        }
+        
+        if (InKeyEvent.GetInputEvent() != IE_Pressed)
+        {
+            return;
+        }
+        
+        UEditorPlayer* EditorPlayer = CastChecked<UEditorEngine>(GEngine)->GetEditorPlayer();
+        switch (InKeyEvent.GetCharacter())
+        {
+        case 'Q':
+            {
+                //GetWorld()->SetPickingObj(nullptr);
+                break;
+            }
+        case 'W':
+            {
+                EditorPlayer->SetMode(CM_TRANSLATION);
+                break;
+            }
+        case 'E':
+            {
+                EditorPlayer->SetMode(CM_ROTATION);
+                break;
+            }
+        case 'R':
+            {
+                EditorPlayer->SetMode(CM_SCALE);
+                break;
+            }
+        default:
+            break;
+        }
+    });
+}
+
 void UEditorPlayer::Tick()
 {
     Input();
@@ -71,140 +196,24 @@ void UEditorPlayer::Input()
     if (GetAsyncKeyState(VK_LSHIFT) & 0x8000)
     {
         if (!bLShiftDown)
+        {
             bLShiftDown = true;
+        }
     }
     else
     {
         bLShiftDown = false;
     }
-    if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
-    {
-        if (!bLeftMouseDown)
-        {
-            bLeftMouseDown = true;
-
-            POINT mousePos;
-            GetCursorPos(&mousePos);
-            GetCursorPos(&lastMousePos);
-            if ( bLAltDown && bLCtrlDown )
-            {
-                MultiSelectingStart();
-            }
-
-            ScreenToClient(GEngineLoop.AppWnd, &mousePos);
-
-            FVector pickPosition;
-
-            UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
-            if (EditorEngine == nullptr)
-            {
-                return;    
-            }
-    
-            auto ActiveViewport = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
-            
-            ScreenToViewSpace(mousePos.x, mousePos.y, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix(), pickPosition);
-            bool res = PickGizmo(pickPosition);
-            if (!res) PickActor(pickPosition);
-        }
-        else
-        {
-            if (bMultiSeleting)
-            {
-                MakeMulitRect();
-            }
-            PickedObjControl();
-        }
-    }
-    else
-    {
-        if (bLeftMouseDown)
-        {
-            bLeftMouseDown = false;
-            bAlreadyDup = false;
-            if (bMultiSeleting)
-            {
-                MultiSelectingEnd();
-            }
-            else
-                GetWorld()->SetPickingGizmo(nullptr);
-        }
-    }
-    if (GetAsyncKeyState(VK_SPACE) & 0x8000)
-    {
-        if (!bSpaceDown)
-        {
-            AddControlMode();
-            bSpaceDown = true;
-        }
-    }
-    else
-    {
-        if (bSpaceDown)
-        {
-            bSpaceDown = false;
-        }
-    }
-    if (GetAsyncKeyState(VK_RBUTTON) & 0x8000)
-    {
-        if (!bRightMouseDown)
-        {
-            bRightMouseDown = true;
-        }
-    }
-    else
-    {
-        bRightMouseDown = false;
-        if (GetAsyncKeyState('Q') & 0x8000)
-        {
-            //GetWorld()->SetPickingObj(nullptr);
-        }
-        if (GetAsyncKeyState('W') & 0x8000)
-        {
-            cMode = CM_TRANSLATION;
-        }
-        if (GetAsyncKeyState('E') & 0x8000)
-        {
-            cMode = CM_ROTATION;
-        }
-        if (GetAsyncKeyState('R') & 0x8000)
-        {
-            cMode = CM_SCALE;
-        }
-    }
-    if ((GetAsyncKeyState(VK_LSHIFT) & 0x8000) && (GetAsyncKeyState(VK_DELETE) & 0x8000))
-    {
-        for (AActor* Actor : GEngine->GetWorld()->GetSelectedActors())
-        {
-            Actor->Destroy();
-        }
-        GEngine->GetWorld()->ClearSelectedActors();
-    }
     if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
     {
         if (!bLCtrlDown)
         {
-            bLCtrlDown =true;
+            bLCtrlDown = true;
         }
     }
     else
     {
-        bLCtrlDown= false;
-    }
-    if (GetAsyncKeyState('D') & 0x8000)
-    {
-        if (!bDkeyDown)
-        {
-            bDkeyDown = true;
-            if (bLCtrlDown)
-            {
-                GEngine->GetWorld()->DuplicateSeletedActors();
-            }
-        }
-    }
-    else
-    {
-        bDkeyDown = false;
+        bLCtrlDown = false;
     }
     if (GetAsyncKeyState(VK_LMENU) & 0x8000)
     {
@@ -321,9 +330,16 @@ void UEditorPlayer::PickActor(const FVector& pickPosition)
     
     auto ActiveViewport = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
     
-    if (!(ActiveViewport->ShowFlag & EEngineShowFlags::SF_Primitives)) return;
+    if (!(ActiveViewport->ShowFlag & EEngineShowFlags::SF_Primitives))
+    {
+        return;
+    }
+    
     if (!bLShiftDown)
+    {
         GetWorld()->ClearSelectedActors();
+    }
+    
     const UActorComponent* Possible = nullptr;
     int maxIntersect = 0;
     float minDistance = FLT_MAX;
@@ -474,8 +490,8 @@ void UEditorPlayer::PickedObjControl()
     {
         POINT currentMousePos;
         GetCursorPos(&currentMousePos);
-        int32 deltaX = currentMousePos.x - lastMousePos.x;
-        int32 deltaY = currentMousePos.y - lastMousePos.y;
+        int32 deltaX = currentMousePos.x - LastMousePosision.x;
+        int32 deltaY = currentMousePos.y - LastMousePosision.y;
 
         // USceneComponent* pObj = GetWorld()->GetPickingObj();
         //AActor* PickedActor = GetWorld()->GetSelectedActors();
@@ -487,6 +503,7 @@ void UEditorPlayer::PickedObjControl()
             switch (cMode)
             {
             case CM_TRANSLATION:
+                // SLevelEditor에 있음.
                 ControlTranslation(pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
                 break;
             case CM_SCALE:
@@ -499,7 +516,7 @@ void UEditorPlayer::PickedObjControl()
                 break;
             }
         }
-        lastMousePos = currentMousePos;
+        LastMousePosision = currentMousePos;
     }
         
 }
@@ -583,18 +600,18 @@ void UEditorPlayer::ControlTranslation(USceneComponent* pObj, UGizmoBaseComponen
     {
         if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)
         {
-            float moveAmount = WorldMoveDirection.Dot(pObj->GetForwardVector());
-            pObj->AddRelativeLocation(pObj->GetForwardVector() * moveAmount);
+            float moveAmount = WorldMoveDirection.Dot(pObj->GetWorldForwardVector());
+            pObj->AddWorldLocation(pObj->GetWorldForwardVector() * moveAmount);
         }
         else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowY)
         {
-            float moveAmount = WorldMoveDirection.Dot(pObj->GetRightVector());
-            pObj->AddRelativeLocation(pObj->GetRightVector() * moveAmount);
+            float moveAmount = WorldMoveDirection.Dot(pObj->GetWorldRightVector());
+            pObj->AddWorldLocation(pObj->GetWorldRightVector() * moveAmount);
         }
         else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
         {
-            float moveAmount = WorldMoveDirection.Dot(pObj->GetUpVector());
-            pObj->AddRelativeLocation(pObj->GetUpVector() * moveAmount);
+            float moveAmount = WorldMoveDirection.Dot(pObj->GetWorldUpVector());
+            pObj->AddWorldLocation(pObj->GetWorldUpVector() * moveAmount);
         }
     }
     else if (cdMode == CDM_WORLD)
@@ -606,19 +623,19 @@ void UEditorPlayer::ControlTranslation(USceneComponent* pObj, UGizmoBaseComponen
         {
             // 카메라의 오른쪽 방향을 X축 이동에 사용
             FVector moveDir = CamearRight * DeltaX * 0.05f;
-            pObj->AddRelativeLocation(FVector(moveDir.X, 0.0f, 0.0f) * Distance);
+            pObj->AddWorldLocation(FVector(moveDir.X, 0.0f, 0.0f) * Distance);
         }
         else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowY)
         {
             // 카메라의 오른쪽 방향을 Y축 이동에 사용
             FVector moveDir = CamearRight * DeltaX * 0.05f;
-            pObj->AddRelativeLocation(FVector(0.0f, moveDir.Y, 0.0f) * Distance);
+            pObj->AddWorldLocation(FVector(0.0f, moveDir.Y, 0.0f) * Distance);
         }
         else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
         {
             // 카메라의 위쪽 방향을 Z축 이동에 사용
             FVector moveDir = CameraUp * -DeltaY * 0.05f;
-            pObj->AddRelativeLocation(FVector(0.0f, 0.0f, moveDir.Z) * Distance);
+            pObj->AddWorldLocation(FVector(0.0f, 0.0f, moveDir.Z) * Distance);
         }
     }
 }

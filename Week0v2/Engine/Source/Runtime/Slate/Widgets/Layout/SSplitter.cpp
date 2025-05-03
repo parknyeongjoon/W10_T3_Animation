@@ -21,7 +21,11 @@ void SSplitter::OnResize(float width, float height)
 bool SSplitter::OnPressed(FPoint coord)
 {
     if (!IsHover(coord))
+    {
         return false;
+    }
+
+    bIsSplitterPressed = IsHover(coord);
     
     return bIsPressed = true;
 }
@@ -29,6 +33,8 @@ bool SSplitter::OnPressed(FPoint coord)
 bool SSplitter::OnReleased()
 {
     bIsPressed = false;
+    bIsSplitterPressed = false;
+    
     return false;
 }
 

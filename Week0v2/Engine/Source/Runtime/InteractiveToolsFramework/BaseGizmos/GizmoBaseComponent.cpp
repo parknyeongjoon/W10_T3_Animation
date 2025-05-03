@@ -84,7 +84,7 @@ void UGizmoBaseComponent::TickComponent(float DeltaTime)
         }
         else
         {
-            float scalar = activeViewport->orthoSize * 0.1f;
+            float scalar = activeViewport->OrthoSize * 0.1f;
             SetRelativeScale(FVector(scalar, scalar, scalar));
         }
     }

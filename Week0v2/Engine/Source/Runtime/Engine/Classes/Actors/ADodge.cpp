@@ -28,7 +28,10 @@ void ADodge::BeginPlay()
         std::cout << function.Key.ToString();
     }
     // TestDelegate.AddUObject(this, &ADodge::test);
-    // TestDelegate.AddLambda([this]{SetActorLocation(GetActorLocation() + FVector(0.1,0,0));});
+    // TestDelegate.AddLambda([this]
+    // {
+    //     SetActorLocation(GetActorLocation() + FVector(0.1,0,0));
+    // });
 }
 
 void ADodge::Tick(float DeltaTime)

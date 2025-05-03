@@ -59,7 +59,7 @@ FMatrix UCameraComponent::GetViewMatrix() const
 {
     //FVector CameraPos = GetWorldLocation();
     FVector CameraPos = GetWorldMatrix().TransformPosition(GetRelativeLocation());
-    FVector CameraForward = GetForwardVector();
+    FVector CameraForward = GetWorldForwardVector();
     //FVector4 CameraForward4 = FMatrix::TransformVector(FVector4(1, 0, 0, 0), GetWorldMatrix());
     //FVector CameraForward = FVector(CameraForward4.x, CameraForward4.y, CameraForward4.z);
     FVector CameraUP = FVector(0, 0, 1);

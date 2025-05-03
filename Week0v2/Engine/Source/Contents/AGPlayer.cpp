@@ -231,7 +231,7 @@ void AGPlayer::Input(float DeltaTime)
         GetRootComponent()->GetAttachChildren()[0];
 
         float rotationAmountY = (cameraUp.Z >= 0 ? 1.0f : -1.0f) * deltaY * 0.001f;
-        FQuat rotationDeltaX = FQuat(GetRootComponent()->GetRightVector(), rotationAmountY);
+        FQuat rotationDeltaX = FQuat(GetRootComponent()->GetWorldRightVector(), rotationAmountY);
         
         GetRootComponent()->SetRelativeRotation(currentRotation * rotationDeltaX);
 

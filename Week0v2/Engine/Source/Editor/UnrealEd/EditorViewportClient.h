@@ -1,4 +1,6 @@
 #pragma once
+#include <SlateCore/Input/Events.h>
+
 #include "Define.h"
 #include "EngineBaseTypes.h"
 #include "ViewportClient.h"
@@ -12,6 +14,7 @@
 #define MIN_ORTHOZOOM				1.0							/* 2D ortho viewport zoom >= MIN_ORTHOZOOM */
 #define MAX_ORTHOZOOM				1e25	
 
+enum class EViewScreenLocation;
 class AActor;
 class USceneComponent;
 
@@ -86,16 +89,18 @@ public:
     ~FEditorViewportClient();
 
     virtual void        Draw(FViewport* Viewport) override;
-    virtual UWorld*     GetWorld() const { return nullptr; };
-    void Initialize(int32 viewportIndex);
+    virtual UWorld*     GetWorld() const { return nullptr; }
+    void Initialize(EViewScreenLocation InViewportIndex);
     void Tick(float DeltaTime);
     void Release();
-
-    void Input();
+    void UpdateEditorCameraMovement(float DeltaTime);
+    
+    void InputKey(const FKeyEvent& InKeyEvent);
+    void MouseMove(const FPointerEvent& InMouseEvent);
     void ResizeViewport(const DXGI_SWAP_CHAIN_DESC& swapchaindesc);
     void ResizeViewport(FRect Top, FRect Bottom, FRect Left, FRect Right);
 
-    bool IsSelected(POINT point);
+    bool IsSelected(FVector2D Point);
 protected:
     /** Camera speed setting */
     int32 CameraSpeedSetting = 1;
@@ -107,7 +112,7 @@ public:
 
 public: 
     FViewport* Viewport;
-    int32 ViewportIndex;
+    uint32 ViewportIndex;
     FViewport* GetViewport() const { return Viewport; }
     D3D11_VIEWPORT& GetD3DViewport();
 
@@ -127,7 +132,7 @@ public:
     float nearPlane = 0.1f;
     float farPlane = 1000.0f;
     static FVector Pivot;
-    static float orthoSize;
+    static float OrthoSize;
     ELevelViewportType ViewportType;
     uint64 ShowFlag;
     EViewModeIndex ViewMode;
@@ -189,13 +194,18 @@ public: //Camera Movement
     USceneComponent* GetOverrideComponent() { return OverrideComponent; }
     void SetOverrideComponent(USceneComponent* newComp) { OverrideComponent = newComp; }
 
-    //Flag Test Code
-    static void SetOthoSize(float _Value);
+    static float GetOrthoSize() { return OrthoSize; }
+    static void SetOrthoSize(float InValue);
 private: // Input
     POINT lastMousePos;
     bool bRightMouseDown = false;
     bool bLCtrlDown = false;
 
+    //Temp
+    TSet<EKeys::Type> CameraInputPressedKeys;
+
+    TSet<EKeys::Type> PressedKeys;
+    
 public:
     void LoadConfig(const TMap<FString, FString>& config);
     void SaveConfig(TMap<FString, FString>& config);
@@ -204,8 +214,8 @@ private:
     void WriteIniFile(const FString& filePath, const TMap<FString, FString>& config);
 	
 public:
-    float GetCameraSpeedScalar() const { return CameraSpeedScalar * 0.1f; };
-    void SetCameraSpeedScalar(float value);
+    float GetCameraSpeedScalar() const { return CameraSpeedScalar; };
+    void SetCameraSpeed(float value);
 
 private:
     template <typename T>

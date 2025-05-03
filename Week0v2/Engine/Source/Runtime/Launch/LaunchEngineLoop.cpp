@@ -25,7 +25,8 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     WindowInit(hInstance);
     
     ImGuiUIManager = new ImGuiManager();
-
+    AppMessageHandler = std::make_unique<FSlateAppMessageHandler>();
+    
     GraphicDevice.Initialize(AppWnd);
     
     Renderer.Initialize(&GraphicDevice);
@@ -210,34 +211,8 @@ LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, UINT message, WPARAM wParam,
         ViewportTypePanel::GetInstance().OnResize(hWnd);
         GEngineLoop.UpdateUI();
         break;
-    case WM_MOUSEWHEEL:
-        if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
-        {
-            if (SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor())
-            {
-                if (std::shared_ptr<FEditorViewportClient> ViewportClient = LevelEditor->GetActiveViewportClient())
-                {
-                    int32 zDelta = GET_WHEEL_DELTA_WPARAM(wParam); // 휠 회전 값 (+120 / -120)
-                    if (ViewportClient->IsPerspective())
-                    {
-                        if (ViewportClient->GetIsOnRBMouseClick())
-                        {
-                            ViewportClient->SetCameraSpeedScalar(ViewportClient->GetCameraSpeedScalar() + zDelta * 0.01);
-                        }
-                        else
-                        {
-                            ViewportClient->CameraMoveForward(zDelta * 0.1f);
-                        }
-                    }
-                    else
-                    {
-                        FEditorViewportClient::SetOthoSize(-zDelta * 0.01f);
-                    }
-                }
-            }
-        }
-        break;
     default:
+        GEngineLoop.AppMessageHandler->ProcessMessage(hWnd, message, wParam, lParam);
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
 

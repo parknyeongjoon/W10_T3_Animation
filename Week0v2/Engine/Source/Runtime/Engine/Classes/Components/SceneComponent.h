@@ -81,9 +81,9 @@ protected:
     FBoundingBox AABB;
     
 public:
-    FVector GetForwardVector() const;
-    FVector GetRightVector() const;
-    FVector GetUpVector() const;
+    FVector GetRelativeForwardVector() const;
+    FVector GetRelativeRightVector() const;
+    FVector GetRelativeUpVector() const;
     
     void AddRelativeLocation(const FVector& InAddValue);
     void AddRelativeRotation(const FRotator& InAddValue);
@@ -98,10 +98,18 @@ public:
     FRotator GetRelativeRotation() const;
     FVector GetRelativeScale() const;
 
+    FVector GetWorldForwardVector() const;
+    FVector GetWorldRightVector() const;
+    FVector GetWorldUpVector() const;
+
     FVector GetWorldLocation() const;
     FRotator GetWorldRotation() const;
     FVector GetWorldScale() const;
 
+    void AddWorldLocation(const FVector& InAddValue);
+    void AddWorldRotation(const FRotator& InAddValue);
+    void AddWorldScale(const FVector& InAddValue);
+    
     void SetWorldLocation(const FVector& InLocation);
     void SetWorldRotation(const FRotator& InRotation);
     void SetWorldRotation(const FQuat& InQuat);

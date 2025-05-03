@@ -390,6 +390,22 @@ public:
         return DelegateHandle;
     }
 
+    template <typename FunctorType>
+    FDelegateHandle AddLambda(FunctorType&& InFunctor)
+    {
+        FDelegateHandle DelegateHandle = FDelegateHandle::CreateHandle();
+
+        DelegateHandles.Add(
+            DelegateHandle, FDelegateInfo(
+            EDelegateType::LambdaFunction,
+            [Func = std::forward<FunctorType>(InFunctor)](ParamTypes... Params) mutable
+            {
+                Func(std::forward<ParamTypes>(Params)...);
+            }
+        ));
+        return DelegateHandle;
+    }
+
     // 핸들로 삭제
     bool Remove(FDelegateHandle Handle)
     {

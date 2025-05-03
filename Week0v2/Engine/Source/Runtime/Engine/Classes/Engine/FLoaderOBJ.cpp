@@ -403,8 +403,8 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
         const FVector edge2 = {v2.x - v0.x, v2.y - v0.y, v2.z - v0.z};
 
         // UV 차이 계산
-        const FVector2D deltaUV1 = {v1.u - v0.u, v1.v - v0.v};
-        const FVector2D deltaUV2 = {v2.u - v0.u, v2.v - v0.v};
+        const FVector2D deltaUV1 = FVector2D {v1.u - v0.u, v1.v - v0.v};
+        const FVector2D deltaUV2 = FVector2D {v2.u - v0.u, v2.v - v0.v};
         float deltaUV = deltaUV1.X * deltaUV2.Y - deltaUV2.X * deltaUV1.Y;
         // 접선 계산
         const float f = 1.0f / (deltaUV == 0 ? 1 : deltaUV);

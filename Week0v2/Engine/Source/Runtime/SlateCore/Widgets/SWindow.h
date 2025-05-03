@@ -17,10 +17,17 @@ public:
     bool IsHover(FPoint coord);
     virtual bool OnPressed(FPoint coord);
     virtual bool OnReleased();
+    
     bool IsPressing() { return bIsPressed; }
+
+    virtual bool IsSplitterPressed() const { return bIsSplitterPressed; }
+
+
+    
 protected:
     bool bIsHoverd = false;
     bool bIsPressed = false;
+    bool bIsSplitterPressed = false;
 
 };
 

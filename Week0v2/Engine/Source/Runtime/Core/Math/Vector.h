@@ -8,8 +8,11 @@
 struct FVector2D
 {
     float X, Y;
-    FVector2D(float _x = 0, float _y = 0) : X(_x), Y(_y) {}
+    explicit FVector2D(float _x = 0, float _y = 0) : X(_x), Y(_y) {}
 
+    static const FVector2D ZeroVector;
+    static const FVector2D OneVector;
+    
     FVector2D operator+(const FVector2D& rhs) const
     {
         return FVector2D(X + rhs.X, Y + rhs.Y);
@@ -47,7 +50,10 @@ struct FVector2D
 struct FVector
 {
     float X, Y, Z;
-    FVector(float _x = 0, float _y = 0, float _z = 0) : X(_x), Y(_y), Z(_z) {}
+
+    FVector() : X(0), Y(0), Z(0) {}
+    FVector(float X, float Y, float Z) : X(X), Y(Y), Z(Z) {}
+    explicit FVector(float Scalar) : X(Scalar), Y(Scalar), Z(Scalar) {}
 
     FVector operator+(const FVector& Other) const;
     FVector& operator+=(const FVector& Other);
@@ -200,6 +206,13 @@ struct FVector
     static const FVector UpVector;
     static const FVector ForwardVector;
     static const FVector RightVector;
+
+    // Unit X Axis Vector (1, 0, 0)
+    static const FVector XAxisVector;
+    // Unit Y Axis Vector (0, 1, 0)
+    static const FVector YAxisVector;
+    // Unit Z Axis Vector (0, 0, 1)
+    static const FVector ZAxisVector;
 };
 inline FVector FVector::operator+(const FVector& Other) const
 {

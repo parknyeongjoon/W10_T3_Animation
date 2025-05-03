@@ -382,7 +382,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
         {
             LightConstant.DirLight.Color = DirectionalLightComp->GetLightColor();
             LightConstant.DirLight.Intensity = DirectionalLightComp->GetIntensity();
-            LightConstant.DirLight.Direction = DirectionalLightComp->GetForwardVector();
+            LightConstant.DirLight.Direction = DirectionalLightComp->GetWorldForwardVector();
             LightConstant.DirLight.CastShadow = DirectionalLightComp->CanCastShadows();
 
             TArray<ID3D11ShaderResourceView*> DirectionalShadowMaps;
@@ -413,7 +413,7 @@ void FStaticMeshRenderPass::UpdateLightConstants()
             LightConstant.SpotLights[SpotLightCount].Position = SpotLightComp->GetWorldLocation();
             LightConstant.SpotLights[SpotLightCount].Color = SpotLightComp->GetLightColor();
             LightConstant.SpotLights[SpotLightCount].Intensity = SpotLightComp->GetIntensity();
-            LightConstant.SpotLights[SpotLightCount].Direction = SpotLightComp->GetForwardVector();
+            LightConstant.SpotLights[SpotLightCount].Direction = SpotLightComp->GetWorldForwardVector();
             LightConstant.SpotLights[SpotLightCount].InnerAngle = SpotLightComp->GetInnerConeAngle();
             LightConstant.SpotLights[SpotLightCount].OuterAngle = SpotLightComp->GetOuterConeAngle();
             LightConstant.SpotLights[SpotLightCount].View = (SpotLightComp->GetViewMatrix());

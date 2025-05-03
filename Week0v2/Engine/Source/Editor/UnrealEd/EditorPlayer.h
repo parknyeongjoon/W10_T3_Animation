@@ -15,6 +15,8 @@ class UEditorPlayer : public UObject
     UEditorPlayer() = default;
     ~UEditorPlayer() = default;
 
+    void Initialize();
+    
     virtual void Tick();
     
 
@@ -44,8 +46,9 @@ private:
     bool bLAltDown = false;
     bool bAlreadyDup = false;
     bool bMultiSeleting =false;
-    POINT lastMousePos;
+    
     POINT multiSelectingStartPos;
+    POINT LastMousePosision;
     ControlMode cMode = CM_TRANSLATION;
     CoordiMode cdMode = CDM_WORLD;
 

@@ -1,5 +1,6 @@
 #include "EditorViewportClient.h"
 
+#include "EditorPlayer.h"
 #include "ImGUI/imgui.h"
 
 #include "Math/JungleMath.h"
@@ -12,12 +13,12 @@
 #include "Components/LightComponents/DirectionalLightComponent.h"
 #include "Components/LightComponents/SpotLightComponent.h"
 #include "Engine/FEditorStateManager.h"
+#include "LevelEditor/SLevelEditor.h"
 
 FVector FEditorViewportClient::Pivot = FVector(0.0f, 0.0f, 0.0f);
-float FEditorViewportClient::orthoSize = 10.0f;
+float FEditorViewportClient::OrthoSize = 10.0f;
 
-FEditorViewportClient::FEditorViewportClient()
-    : Viewport(nullptr), ViewMode(VMI_Lit_Phong), ViewportType(LVT_Perspective), ShowFlag(31)
+FEditorViewportClient::FEditorViewportClient() : Viewport(nullptr), ViewMode(VMI_Lit_Phong), ViewportType(LVT_Perspective), ShowFlag(31)
 {
 
 }
@@ -31,19 +32,25 @@ void FEditorViewportClient::Draw(FViewport* Viewport)
 {
 }
 
-void FEditorViewportClient::Initialize(int32 viewportIndex)
+void FEditorViewportClient::Initialize(EViewScreenLocation InViewportIndex)
 {
-
+    ViewportIndex = static_cast<uint32>(InViewportIndex);
+    
     ViewTransformPerspective.SetLocation(FVector(8.0f, 8.0f, 8.f));
     ViewTransformPerspective.SetRotation(FVector(0.0f, 45.0f, -135.0f));
-    Viewport = new FViewport(static_cast<EViewScreenLocation>(viewportIndex));
+    Viewport = new FViewport(InViewportIndex);
+    Viewport->Initialize();
+    
     ResizeViewport(GEngineLoop.GraphicDevice.SwapchainDesc);
-    ViewportIndex = viewportIndex;
 }
 
 void FEditorViewportClient::Tick(float DeltaTime)
 {
-    Input();
+    if (GEngine->GetWorld()->WorldType == EWorldType::Editor)
+    {
+        UpdateEditorCameraMovement(DeltaTime);
+    }
+    
     UpdateViewMatrix();
     UpdateProjectionMatrix();
     UpdateCascadeShadowArea();
@@ -82,108 +89,250 @@ void FEditorViewportClient::Release()
     delete Viewport;
 }
 
-void FEditorViewportClient::Input()
+void FEditorViewportClient::UpdateEditorCameraMovement(const float DeltaTime)
 {
-    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
-    if (EditorEngine == nullptr)
+    if (CameraInputPressedKeys.Contains(EKeys::A))
     {
-        return;
+        CameraMoveRight(-100.f * DeltaTime);
     }
-    if (EditorEngine->LevelType != LEVELTICK_ViewportsOnly)
+
+    if (CameraInputPressedKeys.Contains(EKeys::D))
     {
-        return;
+        CameraMoveRight(100.f * DeltaTime);
     }
-    ImGuiIO& io = ImGui::GetIO();
-    if (io.WantCaptureMouse) return;
-    if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) // VK_RBUTTON은 마우스 오른쪽 버튼을 나타냄
+
+    if (CameraInputPressedKeys.Contains(EKeys::W))
     {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
-        if (!bRightMouseDown)
+        CameraMoveForward(100.f * DeltaTime);
+    }
+
+    if (CameraInputPressedKeys.Contains(EKeys::S))
+    {
+        CameraMoveForward(-100.f * DeltaTime);
+    }
+
+    if (CameraInputPressedKeys.Contains(EKeys::E))
+    {
+        CameraMoveUp(100.f * DeltaTime);
+    }
+
+    if (CameraInputPressedKeys.Contains(EKeys::Q))
+    {
+        CameraMoveUp(-100.f * DeltaTime);
+    }
+}
+
+void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
+{
+    // TODO: 나중에 InKeyEvent.GetKey();로 가져오는걸로 수정하기
+    // TODO: 나중에 PIEViewportClient에서 처리하는걸로 수정하기
+    // if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
+    // {
+    //     // PIE 모드 → 게임 플레이 입력 처리
+    //     UWorld* PlayWorld = GEngine->ActiveWorld;
+    //     if (PlayWorld)
+    //     {
+    //         // 첫 번째 플레이어 컨트롤러에게 전달
+    //         // if (APlayerController* PC = PlayWorld->GetFirstPlayerController())
+    //         // {
+    //         //     
+    //         // }
+    //     }
+    // }
+    // // 에디터 모드
+    // else
+    {
+        // TODO: 나중에 InKeyEvent.GetKey();로 가져오는걸로 수정하기
+        // 마우스 우클릭이 되었을때만 실행되는 함수
+        if (GetKeyState(VK_RBUTTON) & 0x8000)
         {
-            // 마우스 오른쪽 버튼을 처음 눌렀을 때, 마우스 위치 초기화
-            GetCursorPos(&lastMousePos);
-            bRightMouseDown = true;
+            switch (InKeyEvent.GetCharacter())
+            {
+            case 'A':
+            {
+                if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                {
+                    CameraInputPressedKeys.Add(EKeys::A);
+                }
+                else if (InKeyEvent.GetInputEvent() == IE_Released)
+                {
+                    CameraInputPressedKeys.Remove(EKeys::A);
+                }
+                break;
+            }
+            case 'D':
+            {
+                if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                {
+                    CameraInputPressedKeys.Add(EKeys::D);
+                }
+                else if (InKeyEvent.GetInputEvent() == IE_Released)
+                {
+                    CameraInputPressedKeys.Remove(EKeys::D);
+                }
+                break;
+            }
+            case 'W':
+            {
+                if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                {
+                    CameraInputPressedKeys.Add(EKeys::W);
+                }
+                else if (InKeyEvent.GetInputEvent() == IE_Released)
+                {
+                    CameraInputPressedKeys.Remove(EKeys::W);
+                }
+                break;
+            }
+            case 'S':
+            {
+                if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                {
+                    CameraInputPressedKeys.Add(EKeys::S);
+                }
+                else if (InKeyEvent.GetInputEvent() == IE_Released)
+                {
+                    CameraInputPressedKeys.Remove(EKeys::S);
+                }
+                break;
+            }
+            case 'E':
+            {
+                if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                {
+                    CameraInputPressedKeys.Add(EKeys::E);
+                }
+                else if (InKeyEvent.GetInputEvent() == IE_Released)
+                {
+                    CameraInputPressedKeys.Remove(EKeys::E);
+                }
+                break;
+            }
+            case 'Q':
+            {
+                if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                {
+                    CameraInputPressedKeys.Add(EKeys::Q);
+                }
+                else if (InKeyEvent.GetInputEvent() == IE_Released)
+                {
+                    CameraInputPressedKeys.Remove(EKeys::Q);
+                }
+                break;
+            }
+            default:
+                break;
+            }
         }
         else
         {
-            // 마우스 이동량 계산
-            POINT currentMousePos;
-            GetCursorPos(&currentMousePos);
-
-            // 마우스 이동 차이 계산
-            int32 deltaX = currentMousePos.x - lastMousePos.x;
-            int32 deltaY = currentMousePos.y - lastMousePos.y;
-
-            // Yaw(좌우 회전) 및 Pitch(상하 회전) 값 변경
-            if (IsPerspective()) {
-                CameraRotateYaw(deltaX * 0.1f);  // X 이동에 따라 좌우 회전
-                CameraRotatePitch(deltaY * 0.1f);  // Y 이동에 따라 상하 회전
-            }
-            else
-            {
-                PivotMoveRight(deltaX);
-                PivotMoveUp(deltaY);
-            }
-
-            SetCursorPos(lastMousePos.x, lastMousePos.y);
+            CameraInputPressedKeys.Empty();
         }
-        if (!bLCtrlDown)
+
+
+        // 일반적인 단일 키 이벤트
+        if (InKeyEvent.GetInputEvent() == IE_Pressed)
         {
-            if (GetAsyncKeyState('A') & 0x8000)
+            switch (InKeyEvent.GetCharacter())
             {
-                CameraMoveRight(-1.f);
+            case 'F':
+                {
+                    if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
+                    {
+                        if (AActor* PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin())
+                        {
+                            FViewportCameraTransform& ViewTransform = ViewTransformPerspective;
+                            ViewTransform.SetLocation(
+                                // TODO: 10.0f 대신, 정점의 min, max의 거리를 구해서 하면 좋을 듯
+                                PickedActor->GetActorLocation() - (ViewTransform.GetForwardVector() * 10.0f)
+                            );
+                        }
+                    }
+                    break;
+                }
+            case 'M':
+                {
+                    if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+                    {
+                        FEngineLoop::GraphicDevice.OnResize(GEngineLoop.AppWnd);
+                        SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor();
+                        LevelEditor->SetEnableMultiViewport(!LevelEditor->IsMultiViewport());
+                    }
+                    break;
+                }
+            case 'D':
+                {
+                    if (PressedKeys.Contains(EKeys::LeftControl))
+                    {
+                        GEngine->GetWorld()->DuplicateSeletedActors();
+                    }
+                }
+            default:
+                break;
             }
-            if (GetAsyncKeyState('D') & 0x8000)
-            {
-                CameraMoveRight(1.f);
-            }
-            if (GetAsyncKeyState('W') & 0x8000)
-            {
-                CameraMoveForward(1.f);
-            }
-            if (GetAsyncKeyState('S') & 0x8000)
-            {
-                CameraMoveForward(-1.f);
-            }
-            if (GetAsyncKeyState('E') & 0x8000)
-            {
-                CameraMoveUp(1.f);
-            }
-            if (GetAsyncKeyState('Q') & 0x8000)
-            {
-                CameraMoveUp(-1.f);
-            }
-        }
-    }
-    else
-    {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
-        bRightMouseDown = false; // 마우스 오른쪽 버튼을 떼면 상태 초기화
-    }
 
-    // Focus Selected Actor
-    if (GetAsyncKeyState('F') & 0x8000)
-    {
-        if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
-        {
-            AActor* PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
-            FViewportCameraTransform& ViewTransform = ViewTransformPerspective;
-            ViewTransform.SetLocation(
-                // TODO: 10.0f 대신, 정점의 min, max의 거리를 구해서 하면 좋을 듯
-                PickedActor->GetActorLocation() - (ViewTransform.GetForwardVector() * 10.0f)
-            );
+            // Virtual Key
+            UEditorEngine* EditorEngine = CastChecked<UEditorEngine>(GEngine);
+            switch (InKeyEvent.GetKeyCode())
+            {
+            case VK_DELETE:
+            {
+                for (AActor* Actor : GEngine->GetWorld()->GetSelectedActors())
+                {
+                    UE_LOG(LogLevel::Display, "Delete Component - %s", *Actor->GetName());
+                    Actor->Destroy();
+                }
+                GEngine->GetWorld()->ClearSelectedActors();
+                break;
+            }
+            case VK_SPACE:
+            {
+                EditorEngine->GetEditorPlayer()->AddControlMode();
+                break;
+            }
+            case VK_LCONTROL:
+            {
+                PressedKeys.Add(EKeys::LeftControl);
+                break;
+            }
+            default:
+                break;
+            }
         }
-    }
-    if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
-    {
-        if (!bLCtrlDown)
-            bLCtrlDown = true;
-    }
-    else
-    {
-        bLCtrlDown = false;
+
+        if (InKeyEvent.GetInputEvent() == IE_Released)
+        {
+            switch (InKeyEvent.GetKeyCode())
+            {
+            case VK_LCONTROL:
+                {
+                    PressedKeys.Remove(EKeys::LeftControl);
+                    break;
+                }
+            default:
+                break;
+            }
+        }
     }
 }
+
+void FEditorViewportClient::MouseMove(const FPointerEvent& InMouseEvent)
+{
+    const auto& [DeltaX, DeltaY] = InMouseEvent.GetCursorDelta();
+
+    // Yaw(좌우 회전) 및 Pitch(상하 회전) 값 변경
+    if (IsPerspective())
+    {
+        CameraRotateYaw(DeltaX * 0.1f);  // X 이동에 따라 좌우 회전
+        CameraRotatePitch(DeltaY * 0.1f);  // Y 이동에 따라 상하 회전
+    }
+    else
+    {
+        PivotMoveRight(DeltaX);
+        PivotMoveUp(DeltaY);
+    }
+}
+
 void FEditorViewportClient::ResizeViewport(const DXGI_SWAP_CHAIN_DESC& swapchaindesc)
 {
     if (Viewport) { 
@@ -208,15 +357,15 @@ void FEditorViewportClient::ResizeViewport(FRect Top, FRect Bottom, FRect Left, 
     UpdateProjectionMatrix();
     UpdateViewMatrix();
 }
-bool FEditorViewportClient::IsSelected(POINT point)
+bool FEditorViewportClient::IsSelected(FVector2D Point)
 {
     float TopLeftX = Viewport->GetScreenRect().TopLeftX;
     float TopLeftY = Viewport->GetScreenRect().TopLeftY;
     float Width = Viewport->GetScreenRect().Width;
     float Height = Viewport->GetScreenRect().Height;
 
-    if (point.x >= TopLeftX && point.x <= TopLeftX + Width &&
-        point.y >= TopLeftY && point.y <= TopLeftY + Height)
+    if (Point.X >= TopLeftX && Point.X <= TopLeftX + Width &&
+        Point.Y >= TopLeftY && Point.Y <= TopLeftY + Height)
     {
         return true;
     }
@@ -452,8 +601,8 @@ void FEditorViewportClient::UpdateProjectionMatrix()
             float aspectRatio = GetViewport()->GetScreenRect().Width / GetViewport()->GetScreenRect().Height;
 
             // 오쏘그래픽 너비는 줌 값과 가로세로 비율에 따라 결정됩니다.
-            float orthoWidth = orthoSize * aspectRatio;
-            float orthoHeight = orthoSize;
+            float orthoWidth = OrthoSize * aspectRatio;
+            float orthoHeight = OrthoSize;
 
             // 오쏘그래픽 투영 행렬 생성 (nearPlane, farPlane 은 기존 값 사용)
             Projection = JungleMath::CreateOrthoProjectionMatrix(
@@ -556,12 +705,10 @@ void FEditorViewportClient::UpdateOrthoCameraLoc()
     }
 }
 
-void FEditorViewportClient::SetOthoSize(float _Value)
+void FEditorViewportClient::SetOrthoSize(float InValue)
 {
-    orthoSize += _Value;
-    if (orthoSize <= 0.1f)
-        orthoSize = 0.1f;
-    
+    OrthoSize = InValue;
+    OrthoSize = FMath::Max(OrthoSize, 0.1f);
 }
 
 void FEditorViewportClient::LoadConfig(const TMap<FString, FString>& config)
@@ -621,32 +768,28 @@ void FEditorViewportClient::WriteIniFile(const FString& filePath, const TMap<FSt
     }
 }
 
-void FEditorViewportClient::SetCameraSpeedScalar(float value)
+void FEditorViewportClient::SetCameraSpeed(float value)
 {
-    if (value < 0.198f)
-        value = 0.198f;
-    else if (value > 176.0f)
-        value = 176.0f;
-    CameraSpeedScalar = value;
+    CameraSpeedScalar = FMath::Clamp(value, 0.1f, 200.0f);
 }
 
 
 FVector FViewportCameraTransform::GetForwardVector()
 {
-    FVector Forward = FVector(1.f, 0.f, 0.0f);
+    FVector Forward = FVector::ForwardVector;
     Forward = JungleMath::FVectorRotate(Forward, ViewRotation);
     return Forward;
 }
 FVector FViewportCameraTransform::GetRightVector()
 {
-    FVector Right = FVector(0.f, 1.f, 0.0f);
+    FVector Right = FVector::RightVector;
 	Right = JungleMath::FVectorRotate(Right, ViewRotation);
 	return Right;
 }
 
 FVector FViewportCameraTransform::GetUpVector()
 {
-    FVector Up = FVector(0.f, 0.f, 1.0f);
+    FVector Up = FVector::UpVector;
     Up = JungleMath::FVectorRotate(Up, ViewRotation);
     return Up;
 }

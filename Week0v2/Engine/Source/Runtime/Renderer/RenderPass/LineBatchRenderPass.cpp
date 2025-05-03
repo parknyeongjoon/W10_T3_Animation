@@ -216,7 +216,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                         UPrimitiveBatch::GetInstance().AddCone(
                             SpotLight->GetWorldLocation(),
                             tan(SpotLight->GetOuterConeAngle()) * 15.0f,
-                            SpotLight->GetWorldLocation() + SpotLight->GetForwardVector() * 15.0f,
+                            SpotLight->GetWorldLocation() + SpotLight->GetWorldForwardVector() * 15.0f,
                             15,
                             SpotLight->GetLightColor()
                         );
@@ -226,7 +226,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                         UPrimitiveBatch::GetInstance().AddCone(
                             SpotLight->GetWorldLocation(),
                             tan(SpotLight->GetInnerConeAngle()) * 15.0f,
-                            SpotLight->GetWorldLocation() + SpotLight->GetForwardVector() * 15.0f,
+                            SpotLight->GetWorldLocation() + SpotLight->GetWorldForwardVector() * 15.0f,
                             15,
                             SpotLight->GetLightColor()
                         );
@@ -234,12 +234,12 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
                 }
                 else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Comp))
                 {
-                    FVector Right = DirectionalLight->GetRightVector();
+                    FVector Right = DirectionalLight->GetWorldRightVector();
                     for (int i = 0; i < 4; ++i)
                     {
                         UPrimitiveBatch::GetInstance().AddLine(
                             DirectionalLight->GetWorldLocation() + Right * (-1.5f + i),
-                            DirectionalLight->GetForwardVector(),
+                            DirectionalLight->GetWorldForwardVector(),
                             15.0f,
                             DirectionalLight->GetLightColor()
                         );

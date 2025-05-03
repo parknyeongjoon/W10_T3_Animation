@@ -136,31 +136,51 @@ void USceneComponent::DuplicateSubObjects(const UObject* Source)
     // AttachParent는 AActor::DuplicateSubObjects에서 복원
 }
 
-FVector USceneComponent::GetForwardVector() const
+FVector USceneComponent::GetWorldForwardVector() const
 {
     FVector Forward = FVector::ForwardVector;
     Forward = JungleMath::FVectorRotate(Forward, GetWorldRotation());
     return Forward;
 }
 
-FVector USceneComponent::GetRightVector() const
+FVector USceneComponent::GetWorldRightVector() const
 {
     FVector Right = FVector::RightVector;
     Right = JungleMath::FVectorRotate(Right, GetWorldRotation());
     return Right;
 }
 
-FVector USceneComponent::GetUpVector() const
+FVector USceneComponent::GetWorldUpVector() const
 {
     FVector Up = FVector::UpVector;
     Up = JungleMath::FVectorRotate(Up, GetWorldRotation());
     return Up;
 }
 
+FVector USceneComponent::GetRelativeForwardVector() const
+{
+    FVector Forward = FVector::ForwardVector;
+    Forward = JungleMath::FVectorRotate(Forward, GetRelativeRotation());
+    return Forward;
+}
+
+FVector USceneComponent::GetRelativeRightVector() const
+{
+    FVector Right = FVector::RightVector;
+    Right = JungleMath::FVectorRotate(Right, GetRelativeRotation());
+    return Right;
+}
+
+FVector USceneComponent::GetRelativeUpVector() const
+{
+    FVector Up = FVector::UpVector;
+    Up = JungleMath::FVectorRotate(Up, GetRelativeRotation());
+    return Up;
+}
+
 void USceneComponent::AddRelativeLocation(const FVector& InAddValue)
 {
     RelativeLocation = RelativeLocation + InAddValue;
-
 }
 
 void USceneComponent::AddRelativeRotation(const FRotator& InAddValue)
@@ -226,6 +246,21 @@ FRotator USceneComponent::GetWorldRotation() const
 FVector USceneComponent::GetWorldScale() const
 {
     return GetWorldMatrix().GetScaleVector();
+}
+
+void USceneComponent::AddWorldLocation(const FVector& InAddValue)
+{
+    SetWorldLocation(GetWorldLocation() + InAddValue);
+}
+
+void USceneComponent::AddWorldRotation(const FRotator& InAddValue)
+{
+    SetWorldRotation(GetWorldRotation() + InAddValue);
+}
+
+void USceneComponent::AddWorldScale(const FVector& InAddValue)
+{
+    SetWorldScale(GetWorldScale() + InAddValue);
 }
 
 void USceneComponent::SetWorldLocation(const FVector& InLocation)

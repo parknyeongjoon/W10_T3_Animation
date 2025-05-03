@@ -137,7 +137,7 @@ void FComputeTileLightCulling::UpdateLightConstants()
         {
             LightConstant.DirLight.Color = DirectionalLightComp->GetLightColor();
             LightConstant.DirLight.Intensity = DirectionalLightComp->GetIntensity();
-            LightConstant.DirLight.Direction = DirectionalLightComp->GetForwardVector();
+            LightConstant.DirLight.Direction = DirectionalLightComp->GetWorldForwardVector();
         }
     }
 

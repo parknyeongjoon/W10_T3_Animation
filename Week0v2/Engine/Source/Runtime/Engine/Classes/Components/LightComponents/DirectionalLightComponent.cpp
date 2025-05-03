@@ -68,10 +68,10 @@ FMatrix UDirectionalLightComponent::GetViewMatrix() const
 {
     // 광원 위치 결정 (씬의 중심에서 반대 방향으로)
     FVector sceneCenter = FVector(0,0,0); // TODO: Scene Center 넣기
-    FVector lightPos = sceneCenter - GetForwardVector() * SCENE_RADIUS;
+    FVector lightPos = sceneCenter - GetWorldForwardVector() * SCENE_RADIUS;
     // 광원 뷰 행렬 계산
     FVector upVector = FVector(0.0f, 0.0f, 1.0f);
-    if (abs(GetForwardVector().Dot(upVector) > 0.9f))
+    if (abs(GetWorldForwardVector().Dot(upVector) > 0.9f))
     {
         upVector = FVector(0.0f, 0.0f, 1.0f);
     }
@@ -99,7 +99,7 @@ FMatrix UDirectionalLightComponent::GetCascadeViewMatrix(UINT CascadeIndex) cons
     }
     center /= 8.0f;
 
-    FVector lightDir = GetForwardVector().Normalize();
+    FVector lightDir = GetWorldForwardVector().Normalize();
     FVector up = FVector(0.0f, 0.0f, 1.0f);
     if (abs(lightDir.Dot(up)) > 0.99f) {
         up = FVector(0.0f, 0.0f, 0.99f);

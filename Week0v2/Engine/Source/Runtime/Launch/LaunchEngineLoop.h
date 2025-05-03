@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "UnrealEngine.h"
 #include "Engine/ResourceManager.h"
+#include "LevelEditor/SlateAppMessageHandler.h"
 
 class ImGuiManager;
 class FRenderer;
@@ -25,17 +26,21 @@ private:
     
     static LRESULT CALLBACK AppWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
+
 public:
-    static FGraphicsDevice GraphicDevice; // 함
-    static FRenderer Renderer; // 함
-    static FResourceManager ResourceManager; // 함
+    FSlateAppMessageHandler* GetAppMessageHandler() const { return AppMessageHandler.get(); }
+    
+public:
+    static FGraphicsDevice GraphicDevice;
+    static FRenderer Renderer;
+    static FResourceManager ResourceManager;
 
     HWND AppWnd;
 
 private:
-    ImGuiManager* ImGuiUIManager; // 함
+    std::unique_ptr<FSlateAppMessageHandler> AppMessageHandler;
+    ImGuiManager* ImGuiUIManager;
     
-private:
     bool bIsExit = false;
     const uint32 TargetFPS = 1000;
 };

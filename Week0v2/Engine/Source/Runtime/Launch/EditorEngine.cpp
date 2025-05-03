@@ -59,7 +59,7 @@ int32 UEditorEngine::Init(HWND hWnd)
     ActiveWorld->InitWorld(); // UISOO Check
 
     EditorPlayer = FObjectFactory::ConstructObject<UEditorPlayer>();
-    // EditorPlayer->Initialize();
+    EditorPlayer->Initialize();
     
     RegisterWaitHelpers(FLuaManager::Get().GetLuaState());
     return 0;
@@ -105,26 +105,6 @@ void UEditorEngine::Release()
 
 void UEditorEngine::Input()
 {
-    if (GetAsyncKeyState('M') & 0x8000)
-    {
-        if (!bIsMKeyDown)
-        {
-            bIsMKeyDown = true;
-            if (LevelEditor->IsMultiViewport())
-            {
-                LevelEditor->OffMultiViewport();
-            }
-            else
-            {
-                LevelEditor->OnMultiViewport();
-            }
-        }
-    }
-    else
-    {
-        bIsMKeyDown = false;
-    }
-
     if (GetAsyncKeyState('L') & 0x8000 or GetAsyncKeyState(VK_ESCAPE) & 0x8000)
     {
         LevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
@@ -249,7 +229,7 @@ void UEditorEngine::UpdateGizmos()
             }
             else
             {
-                float scalar = activeViewport->orthoSize * 0.1f;
+                float scalar = activeViewport->OrthoSize * 0.1f;
                 GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
             }
         }
