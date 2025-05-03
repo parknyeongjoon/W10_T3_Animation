@@ -5,17 +5,19 @@
 #include "Math/Vector.h"
 
 struct FBone;
+
 struct FSkeletalVertex
 {
     FVector position;
     FVector normal;
-    FVector2D texCoord;
     FVector tangent;
-    
+    FVector2D texCoord;
+};
+
+struct FSkinnedWeight
+{
     int boneIndices[4];
     float boneWeights[4];
-
-    FVector SkinVertexPosition(const TArray<FBone>& bones) const;
 };
 
 struct FBone
@@ -28,6 +30,7 @@ struct FSkeletalMeshRenderData
     FString Name;
     TArray<FSkeletalVertex> Vertices;
     TArray<UINT32> Indices;
+    TArray<FSkinnedWeight> Weights;
     TArray<UMaterial*> Materials;
     TArray<FMaterialSubset> MaterialSubsets;
     FBoundingBox BoundingBox;
