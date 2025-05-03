@@ -1,11 +1,13 @@
 #include "DebugDepthRenderPass.h"
 #include <Renderer/Renderer.h>
 #include <EditorEngine.h>
+
+#include "LaunchEngineLoop.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "Renderer/VBIBTopologyMapping.h"
 
-void FDebugDepthRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
+void FDebugDepthRenderPass::AddRenderObjectsToRenderPass()
 {
 }
 
@@ -13,8 +15,8 @@ void FDebugDepthRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportC
 {
     FBaseRenderPass::Prepare(InViewportClient);
 
-    const FRenderer& Renderer = GEngine->renderer;
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    const FRenderer& Renderer = GEngineLoop.Renderer;
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
 
@@ -31,7 +33,7 @@ void FDebugDepthRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportC
 
 void FDebugDepthRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
 {
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
     UpdateCameraConstant(InViewportClient);
     UpdateScreenConstant(InViewportClient);
@@ -41,8 +43,7 @@ void FDebugDepthRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportC
 
 void FDebugDepthRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewportClient> InViewportClient)
 {
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
 
     FCameraConstant CameraConstants;
@@ -59,15 +60,15 @@ void FDebugDepthRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewport
 
 void FDebugDepthRenderPass::UpdateScreenConstant(const std::shared_ptr<FViewportClient> InViewportClient)
 {
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
 
     FViewportInfo ScreenConstans;
     float Width = Graphics.screenWidth;
     float Height = Graphics.screenHeight;
-    ScreenConstans.ViewportSize = { curEditorViewportClient->GetD3DViewport().Width / Width, curEditorViewportClient->GetD3DViewport().Height / Height };
-    ScreenConstans.ViewportOffset = { curEditorViewportClient->GetD3DViewport().TopLeftX / Width, curEditorViewportClient->GetD3DViewport().TopLeftY / Height };
+    ScreenConstans.ViewportSize = FVector2D { curEditorViewportClient->GetD3DViewport().Width / Width, curEditorViewportClient->GetD3DViewport().Height / Height };
+    ScreenConstans.ViewportOffset = FVector2D { curEditorViewportClient->GetD3DViewport().TopLeftX / Width, curEditorViewportClient->GetD3DViewport().TopLeftY / Height };
 
     renderResourceManager->UpdateConstantBuffer(TEXT("FViewportInfo"), &ScreenConstans);
 }

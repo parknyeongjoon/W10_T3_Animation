@@ -2,6 +2,7 @@
 
 #include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "GameFramework/Actor.h"
+#include "UserInterface/Console.h"
 
 UMovementComponent::UMovementComponent()
 {

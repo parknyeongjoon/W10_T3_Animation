@@ -3,6 +3,7 @@
 #include "Define.h"
 #include "Container/Map.h"
 #include "D3D11RHI/GraphicDevice.h"
+#include "UserInterface/Console.h"
 
 class FPixelShader;
 class FVertexShader;

@@ -48,7 +48,10 @@ void FGameManager::BeginPlay()
 void FGameManager::RestartGame()
 {
     CurrentGameState = EGameState::PrepareRestart;
-    GEngine->GetLevelEditor()->GetEditorStateManager().SetState(EEditorState::Stopped);
+    if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+    {
+        EditorEngine->GetLevelEditor()->GetEditorStateManager().SetState(EEditorState::Stopped);
+    }
 
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
     CameraModifier->StartFadeIn(2.0f);
@@ -91,15 +94,17 @@ void FGameManager::Tick(float DeltaTime)
     {
         EndGame();
     }
-    
 }
 
 void FGameManager::EditorTick(float DeltaTime)
-{
+{    
     if (CurrentGameState == EGameState::PrepareRestart)
     {
         GEngine->GetWorld()->ReloadScene("Assets/Scenes/Game.scene");
-        GEngine->GetLevelEditor()->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
+        if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+        {
+            EditorEngine->GetLevelEditor()->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
+        }
         GameTimer = 0.0f;
         Score = 0;
         CurrentGameState = EGameState::Playing;

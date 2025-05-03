@@ -1,10 +1,8 @@
 #pragma once
 #include "Engine/EngineTypes.h"
 #include "Misc/Guid.h"
-#include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
-class AActor;
 struct FActorComponentInfo;
 
 enum class EComponentOrigin

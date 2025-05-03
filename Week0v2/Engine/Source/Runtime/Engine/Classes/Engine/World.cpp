@@ -1,7 +1,6 @@
 #include "World.h"
 
 #include "PlayerCameraManager.h"
-#include "Actors/Player.h"
 #include "BaseGizmos/TransformGizmo.h"
 #include "Camera/CameraComponent.h"
 #include "LevelEditor/SLevelEditor.h"
@@ -9,19 +8,21 @@
 #include "UObject/UObjectIterator.h"
 #include "Level.h"
 #include "Actors/ADodge.h"
-#include "Contents/AGEnemy.h"
 #include "Contents/GameManager.h"
 #include "Serialization/FWindowsBinHelper.h"
 
 #include "Actors/PointLightActor.h"
 #include "Components/LightComponents/PointLightComponent.h"
+#include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
+#include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
+#include "Script/LuaManager.h"
+#include "UObject/UObjectArray.h"
 
 UWorld::UWorld(const UWorld& Other): UObject(Other)
                                    , defaultMapName(Other.defaultMapName)
                                    , Level(Other.Level)
                                    , WorldType(Other.WorldType)
-                                    , EditorPlayer(nullptr)
-                                    , LocalGizmo(nullptr)
+                                   , LocalGizmo(nullptr)
 {
 }
 
@@ -47,11 +48,6 @@ void UWorld::PreLoadResources()
 
 void UWorld::CreateBaseObject()
 {
-    if (EditorPlayer == nullptr)
-    {
-        EditorPlayer = FObjectFactory::ConstructObject<AEditorPlayer>();
-    }
-    
     if (LocalGizmo == nullptr)
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
@@ -98,17 +94,16 @@ void UWorld::CreateBaseObject()
 void UWorld::ReleaseBaseObject()
 {
     LocalGizmo = nullptr;
-    EditorPlayer = nullptr;
 }
 
 void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
 {
     if (tickType == LEVELTICK_ViewportsOnly)
     {
-        if (EditorPlayer)
-            EditorPlayer->Tick(deltaSeconds);
         if (LocalGizmo)
+        {
             LocalGizmo->Tick(deltaSeconds);
+        }
         
         FGameManager::Get().EditorTick(deltaSeconds);
     }
@@ -116,13 +111,13 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
     if (tickType == LEVELTICK_All)
     {
         FLuaManager::Get().BeginPlay();
-        for (AActor* Actor : Level->PendingBeginPlayActors)
+        TSet<AActor*> PendingActors = Level->PendingBeginPlayActors;
+        for (AActor* Actor : PendingActors)
         {
             Actor->BeginPlay();
+            Level->PendingBeginPlayActors.Remove(Actor);
         }
-        Level->PendingBeginPlayActors.Empty();
 
-        // 매 틱마다 Actor->Tick(...) 호출
         TArray CopyActors = Level->GetActors();
         for (AActor* Actor : CopyActors)
         {
@@ -135,18 +130,21 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
 
 void UWorld::Release()
 {
-    SaveScene("Assets/Scenes/AutoSave.Scene");
-	for (AActor* Actor : Level->GetActors())
+    if (WorldType == EWorldType::Editor)
+    {
+        SaveScene("Assets/Scenes/AutoSave.Scene");
+    }
+    TArray<AActor*> Actors = Level->GetActors();
+	for (AActor* Actor : Actors)
 	{
-		Actor->EndPlay(EEndPlayReason::WorldTransition);
-        TArray<UActorComponent*> Components = Actor->GetComponents();
-	    for (UActorComponent* Component : Components)
-	    {
-	        GUObjectArray.MarkRemoveObject(Component);
-	    }
-	    GUObjectArray.MarkRemoveObject(Actor);
+	    Actor->Destroy();
 	}
-    Level->GetActors().Empty();
+    LocalGizmo->Destroy();
+
+    GUObjectArray.MarkRemoveObject(Level);
+    // TODO Level -> Release로 바꾸기
+    // Level->Release();
+    GUObjectArray.MarkRemoveObject(this);
 
 	pickingGizmo = nullptr;
 	ReleaseBaseObject();
@@ -181,7 +179,6 @@ void UWorld::DuplicateSubObjects(const UObject* SourceObj)
 {
     UObject::DuplicateSubObjects(SourceObj);
     Level = Cast<ULevel>(Level->Duplicate());
-    EditorPlayer = FObjectFactory::ConstructObject<AEditorPlayer>();
     LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
 }
 
@@ -218,7 +215,7 @@ void UWorld::DuplicateSeletedActors()
         FString TypeName = DupedActor->GetActorLabel().Left(DupedActor->GetActorLabel().Find("_", ESearchCase::IgnoreCase,ESearchDir::FromEnd));
         DupedActor->SetActorLabel(TypeName);
         FVector DupedLocation = DupedActor->GetActorLocation();
-        DupedActor->SetActorLocation(FVector(DupedLocation.x+50, DupedLocation.y+50, DupedLocation.z));
+        DupedActor->SetActorLocation(FVector(DupedLocation.X+50, DupedLocation.Y+50, DupedLocation.Z));
         Level->GetActors().Add(DupedActor);
         Level->PendingBeginPlayActors.Add(DupedActor);
         newSelectedActors.Add(DupedActor);

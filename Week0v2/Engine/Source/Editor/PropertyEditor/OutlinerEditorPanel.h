@@ -13,5 +13,4 @@ public:
     
 private:
     float Width = 0, Height = 0;
-    AActor* SelectedActor = nullptr;
 };

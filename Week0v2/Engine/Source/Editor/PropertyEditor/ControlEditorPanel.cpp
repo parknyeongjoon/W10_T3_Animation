@@ -1,24 +1,23 @@
 #include "ControlEditorPanel.h"
 
 #include "Engine/World.h"
-#include "Actors/Player.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Engine/StaticMeshActor.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "tinyfiledialogs/tinyfiledialogs.h"
 #include "UnrealEd/EditorViewportClient.h"
-#include "PropertyEditor/ShowFlags.h"
 #include "Classes/Actors/DirectionalLightActor.h"
 #include "Classes/Actors/PointLightActor.h"
 #include "Components/GameFramework/ProjectileMovementComponent.h"
-#include "Serialization/Archive.h"
 #include "Serialization/FWindowsBinHelper.h"
 #include "Actors/SpotLightActor.h"
 #include <Actors/ExponentialHeightFog.h>
 #include <UObject/UObjectIterator.h>
+
+#include "LaunchEngineLoop.h"
+#include "ShowFlags.h"
 #include "Camera/CameraComponent.h"
 
-#include "Components/PrimitiveComponents/Physics/UShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
@@ -29,7 +28,10 @@
 
 #include "Contents/AGBullet.h"
 #include "Contents/AGPlayer.h"
-
+#include "ImGUI/imgui.h"
+#include "Renderer/Renderer.h"
+#include "UnrealEd/EditorPlayer.h"
+#include "UObject/ObjectTypes.h"
 
 
 void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
@@ -115,8 +117,6 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 
     if (bOpenMenu)
     {
-        //std::unique_ptr<FSceneMgr> SceneMgr = std::make_unique<FSceneMgr>();
-        FSceneMgr* SceneMgr = GEngine->GetSceneManager();
         ImGui::SetNextWindowPos(ImVec2(10, 55), ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2(135, 170), ImGuiCond_Always);
 
@@ -231,6 +231,13 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 
 void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
 {
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+
+    if (EditorEngine == nullptr)
+    {
+        return;
+    }
+    
     ImGui::PushFont(IconFont);
     if (ImGui::Button("\ue9c4", ButtonSize)) // Slider
     {
@@ -241,16 +248,16 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
     if (ImGui::BeginPopup("SliderControl"))
     {
         ImGui::Text("Grid Scale");
-        GridScale = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetGridSize();
+        GridScale = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GridSize;
         ImGui::SetNextItemWidth(120.0f);
         if (ImGui::DragFloat("##Grid Scale", &GridScale, 0.1f, 1.0f, 20.0f, "%.1f"))
         {
-            GEngine->GetLevelEditor()->GetActiveViewportClient()->SetGridSize(GridScale);
+            EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GridSize = GridScale;
         }
         ImGui::Separator();
 
         ImGui::Text("Camera FOV");
-        FOV = &GEngine->GetLevelEditor()->GetActiveViewportClient()->ViewFOV;
+        FOV = &EditorEngine->GetLevelEditor()->GetActiveViewportClient()->ViewFOV;
         ImGui::SetNextItemWidth(120.0f);
         if (ImGui::DragFloat("##Fov", FOV, 0.1f, 30.0f, 120.0f, "%.1f"))
         {
@@ -259,19 +266,19 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         ImGui::Spacing();
 
         ImGui::Text("Camera Speed");
-        CameraSpeed = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCameraSpeedScalar();
+        CameraSpeed = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetCameraSpeedScalar();
         ImGui::SetNextItemWidth(120.0f);
         if (ImGui::DragFloat("##CamSpeed", &CameraSpeed, 0.1f, 0.198f, 192.0f, "%.1f"))
         {
-            GEngine->GetLevelEditor()->GetActiveViewportClient()->SetCameraSpeedScalar(CameraSpeed);
+            EditorEngine->GetLevelEditor()->GetActiveViewportClient()->SetCameraSpeed(CameraSpeed);
         }
 
         ImGui::Text("Blur Strength");
-        float BlurStrength = GEngine->testBlurStrength;
+        float BlurStrength = EditorEngine->testBlurStrength;
         ImGui::SetNextItemWidth(120.0f);
         if (ImGui::DragFloat("##Blur Strength", &BlurStrength, 0.02f, 0.0f, 5.0f, "%.1f"))
         {
-            GEngine->testBlurStrength = BlurStrength;
+            EditorEngine->testBlurStrength = BlurStrength;
         }
         ImGui::Separator();
 
@@ -512,7 +519,13 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
 
 void ControlEditorPanel::CreateFlagButton() const
 {
-    auto ActiveViewport = GEngine->GetLevelEditor()->GetActiveViewportClient();
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+
+    if (EditorEngine == nullptr)
+    {
+        return;
+    }
+    auto ActiveViewport = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
 
     const char* ViewTypeNames[] = { "Perspective", "Top", "Bottom", "Left", "Right", "Front", "Back" };
     ELevelViewportType ActiveViewType = ActiveViewport->GetViewportType();
@@ -604,11 +617,11 @@ void ControlEditorPanel::CreateFlagButton() const
 
 void ControlEditorPanel::CreateShaderHotReloadButton(const ImVec2 ButtonSize) const
 {
-    ID3D11ShaderResourceView* IconTextureSRV = GEngine->ResourceManager.GetTexture(L"Assets/Texture/HotReload.png")->TextureSRV;
+    ID3D11ShaderResourceView* IconTextureSRV = GEngineLoop.ResourceManager.GetTexture(L"Assets/Texture/HotReload.png")->TextureSRV;
     const ImTextureID textureID = reinterpret_cast<ImTextureID>(IconTextureSRV); // 실제 사용되는 텍스처 SRV
     if (ImGui::ImageButton("btn1", textureID, ButtonSize))
     {
-        GEngine->renderer.GetResourceManager()->HotReloadShaders();
+        GEngineLoop.Renderer.GetResourceManager()->HotReloadShaders();
     }
 }
 
@@ -668,7 +681,14 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
 // code is so dirty / Please refactor
 void ControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
 {
-    AEditorPlayer* Player = GEngine->GetWorld()->GetEditorPlayer();
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+
+    if (EditorEngine == nullptr)
+    {
+        return;
+    }
+    
+    UEditorPlayer* Player = EditorEngine->GetEditorPlayer();
 
     ImVec4 ActiveColor = ImVec4(0.00f, 0.00f, 0.85f, 1.0f);
 

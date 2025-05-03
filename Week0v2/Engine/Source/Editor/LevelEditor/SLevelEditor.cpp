@@ -1,14 +1,14 @@
 #pragma once
 #include "SLevelEditor.h"
-#include "SlateCore/Widgets/SWindow.h"
 #include "Slate/Widgets/Layout/SSplitter.h"
 #include "UnrealClient.h"
 #include "UnrealEd/EditorViewportClient.h"
-#include "EditorEngine.h"
-#include "fstream"
-#include "sstream"
-#include "ostream"
-extern UEditorEngine* GEngine;
+#include "LaunchEngineLoop.h"
+#include "WindowsCursor.h"
+#include "Engine/World.h"
+#include "ImGUI/imgui.h"
+
+extern UEngine* GEngine;
 
 SLevelEditor::SLevelEditor() : bInitialize(false), HSplitter(nullptr), VSplitter(nullptr),
 World(nullptr), bMultiViewportMode(false)
@@ -19,12 +19,14 @@ SLevelEditor::~SLevelEditor()
 {
 }
 
-void SLevelEditor::Initialize()
+void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
 {
     for (size_t i = 0; i < 4; i++)
     {
-        viewportClients[i] = std::make_shared<FEditorViewportClient>();
-        viewportClients[i]->Initialize(i);
+        EViewScreenLocation Location = static_cast<EViewScreenLocation>(i);
+
+        ViewportClients.Add(std::make_shared<FEditorViewportClient>());
+        ViewportClients[i]->Initialize(Location);
     }
 
     OnResize();
@@ -36,95 +38,198 @@ void SLevelEditor::Initialize()
     HSplitter->OnDrag(FPoint(0, 0));
     LoadConfig();
     bInitialize = true;
-}
 
-void SLevelEditor::Tick(ELevelTick tickType, double deltaTime)
-{
-    if (tickType == LEVELTICK_ViewportsOnly)
+    FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
+    
+    Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
     {
-        if (bMultiViewportMode) {
-            POINT pt;
-            GetCursorPos(&pt);
-            ScreenToClient(GEngine->hWnd, &pt);
-            if (VSplitter->IsHover(FPoint(pt.x, pt.y)) || HSplitter->IsHover(FPoint(pt.x, pt.y)))
-            {
-                SetCursor(LoadCursor(NULL, IDC_SIZEALL));
-            }
-            else
-            {
-                SetCursor(LoadCursor(NULL, IDC_ARROW));
-            }
-            Input();
-        }
-    }
-    //Test Code Cursor icon End
-    OnResize();
-    ActiveViewportClient->Tick(deltaTime);
-
-}
-
-void SLevelEditor::Input()
-{
-    ImGuiIO& io = ImGui::GetIO();
-    if (io.WantCaptureMouse) return;
-    if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
-    {
-        if (bLButtonDown == false)
+        if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
         {
-            bLButtonDown = true;
-            POINT pt;
-            GetCursorPos(&pt);
-            GetCursorPos(&lastMousePos);
-            ScreenToClient(GEngine->hWnd, &pt);
-
-            SelectViewport(pt);
-
-            VSplitter->OnPressed(FPoint(pt.x, pt.y));
-            HSplitter->OnPressed(FPoint(pt.x, pt.y));
+            return;
+        }
+        
+        if (ImGui::GetIO().WantCaptureMouse) return;
+    
+        switch (InMouseEvent.GetEffectingButton())  // NOLINT(clang-diagnostic-switch-enum)
+        {
+        case EKeys::RightMouseButton:
+        {
+            if (!InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
+            {
+                FWindowsCursor::SetShowMouseCursor(false);
+                MousePinPosition = InMouseEvent.GetScreenSpacePosition();
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    
+        // 마우스 이벤트가 일어난 위치의 뷰포트를 선택
+        if (bMultiViewportMode)
+        {
+            POINT Point;
+            GetCursorPos(&Point);
+            ScreenToClient(GEngineLoop.AppWnd, &Point);
+            FVector2D ClientPos = FVector2D{static_cast<float>(Point.x), static_cast<float>(Point.y)};
+            SelectViewport(ClientPos);
+            VSplitter->OnPressed({ClientPos.X, ClientPos.Y});
+            HSplitter->OnPressed({ClientPos.X, ClientPos.Y});
+        }
+    });
+    
+    Handler->OnMouseMoveDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    {
+        if (ImGui::GetIO().WantCaptureMouse) return;
+    
+        // Splitter 움직임 로직
+        if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
+        {
+            const auto& [DeltaX, DeltaY] = InMouseEvent.GetCursorDelta();
+            
+            bool bSplitterDragging = false;
+            if (VSplitter->IsSplitterPressed())
+            {
+                VSplitter->OnDrag(FPoint(DeltaX, DeltaY));
+                bSplitterDragging = true;
+            }
+            if (HSplitter->IsSplitterPressed())
+            {
+                HSplitter->OnDrag(FPoint(DeltaX, DeltaY));
+                bSplitterDragging = true;
+            }
+    
+            if (bSplitterDragging)
+            {
+                ResizeViewports();
+            }
+        }
+    
+        // 멀티 뷰포트일 때, 커서 변경 로직
+        if (bMultiViewportMode && !InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton) && !InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
+        {
+            // TODO: 나중에 커서가 Viewport 위에 있을때만 ECursorType::Crosshair로 바꾸게끔 하기
+            // ECursorType CursorType = ECursorType::Crosshair;
+            ECursorType CursorType = ECursorType::Arrow;
+            POINT Point;
+    
+            GetCursorPos(&Point);
+            ScreenToClient(GEngineLoop.AppWnd, &Point);
+            FVector2D ClientPos = FVector2D{static_cast<float>(Point.x), static_cast<float>(Point.y)};
+            const bool bIsVerticalHovered = VSplitter->IsHover({ClientPos.X, ClientPos.Y});
+            const bool bIsHorizontalHovered = HSplitter->IsHover({ClientPos.X, ClientPos.Y});
+    
+            if (bIsHorizontalHovered && bIsVerticalHovered)
+            {
+                CursorType = ECursorType::ResizeAll;
+            }
+            else if (bIsHorizontalHovered)
+            {
+                CursorType = ECursorType::ResizeLeftRight;
+            }
+            else if (bIsVerticalHovered)
+            {
+                CursorType = ECursorType::ResizeUpDown;
+            }
+            FWindowsCursor::SetMouseCursor(CursorType);
+        }
+    });
+    
+    Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    {
+        switch (InMouseEvent.GetEffectingButton())  // NOLINT(clang-diagnostic-switch-enum)
+        {
+        case EKeys::RightMouseButton:
+        {
+            FWindowsCursor::SetShowMouseCursor(true);
+            FWindowsCursor::SetPosition(
+                static_cast<int32>(MousePinPosition.X),
+                static_cast<int32>(MousePinPosition.Y)
+            );
+            return;
+        }
+    
+        // Viewport 선택 로직
+        case EKeys::LeftMouseButton:
+        {
+            VSplitter->OnReleased();
+            HSplitter->OnReleased();
+            return;
+        }
+    
+        default:
+            return;
+        }
+    });
+    
+    Handler->OnRawMouseInputDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    {
+        if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
+        {
+            return;
+        }
+        
+        // Mouse Move 이벤트 일때만 실행
+        if (InMouseEvent.GetInputEvent() == IE_Axis && InMouseEvent.GetEffectingButton() == EKeys::Invalid)
+        {
+            // 에디터 카메라 이동 로직
+            if (!InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton) && InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
+            {
+                ActiveViewportClient->MouseMove(InMouseEvent);
+            }
+        }
+        // 마우스 휠 이벤트
+        else if (InMouseEvent.GetEffectingButton() == EKeys::MouseWheelAxis)
+        {
+            // 카메라 속도 조절
+            if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton) && ActiveViewportClient->IsPerspective())
+            {
+                const float CurrentSpeed = ActiveViewportClient->GetCameraSpeedScalar();
+                const float Adjustment = FMath::Sign(InMouseEvent.GetWheelDelta()) * FMath::Loge(CurrentSpeed + 1.0f) * 0.5f;
+    
+                ActiveViewportClient->SetCameraSpeed(CurrentSpeed + Adjustment);
+            }
+        }
+    });
+    
+    Handler->OnMouseWheelDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    {
+        if (ImGui::GetIO().WantCaptureMouse) return;
+                
+        // 뷰포트에서 앞뒤 방향으로 화면 이동
+        if (ActiveViewportClient->IsPerspective())
+        {
+            if (!InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
+            {
+                const FVector CameraLoc = ActiveViewportClient->ViewTransformPerspective.GetLocation();
+                const FVector CameraForward = ActiveViewportClient->ViewTransformPerspective.GetForwardVector();
+                ActiveViewportClient->ViewTransformPerspective.SetLocation(CameraLoc + CameraForward * InMouseEvent.GetWheelDelta() * 50.0f);
+            }
         }
         else
         {
-            POINT currentMousePos;
-            GetCursorPos(&currentMousePos);
-
-            // 마우스 이동 차이 계산
-            int32 deltaX = currentMousePos.x - lastMousePos.x;
-            int32 deltaY = currentMousePos.y - lastMousePos.y;
-
-            if (VSplitter->IsPressing())
-            {
-                VSplitter->OnDrag(FPoint(deltaX, deltaY));
-            }
-            if (HSplitter->IsPressing())
-            {
-                HSplitter->OnDrag(FPoint(deltaX, deltaY));
-            }
-            ResizeViewports();
-            lastMousePos = currentMousePos;
+            FEditorViewportClient::SetOrthoSize(FEditorViewportClient::GetOrthoSize() + (-InMouseEvent.GetWheelDelta()));
         }
-    }
-    else
-    {
-        bLButtonDown = false;
-        VSplitter->OnReleased();
-        HSplitter->OnReleased();
-    }
-    if (GetAsyncKeyState(VK_RBUTTON) & 0x8000)
-    {
-        if (!bRButtonDown)
-        {
-            bRButtonDown = true;
-            POINT pt;
-            GetCursorPos(&pt);
-            GetCursorPos(&lastMousePos);
-            ScreenToClient(GEngine->hWnd, &pt);
+    });
 
-            SelectViewport(pt);
-        }
-    }
-    else
+    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
     {
-        bRButtonDown = false;
+        ActiveViewportClient->InputKey(InKeyEvent);
+    });
+    
+    Handler->OnKeyUpDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
+    {
+        ActiveViewportClient->InputKey(InKeyEvent);
+    });
+}
+
+void SLevelEditor::Tick(ELevelTick tickType, double DeltaTime)
+{
+    OnResize(); // TODO 위치 변경
+    
+    for (std::shared_ptr<FEditorViewportClient>& Viewport : ViewportClients)
+    {
+        Viewport->Tick(DeltaTime);
     }
 }
 
@@ -135,11 +240,11 @@ void SLevelEditor::Release()
     delete HSplitter;
 }
 
-void SLevelEditor::SelectViewport(POINT point)
+void SLevelEditor::SelectViewport(FVector2D Point)
 {
     for (int i = 0; i < 4; i++)
     {
-        if (viewportClients[i]->IsSelected(point))
+        if (ViewportClients[i]->IsSelected(Point))
         {
             SetViewportClient(i);
             break;
@@ -151,8 +256,8 @@ void SLevelEditor::OnResize()
 {
     float PrevWidth = EditorWidth;
     float PrevHeight = EditorHeight;
-    EditorWidth = GEngine->graphicDevice.screenWidth;
-    EditorHeight = GEngine->graphicDevice.screenHeight;
+    EditorWidth = GEngineLoop.GraphicDevice.screenWidth;
+    EditorHeight = GEngineLoop.GraphicDevice.screenHeight;
     if (bInitialize) {
         //HSplitter 에는 바뀐 width 비율이 들어감 
         HSplitter->OnResize(EditorWidth / PrevWidth, EditorHeight);
@@ -179,15 +284,13 @@ void SLevelEditor::ResizeViewports()
     }
 }
 
-void SLevelEditor::OnMultiViewport()
+void SLevelEditor::SetEnableMultiViewport(bool bIsEnable)
 {
-    bMultiViewportMode = true;
-    ResizeViewports();
-}
-
-void SLevelEditor::OffMultiViewport()
-{
-    bMultiViewportMode = false;
+    bMultiViewportMode = bIsEnable;
+    if (bIsEnable)
+    {
+        ResizeViewports();
+    }
 }
 
 bool SLevelEditor::IsMultiViewport()
@@ -198,17 +301,17 @@ bool SLevelEditor::IsMultiViewport()
 void SLevelEditor::LoadConfig()
 {
     auto config = ReadIniFile(IniFilePath);
-    ActiveViewportClient->Pivot.x = GetValueFromConfig(config, "OrthoPivotX", 0.0f);
-    ActiveViewportClient->Pivot.y = GetValueFromConfig(config, "OrthoPivotY", 0.0f);
-    ActiveViewportClient->Pivot.z = GetValueFromConfig(config, "OrthoPivotZ", 0.0f);
-    ActiveViewportClient->orthoSize = GetValueFromConfig(config, "OrthoZoomSize", 10.0f);
+    ActiveViewportClient->Pivot.X = GetValueFromConfig(config, "OrthoPivotX", 0.0f);
+    ActiveViewportClient->Pivot.Y = GetValueFromConfig(config, "OrthoPivotY", 0.0f);
+    ActiveViewportClient->Pivot.Z = GetValueFromConfig(config, "OrthoPivotZ", 0.0f);
+    ActiveViewportClient->OrthoSize = GetValueFromConfig(config, "OrthoZoomSize", 10.0f);
 
     SetViewportClient(GetValueFromConfig(config, "ActiveViewportIndex", 0));
     //bMultiViewportMode = GetValueFromConfig(config, "bMutiView", false);
     bMultiViewportMode = false;
     for (size_t i = 0; i < 4; i++)
     {
-        viewportClients[i]->LoadConfig(config);
+        ViewportClients[i]->LoadConfig(config);
     }
     if (HSplitter)
         HSplitter->LoadConfig(config);
@@ -226,17 +329,17 @@ void SLevelEditor::SaveConfig()
         VSplitter->SaveConfig(config);
     for (size_t i = 0; i < 4; i++)
     {
-        viewportClients[i]->SaveConfig(config);
+        ViewportClients[i]->SaveConfig(config);
     }
     ActiveViewportClient->SaveConfig(config);
     config["bMutiView"] = std::to_string(bMultiViewportMode);
     config["ActiveViewportIndex"] = std::to_string(ActiveViewportClient->ViewportIndex);
     config["ScreenWidth"] = std::to_string(ActiveViewportClient->ViewportIndex);
     config["ScreenHeight"] = std::to_string(ActiveViewportClient->ViewportIndex);
-    config["OrthoPivotX"] = std::to_string(ActiveViewportClient->Pivot.x);
-    config["OrthoPivotY"] = std::to_string(ActiveViewportClient->Pivot.y);
-    config["OrthoPivotZ"] = std::to_string(ActiveViewportClient->Pivot.z);
-    config["OrthoZoomSize"] = std::to_string(ActiveViewportClient->orthoSize);
+    config["OrthoPivotX"] = std::to_string(ActiveViewportClient->Pivot.X);
+    config["OrthoPivotY"] = std::to_string(ActiveViewportClient->Pivot.Y);
+    config["OrthoPivotZ"] = std::to_string(ActiveViewportClient->Pivot.Z);
+    config["OrthoZoomSize"] = std::to_string(ActiveViewportClient->OrthoSize);
     WriteIniFile(IniFilePath, config);
 }
 

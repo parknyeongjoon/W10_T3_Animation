@@ -1,6 +1,7 @@
 #include "CameraLetterBox.h"
 
 #include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
 
 UCameraLetterBox::UCameraLetterBox()
     : TargetAspectRatio(-1.0f) // 기본적으로 비활성 상태 표시
@@ -37,12 +38,9 @@ void UCameraLetterBox::ModifyPostProcess(float DeltaTime, float& PostProcessBlen
     float ViewportWidth = 1920.0f; // 기본값
     float ViewportHeight = 1080.0f; // 기본값
     if (CameraOwner) // CameraOwner (APlayerCameraManager)가 유효한지 확인
-    {
-       FVector2D ViewportSize;
-        
-       ViewportWidth = GEngine->graphicDevice.screenWidth;
-       ViewportHeight = GEngine->graphicDevice.screenHeight;
-        
+    {        
+        ViewportWidth = GEngineLoop.GraphicDevice.screenWidth;
+        ViewportHeight = GEngineLoop.GraphicDevice.screenHeight;
     }
 
     // 0으로 나누기 방지

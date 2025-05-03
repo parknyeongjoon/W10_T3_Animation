@@ -1,4 +1,6 @@
 #include "FLoaderOBJ.h"
+
+#include "LaunchEngineLoop.h"
 #include "UObject/ObjectFactory.h"
 #include "Components/Material/Material.h"
 #include "Components/Mesh/StaticMesh.h"
@@ -343,24 +345,24 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
         if (vertexMap.Find(key) == nullptr)
         {
             FVertexSimple vertex {};
-            vertex.x = RawData.Vertices[vIdx].x;
-            vertex.y = RawData.Vertices[vIdx].y;
-            vertex.z = RawData.Vertices[vIdx].z;
+            vertex.x = RawData.Vertices[vIdx].X;
+            vertex.y = RawData.Vertices[vIdx].Y;
+            vertex.z = RawData.Vertices[vIdx].Z;
             vertex.w = 1;
 
             vertex.r = 1.0f; vertex.g = 1.0f; vertex.b = 1.0f; vertex.a = 1.0f; // 기본 색상
 
             if (tIdx != UINT32_MAX && tIdx < RawData.UVs.Num())
             {
-                vertex.u = RawData.UVs[tIdx].x;
-                vertex.v = -RawData.UVs[tIdx].y;
+                vertex.u = RawData.UVs[tIdx].X;
+                vertex.v = -RawData.UVs[tIdx].Y;
             }
 
             if (nIdx != UINT32_MAX && nIdx < RawData.Normals.Num())
             {
-                vertex.nx = RawData.Normals[nIdx].x;
-                vertex.ny = RawData.Normals[nIdx].y;
-                vertex.nz = RawData.Normals[nIdx].z;
+                vertex.nx = RawData.Normals[nIdx].X;
+                vertex.ny = RawData.Normals[nIdx].Y;
+                vertex.nz = RawData.Normals[nIdx].Z;
             }
 
             for (int32 j = 0; j < OutStaticMesh.MaterialSubsets.Num(); j++)
@@ -401,27 +403,27 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
         const FVector edge2 = {v2.x - v0.x, v2.y - v0.y, v2.z - v0.z};
 
         // UV 차이 계산
-        const FVector2D deltaUV1 = {v1.u - v0.u, v1.v - v0.v};
-        const FVector2D deltaUV2 = {v2.u - v0.u, v2.v - v0.v};
-        float deltaUV = deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y;
+        const FVector2D deltaUV1 = FVector2D {v1.u - v0.u, v1.v - v0.v};
+        const FVector2D deltaUV2 = FVector2D {v2.u - v0.u, v2.v - v0.v};
+        float deltaUV = deltaUV1.X * deltaUV2.Y - deltaUV2.X * deltaUV1.Y;
         // 접선 계산
         const float f = 1.0f / (deltaUV == 0 ? 1 : deltaUV);
         FVector tangent;
-        tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-        tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-        tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+        tangent.X = f * (deltaUV2.Y * edge1.X - deltaUV1.Y * edge2.X);
+        tangent.Y = f * (deltaUV2.Y * edge1.Y - deltaUV1.Y * edge2.Y);
+        tangent.Z = f * (deltaUV2.Y * edge1.Z - deltaUV1.Y * edge2.Z);
         tangent = tangent.Normalize();
 
         // 정점별 접선 누적
-        v0.Tangentnx += tangent.x; v0.Tangentny += tangent.y; v0.Tangentnz += tangent.z;
-        v1.Tangentnx += tangent.x; v1.Tangentny += tangent.y; v1.Tangentnz += tangent.z;
-        v2.Tangentnx += tangent.x; v2.Tangentny += tangent.y; v2.Tangentnz += tangent.z;
+        v0.Tangentnx += tangent.X; v0.Tangentny += tangent.Y; v0.Tangentnz += tangent.Z;
+        v1.Tangentnx += tangent.X; v1.Tangentny += tangent.Y; v1.Tangentnz += tangent.Z;
+        v2.Tangentnx += tangent.X; v2.Tangentny += tangent.Y; v2.Tangentnz += tangent.Z;
     }
 
     for (auto& vertex : OutStaticMesh.Vertices)
     {
         FVector tangent(vertex.Tangentnx, vertex.Tangentny, vertex.Tangentnz);
-        if (tangent.x > 0.00001f || tangent.y > 0.00001f || tangent.z > 0.00001f)
+        if (tangent.X > 0.00001f || tangent.Y > 0.00001f || tangent.Z > 0.00001f)
         {
             tangent = tangent.Normalize();                
         } 
@@ -429,9 +431,9 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
         {
             tangent = FVector(1.0f, 0.0f, 0.0f);
         }
-        vertex.Tangentnx = tangent.x;
-        vertex.Tangentny = tangent.y;
-        vertex.Tangentnz = tangent.z;
+        vertex.Tangentnx = tangent.X;
+        vertex.Tangentny = tangent.Y;
+        vertex.Tangentnz = tangent.Z;
     }
     
     // Calculate StaticMesh BoundingBox
@@ -442,12 +444,12 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
 
 bool FLoaderOBJ::CreateTextureFromFile(const FWString& Filename)
 {
-    if (UEditorEngine::ResourceManager.GetTexture(Filename))
+    if (GEngineLoop.ResourceManager.GetTexture(Filename))
     {
         return true;
     }
 
-    HRESULT hr = UEditorEngine::ResourceManager.LoadTextureFromFile(UEditorEngine::graphicDevice.Device, UEditorEngine::graphicDevice.DeviceContext, Filename.c_str());
+    HRESULT hr = GEngineLoop.ResourceManager.LoadTextureFromFile(GEngineLoop.GraphicDevice.Device, GEngineLoop.GraphicDevice.DeviceContext, Filename.c_str());
 
     if (FAILED(hr))
     {
@@ -464,13 +466,13 @@ void FLoaderOBJ::ComputeBoundingBox(const TArray<FVertexSimple>& InVertices, FVe
         
     for (int32 i = 0; i < InVertices.Num(); i++)
     {
-        MinVector.x = std::min(MinVector.x, InVertices[i].x);
-        MinVector.y = std::min(MinVector.y, InVertices[i].y);
-        MinVector.z = std::min(MinVector.z, InVertices[i].z);
+        MinVector.X = std::min(MinVector.X, InVertices[i].x);
+        MinVector.Y = std::min(MinVector.Y, InVertices[i].y);
+        MinVector.Z = std::min(MinVector.Z, InVertices[i].z);
 
-        MaxVector.x = std::max(MaxVector.x, InVertices[i].x);
-        MaxVector.y = std::max(MaxVector.y, InVertices[i].y);
-        MaxVector.z = std::max(MaxVector.z, InVertices[i].z);
+        MaxVector.X = std::max(MaxVector.X, InVertices[i].x);
+        MaxVector.Y = std::max(MaxVector.Y, InVertices[i].y);
+        MaxVector.Z = std::max(MaxVector.Z, InVertices[i].z);
     }
 
     OutMinVector = MinVector;
@@ -671,9 +673,9 @@ bool FManagerOBJ::LoadStaticMeshFromBinary(const FWString& FilePath, OBJ::FStati
     {
         for (const FWString& Texture : Textures)
         {
-            if (UEditorEngine::ResourceManager.GetTexture(Texture) == nullptr)
+            if (GEngineLoop.ResourceManager.GetTexture(Texture) == nullptr)
             {
-                UEditorEngine::ResourceManager.LoadTextureFromFile(UEditorEngine::graphicDevice.Device, UEditorEngine::graphicDevice.DeviceContext, Texture.c_str());
+                GEngineLoop.ResourceManager.LoadTextureFromFile(GEngineLoop.GraphicDevice.Device, GEngineLoop.GraphicDevice.DeviceContext, Texture.c_str());
             }
         }
     }
@@ -947,15 +949,15 @@ void QEMSimplifier::Simplify(FObjInfo& obj, int targetVertexCount)
         float d = -normal.Dot(p0);
         
         Quadric q;
-        q.data[0] = normal.x * normal.x;
-        q.data[1] = normal.x * normal.y;
-        q.data[2] = normal.x * normal.z;
-        q.data[3] = normal.x * d;
-        q.data[4] = normal.y * normal.y;
-        q.data[5] = normal.y * normal.z;
-        q.data[6] = normal.y * d;
-        q.data[7] = normal.z * normal.z;
-        q.data[8] = normal.z * d;
+        q.data[0] = normal.X * normal.X;
+        q.data[1] = normal.X * normal.Y;
+        q.data[2] = normal.X * normal.Z;
+        q.data[3] = normal.X * d;
+        q.data[4] = normal.Y * normal.Y;
+        q.data[5] = normal.Y * normal.Z;
+        q.data[6] = normal.Y * d;
+        q.data[7] = normal.Z * normal.Z;
+        q.data[8] = normal.Z * d;
         q.data[9] = d * d;
         
         quadrics[v0].Add(q);
@@ -1119,15 +1121,15 @@ void QEMSimplifier::Simplify(FObjInfo& obj, int targetVertexCount)
             float d = -normal.Dot(p0);
             
             Quadric q;
-            q.data[0] = normal.x * normal.x;
-            q.data[1] = normal.x * normal.y;
-            q.data[2] = normal.x * normal.z;
-            q.data[3] = normal.x * d;
-            q.data[4] = normal.y * normal.y;
-            q.data[5] = normal.y * normal.z;
-            q.data[6] = normal.y * d;
-            q.data[7] = normal.z * normal.z;
-            q.data[8] = normal.z * d;
+            q.data[0] = normal.X * normal.X;
+            q.data[1] = normal.X * normal.Y;
+            q.data[2] = normal.X * normal.Z;
+            q.data[3] = normal.X * d;
+            q.data[4] = normal.Y * normal.Y;
+            q.data[5] = normal.Y * normal.Z;
+            q.data[6] = normal.Y * d;
+            q.data[7] = normal.Z * normal.Z;
+            q.data[8] = normal.Z * d;
             q.data[9] = d * d;
             
             quadrics[v0].Add(q);
@@ -1150,9 +1152,9 @@ float QEMSimplifier::ComputeCollapseCost(const Quadric& q1, const Quadric& q2, c
     q.Add(q2);
 
     // 4D 벡터 확장: newPos = (x, y, z, 1)
-    const float x = newPos.x;
-    const float y = newPos.y;
-    const float z = newPos.z;
+    const float x = newPos.X;
+    const float y = newPos.Y;
+    const float z = newPos.Z;
 
     // newPos^T * Q * newPos 계산
     const float cost =
@@ -1170,9 +1172,9 @@ float QEMSimplifier::ComputeCollapseCost(const Quadric& q1, const Quadric& q2, c
     Quadric q = q1;
     q.Add(q2);
 
-    const float x = newPos.x;
-    const float y = newPos.y;
-    const float z = newPos.z;
+    const float x = newPos.X;
+    const float y = newPos.Y;
+    const float z = newPos.Z;
 
     // 기본 기하학적 비용 계산: newPos^T * Q * newPos
     const float geomCost =
@@ -1182,8 +1184,8 @@ float QEMSimplifier::ComputeCollapseCost(const Quadric& q1, const Quadric& q2, c
         q.data[9];
 
     // UV 차이에 따른 비용 (단순 예제: 두 UV 사이의 유클리드 거리의 제곱)
-    const float du = uv1.x - uv2.x;
-    const float dv = uv1.y - uv2.y;
+    const float du = uv1.X - uv2.X;
+    const float dv = uv1.Y - uv2.Y;
     const float uvCost = du * du + dv * dv;
 
     // 노말 차이에 따른 비용 (두 노말의 코사인 유사도 기반, 1 - DotProduct)

@@ -19,7 +19,7 @@ public:
     explicit FShadowRenderPass(const FName& InShaderName);
 
     virtual ~FShadowRenderPass() {}
-    void AddRenderObjectsToRenderPass(UWorld* InWorld) override;
+    void AddRenderObjectsToRenderPass() override;
     void ClearRenderObjects() override;
 
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;

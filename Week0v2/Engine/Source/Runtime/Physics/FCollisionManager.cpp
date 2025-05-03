@@ -1,7 +1,9 @@
 #include "FCollisionManager.h"
+
 #include "Components/PrimitiveComponents/Physics/UShapeComponent.h" 
 #include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "GameFramework/ACtor.h"
+#include "UserInterface/Console.h"
 
 void FCollisionManager::Initialize()
 {

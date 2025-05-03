@@ -3,10 +3,13 @@
 #include "CoreUObject/UObject/Casts.h"
 #include "EditorEngine.h"
 #include "Engine/World.h"
-#include "LevelEditor/SLevelEditor.h"
 #include "Math/JungleMath.h"
-#include "UnrealEd/EditorViewportClient.h"
 #include "Define.h"
+#include "LaunchEngineLoop.h"
+#include "LevelEditor/SLevelEditor.h"
+#include "UnrealEd/EditorViewportClient.h"
+
+extern UEngine* GEngine;
 
 UDirectionalLightComponent::UDirectionalLightComponent()
 {
@@ -14,7 +17,7 @@ UDirectionalLightComponent::UDirectionalLightComponent()
     for (int i =0;i<CASCADE_COUNT;i++)
     {
         UINT temp = pow(2,4-i);
-        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight, 256 * temp, false);
+        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::DirectionalLight, 256 * temp, false);
         ShadowResource[i] = *resource;
         ShadowResources.Add(resource);
     }
@@ -29,7 +32,7 @@ UDirectionalLightComponent::UDirectionalLightComponent(const UDirectionalLightCo
     for (int i = 0; i < CASCADE_COUNT; i++)
     {
         UINT temp = pow(2, 4 - i);
-        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::DirectionalLight, 256 * temp, false);
+        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::DirectionalLight, 256 * temp, false);
         ShadowResource[i] = *resource;
         ShadowResources.Add(resource);
     }
@@ -65,10 +68,10 @@ FMatrix UDirectionalLightComponent::GetViewMatrix() const
 {
     // 광원 위치 결정 (씬의 중심에서 반대 방향으로)
     FVector sceneCenter = FVector(0,0,0); // TODO: Scene Center 넣기
-    FVector lightPos = sceneCenter - GetForwardVector() * SCENE_RADIUS;
+    FVector lightPos = sceneCenter - GetWorldForwardVector() * SCENE_RADIUS;
     // 광원 뷰 행렬 계산
     FVector upVector = FVector(0.0f, 0.0f, 1.0f);
-    if (abs(GetForwardVector().Dot(upVector) > 0.9f))
+    if (abs(GetWorldForwardVector().Dot(upVector) > 0.9f))
     {
         upVector = FVector(0.0f, 0.0f, 1.0f);
     }
@@ -81,7 +84,14 @@ FMatrix UDirectionalLightComponent::GetViewMatrix() const
 
 FMatrix UDirectionalLightComponent::GetCascadeViewMatrix(UINT CascadeIndex) const
 {
-    FVector* CascadeCorner = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeCorner(CascadeIndex);
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+
+    if (EditorEngine == nullptr)
+    {
+        return FMatrix::Identity;
+    }
+    
+    FVector* CascadeCorner = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeCorner(CascadeIndex);
     FVector center = FVector::ZeroVector;
     for (int i=0;i<8;i++)
     {
@@ -89,7 +99,7 @@ FMatrix UDirectionalLightComponent::GetCascadeViewMatrix(UINT CascadeIndex) cons
     }
     center /= 8.0f;
 
-    FVector lightDir = GetForwardVector().Normalize();
+    FVector lightDir = GetWorldForwardVector().Normalize();
     FVector up = FVector(0.0f, 0.0f, 1.0f);
     if (abs(lightDir.Dot(up)) > 0.99f) {
         up = FVector(0.0f, 0.0f, 0.99f);
@@ -109,7 +119,14 @@ FMatrix UDirectionalLightComponent::GetProjectionMatrix() const
 
 FMatrix UDirectionalLightComponent::GetCascadeProjectionMatrix(UINT CascadeIndex) const
 {
-    FVector* CascadeCorner = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeCorner(CascadeIndex);
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+
+    if (EditorEngine == nullptr)
+    {
+        return FMatrix::Identity;
+    }
+    
+    FVector* CascadeCorner = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetCascadeCorner(CascadeIndex);
     FMatrix viewMatrix = GetCascadeViewMatrix(CascadeIndex);
 
     FVector minExtents = FVector(FLT_MAX, FLT_MAX, FLT_MAX);
@@ -123,13 +140,13 @@ FMatrix UDirectionalLightComponent::GetCascadeProjectionMatrix(UINT CascadeIndex
 
     // 경계 박스의 크기 계산
     float paddingFactor = 1.5f;
-    float width = maxExtents.x - minExtents.x * paddingFactor;
-    float height = maxExtents.y - minExtents.y * paddingFactor;
+    float width = maxExtents.X - minExtents.X * paddingFactor;
+    float height = maxExtents.Y - minExtents.Y * paddingFactor;
     float nearPlane, farPlane;
 
     // 중심점 계산
-    float centerX = (maxExtents.x + minExtents.x) * 0.5f;
-    float centerY = (maxExtents.y + minExtents.y) * 0.5f;
+    float centerX = (maxExtents.X + minExtents.X) * 0.5f;
+    float centerY = (maxExtents.Y + minExtents.Y) * 0.5f;
     
     // 새로운 경계 계산
     float halfWidth = width * 0.5f;
@@ -140,16 +157,16 @@ FMatrix UDirectionalLightComponent::GetCascadeProjectionMatrix(UINT CascadeIndex
     float newMaxY = centerY + halfHeight;
     
     // 정밀도를 위해 z 근평면과 원평면을 조정
-    if (minExtents.z < 0) {
-        nearPlane = minExtents.z * ZPaddingFactor;
+    if (minExtents.Z < 0) {
+        nearPlane = minExtents.Z * ZPaddingFactor;
     } else {
-        nearPlane = minExtents.z / ZPaddingFactor;
+        nearPlane = minExtents.Z / ZPaddingFactor;
     }
 
-    if (maxExtents.z < 0) {
-        farPlane = maxExtents.z / ZPaddingFactor;
+    if (maxExtents.Z < 0) {
+        farPlane = maxExtents.Z / ZPaddingFactor;
     } else {
-        farPlane = maxExtents.z * ZPaddingFactor;
+        farPlane = maxExtents.Z * ZPaddingFactor;
     }
 
     return JungleMath::CreateOrthoProjectionMatrix(newMinX, newMaxX, 

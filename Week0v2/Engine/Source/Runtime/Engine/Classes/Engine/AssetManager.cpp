@@ -4,6 +4,8 @@
 #include <filesystem>
 #include "Engine/FLoaderOBJ.h"
 
+extern UEngine* GEngine;
+
 bool UAssetManager::IsInitialized()
 {
     return GEngine && GEngine->AssetManager;

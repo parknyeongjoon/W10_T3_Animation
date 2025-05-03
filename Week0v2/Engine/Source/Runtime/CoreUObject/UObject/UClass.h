@@ -3,7 +3,6 @@
 #include "Object.h"
 #include "Container/Map.h"
 #include "NameTypes.h"
-#include <functional>
 /**
  * UObject의 RTTI를 가지고 있는 클래스
  */

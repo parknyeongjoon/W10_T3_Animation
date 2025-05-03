@@ -1,15 +1,20 @@
 #include "Console.h"
-#include <cstdarg>
-#include <cstdio>
 
-#include "EditorEngine.h"
-#include "UnrealEd/EditorViewportClient.h"
+#include "ImGUI/imgui.h"
+
+#include "LaunchEngineLoop.h"
+#include "Renderer/Renderer.h"
 
 
 // 싱글톤 인스턴스 반환
 Console& Console::GetInstance() {
     static Console instance;
     return instance;
+}
+
+void StatOverlay::DrawTextOverlay(const std::string& text, int x, int y) {
+    ImGui::SetNextWindowPos(ImVec2(x, y));
+    ImGui::Text("%s", text.c_str());
 }
 
 // 생성자
@@ -55,15 +60,17 @@ void Console::Draw() {
     //ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
     //ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
     // 창을 표시하고 닫힘 여부 확인
-    overlay.Render(GEngine->graphicDevice.DeviceContext, width, height);
+    overlay.Render(GEngineLoop.GraphicDevice.DeviceContext, width, height);
     bExpand = ImGui::Begin("Console", &bWasOpen);
-    if (!bExpand) {
+    if (!bExpand)
+    {
         ImGui::End();
         return;
     }
 
     // 창을 접었을 경우 UI를 표시하지 않음
-    if (!bExpand) {
+    if (!bExpand)
+    {
         ImGui::End();
         return;
     }
@@ -79,6 +86,8 @@ void Console::Draw() {
     ImGui::Text("Filter:");
     ImGui::SameLine();
 
+    static ImGuiTextFilter filter;  // 필터링을 위한 ImGuiTextFilter
+    
     filter.Draw("##Filter", 100);
     
     ImGui::SameLine();
@@ -185,11 +194,11 @@ void Console::SetShadowFilterMode(const std::string& command)
 {
     if (command == "shadow_filter VSM")
     {
-        GEngine->renderer.SetShadowFilterMode(EShadowFilterMode::VSM);
+        GEngineLoop.Renderer.SetShadowFilterMode(EShadowFilterMode::VSM);
     }
     else if (command == "shadow_filter PCF")
     {
-        GEngine->renderer.SetShadowFilterMode(EShadowFilterMode::PCF);
+        GEngineLoop.Renderer.SetShadowFilterMode(EShadowFilterMode::PCF);
     }
 }
 
@@ -252,8 +261,8 @@ void StatOverlay::Render(ID3D11DeviceContext* context, UINT width, UINT height)
     {
         FShadowMemoryUsageInfo Info = FShadowResourceFactory::GetShadowMemoryUsageInfo();
         ImGui::Text("Shadow Memory Usage Info:");
-        size_t pointlightAtlasMemory = UEditorEngine::renderer.GetAtlasMemoryUsage(ELightType::PointLight);
-        size_t spotlightAtlasMemory = UEditorEngine::renderer.GetAtlasMemoryUsage(ELightType::SpotLight);
+        size_t pointlightAtlasMemory = GEngineLoop.Renderer.GetAtlasMemoryUsage(ELightType::PointLight);
+        size_t spotlightAtlasMemory = GEngineLoop.Renderer.GetAtlasMemoryUsage(ELightType::SpotLight);
         ImGui::Text("PointLight Atlas Memory Usage : %.2f MB", (float)pointlightAtlasMemory / (1024.f * 1024.f));
         ImGui::Text("SpotLight Atlas Memory Usage : %.2f MB", (float)spotlightAtlasMemory / (1024.f * 1024.f));
 

@@ -1,135 +1,69 @@
 #include "LaunchEngineLoop.h"
 
-#include "EditorEngine.h"
-#include "Engine/Engine.h"
+#include "ImGuiManager.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "PropertyEditor/ViewportTypePanel.h"
+#include "Renderer/Renderer.h"
 #include "UnrealEd/UnrealEd.h"
-#include "UObject/ObjectFactory.h"
+#include "UObject/Casts.h"
 
-extern UEditorEngine* GEngine;
+
+FGraphicsDevice FEngineLoop::GraphicDevice;
+FRenderer FEngineLoop::Renderer;
+FResourceManager FEngineLoop::ResourceManager;
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
-    {
-        return true;
-    }
-    int zDelta = 0;
-    switch (message)
-    {
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    case WM_SIZE:
-        if (GEngine== nullptr)
-            break;
-        if (wParam != SIZE_MINIMIZED)
-        {
-            //UGraphicsDevice 객체의 OnResize 함수 호출
-            if (UEditorEngine::graphicDevice.SwapChain)
-            {
-                UEditorEngine::graphicDevice.OnResize(hWnd);
-            }
-            for (int i = 0; i < 4; i++)
-            {
-                if (GEngine->GetLevelEditor())
-                {
-                    if (GEngine->GetLevelEditor()->GetViewports()[i])
-                    {
-                        GEngine->GetLevelEditor()->GetViewports()[i]->ResizeViewport(UEditorEngine::graphicDevice.SwapchainDesc);
-                    }
-                }
-            }
-        }
-     Console::GetInstance().OnResize(hWnd);
-        if (GEngine->GetUnrealEditor())
-        {
-            GEngine->GetUnrealEditor()->OnResize(hWnd);
-        }
-        ViewportTypePanel::GetInstance().OnResize(hWnd);
-        break;
-    case WM_MOUSEWHEEL:
-        if (GEngine == nullptr)
-            break;
-        if (ImGui::GetIO().WantCaptureMouse)
-            return 0;
-        zDelta = GET_WHEEL_DELTA_WPARAM(wParam); // 휠 회전 값 (+120 / -120)
-        if (GEngine->GetLevelEditor())
-        {
-            if (GEngine->GetLevelEditor()->GetActiveViewportClient()->IsPerspective())
-            {
-                if (GEngine->GetLevelEditor()->GetActiveViewportClient()->GetIsOnRBMouseClick())
-                {
-                    GEngine->GetLevelEditor()->GetActiveViewportClient()->SetCameraSpeedScalar(
-                        static_cast<float>(GEngine->GetLevelEditor()->GetActiveViewportClient()->GetCameraSpeedScalar() + zDelta * 0.01)
-                    );
-                }
-                else
-                {
-                    GEngine->GetLevelEditor()->GetActiveViewportClient()->CameraMoveForward(zDelta * 0.1f);
-                }
-            }
-            else
-            {
-                FEditorViewportClient::SetOthoSize(-zDelta * 0.01f);
-            }
-        }
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-
-    return 0;
-}
-
-
 FEngineLoop::FEngineLoop()
+    : AppWnd(nullptr)
+    , ImGuiUIManager(nullptr)
 {
-}
-
-FEngineLoop::~FEngineLoop()
-{
-}
-
-int32 FEngineLoop::PreInit()
-{
-    return 0;
 }
 
 int32 FEngineLoop::Init(HINSTANCE hInstance)
 {
     WindowInit(hInstance);
+    
+    ImGuiUIManager = new ImGuiManager();
+    AppMessageHandler = std::make_unique<FSlateAppMessageHandler>();
+    
+    GraphicDevice.Initialize(AppWnd);
+    
+    Renderer.Initialize(&GraphicDevice);
+    ImGuiUIManager->Initialize(AppWnd, GraphicDevice.Device, GraphicDevice.DeviceContext);
+    ResourceManager.Initialize(&GraphicDevice);
 
-    if (bIsEditor)
+    
+    // if (bIsEditor)
     {
         GEngine = FObjectFactory::ConstructObject<UEditorEngine>();
     }
-    else
+    //else
     {
         //TODO : UENGINE으로 만들 수 있게 해주기 
         // GEngine = FObjectFactory::ConstructObject<UEngine>();
     }
+
+    GEngine->Init(AppWnd);
+
+    UpdateUI();
     
-    GEngine->Init(hWnd);
     return 0;
 }
 
 void FEngineLoop::Tick()
 {
-    LARGE_INTEGER frequency;
-    const float targetFrameTime = 1000.0 / targetFPS; // 한 프레임의 목표 시간 (밀리초 단위)
+    LARGE_INTEGER Frequency;
+    const float targetFrameTime = 1000.0 / TargetFPS; // 한 프레임의 목표 시간 (밀리초 단위)
 
-    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceFrequency(&Frequency);
 
-    LARGE_INTEGER startTime, endTime;
-    float deltaSeconds = 1.0f;
+    LARGE_INTEGER StartTime, EndTime;
+    double ElapsedTime = 0.0;
 
     while (bIsExit == false)
     {
-        QueryPerformanceCounter(&startTime);
+        QueryPerformanceCounter(&StartTime);
 
         MSG msg;
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -143,24 +77,70 @@ void FEngineLoop::Tick()
                 break;
             }
         }
-        GEngine->Tick(deltaSeconds);
+        const float DeltaTime = static_cast<float>(ElapsedTime / 1000.f);
         
+        ImGuiUIManager->BeginFrame();
+        GEngine->Tick(DeltaTime);
+        
+        Render();
+        
+        Console::GetInstance().Draw();        
+        ImGuiUIManager->EndFrame();
+
+        // Pending 처리된 오브젝트 제거
+        //GUObjectArray.ProcessPendingDestroyObjects();
+        
+        GraphicDevice.SwapBuffer();
         do
         {
             Sleep(0);
-            QueryPerformanceCounter(&endTime);
-            deltaSeconds = (endTime.QuadPart - startTime.QuadPart) * 1000.0 / frequency.QuadPart;
+            QueryPerformanceCounter(&EndTime);
+            ElapsedTime = static_cast<double>(EndTime.QuadPart - StartTime.QuadPart) * 1000.0 / static_cast<double>(Frequency.QuadPart);
+
         }
-        while (deltaSeconds < targetFrameTime);
+        while (ElapsedTime < targetFrameTime);
 
         UEngine::GFrameCount++;
     }
 }
 
+void FEngineLoop::Render()
+{
+    if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+    {
+        if (SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor())
+        {
+            GraphicDevice.Prepare();
+            if (LevelEditor->IsMultiViewport())
+            {
+                const std::shared_ptr<FEditorViewportClient> OriginViewportClient = LevelEditor->GetActiveViewportClient();
+                for (std::shared_ptr<FEditorViewportClient>& ViewportClient : LevelEditor->GetViewports())
+                {
+                    LevelEditor->SetViewportClient(ViewportClient);
+                    EditorEngine->UpdateGizmos();    // TODO 임시 코드, EngineLoop로 옮기면서 그대로 냅둠
+                    Renderer.Render(ViewportClient);
+                }
+                LevelEditor->SetViewportClient(OriginViewportClient);
+            }
+            else
+            {
+                EditorEngine->UpdateGizmos();    // TODO 임시 코드, EngineLoop로 옮기면서 그대로 냅둠
+                Renderer.Render(LevelEditor->GetActiveViewportClient());
+            }
+        }
+    }
+}
+
 void FEngineLoop::Exit()
 {
-    GEngine->Exit();
-    delete GEngine;
+    ImGuiUIManager->Shutdown();
+    ResourceManager.Release();
+    Renderer.Release();
+    GraphicDevice.Release();
+    
+    GEngine->Release();
+
+    delete ImGuiUIManager;
 }
 
 void FEngineLoop::ClearPendingCleanupObjects()
@@ -171,18 +151,70 @@ void FEngineLoop::WindowInit(HINSTANCE hInstance)
 {
     WCHAR WindowClass[] = L"JungleWindowClass";
 
-    WCHAR Title[] = L"Game Tech Lab";
+    WCHAR Title[] = L"GTL TARZAN SIU";
 
-    WNDCLASSW wndclass = {0};
-    wndclass.lpfnWndProc = WndProc;
-    wndclass.hInstance = hInstance;
-    wndclass.lpszClassName = WindowClass;
+    WNDCLASSW wc{};
+    wc.lpfnWndProc = AppWndProc;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = WindowClass;
+    wc.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
 
-    RegisterClassW(&wndclass);
+    RegisterClassW(&wc);
 
-    hWnd = CreateWindowExW(
+    AppWnd = CreateWindowExW(
         0, WindowClass, Title, WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 1000, 1000,
+        CW_USEDEFAULT, CW_USEDEFAULT, 1400, 1000,
         nullptr, nullptr, hInstance, nullptr
     );
+}
+
+void FEngineLoop::UpdateUI() const
+{
+    Console::GetInstance().OnResize(AppWnd);
+    if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+    {
+        if (UnrealEd* UnrealEditor = EditorEngine->GetUnrealEditor())
+        {
+            UnrealEditor->OnResize(AppWnd);
+        }
+    }
+}
+
+LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+    {
+        return true;
+    }
+    
+    switch (message)
+    {
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        break;
+    case WM_SIZE:
+        if (wParam != SIZE_MINIMIZED)
+        {
+            FEngineLoop::GraphicDevice.OnResize(hWnd);
+            
+            if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+            {
+                if (SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor())
+                {
+                    for (std::shared_ptr<FEditorViewportClient>& ViewportClient : LevelEditor->GetViewports())
+                    {
+                        ViewportClient->ResizeViewport(FEngineLoop::GraphicDevice.SwapchainDesc);
+                    }
+                }   
+            }
+        }
+        ViewportTypePanel::GetInstance().OnResize(hWnd);
+        GEngineLoop.UpdateUI();
+        break;
+    default:
+        GEngineLoop.AppMessageHandler->ProcessMessage(hWnd, message, wParam, lParam);
+        return DefWindowProc(hWnd, message, wParam, lParam);
+    }
+
+    return 0;
 }

@@ -1,5 +1,7 @@
 #pragma once
-#include "UObject/Object.h"
+#include "HAL/PlatformType.h"
+#include "Light/ShadowResource.h"
+
 class UTexture
 {
 public:

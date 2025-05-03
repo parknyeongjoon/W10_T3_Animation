@@ -4,11 +4,12 @@
 #include "Math/JungleMath.h"
 #include <D3D11RHI/GraphicDevice.h>
 #include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
 
 USpotLightComponent::USpotLightComponent()
     : Super()
 {
-    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::SpotLight, 1024);
+    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::SpotLight, 1024);
     // FGraphicsDevice& Graphics = GEngine->graphicDevice;
     //
     // LightMap = new FTexture(nullptr, nullptr, 0, 0, L"");
@@ -62,7 +63,7 @@ USpotLightComponent::USpotLightComponent(const USpotLightComponent& Other)
     , OuterConeAngle(Other.OuterConeAngle)
     , Direction(Other.Direction)
 {
-    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngine->graphicDevice.Device, ELightType::SpotLight, 1024);
+    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::SpotLight, 1024);
 }
 
 USpotLightComponent::~USpotLightComponent()
@@ -103,7 +104,7 @@ void USpotLightComponent::PostDuplicate()
 FMatrix USpotLightComponent::GetViewMatrix() const
 {
     FVector Up = FVector{ 0.0f, 0.0f, 1.0f };
-    FVector Forward = GetForwardVector();
+    FVector Forward = GetWorldForwardVector();
     float dot = abs(Up.Dot(Forward));
     if (dot > 0.99f)
         Up = FVector(1.0f, 0.0f, 0.0f);

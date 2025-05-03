@@ -1,9 +1,10 @@
 #pragma once
-#include "Core/Hal/PlatformType.h"
 #include "EngineBaseTypes.h"
 #include "EditorEngine.h"
+#include "UObject/Casts.h"
+#include "UserInterface/Console.h"
 
-extern UEditorEngine* GEngine;
+extern UEngine* GEngine;
 
 class FEditorStateManager
 {
@@ -62,6 +63,8 @@ inline void FEditorStateManager::SetState(EEditorState NewState)
     CurrentState = NewState;
     Console::GetInstance().AddLog(LogLevel::Display, "Change state : %s", ToString(CurrentState).c_str());
 
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    
     switch (NewState)
     {
     case EEditorState::Editing:
@@ -69,30 +72,30 @@ inline void FEditorStateManager::SetState(EEditorState NewState)
 
     case EEditorState::PreparingPlay:
         // Connect to play button
-            if (GEngine->levelType==LEVELTICK_PauseTick)
+            if (EditorEngine->LevelType == LEVELTICK_PauseTick)
             {
-                GEngine->levelType = LEVELTICK_All;
+                EditorEngine->LevelType = LEVELTICK_All;
                 return;
             }
-        GEngine->PreparePIE();      // 추후 Prepare에 실패했을 때 고려 할 수 있어야 할듯
+        EditorEngine->PreparePIE();      // 추후 Prepare에 실패했을 때 고려 할 수 있어야 할듯
         SetState(EEditorState::Playing);
         return;
 
     case EEditorState::Playing:     // auto Transition
             
-        GEngine->StartPIE();
+        EditorEngine->StartPIE();
         break;
 
     case EEditorState::Paused:      // Connect to pause button
-        GEngine->PausedPIE();
+        EditorEngine->PausedPIE();
         break;
 
     case EEditorState::Resuming:    // Connect to resume button
-        GEngine->ResumingPIE();
+        EditorEngine->ResumingPIE();
         break;
 
     case EEditorState::Stopped:     // Connect to stop button
-        GEngine->StopPIE();
+        EditorEngine->StopPIE();
         SetState(EEditorState::Editing);
         return;
     }

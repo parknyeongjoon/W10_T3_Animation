@@ -2,7 +2,9 @@
 #include "EditorEngine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "ImGUI/imgui.h"
 
+extern UEngine* GEngine;
 
 void OutlinerEditorPanel::Render()
 {
@@ -38,7 +40,8 @@ void OutlinerEditorPanel::Render()
         UWorld* World = GEngine->GetWorld();
         for (AActor* Actor : World->GetActors())
         {
-            bool bSelected = !World->GetSelectedActors().IsEmpty() && *World->GetSelectedActors().begin() == Actor;
+            TSet<AActor*> Actros = World->GetSelectedActors();
+            bool bSelected = !Actros.IsEmpty() && *Actros.begin() == Actor;
             if (ImGui::Selectable(*Actor->GetActorLabel(), bSelected))
             {
                 World->SetSelectedActor(Actor);

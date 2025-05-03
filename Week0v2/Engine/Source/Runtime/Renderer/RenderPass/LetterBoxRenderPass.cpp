@@ -2,33 +2,36 @@
 
 #include "PlayerCameraManager.h"
 #include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Engine/World.h"
+#include "Renderer/Renderer.h"
 #include "UObject/UObjectIterator.h"
+
+extern UEngine* GEngine;
 
 FLetterBoxRenderPass::FLetterBoxRenderPass(const FName& InShaderName)
     : FBaseRenderPass(InShaderName)
 {
 
-    FRenderer& Renderer = GEngine->renderer;
+    FRenderer& Renderer = GEngineLoop.Renderer;
     FRenderResourceManager* RenderResourceManager = Renderer.GetResourceManager();
 
     LetterBoxConstantBuffer = RenderResourceManager->CreateConstantBuffer(sizeof(FLetterBoxConstants));
 }
 
-void FLetterBoxRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
+void FLetterBoxRenderPass::AddRenderObjectsToRenderPass()
 {
-    for (const AActor* actor : InWorld->GetActors())
+    for (APlayerCameraManager* PlayerCameraManager : TObjectRange<APlayerCameraManager>())
     {
-        if (APlayerCameraManager* pCameraManager = Cast<APlayerCameraManager>(actor))
+        if (PlayerCameraManager->GetWorld() != GEngine->GetWorld())
         {
-            PlayerCameraManagers.Add(pCameraManager);
+            continue;
         }
+        PlayerCameraManagers.Add(PlayerCameraManager);
     }
 }
-
-
 
 void FLetterBoxRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
 {
@@ -36,9 +39,8 @@ void FLetterBoxRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     if (bRender)
     {
         FBaseRenderPass::Prepare(InViewportClient);
-        const FRenderer& Renderer = GEngine->renderer;
-
-        FGraphicsDevice& Graphics = GEngine->graphicDevice;
+        const FRenderer& Renderer = GEngineLoop.Renderer;
+        FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
         Graphics.SwapPingPongBuffers();
 
         const auto CurRTV = Graphics.GetCurrentRenderTargetView();
@@ -60,7 +62,7 @@ void FLetterBoxRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportCl
     if (bRender)
     {
         UpdateLetterConstant();
-        FGraphicsDevice& Graphics = GEngine->graphicDevice;
+        FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
         
         Graphics.DeviceContext->Draw(6, 0);
 
@@ -115,8 +117,8 @@ void FLetterBoxRenderPass::UpdateLetterConstant()
     // }
 
 
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
 
     renderResourceManager->UpdateConstantBuffer(LetterBoxConstantBuffer, &LetterBoxConstants);
     Graphics.DeviceContext->PSSetConstantBuffers(0, 1, &LetterBoxConstantBuffer);

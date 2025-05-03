@@ -1,15 +1,17 @@
 #include "UTexture.h"
+
 #include <wincodec.h>
 
-#include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
+#include "UserInterface/Console.h"
 
 void UTexture::init(FWString _fileName)
 {
 
-    LoadTextureFromFile(UEditorEngine::graphicDevice.Device,
-        UEditorEngine::graphicDevice.DeviceContext,
+    LoadTextureFromFile(GEngineLoop.GraphicDevice.Device,
+        GEngineLoop.GraphicDevice.DeviceContext,
         _fileName.c_str());
-    CreateSampler(UEditorEngine::graphicDevice.Device);
+    CreateSampler(GEngineLoop.GraphicDevice.Device);
 
     if (!m_TextureSRV || !m_SamplerState) {
         Console::GetInstance().AddLog(LogLevel::Error, "TextureSRV, SamplerState Createion Error");

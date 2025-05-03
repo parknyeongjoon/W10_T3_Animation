@@ -3,22 +3,26 @@
 #include "FadeRenderPass.h"
 
 #include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "LevelEditor/SLevelEditor.h"
+#include "Renderer/Renderer.h"
 #include "UObject/UObjectIterator.h"
 #include "UnrealEd/EditorViewportClient.h"
+
+class FRenderResourceManager;
 
 FBlurRenderPass::FBlurRenderPass(const FName& InShaderName)
     : FBaseRenderPass(InShaderName)
 {
-    FRenderer& Renderer = GEngine->renderer;
+    FRenderer& Renderer = GEngineLoop.Renderer;
     FRenderResourceManager* RenderResourceManager = Renderer.GetResourceManager();
     bRender = true;
     BlurConstantBuffer = RenderResourceManager->CreateConstantBuffer(sizeof(FFadeConstants));
 }
 
-void FBlurRenderPass::AddRenderObjectsToRenderPass(UWorld* InWorld)
+void FBlurRenderPass::AddRenderObjectsToRenderPass()
 {
 }
 
@@ -28,8 +32,8 @@ void FBlurRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
     if (bRender)
     {
         FBaseRenderPass::Prepare(InViewportClient);
-        const FRenderer& Renderer = GEngine->renderer;
-        FGraphicsDevice& Graphics = GEngine->graphicDevice;
+        const FRenderer& Renderer = GEngineLoop.Renderer;
+        FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
         Graphics.SwapPingPongBuffers();
 
         const auto CurRTV = Graphics.GetCurrentRenderTargetView();
@@ -48,12 +52,15 @@ void FBlurRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
 
 void FBlurRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
 {
-    FGraphicsDevice& Graphics = GEngine->graphicDevice;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
     if (bRender)
     {
         auto viewPort = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
-        UpdateBlurConstant(GEngine->testBlurStrength,1 / viewPort->GetD3DViewport().Width, 1 / viewPort->GetD3DViewport().Height);
+        if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+        {
+            UpdateBlurConstant(EditorEngine->testBlurStrength,1 / viewPort->GetD3DViewport().Width, 1 / viewPort->GetD3DViewport().Height);
+        }
         Graphics.DeviceContext->Draw(6, 0);
 
         bRender = false;
@@ -62,8 +69,8 @@ void FBlurRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
 
 void FBlurRenderPass::UpdateBlurConstant(float BlurStrength, float TexelX, float TexelY) const
 {
-    const FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
+    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
 
     FBlurConstants BlurConstants;
     BlurConstants.BlurStrength = BlurStrength;

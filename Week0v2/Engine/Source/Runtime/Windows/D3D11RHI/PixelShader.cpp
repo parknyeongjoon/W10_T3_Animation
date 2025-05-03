@@ -1,7 +1,9 @@
 #include "PixelShader.h"
 
-#include "EditorEngine.h"
 #include "GraphicDevice.h"
+#include "LaunchEngineLoop.h"
+#include "Renderer/Renderer.h"
+#include "Renderer/RenderResourceManager.h"
 
 FPixelShader::FPixelShader(const FName InShaderName, const FString& InFullPath, ID3D11PixelShader* InPS, ID3DBlob* InShaderBlob,
                            D3D_SHADER_MACRO* InShaderMacro,
@@ -33,9 +35,8 @@ void FPixelShader::Release()
 
 void FPixelShader::UpdateShader()
 {
-    const FGraphicsDevice GraphicDevice = GEngine->graphicDevice;
-    FRenderer Renderer = GEngine->renderer;
-    FRenderResourceManager* RenderResourceManager = GEngine->renderer.GetResourceManager();
+    FRenderer Renderer = GEngineLoop.Renderer;
+    FRenderResourceManager* RenderResourceManager = GEngineLoop.Renderer.GetResourceManager();
 
     if (ShaderMacro != nullptr)
         RenderResourceManager->UpdatePixelShader(ShaderName.ToString(), FullPath, ShaderMacro);

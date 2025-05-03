@@ -10,7 +10,6 @@
 #include "ActorInfo.h"
 #include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "Core/Delegates/DelegateCombination.h"
-#include "Components/PrimitiveComponents/PrimitiveComponent.h"
 
 class UActorComponent;
 
@@ -88,9 +87,9 @@ public:
     FRotator GetActorRotation() const { return RootComponent ? RootComponent->GetWorldRotation() : FRotator(); }
     FVector GetActorScale() const { return RootComponent ? RootComponent->GetWorldScale() : FVector::ZeroVector; }
 
-    FVector GetActorForwardVector() const { return RootComponent ? RootComponent->GetForwardVector() : FVector::ForwardVector; }
-    FVector GetActorRightVector() const { return RootComponent ? RootComponent->GetRightVector() : FVector::RightVector; }
-    FVector GetActorUpVector() const { return RootComponent ? RootComponent->GetUpVector() : FVector::UpVector; }
+    FVector GetActorForwardVector() const { return RootComponent ? RootComponent->GetWorldForwardVector() : FVector::ForwardVector; }
+    FVector GetActorRightVector() const { return RootComponent ? RootComponent->GetWorldRightVector() : FVector::RightVector; }
+    FVector GetActorUpVector() const { return RootComponent ? RootComponent->GetWorldUpVector() : FVector::UpVector; }
 
     bool SetActorLocation(const FVector& NewLocation);
     bool SetActorRotation(const FRotator& NewRotation) const;

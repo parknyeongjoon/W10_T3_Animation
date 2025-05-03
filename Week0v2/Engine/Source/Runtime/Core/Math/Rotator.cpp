@@ -1,5 +1,6 @@
 #include "Rotator.h"
 
+#include "JungleMath.h"
 #include "Vector.h"
 #include "Quat.h"
 #include "Matrix.h"
@@ -8,45 +9,13 @@
 const FRotator FRotator::ZeroRotator = FRotator(0.0f, 0.0f, 0.0f);
 
 FRotator::FRotator(const FVector& InVector)
-    : Pitch(FMath::RadiansToDegrees(InVector.y)), Yaw(FMath::RadiansToDegrees(InVector.z)), Roll(FMath::RadiansToDegrees(InVector.x))
+    : Pitch(FMath::RadiansToDegrees(InVector.Y)), Yaw(FMath::RadiansToDegrees(InVector.Z)), Roll(FMath::RadiansToDegrees(InVector.X))
 {
 }
 
 FRotator::FRotator(const FQuat& InQuat)
 {
-    const float SingularityTest = InQuat.z * InQuat.x - InQuat.w * InQuat.y;
-    const float YawY = 2.f * (InQuat.w * InQuat.z + InQuat.x * InQuat.y);
-    const float YawX = (1.f - 2.f * (FMath::Square(InQuat.y) + FMath::Square(InQuat.z)));
-
-    // reference 
-    // http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-    // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
-
-    // this value was found from experience, the above websites recommend different values
-    // but that isn't the case for us, so I went through different testing, and finally found the case 
-    // where both of world lives happily. 
-    const float SINGULARITY_THRESHOLD = 0.4999995f;
-    const float RAD_TO_DEG = (180.f / PI);
-
-    if (SingularityTest < -SINGULARITY_THRESHOLD)
-    {
-        Pitch = -90.f;
-        Yaw = (FMath::Atan2(YawY, YawX) * RAD_TO_DEG);
-        Roll = (-Yaw - (2.f * atan2(InQuat.x, InQuat.w) * RAD_TO_DEG));
-    }
-    else if (SingularityTest > SINGULARITY_THRESHOLD)
-    {
-        Pitch = 90.f;
-        Yaw = (FMath::Atan2(YawY, YawX) * RAD_TO_DEG);
-        Roll = (Yaw - (2.f * FMath::Atan2(InQuat.x, InQuat.w) * RAD_TO_DEG));
-    }
-    else
-    {
-        Pitch = (asin(2.f * SingularityTest) * RAD_TO_DEG);
-        Yaw = (FMath::Atan2(YawY, YawX) * RAD_TO_DEG);
-        Roll = (FMath::Atan2(-2.f * (InQuat.w * InQuat.x + InQuat.y * InQuat.z),
-            (1.f - 2.f * (FMath::Square(InQuat.x) + FMath::Square(InQuat.y)))) * RAD_TO_DEG);
-    }
+    *this = InQuat.Rotator();
 }
 
 FRotator FRotator::operator+(const FRotator& Other) const
@@ -62,7 +31,7 @@ FRotator& FRotator::operator+=(const FRotator& Other)
 
 FRotator FRotator::operator-(const FRotator& Other) const
 {
-    return { Pitch - Other.Pitch, Yaw - Other.Yaw, Roll - Other.Roll };
+    return FRotator{ Pitch - Other.Pitch, Yaw - Other.Yaw, Roll - Other.Roll };
 }
 
 FRotator& FRotator::operator-=(const FRotator& Other)
@@ -73,7 +42,7 @@ FRotator& FRotator::operator-=(const FRotator& Other)
 
 FRotator FRotator::operator*(float Scalar) const
 {
-    return { Pitch * Scalar, Yaw * Scalar, Roll * Scalar };
+    return FRotator{ Pitch * Scalar, Yaw * Scalar, Roll * Scalar };
 }
 
 FRotator& FRotator::operator*=(float Scalar)
@@ -84,12 +53,12 @@ FRotator& FRotator::operator*=(float Scalar)
 
 FRotator FRotator::operator/(const FRotator& Other) const
 {
-    return { Pitch / Other.Pitch, Yaw / Other.Yaw, Roll / Other.Roll };
+    return FRotator{ Pitch / Other.Pitch, Yaw / Other.Yaw, Roll / Other.Roll };
 }
 
 FRotator FRotator::operator/(float Scalar) const
 {
-    return { Pitch / Scalar, Yaw / Scalar, Roll / Scalar };
+    return FRotator{ Pitch / Scalar, Yaw / Scalar, Roll / Scalar };
 }
 
 FRotator& FRotator::operator/=(float Scalar)
@@ -100,7 +69,7 @@ FRotator& FRotator::operator/=(float Scalar)
 
 FRotator FRotator::operator-() const
 {
-    return { -Pitch, -Yaw, -Roll };
+    return FRotator{ -Pitch, -Yaw, -Roll };
 }
 
 bool FRotator::operator==(const FRotator& Other) const
@@ -142,26 +111,48 @@ FRotator FRotator::FromQuaternion(const FQuat& InQuat) const
 FQuat FRotator::ToQuaternion() const
 {
     float DegToRad = PI / 180.0f;
-    float Div =  DegToRad / 2.0f;
+    float Div = DegToRad / 2.0f;
     float SP, SY, SR;
     float CP, CY, CR;
 
-    FMath::SinCos(&SP, &CP, Pitch * Div);
-    FMath::SinCos(&SY, &CY, Yaw * Div);
-    FMath::SinCos(&SR, &CR, Roll * Div);
+    const float PitchNoWinding = FMath::Fmod(Pitch, 360.0f);
+    const float YawNoWinding = FMath::Fmod(Yaw, 360.0f);
+    const float RollNoWinding = FMath::Fmod(Roll, 360.0f);
+
+    FMath::SinCos(&SP, &CP, PitchNoWinding * Div);
+    FMath::SinCos(&SY, &CY, YawNoWinding * Div);
+    FMath::SinCos(&SR, &CR, RollNoWinding * Div);
 	
     FQuat RotationQuat;
-    RotationQuat.x = CR * SP * SY - SR * CP * CY;
-    RotationQuat.y = -CR * SP * CY - SR * CP * SY;
-    RotationQuat.z = CR * CP * SY - SR * SP * CY;
-    RotationQuat.w = CR * CP * CY + SR * SP * SY;
+    RotationQuat.X = CR * SP * SY - SR * CP * CY;
+    RotationQuat.Y = -CR * SP * CY - SR * CP * SY;
+    RotationQuat.Z = CR * CP * SY - SR * SP * CY;
+    RotationQuat.W = CR * CP * CY + SR * SP * SY;
 
     return RotationQuat;
 }
 
 FVector FRotator::ToVector() const
 {
-    return FVector(FMath::DegreesToRadians(Roll), FMath::DegreesToRadians(Pitch), FMath::DegreesToRadians(Yaw));
+    const float PitchNoWinding = FMath::Fmod(Pitch, 360.f);
+    const float YawNoWinding = FMath::Fmod(Yaw, 360.f);
+
+    float CP, SP, CY, SY;
+    FMath::SinCos( &SP, &CP, FMath::DegreesToRadians(PitchNoWinding) );
+    FMath::SinCos( &SY, &CY, FMath::DegreesToRadians(YawNoWinding) );
+    FVector V = FVector( CP*CY, CP*SY, SP );
+
+    if (!_finite(V.X) || !_finite(V.Y) || !_finite(V.Z))
+    {
+        V = FVector::ForwardVector;
+    }
+
+    return V;
+}
+
+FVector FRotator::RotateVector(const FVector& Vec) const
+{
+    return ToQuaternion().RotateVector(Vec);
 }
 
 FMatrix FRotator::ToMatrix() const
@@ -169,9 +160,9 @@ FMatrix FRotator::ToMatrix() const
     return FMatrix::GetRotationMatrix(*this);
 }
 
-float FRotator::Clamp(float Angle) const
+float FRotator::ClampAxis(float Angle)
 {
-    Angle = std::fmod(Angle, 360.0f);
+    Angle = FMath::Fmod(Angle, 360.0f);
     if (Angle < 0.0f)
     {
         Angle += 360.0f;
@@ -181,7 +172,7 @@ float FRotator::Clamp(float Angle) const
 
 FRotator FRotator::GetNormalized() const
 {
-    return { FMath::UnwindDegrees(Pitch), FMath::UnwindDegrees(Yaw), FMath::UnwindDegrees(Roll) };
+    return FRotator{ FMath::UnwindDegrees(Pitch), FMath::UnwindDegrees(Yaw), FMath::UnwindDegrees(Roll) };
 }
 
 void FRotator::Normalize()
@@ -191,22 +182,65 @@ void FRotator::Normalize()
     Roll = FMath::UnwindDegrees(Roll);
 }
 
-FString FRotator::ToString() const
+float FRotator::NormalizeAxis(float Angle)
 {
-    return FString::Printf(TEXT("Pitch=%3.3f Yaw=%3.3f Roll=%3.3f"), Pitch, Yaw, Roll);
+    Angle = ClampAxis(Angle);
+
+    if (Angle > 180.0f)
+    {
+        // shift to (-180,180]
+        Angle -= 360.0f;
+    }
+
+    return Angle;
 }
 
-bool FRotator::InitFromString(const FString& InSourceString)
+FVector FRotator::GetForwardVector() const
 {
-    Pitch = 0.0f;
-    Yaw = 0.0f;
-    Roll = 0.0f;
-
-    const bool bSuccess = FParse::Value(*InSourceString, TEXT("Pitch="), Pitch) &&
-        FParse::Value(*InSourceString, TEXT("Yaw="), Yaw) &&
-        FParse::Value(*InSourceString, TEXT("Roll="), Roll);
-
-    return bSuccess;
+    FVector Forward = FVector::ForwardVector;
+    Forward = JungleMath::FVectorRotate(Forward, *this);
+    return Forward;
 }
 
+FVector FRotator::GetRightVector() const
+{
+    FVector Right = FVector::RightVector;
+    Right = JungleMath::FVectorRotate(Right, *this);
+    return Right;
+}
 
+FVector FRotator::GetUpVector() const
+{
+    FVector Up = FVector::UpVector;
+    Up = JungleMath::FVectorRotate(Up, *this);
+    return Up;
+}
+
+FVector FRotator::Vector() const
+{
+    // Extremely large but valid values (or invalid values from uninitialized vars) can cause SinCos to return NaN/Inf, so catch that here. Similar to what is done in FRotator::Quaternion().
+    // if (FMath::Abs(Pitch) > UE_FLOAT_NON_FRACTIONAL ||
+    //     FMath::Abs(Yaw  ) > UE_FLOAT_NON_FRACTIONAL ||
+    //     FMath::Abs(Roll ) > UE_FLOAT_NON_FRACTIONAL)
+    // {
+    //     logOrEnsureNanError(TEXT("FRotator::Vector() provided with unreasonably large input values (%s), possible use of uninitialized variable?"), *ToString());
+    // }
+	
+    // Remove winding and clamp to [-360, 360]
+    const float PitchNoWinding = FMath::Fmod(Pitch, (float)360.0);
+    const float YawNoWinding = FMath::Fmod(Yaw, (float)360.0);
+
+    float CP, SP, CY, SY;
+    FMath::SinCos( &SP, &CP, FMath::DegreesToRadians(PitchNoWinding) );
+    FMath::SinCos( &SY, &CY, FMath::DegreesToRadians(YawNoWinding) );
+    FVector V = FVector( CP*CY, CP*SY, SP );
+
+    // Error checking
+    // if (V.ContainsNaN())
+    // {
+    //     UE_LOG(LogLevel::Error, TEXT("FRotator::Vector() resulted in NaN/Inf with input: %s output: %s"), *ToString(), *V.ToString());
+    //     V = FVector::ForwardVector;
+    // }
+
+    return V;
+}

@@ -81,6 +81,9 @@ public:
     
     // void ChangeDepthStencilState(ID3D11DepthStencilState* newDetptStencil) const;
     ID3D11ShaderResourceView* GetCopiedShaderResourceView() const;
+
+    float GetAspectRatio();
+
 private:
     //ID3D11RasterizerState* CurrentRasterizer = nullptr;
 public:

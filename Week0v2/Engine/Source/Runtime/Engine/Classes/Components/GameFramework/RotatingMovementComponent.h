@@ -12,7 +12,7 @@ struct FRotatingMovementComponentInfo : public FMovementComponentInfo
         ComponentClass = TEXT("URotatingMovementComponent");
     }
 
-    FVector RotationRate;
+    FRotator RotationRate;
 
     virtual void Serialize(FArchive& ar) const override
     {
@@ -39,7 +39,7 @@ public:
     /**
      * How fast to update roll/pitch/yaw of UpdateComponent 
      */
-    FVector RotationRate;
+    FRotator RotationRate;
 
     virtual void TickComponent(float DeltaTime) override;
     

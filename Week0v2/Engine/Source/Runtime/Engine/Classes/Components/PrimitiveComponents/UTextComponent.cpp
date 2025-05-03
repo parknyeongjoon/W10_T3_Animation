@@ -1,8 +1,16 @@
 #include "UTextComponent.h"
 
 #include "EditorEngine.h"
+#include "LaunchEngineLoop.h"
+#include "ShowFlags.h"
+#include "Engine/Texture.h"
 #include "Engine/World.h"
-#include "Engine/Source/Editor/PropertyEditor/ShowFlags.h"
+#include "LevelEditor/SLevelEditor.h"
+#include "Renderer/Renderer.h"
+#include "UnrealEd/EditorViewportClient.h"
+#include "UObject/Casts.h"
+
+extern UEngine* GEngine;
 
 UTextComponent::UTextComponent()
 {
@@ -44,7 +52,19 @@ void UTextComponent::SetRowColumnCount(int _cellsPerRow, int _cellsPerColumn)
 
 int UTextComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
 {
-	if (!(ShowFlags::GetInstance().currentFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))) {
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    if (EditorEngine == nullptr)
+    {
+        return 0;
+    }
+
+    SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor();
+    if (LevelEditor == nullptr)
+    {
+        return 0;
+    }
+    
+	if (!(LevelEditor->GetActiveViewportClient()->ShowFlag & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))) {
 		return 0;
 	}
 	for (int i = 0; i < vertexTextureArr.Num(); i++)
@@ -171,7 +191,7 @@ void UTextComponent::SetText(const FWString& _text)
 	//CreateTextTextureVertexBuffer(vertexTextureArr,byteWidth);
     ID3D11Buffer* VB = nullptr;
     
-    VB = GetEngine()->renderer.GetResourceManager()->CreateImmutableVertexBuffer<FVertexTexture>(vertexTextureArr);
+    VB = GEngineLoop.Renderer.GetResourceManager()->CreateImmutableVertexBuffer<FVertexTexture>(vertexTextureArr);
 
     int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, 
                                      text.c_str(), -1, 
@@ -186,8 +206,8 @@ void UTextComponent::SetText(const FWString& _text)
     FString textName = result;
 
     result.pop_back(); // 널 문자 제거
-    GetEngine()->renderer.GetResourceManager()->AddOrSetVertexBuffer(textName, VB);
-    GetEngine()->renderer.MappingVBTopology(textName, textName, sizeof(FVertexSimple), vertexTextureArr.Num());
+    GEngineLoop.Renderer.GetResourceManager()->AddOrSetVertexBuffer(textName, VB);
+    GEngineLoop.Renderer.MappingVBTopology(textName, textName, sizeof(FVertexSimple), vertexTextureArr.Num());
 }
 
 void UTextComponent::setStartUV(const wchar_t hangul, float& outStartU, float& outStartV) const
