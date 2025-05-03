@@ -1,7 +1,7 @@
 #include "GameManager.h"
 
 #include "AGEnemy.h"
-#include "APlayerCameraManager.h"
+#include "PlayerCameraManager.h"
 #include "EditorEngine.h"
 #include "Camera/CameraFadeInOut.h"
 #include "Camera/CameraLetterBox.h"

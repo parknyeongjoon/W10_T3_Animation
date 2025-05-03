@@ -8,7 +8,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "Engine/World.h"
 #include "AGBullet.h"
-#include "APlayerCameraManager.h"
+#include "PlayerCameraManager.h"
 #include "GameManager.h"
 #include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 #include "Camera/CameraShake/GunRecoilShake.h"

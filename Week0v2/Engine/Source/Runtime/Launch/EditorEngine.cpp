@@ -14,6 +14,9 @@
 #include "Script/LuaManager.h"
 #include "UnrealEd/EditorPlayer.h"
 #include "UObject/Casts.h"
+#include "Engine/AssetManager.h"
+
+class ULevel;
 
 
 FCollisionManager UEditorEngine::CollisionManager;
@@ -27,7 +30,7 @@ UEditorEngine::UEditorEngine()
 {
 }
 
-int32 UEditorEngine::Init(HWND hWnd)
+void UEditorEngine::Init(HWND hWnd)
 {
     Super::Init(hWnd);
     LevelEditor = new SLevelEditor();
@@ -62,7 +65,13 @@ int32 UEditorEngine::Init(HWND hWnd)
     EditorPlayer->Initialize();
     
     RegisterWaitHelpers(FLuaManager::Get().GetLuaState());
-    return 0;
+
+    if (AssetManager == nullptr)
+    {
+        AssetManager = FObjectFactory::ConstructObject<UAssetManager>();
+        assert(AssetManager);
+        AssetManager->InitAssetManager();
+    }
 }
 
 void UEditorEngine::Tick(float deltaSeconds)

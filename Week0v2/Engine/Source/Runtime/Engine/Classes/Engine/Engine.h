@@ -3,6 +3,8 @@
 #include "Container/Array.h"
 #include "UObject/ObjectMacros.h"
 
+
+class UAssetManager;
 struct FWorldContext
 {
 public:
@@ -23,18 +25,21 @@ class UEngine : public UObject
     DECLARE_CLASS(UEngine, UObject)
 
 public:
-    UEngine() = default;
-    virtual ~UEngine() = default;
+    UEngine();
+    virtual ~UEngine();
 
 public:
-    virtual int32 Init(HWND hWnd);
+    virtual void Init(HWND hWnd);
     virtual void Tick(float DeltaTime);
     virtual void Release() {}
     UWorld* GetWorld() override;
 
+    UAssetManager* AssetManager = nullptr;
+    
+    TArray<FWorldContext>& GetWorldContexts() { return worldContexts; }
+
+    static inline UINT GFrameCount = 0;
+
 protected:
     TArray<FWorldContext*> WorldContexts;
-    
-public:
-    static inline UINT GFrameCount = 0;
 };

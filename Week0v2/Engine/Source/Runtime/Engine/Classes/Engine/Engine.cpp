@@ -1,8 +1,17 @@
 ﻿#include "Engine.h"
 
-int32 UEngine::Init(HWND hWnd)
+
+UEngine::UEngine()
 {
-    return 0;
+}
+
+UEngine::~UEngine()
+{
+}
+
+void UEngine::Init(HWND hwnd)
+{
+    
 }
 
 void UEngine::Tick(float DeltaTime)

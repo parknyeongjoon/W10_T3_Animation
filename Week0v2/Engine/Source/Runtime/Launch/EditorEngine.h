@@ -18,7 +18,7 @@ class UEditorEngine : public UEngine
     
 public:
     UEditorEngine();
-    int32 Init(HWND hWnd) override;
+    void Init(HWND hWnd) override;
     void Tick(float deltaSeconds) override;
     void Release() override;
     void Input();
