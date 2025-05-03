@@ -123,12 +123,6 @@
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\IWindowToggleable.h">
       <Filter>Engine\Source\Editor\PropertyEditor</Filter>
     </ClInclude>
-    <ClCompile Include="Engine\Source\Editor\PropertyEditor\ShowFlags.cpp">
-      <Filter>Engine\Source\Editor\PropertyEditor</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Editor\PropertyEditor\ShowFlags.h">
-      <Filter>Engine\Source\Editor\PropertyEditor</Filter>
-    </ClInclude>
     <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorViewportClient.cpp">
       <Filter>Engine\Source\Editor\UnrealEd</Filter>
     </ClCompile>
@@ -139,12 +133,6 @@
       <Filter>Engine\Source\Editor\UnrealEd</Filter>
     </ClCompile>
     <ClInclude Include="Engine\Source\Editor\UnrealEd\PrimitiveBatch.h">
-      <Filter>Engine\Source\Editor\UnrealEd</Filter>
-    </ClInclude>
-    <ClCompile Include="Engine\Source\Editor\UnrealEd\SceneMgr.cpp">
-      <Filter>Engine\Source\Editor\UnrealEd</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Editor\UnrealEd\SceneMgr.h">
       <Filter>Engine\Source\Editor\UnrealEd</Filter>
     </ClInclude>
     <ClCompile Include="Engine\Source\Runtime\Core\EngineStatics.cpp">
@@ -337,7 +325,6 @@
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\UObjectHash.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Vector.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\ActorEditor.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\StaticMeshActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Actor.cpp" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />
@@ -456,6 +443,14 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\BlurRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FinalRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\LetterBoxRenderPass.h" />
+    <ClInclude Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorPlayer.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\MathSSE.h" />
+    <ClInclude Include="Engine\Source\Runtime\InputCore\InputCoreTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\Launch\ShowFlags.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\RawInput.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\WindowsCursor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\WindowsPlatformTime.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -508,7 +503,6 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Matrix.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Quat.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Vector4.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Actor.h" />
   </ItemGroup>
   <ItemGroup>
@@ -648,6 +642,13 @@
     <ClCompile Include="Shaders\BlurVertexShader.hlsl" />
     <ClCompile Include="Shaders\LetterBoxPixelShader.hlsl" />
     <ClCompile Include="Shaders\LetterBoxVertexShader.hlsl" />
+    <ClCompile Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorPlayer.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\Quat.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\InputCore\InputCoreTypes.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Windows\RawInput.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Windows\WindowsCursor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Windows\WindowsPlatformTime.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />
