@@ -194,6 +194,7 @@
     <ClCompile Include="Engine\Source\Contents\UI\GameUIPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\Script\LuaManagerBind.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\FBX\FBXDefine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\PlayerCameraManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\AssetManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\InputCore\InputCoreTypes.cpp" />
@@ -315,6 +316,7 @@
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\FShaderProgram.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\GraphicDevice.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.cpp" />
+    <ClCompile Include="Engine\Source\TestFBXLoader.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\RawInput.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\WindowsCursor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\WindowsPlatformTime.cpp" />
@@ -390,6 +392,7 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.impl.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\FBX\FBXDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\InputCore\InputCoreTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\ShowFlags.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\PlayerCameraManager.h" />
@@ -540,6 +543,7 @@
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\FShaderProgram.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\GraphicDevice.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.h" />
+    <ClInclude Include="Engine\Source\TestFBXLoader.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\RawInput.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\WindowsCursor.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\WindowsPlatformTime.h" />

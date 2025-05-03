@@ -38,6 +38,7 @@ public:
     static UMaterial* CreateMaterial(const FObjMaterialInfo& materialInfo);
     static TMap<FString, UMaterial*>& GetMaterials() { return materialMap; }
     static UMaterial* GetMaterial(const FString& name);
+    static UMaterial* GetDefaultMaterial();
     static int GetMaterialNum() { return materialMap.Num(); }
     static UStaticMesh* CreateStaticMesh(const FString& filePath);
     static const TMap<FWString, UStaticMesh*>& GetStaticMeshes() { return staticMeshMap; }

@@ -703,6 +703,13 @@ UMaterial* FManagerOBJ::GetMaterial(const FString& name)
     return nullptr;
 }
 
+UMaterial* FManagerOBJ::GetDefaultMaterial()
+{
+    FObjMaterialInfo MaterialInfo;
+    MaterialInfo.MTLName = "DefaultMaterial";
+    return CreateMaterial(MaterialInfo);
+}
+
 UStaticMesh* FManagerOBJ::CreateStaticMesh(const FString& filePath)
 {
     OBJ::FStaticMeshRenderData* staticMeshRenderData = FManagerOBJ::LoadObjStaticMeshAsset(filePath);
