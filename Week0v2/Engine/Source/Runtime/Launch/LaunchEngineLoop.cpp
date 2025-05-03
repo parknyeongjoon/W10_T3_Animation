@@ -151,7 +151,7 @@ void FEngineLoop::WindowInit(HINSTANCE hInstance)
 {
     WCHAR WindowClass[] = L"JungleWindowClass";
 
-    WCHAR Title[] = L"GTL TARZAN SIU";
+    WCHAR Title[] = L"GTL TTAL KKAK";
 
     WNDCLASSW wc{};
     wc.lpfnWndProc = AppWndProc;

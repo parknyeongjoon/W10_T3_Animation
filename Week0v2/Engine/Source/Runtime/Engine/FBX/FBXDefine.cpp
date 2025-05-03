@@ -1,6 +1,6 @@
 ﻿#include "FBXDefine.h"
 
-FVector FFBXVertex::SkinVertexPosition(const TArray<FBone>& bones) const
+FVector FSkeletalVertex::SkinVertexPosition(const TArray<FBone>& bones) const
 {
     FVector result = {0.0f, 0.0f, 0.0f};
 
@@ -9,7 +9,7 @@ FVector FFBXVertex::SkinVertexPosition(const TArray<FBone>& bones) const
         float weight = boneWeights[i];
 
         if (weight > 0.0f && boneIndex >= 0 && boneIndex < bones.Num()) {
-            const FMatrix& skinMat = bones[boneIndex].skinningMatrix;
+            const FMatrix& skinMat = bones[boneIndex].SkinningMatrix;
             FVector transformed = skinMat.TransformPosition(position);
             result = result + (transformed * weight);
         }

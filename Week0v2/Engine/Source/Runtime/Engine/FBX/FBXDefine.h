@@ -5,7 +5,7 @@
 #include "Math/Vector.h"
 
 struct FBone;
-struct FFBXVertex
+struct FSkeletalVertex
 {
     FVector position;
     FVector normal;
@@ -20,19 +20,20 @@ struct FFBXVertex
 
 struct FBone
 {
-    FMatrix skinningMatrix;
+    FMatrix SkinningMatrix;
 };
 
-struct FFBXMeshData
+struct FSkeletalMeshRenderData
 {
-    TArray<FFBXVertex> vertices;
-    TArray<UINT32> indices;
-    TArray<UMaterial*> materials;
-    TArray<FMaterialSubset> materialSubsets;
-    FBoundingBox boundingBox;
+    FString Name;
+    TArray<FSkeletalVertex> Vertices;
+    TArray<UINT32> Indices;
+    TArray<UMaterial*> Materials;
+    TArray<FMaterialSubset> MaterialSubsets;
+    FBoundingBox BoundingBox;
 };
 
-struct FFBXAnimationData
+struct FSkeletalAnimationData
 {
-    TArray<FBone> bones;
+    TArray<FBone> Bones;
 };

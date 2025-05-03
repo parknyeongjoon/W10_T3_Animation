@@ -182,6 +182,8 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\DashShake.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraLetterBox.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Mesh\SkeletalMesh.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\MeshComponents\SkeletalMeshComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\CameraShakeBase.cpp" />
@@ -305,6 +307,7 @@
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\LetterBoxRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\LineBatchRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\ShadowRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\SkeletalMeshRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\StaticMeshRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResourceManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\VBIBTopologyMapping.cpp" />
@@ -378,6 +381,8 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\DashShake.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraLetterBox.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Mesh\SkeletalMesh.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\MeshComponents\SkeletalMeshComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\CameraShakeBase.h" />
@@ -529,6 +534,7 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\LetterBoxRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\LineBatchRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\ShadowRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\SkeletalMeshRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\StaticMeshRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderResourceManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\VBIBTopologyMapping.h" />

@@ -49,7 +49,7 @@ TArray<FName> UStaticMeshComponent::GetMaterialSlotNames() const
     TArray<FName> MaterialNames;
     if (staticMesh == nullptr) return MaterialNames;
 
-    for (const FStaticMaterial* Material : staticMesh->GetMaterials())
+    for (const FMaterialSlot* Material : staticMesh->GetMaterials())
     {
         MaterialNames.Emplace(Material->MaterialSlotName);
     }
