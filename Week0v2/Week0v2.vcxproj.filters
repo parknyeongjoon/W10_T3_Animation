@@ -442,7 +442,6 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraDefine.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\APlayerCameraManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FadeRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\USpringArmComponent.h" />
@@ -450,6 +449,13 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\DashShake.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\RollCameraShake.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\HitCameraShake.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraBlur.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraLetterBox.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\PlayerCameraManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\AssetManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\BlurRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FinalRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\LetterBoxRenderPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -527,6 +533,8 @@
     <FxCompile Include="Shaders\ShadowPixelShader.hlsl" />
     <FxCompile Include="Shaders\LightDepthPixelShader.hlsl" />
     <FxCompile Include="Shaders\LightDepthVertexShader.hlsl" />
+    <FxCompile Include="Shaders\FinalPixelShader.hlsl" />
+    <FxCompile Include="Shaders\FinalVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week0v2.natvis" />
@@ -621,7 +629,6 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\GunRecoilShake.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\APlayerCameraManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FadeRenderPass.cpp" />
     <ClCompile Include="Shaders\FadeVertexShader.hlsl" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.cpp" />
@@ -630,6 +637,17 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\DashShake.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\RollCameraShake.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\HitCameraShake.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraBlur.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraLetterBox.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\PlayerCameraManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\AssetManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\BlurRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FinalRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\LetterBoxRenderPass.cpp" />
+    <ClCompile Include="Shaders\BlurPixelShader.hlsl" />
+    <ClCompile Include="Shaders\BlurVertexShader.hlsl" />
+    <ClCompile Include="Shaders\LetterBoxPixelShader.hlsl" />
+    <ClCompile Include="Shaders\LetterBoxVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />
