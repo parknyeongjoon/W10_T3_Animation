@@ -10,7 +10,6 @@
 #include "Components/LightComponents/DirectionalLightComponent.h"
 #include "Renderer/VBIBTopologyMapping.h"
 #include "GameFramework/Actor.h"
-#include "Components/Mesh/StaticMesh.h"
 #include "Engine/FEditorStateManager.h"
 #include "UObject/UObjectIterator.h"
 
@@ -68,11 +67,10 @@ void FShadowRenderPass::ClearRenderObjects()
     StaticMeshComponents.Empty();
 }
 
-void FShadowRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+void FShadowRenderPass::Prepare(FRenderer* Renderer, const std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName)
 {
-    FBaseRenderPass::Prepare(InViewportClient);
+    FBaseRenderPass::Prepare(Renderer, InViewportClient, InShaderName);
 
-    const FRenderer& Renderer = GEngineLoop.Renderer;
     const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
     Graphics.DeviceContext->VSSetConstantBuffers(0, 1, &CameraConstantBuffer);
@@ -80,12 +78,12 @@ void FShadowRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClien
     ID3D11ShaderResourceView* nullSRV = nullptr;
     Graphics.DeviceContext->PSSetShader(nullptr, nullptr, 0);
     Graphics.DeviceContext->PSSetShaderResources(0, 1, &nullSRV);
-    Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
+    Graphics.DeviceContext->OMSetDepthStencilState(Renderer->GetDepthStencilState(EDepthStencilState::LessEqual), 0);
 
     Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
-    Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState());
+    Graphics.DeviceContext->RSSetState(Renderer->GetCurrentRasterizerState());
     
-    ID3D11SamplerState* CompareSampler = Renderer.GetSamplerState(ESamplerType::ComparisonSampler);
+    ID3D11SamplerState* CompareSampler = Renderer->GetSamplerState(ESamplerType::ComparisonSampler);
     Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::ComparisonSampler), 1, &CompareSampler);
 }
 
@@ -115,9 +113,7 @@ void FShadowRenderPass::RenderPointLightShadowMap(UPointLightComponent* PointLig
 }
 
 void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
-{
-    Prepare(InViewportClient);
-    
+{    
     FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     FRenderer& Renderer = GEngineLoop.Renderer;
 
@@ -284,7 +280,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
             ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
             Graphics.DeviceContext->PSSetSamplers(0, 0, &Sampler);
             Graphics.DeviceContext->Draw(4, 0);
-            Prepare(InViewportClient);
+            Prepare(&GEngineLoop.Renderer, InViewportClient, ShaderName.ToString());
             Graphics.DeviceContext->RSSetViewports(1, &Vp);
         }
     }

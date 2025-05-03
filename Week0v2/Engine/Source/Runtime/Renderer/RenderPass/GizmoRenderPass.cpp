@@ -29,11 +29,10 @@ void FGizmoRenderPass::AddRenderObjectsToRenderPass()
     }
 }
 
-void FGizmoRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewportClient)
+void FGizmoRenderPass::Prepare(FRenderer* Renderer, const std::shared_ptr<FViewportClient> InViewportClient, , const FString& InShaderName)
 {
-    FBaseRenderPass::Prepare(InViewportClient);
+    FBaseRenderPass::Prepare(Renderer, InViewportClient, InShaderName);
 
-    const FRenderer& Renderer = GEngineLoop.Renderer;
     const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
@@ -155,7 +154,7 @@ void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoCompone
     renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixConstants"), &MatrixConstants);
 }
 
-void FGizmoRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
+void FGizmoRenderPass::UpdateMaterialConstants(const FMaterialInfo& MaterialInfo)
 {
     FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();

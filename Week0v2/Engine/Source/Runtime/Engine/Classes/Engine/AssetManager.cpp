@@ -2,7 +2,7 @@
 #include "Engine.h"
 
 #include <filesystem>
-#include "Engine/FLoaderOBJ.h"
+#include "Engine/FObjLoader.h"
 
 extern UEngine* GEngine;
 

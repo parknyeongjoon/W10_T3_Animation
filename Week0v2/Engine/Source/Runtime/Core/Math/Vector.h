@@ -108,12 +108,11 @@ struct FVector
     {
         return X * X + Y * Y + Z * Z;
     }
-
-    // 벡터 정규화
-    FVector Normalize() const {
-        float mag = Magnitude();
-        return (mag > 0) ? FVector(X / mag, Y / mag, Z / mag) : FVector(0, 0, 0);
-    }
+    
+    void Normalize(float Tolerance = SMALL_NUMBER);
+    FVector GetSafeNormal(float Tolerance = SMALL_NUMBER) const;
+    FVector GetUnsafeNormal() const;
+    
     FVector Cross(const FVector& Other) const
     {
         return FVector{

@@ -13,13 +13,12 @@ void FFinalRenderPass::AddRenderObjectsToRenderPass()
 {
 }
 
-void FFinalRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+void FFinalRenderPass::Prepare(FRenderer* Renderer, std::shared_ptr<FViewportClient> InViewportClient, , const FString& InShaderName)
 {
-    
     bRender = true;    
     if (bRender)
     {
-        FBaseRenderPass::Prepare(InViewportClient);
+        FBaseRenderPass::Prepare(Renderer, InViewportClient, InShaderName);
         const FRenderer& Renderer = GEngineLoop.Renderer;
         
         FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;

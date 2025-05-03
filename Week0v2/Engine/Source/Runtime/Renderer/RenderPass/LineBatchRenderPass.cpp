@@ -186,16 +186,15 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
     PrimitveBatch.ClearBatchPrimitives();
 }
 
-void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+void FLineBatchRenderPass::Prepare(FRenderer* Renderer, std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName)
 {
-    FBaseRenderPass::Prepare(InViewportClient);
+    FBaseRenderPass::Prepare(Renderer, InViewportClient, InShaderName);
 
-    FRenderer& Renderer = GEngineLoop.Renderer;
     const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
-    FRenderResourceManager* renderResourceManager = Renderer.GetResourceManager();
+    FRenderResourceManager* renderResourceManager = Renderer->GetResourceManager();
 
-    Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState()); //레스터 라이저 상태 설정
-    Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
+    Graphics.DeviceContext->RSSetState(Renderer->GetCurrentRasterizerState()); //레스터 라이저 상태 설정
+    Graphics.DeviceContext->OMSetDepthStencilState(Renderer->GetDepthStencilState(EDepthStencilState::LessEqual), 0);
     
     const auto CurRTV = Graphics.GetCurrentRenderTargetView();
     Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.DepthStencilView); // 렌더 타겟 설정

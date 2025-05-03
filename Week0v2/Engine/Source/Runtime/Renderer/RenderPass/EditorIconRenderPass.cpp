@@ -30,15 +30,14 @@ void FEditorIconRenderPass::AddRenderObjectsToRenderPass()
     }
 }
 
-void FEditorIconRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewportClient)
+void FEditorIconRenderPass::Prepare(FRenderer* Renderer, const std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName)
 {
-    FBaseRenderPass::Prepare(InViewportClient);
-    const FRenderer& Renderer = GEngineLoop.Renderer;
+    FBaseRenderPass::Prepare(Renderer, InViewportClient, InShaderName);
     const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     
-    Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
+    Graphics.DeviceContext->OMSetDepthStencilState(Renderer->GetDepthStencilState(EDepthStencilState::DepthNone), 0);
     Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
-    Graphics.DeviceContext->RSSetState(Renderer.GetRasterizerState(ERasterizerState::SolidBack));
+    Graphics.DeviceContext->RSSetState(Renderer->GetRasterizerState(ERasterizerState::SolidBack));
 
     // RTVs 배열의 유효성을 확인합니다.
     const auto CurRTV = Graphics.GetCurrentRenderTargetView();
@@ -55,7 +54,7 @@ void FEditorIconRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
 
     Graphics.DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌딩 상태 설정, 기본 블렌딩 상태임
     
-    ID3D11SamplerState* linearSampler = Renderer.GetSamplerState(ESamplerType::Linear);
+    ID3D11SamplerState* linearSampler = Renderer->GetSamplerState(ESamplerType::Linear);
     Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &linearSampler);
 }
 

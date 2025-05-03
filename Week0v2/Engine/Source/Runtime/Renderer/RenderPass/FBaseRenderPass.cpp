@@ -1,9 +1,15 @@
 #include "FBaseRenderPass.h"
 
-#include "LaunchEngineLoop.h"
 #include "Renderer/Renderer.h"
 
-void FBaseRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+void FBaseRenderPass::Prepare(FRenderer* Renderer, std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName)
 {
-    GEngineLoop.Renderer.PrepareShader(ShaderName);
+    if (InShaderName.IsEmpty())
+    {
+        Renderer->PrepareShader(ShaderName);
+    }
+    else
+    {
+        Renderer->PrepareShader(InShaderName);
+    }
 }

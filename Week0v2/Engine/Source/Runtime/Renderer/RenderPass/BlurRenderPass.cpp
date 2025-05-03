@@ -26,13 +26,12 @@ void FBlurRenderPass::AddRenderObjectsToRenderPass()
 {
 }
 
-void FBlurRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+void FBlurRenderPass::Prepare(FRenderer* Renderer, std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName)
 {
     bRender = true;
     if (bRender)
     {
-        FBaseRenderPass::Prepare(InViewportClient);
-        const FRenderer& Renderer = GEngineLoop.Renderer;
+        FBaseRenderPass::Prepare(Renderer, InViewportClient, InShaderName);
         FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
         Graphics.SwapPingPongBuffers();
 

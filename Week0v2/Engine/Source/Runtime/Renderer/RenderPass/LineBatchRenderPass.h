@@ -11,7 +11,7 @@ public:
     void AddRenderObjectsToRenderPass() override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
 
-    void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
+    void Prepare(FRenderer* Renderer, std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName = FString("")) override;
     void ClearRenderObjects() override;
 private:
     static void UpdateBatchResources();

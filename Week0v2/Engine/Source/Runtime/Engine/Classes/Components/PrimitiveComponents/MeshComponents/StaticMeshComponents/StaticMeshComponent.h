@@ -54,7 +54,7 @@ public:
 
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance) override;
     
-    UStaticMesh* GetStaticMesh() const { return staticMesh; }
+    UStaticMesh* GetStaticMesh() const { return StaticMesh; }
     void SetStaticMesh(UStaticMesh* value);
 
     
@@ -63,7 +63,7 @@ public:
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 protected:
-    UStaticMesh* staticMesh = nullptr;
+    UStaticMesh* StaticMesh = nullptr;
     int selectedSubMeshIndex = -1;
 private:
     float Timer = 0.0f;

@@ -1,11 +1,15 @@
-#include "FLoaderOBJ.h"
+#include "FObjLoader.h"
+
+#include <queue>
+#include <set>
 
 #include "LaunchEngineLoop.h"
+#include "MaterialManager.h"
+#include "MaterialInfo.h"
+#include "StaticMesh.h"
 #include "UObject/ObjectFactory.h"
-#include "Components/Material/Material.h"
-#include "Components/Mesh/StaticMesh.h"
 
-bool FLoaderOBJ::ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo)
+bool FObjLoader::ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo)
 {
     std::ifstream OBJ(ObjFilePath.ToWideString());
     if (!OBJ)
@@ -191,7 +195,7 @@ bool FLoaderOBJ::ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo)
     return true;
 }
 
-bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData& OutFStaticMesh)
+bool FObjLoader::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData& OutFStaticMesh)
 {
     // Subset
     OutFStaticMesh.MaterialSubsets = OutObjInfo.MaterialSubsets;
@@ -220,8 +224,8 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             LineStream >> Line;
             MaterialIndex++;
 
-            FObjMaterialInfo Material = {};
-            Material.MTLName = Line;
+            FMaterialInfo Material = {};
+            Material.MaterialName = Line;
             OutFStaticMesh.Materials.Add(Material);
         }
 
@@ -321,7 +325,7 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
     return true;
 }
 
-bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRenderData& OutStaticMesh)
+bool FObjLoader::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRenderData& OutStaticMesh)
 {
     OutStaticMesh.ObjectName = RawData.ObjectName;
     OutStaticMesh.PathName = RawData.PathName;
@@ -412,7 +416,7 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
         tangent.X = f * (deltaUV2.Y * edge1.X - deltaUV1.Y * edge2.X);
         tangent.Y = f * (deltaUV2.Y * edge1.Y - deltaUV1.Y * edge2.Y);
         tangent.Z = f * (deltaUV2.Y * edge1.Z - deltaUV1.Y * edge2.Z);
-        tangent = tangent.Normalize();
+        tangent = tangent.GetSafeNormal();
 
         // 정점별 접선 누적
         v0.Tangentnx += tangent.X; v0.Tangentny += tangent.Y; v0.Tangentnz += tangent.Z;
@@ -425,7 +429,7 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
         FVector tangent(vertex.Tangentnx, vertex.Tangentny, vertex.Tangentnz);
         if (tangent.X > 0.00001f || tangent.Y > 0.00001f || tangent.Z > 0.00001f)
         {
-            tangent = tangent.Normalize();                
+            tangent = tangent.GetSafeNormal();                
         } 
         else 
         {
@@ -442,7 +446,7 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
     return true;
 }
 
-bool FLoaderOBJ::CreateTextureFromFile(const FWString& Filename)
+bool FObjLoader::CreateTextureFromFile(const FWString& Filename)
 {
     if (GEngineLoop.ResourceManager.GetTexture(Filename))
     {
@@ -459,7 +463,7 @@ bool FLoaderOBJ::CreateTextureFromFile(const FWString& Filename)
     return true;
 }
 
-void FLoaderOBJ::ComputeBoundingBox(const TArray<FVertexSimple>& InVertices, FVector& OutMinVector, FVector& OutMaxVector)
+void FObjLoader::ComputeBoundingBox(const TArray<FVertexSimple>& InVertices, FVector& OutMinVector, FVector& OutMaxVector)
 {
     FVector MinVector = { FLT_MAX, FLT_MAX, FLT_MAX };
     FVector MaxVector = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
@@ -521,7 +525,7 @@ OBJ::FStaticMeshRenderData* FManagerOBJ::LoadObjStaticMeshAsset(const FString& P
     
     // Parse OBJ
     FObjInfo NewObjInfo;
-    bool Result = FLoaderOBJ::ParseOBJ(PathFileName, NewObjInfo);
+    bool Result = FObjLoader::ParseOBJ(PathFileName, NewObjInfo);
 
     if (!Result)
     {
@@ -533,7 +537,7 @@ OBJ::FStaticMeshRenderData* FManagerOBJ::LoadObjStaticMeshAsset(const FString& P
     // Material
     if (NewObjInfo.MaterialSubsets.Num() > 0)
     {
-        Result = FLoaderOBJ::ParseMaterial(NewObjInfo, *NewStaticMesh);
+        Result = FObjLoader::ParseMaterial(NewObjInfo, *NewStaticMesh);
 
         if (!Result)
         {
@@ -544,12 +548,12 @@ OBJ::FStaticMeshRenderData* FManagerOBJ::LoadObjStaticMeshAsset(const FString& P
         CombineMaterialIndex(*NewStaticMesh);
 
         for (int materialIndex = 0; materialIndex < NewStaticMesh->Materials.Num(); materialIndex++) {
-            CreateMaterial(NewStaticMesh->Materials[materialIndex]);
+            FMaterialManager::CreateMaterial(NewStaticMesh->Materials[materialIndex]);
         }
     }
     
     // Convert FStaticMeshRenderData
-    Result = FLoaderOBJ::ConvertToStaticMesh(NewObjInfo, *NewStaticMesh);
+    Result = FObjLoader::ConvertToStaticMesh(NewObjInfo, *NewStaticMesh);
     if (!Result)
     {
         delete NewStaticMesh;
@@ -597,9 +601,9 @@ bool FManagerOBJ::LoadStaticMeshFromBinary(const FWString& FilePath, OBJ::FStati
     uint32 MaterialCount = 0;
     File.read(reinterpret_cast<char*>(&MaterialCount), sizeof(MaterialCount));
     OutStaticMesh.Materials.SetNum(MaterialCount);
-    for (FObjMaterialInfo& Material : OutStaticMesh.Materials)
+    for (FMaterialInfo& Material : OutStaticMesh.Materials)
     {
-        Serializer::ReadFString(File, Material.MTLName);
+        Serializer::ReadFString(File, Material.MaterialName);
         File.read(reinterpret_cast<char*>(&Material.bHasTexture), sizeof(Material.bHasTexture));
         File.read(reinterpret_cast<char*>(&Material.bTransparent), sizeof(Material.bTransparent));
         File.read(reinterpret_cast<char*>(&Material.Diffuse), sizeof(Material.Diffuse));
@@ -683,50 +687,30 @@ bool FManagerOBJ::LoadStaticMeshFromBinary(const FWString& FilePath, OBJ::FStati
     return true;
 }
 
-UMaterial* FManagerOBJ::CreateMaterial(const FObjMaterialInfo& materialInfo)
-{
-    if (materialMap[materialInfo.MTLName] != nullptr)
-        return materialMap[materialInfo.MTLName];
-
-    UMaterial* newMaterial = FObjectFactory::ConstructObject<UMaterial>();
-    newMaterial->SetMaterialInfo(materialInfo);
-    materialMap.Add(materialInfo.MTLName, newMaterial);
-    return newMaterial;
-}
-
-UMaterial* FManagerOBJ::GetMaterial(const FString& name)
-{
-    if (materialMap.Contains(name))
-    {
-        return materialMap[name];
-    }
-    return nullptr;
-}
-
 UStaticMesh* FManagerOBJ::CreateStaticMesh(const FString& filePath)
 {
     OBJ::FStaticMeshRenderData* staticMeshRenderData = FManagerOBJ::LoadObjStaticMeshAsset(filePath);
 
     if (staticMeshRenderData == nullptr) return nullptr;
 
-    UStaticMesh* staticMesh = GetStaticMesh(staticMeshRenderData->ObjectName);
-    if (staticMesh != nullptr) {
-        return staticMesh;
+    UStaticMesh* StaticMesh = GetStaticMesh(staticMeshRenderData->ObjectName);
+    if (StaticMesh != nullptr) {
+        return StaticMesh;
     }
 
-    staticMesh = FObjectFactory::ConstructObject<UStaticMesh>();
-    staticMesh->SetData(staticMeshRenderData);
+    StaticMesh = FObjectFactory::ConstructObject<UStaticMesh>();
+    StaticMesh->SetData(staticMeshRenderData);
 
-    staticMeshMap.Add(staticMeshRenderData->ObjectName, staticMesh);
+    StaticMeshMap.Add(staticMeshRenderData->ObjectName, StaticMesh);
 
-    return staticMesh;
+    return StaticMesh;
 }
 
 UStaticMesh* FManagerOBJ::GetStaticMesh(const FWString& name)
 {
-    if (staticMeshMap.Contains(name))
+    if (StaticMeshMap.Contains(name))
     {
-        return staticMeshMap[name];
+        return StaticMeshMap[name];
     }
     return nullptr;
 }
@@ -778,9 +762,9 @@ bool FManagerOBJ::SaveStaticMeshToBinary(const FWString& FilePath, const OBJ::FS
     // Materials
     uint32 MaterialCount = StaticMesh.Materials.Num();
     File.write(reinterpret_cast<const char*>(&MaterialCount), sizeof(MaterialCount));
-    for (const FObjMaterialInfo& Material : StaticMesh.Materials)
+    for (const FMaterialInfo& Material : StaticMesh.Materials)
     {
-        Serializer::WriteFString(File, Material.MTLName);
+        Serializer::WriteFString(File, Material.MaterialName);
         File.write(reinterpret_cast<const char*>(&Material.bHasTexture), sizeof(Material.bHasTexture));
         File.write(reinterpret_cast<const char*>(&Material.bTransparent), sizeof(Material.bTransparent));
         File.write(reinterpret_cast<const char*>(&Material.Diffuse), sizeof(Material.Diffuse));
@@ -945,7 +929,7 @@ void QEMSimplifier::Simplify(FObjInfo& obj, int targetVertexCount)
         FVector p1 = obj.Vertices[v1];
         FVector p2 = obj.Vertices[v2];
         
-        FVector normal = (p1 - p0).Cross(p2 - p0).Normalize();
+        FVector normal = (p1 - p0).Cross(p2 - p0).GetSafeNormal();
         float d = -normal.Dot(p0);
         
         Quadric q;
@@ -1117,7 +1101,7 @@ void QEMSimplifier::Simplify(FObjInfo& obj, int targetVertexCount)
             FVector p1 = obj.Vertices[v1];
             FVector p2 = obj.Vertices[v2];
             
-            FVector normal = (p1 - p0).Cross(p2 - p0).Normalize();
+            FVector normal = (p1 - p0).Cross(p2 - p0).GetSafeNormal();
             float d = -normal.Dot(p0);
             
             Quadric q;

@@ -11,6 +11,7 @@
 #include "RenderPass/FogRenderPass.h"
 #include "RenderPass/ShadowRenderPass.h"
 
+class FSkeletalMeshRenderPass;
 class FLetterBoxRenderPass;
 struct FLetterBoxConstants;
 class FBlurRenderPass;
@@ -53,7 +54,7 @@ public:
 public:
     void Initialize(FGraphicsDevice* graphics);
 
-    static D3D_SHADER_MACRO GouradDefines[];
+    static D3D_SHADER_MACRO GouraudDefines[];
     static D3D_SHADER_MACRO LambertDefines[];
     static D3D_SHADER_MACRO EditorGizmoDefines[];
     static D3D_SHADER_MACRO EditorIconDefines[];
@@ -70,11 +71,12 @@ public:
 public:
     //Render Pass Demo
     
-    void AddRenderObjectsToRenderPass() const;
     void Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
-    void EndRender() const;
-    void ClearRenderObjects() const;
 
+private:
+    void AddRenderObjectsToRenderPass() const;
+    void ClearRenderObjects() const;
+    void EndRender() const;
 public:
     void PrepareShader(FName InShaderName);
     void BindConstantBuffers(FName InShaderName);
@@ -97,9 +99,10 @@ public:
 private:
     FRenderResourceManager* RenderResourceManager = nullptr;
 
-    std::shared_ptr<FStaticMeshRenderPass> GoroudRenderPass;
-    std::shared_ptr<FStaticMeshRenderPass> LambertRenderPass;
-    std::shared_ptr<FStaticMeshRenderPass> PhongRenderPass;
+
+    std::shared_ptr<FStaticMeshRenderPass> StaticMeshRenderPass;
+    std::shared_ptr<FSkeletalMeshRenderPass> SkeletalMeshRenderPass;
+    
     std::shared_ptr<FLineBatchRenderPass> LineBatchRenderPass;
     std::shared_ptr<FGizmoRenderPass> GizmoRenderPass;
     //std::shared_ptr<FComputeTileLightCulling> ComputeTileLightCulling;

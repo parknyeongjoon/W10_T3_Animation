@@ -2,13 +2,10 @@
 #include "Define.h"
 #include "FBaseRenderPass.h"
 #include "Container/Array.h"
-#include "Math/Vector4.h"
 
 class USpotLightComponent;
 class ULightComponentBase;
 class USkySphereComponent;
-struct FObjMaterialInfo;
-struct FMatrix;
 class UStaticMeshComponent;
 
 
@@ -19,7 +16,7 @@ public:
 
     virtual ~FStaticMeshRenderPass() {}
     void AddRenderObjectsToRenderPass() override;
-    void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
+    void Prepare(FRenderer* Renderer, std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName = FString("")) override;
     void UpdateComputeResource();
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
     //void UpdateComputeConstants(std::shared_ptr<FViewportClient> InViewportClient);

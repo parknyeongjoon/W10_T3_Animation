@@ -1,7 +1,7 @@
 #include "PropertyEditorPanel.h"
 
 #include "Engine/World.h"
-#include "Engine/FLoaderOBJ.h"
+#include "Engine/FObjLoader.h"
 #include "UnrealEd/ImGuiWidget.h"
 
 #include "Components/GameFramework/ProjectileMovementComponent.h"
@@ -25,6 +25,7 @@
 #include <shellapi.h> // ShellExecute 관련 함수 정의 포함
 
 #include "LaunchEngineLoop.h"
+#include "Engine/StaticMesh.h"
 #include "Light/ShadowMapAtlas.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/FunctionRegistry.h"

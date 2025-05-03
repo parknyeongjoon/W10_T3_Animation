@@ -17,9 +17,10 @@
 #include "RenderPass/GizmoRenderPass.h"
 #include "RenderPass/LetterBoxRenderPass.h"
 #include "RenderPass/LineBatchRenderPass.h"
+#include "RenderPass/SkeletalMeshRenderPass.h"
 #include "RenderPass/StaticMeshRenderPass.h"
 
-D3D_SHADER_MACRO FRenderer::GouradDefines[] =
+D3D_SHADER_MACRO FRenderer::GouraudDefines[] =
 {
     {"LIGHTING_MODEL_GOURAUD", "1"},
     {nullptr, nullptr}
@@ -51,26 +52,16 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
 
     //CreateComputeShader();
     
-    D3D_SHADER_MACRO defines[] = 
-    {
-        {"LIGHTING_MODEL_GOURAUD", "1"},
-        {nullptr, nullptr}
-    };
     //SetViewMode(VMI_Lit_Phong);
     
-    CreateVertexPixelShader(TEXT("UberLit"), GouradDefines);
-    FString GouradShaderName = TEXT("UberLit");
-    GouradShaderName += GouradDefines->Name;
-    GoroudRenderPass = std::make_shared<FStaticMeshRenderPass>(GouradShaderName);
-
+    CreateVertexPixelShader(TEXT("UberLit"), GouraudDefines);
     CreateVertexPixelShader(TEXT("UberLit"), LambertDefines);
-    FString LamberShaderName = TEXT("UberLit");
-    LamberShaderName += LambertDefines->Name;
-    LambertRenderPass = std::make_shared<FStaticMeshRenderPass>(LamberShaderName);
-    
     CreateVertexPixelShader(TEXT("UberLit"), nullptr);
-    FString PhongShaderName = TEXT("UberLit");
-    PhongRenderPass = std::make_shared<FStaticMeshRenderPass>(PhongShaderName);
+
+    FString GouraudShaderName = FString("UberLit") + GouraudDefines->Name;
+    StaticMeshRenderPass = std::make_shared<FStaticMeshRenderPass>(GouraudShaderName);
+
+    SkeletalMeshRenderPass = std::make_shared<FSkeletalMeshRenderPass>(GouraudShaderName);
     
     CreateVertexPixelShader(TEXT("Line"), nullptr);
     LineBatchRenderPass = std::make_shared<FLineBatchRenderPass>(TEXT("Line"));
@@ -262,60 +253,64 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
     {
-        ShadowRenderPass->Prepare(ActiveViewport);
+        ShadowRenderPass->Prepare(this, ActiveViewport);
         ShadowRenderPass->Execute(ActiveViewport);
-        //TODO : FLAG로 나누기
-        if (CurrentViewMode  == EViewModeIndex::VMI_Lit_Goroud)
+
+        FString ShaderName;
+        if (CurrentViewMode  == EViewModeIndex::VMI_Lit_Lambert)
         {
-            GoroudRenderPass->Prepare(ActiveViewport);
-            GoroudRenderPass->Execute(ActiveViewport);
+            ShaderName = FString("UberLit") + LambertDefines->Name;
         }
-        else if (CurrentViewMode  == EViewModeIndex::VMI_Lit_Lambert)
+        else if (CurrentViewMode  == EViewModeIndex::VMI_Lit_Phong)
         {
-            LambertRenderPass->Prepare(ActiveViewport);
-            LambertRenderPass->Execute(ActiveViewport);
+            ShaderName = FString("UberLit");
         }
         else
         {
-            PhongRenderPass->Prepare(ActiveViewport);
-            PhongRenderPass->Execute(ActiveViewport);
+            ShaderName = FString("UberLit") + GouraudDefines->Name;
+        }
+        
+        if (!ShaderName.IsEmpty())
+        {
+            StaticMeshRenderPass->Prepare(this, ActiveViewport, ShaderName);
+            StaticMeshRenderPass->Execute(ActiveViewport);
         }
     }
 
     if (FogRenderPass->ShouldRender())
     {
-        FogRenderPass->Prepare(ActiveViewport);
+        FogRenderPass->Prepare(this, ActiveViewport);
         FogRenderPass->Execute(ActiveViewport);
     }
 
-    BlurRenderPass->Prepare(ActiveViewport);
+    BlurRenderPass->Prepare(this, ActiveViewport);
     BlurRenderPass->Execute(ActiveViewport);
 
-    LineBatchRenderPass->Prepare(ActiveViewport);
+    LineBatchRenderPass->Prepare(this, ActiveViewport);
     LineBatchRenderPass->Execute(ActiveViewport);
 
     if (ActiveViewport->GetViewMode() == EViewModeIndex::VMI_Depth)
     {
-        DebugDepthRenderPass->Prepare(ActiveViewport);
+        DebugDepthRenderPass->Prepare(this, ActiveViewport);
         DebugDepthRenderPass->Execute(ActiveViewport);
     }
     
-    EditorIconRenderPass->Prepare(ActiveViewport);
+    EditorIconRenderPass->Prepare(this, ActiveViewport);
     EditorIconRenderPass->Execute(ActiveViewport);
 
     if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
     {
-        GizmoRenderPass->Prepare(ActiveViewport);
+        GizmoRenderPass->Prepare(this, ActiveViewport);
         GizmoRenderPass->Execute(ActiveViewport);
     }
     
-    LetterBoxRenderPass->Prepare(ActiveViewport);
+    LetterBoxRenderPass->Prepare(this, ActiveViewport);
     LetterBoxRenderPass->Execute(ActiveViewport);
     
-    FadeRenderPass->Prepare(ActiveViewport);
+    FadeRenderPass->Prepare(this, ActiveViewport);
     FadeRenderPass->Execute(ActiveViewport);
 
-    FinalRenderPass->Prepare(ActiveViewport);
+    FinalRenderPass->Prepare(this, ActiveViewport);
     FinalRenderPass->Execute(ActiveViewport);
 
     EndRender();
@@ -328,9 +323,7 @@ void FRenderer::EndRender() const
 
 void FRenderer::ClearRenderObjects() const
 {
-    GoroudRenderPass->ClearRenderObjects();
-    LambertRenderPass->ClearRenderObjects();
-    PhongRenderPass->ClearRenderObjects();
+    StaticMeshRenderPass->ClearRenderObjects();
     LineBatchRenderPass->ClearRenderObjects();
     GizmoRenderPass->ClearRenderObjects();
     DebugDepthRenderPass->ClearRenderObjects();
@@ -399,9 +392,7 @@ void FRenderer::AddRenderObjectsToRenderPass() const
 {
     //ComputeTileLightCulling->AddRenderObjectsToRenderPass(InWorld);
 
-    GoroudRenderPass->AddRenderObjectsToRenderPass();
-    LambertRenderPass->AddRenderObjectsToRenderPass();
-    PhongRenderPass->AddRenderObjectsToRenderPass();
+    StaticMeshRenderPass->AddRenderObjectsToRenderPass();
     
     GizmoRenderPass->AddRenderObjectsToRenderPass();
     EditorIconRenderPass->AddRenderObjectsToRenderPass();

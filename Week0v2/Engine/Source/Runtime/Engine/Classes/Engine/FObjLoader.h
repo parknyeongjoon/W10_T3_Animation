@@ -1,9 +1,4 @@
 #pragma once
-#include <fstream>
-#include <queue>
-#include <set>
-#include <sstream>
-
 #include "Define.h"
 #include "EditorEngine.h"
 #include "Container/Map.h"
@@ -12,7 +7,8 @@
 
 class UStaticMesh;
 struct FManagerOBJ;
-struct FLoaderOBJ
+
+struct FObjLoader
 {
     // Obj Parsing (*.obj to FObjInfo)
     static bool ParseOBJ(const FString& ObjFilePath, FObjInfo& OutObjInfo);
@@ -31,28 +27,24 @@ struct FLoaderOBJ
 struct FManagerOBJ
 {
 public:
-   
+    static UStaticMesh* CreateStaticMesh(const FString& filePath);
+    static UStaticMesh* GetStaticMesh(const FWString& name);
+
+    static const TMap<FWString, UStaticMesh*>& GetStaticMeshes() { return StaticMeshMap; }
+    static int GetStaticMeshNum() { return StaticMeshMap.Num(); }
+
+private:
     static OBJ::FStaticMeshRenderData* LoadObjStaticMeshAsset(const FString& PathFileName);
     static bool LoadStaticMeshFromBinary(const FWString& FilePath, OBJ::FStaticMeshRenderData& OutStaticMesh);
 
-    static UMaterial* CreateMaterial(const FObjMaterialInfo& materialInfo);
-    static TMap<FString, UMaterial*>& GetMaterials() { return materialMap; }
-    static UMaterial* GetMaterial(const FString& name);
-    static int GetMaterialNum() { return materialMap.Num(); }
-    static UStaticMesh* CreateStaticMesh(const FString& filePath);
-    static const TMap<FWString, UStaticMesh*>& GetStaticMeshes() { return staticMeshMap; }
-    static UStaticMesh* GetStaticMesh(const FWString& name);
-    static int GetStaticMeshNum() { return staticMeshMap.Num(); }
-
-private:
+    
     static void CombineMaterialIndex(OBJ::FStaticMeshRenderData& OutFStaticMesh);
     static bool SaveStaticMeshToBinary(const FWString& wstring, const OBJ::FStaticMeshRenderData& static_mesh_render_data);
     static TArray<FString> ExtractMTLLibraryNamesFromOBJ(const FString& ObjFilePath);
     static FString ConvertMTLRelativePathToCurrent(const FString& ObjFilePath, const FString& MTLFileName);
     
     inline static TMap<FString, OBJ::FStaticMeshRenderData*> ObjStaticMeshMap;
-    inline static TMap<FWString, UStaticMesh*> staticMeshMap;
-    inline static TMap<FString, UMaterial*> materialMap;
+    inline static TMap<FWString, UStaticMesh*> StaticMeshMap;
 };
 
 struct Quadric

@@ -4,7 +4,7 @@
 #include "Define.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "DirectXTK/Include/DDSTextureLoader.h"
-#include "Engine/FLoaderOBJ.h"
+#include "Engine/FObjLoader.h"
 #include "UserInterface/Console.h"
 
 void FResourceManager::Initialize(FGraphicsDevice* device)

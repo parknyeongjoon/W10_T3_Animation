@@ -16,8 +16,8 @@
 #include "Components/LightComponents/PointLightComponent.h"
 #include "Components/LightComponents/SpotLightComponent.h"
 #include "Components/Material/Material.h"
-#include "Components/Mesh/StaticMesh.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/SkySphereComponent.h"
+#include "Engine/StaticMesh.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Renderer/ComputeShader/ComputeTileLightCulling.h"
 
@@ -72,16 +72,15 @@ void FStaticMeshRenderPass::AddRenderObjectsToRenderPass()
     }
 }
 
-void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewportClient)
+void FStaticMeshRenderPass::Prepare(FRenderer* Renderer, std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName)
 {
-    FBaseRenderPass::Prepare(InViewportClient);
+    FBaseRenderPass::Prepare(Renderer, InViewportClient, InShaderName);
 
-    const FRenderer& Renderer = GEngineLoop.Renderer;
     const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
-    Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
+    Graphics.DeviceContext->OMSetDepthStencilState(Renderer->GetDepthStencilState(EDepthStencilState::LessEqual), 0);
     Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
-    Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState());
+    Graphics.DeviceContext->RSSetState(Renderer->GetCurrentRasterizerState());
 
     // RTVs 배열의 유효성을 확인합니다.
     const auto CurRTV = Graphics.GetCurrentRenderTargetView();
@@ -98,10 +97,10 @@ void FStaticMeshRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
 
     Graphics.DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌딩 상태 설정, 기본 블렌딩 상태임
     
-    ID3D11SamplerState* linearSampler = Renderer.GetSamplerState(ESamplerType::Linear);
+    ID3D11SamplerState* linearSampler = Renderer->GetSamplerState(ESamplerType::Linear);
     Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &linearSampler);
 
-    ID3D11SamplerState* PostProcessSampler = Renderer.GetSamplerState(ESamplerType::PostProcess);
+    ID3D11SamplerState* PostProcessSampler = Renderer->GetSamplerState(ESamplerType::PostProcess);
     Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::PostProcess), 1, &PostProcessSampler);
 }
 

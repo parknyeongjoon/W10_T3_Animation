@@ -15,7 +15,7 @@ public:
     virtual ~FFogRenderPass() {}
     void AddRenderObjectsToRenderPass() override;
     void PrePrepare();
-    void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
+    void Prepare(FRenderer* Renderer, std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName = FString("")) override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
     bool ShouldRender() { return bRender; }
 

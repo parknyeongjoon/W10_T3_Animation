@@ -1,20 +1,17 @@
 #pragma once
-#include <memory>
 
+#include "Container/String.h"
 #include "CoreUObject/UObject/NameTypes.h"
-
-class UWorld;
-class FViewportClient;
 
 class FBaseRenderPass
 {
 public:
-    FBaseRenderPass(const FName& InShaderName)
-        :  ShaderName(InShaderName) {}
+    FBaseRenderPass(const FName& InShaderName) : ShaderName(InShaderName) {}
     virtual ~FBaseRenderPass() {}
 
     virtual void AddRenderObjectsToRenderPass() = 0;
-    virtual void Prepare(std::shared_ptr<FViewportClient> InViewportClient);
+    virtual void Prepare(class FRenderer* Renderer, std::shared_ptr<class FViewportClient> InViewportClient, const FString& InShaderName = FString(""));
+
     virtual void Execute(std::shared_ptr<FViewportClient> InViewportClient) = 0;
     virtual void ClearRenderObjects() {};
 

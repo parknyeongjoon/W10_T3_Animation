@@ -6,7 +6,7 @@
 #include "Math/JungleMath.h"
 #include "LaunchEngineLoop.h"
 #include "UnrealClient.h"
-#include "Engine/FLoaderOBJ.h"
+#include "Engine/FObjLoader.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "Camera/CameraComponent.h"

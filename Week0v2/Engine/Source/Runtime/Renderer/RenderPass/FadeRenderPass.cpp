@@ -34,25 +34,24 @@ void FFadeRenderPass::AddRenderObjectsToRenderPass()
     }
 }
 
-void FFadeRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+void FFadeRenderPass::Prepare(FRenderer* Renderer, std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName)
 {
     bRender = true;
     
     if (bRender)
     {
-        FBaseRenderPass::Prepare(InViewportClient);
-        const FRenderer& Renderer = GEngineLoop.Renderer;
+        FBaseRenderPass::Prepare(Renderer, InViewportClient, InShaderName);
 
         FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
         Graphics.SwapPingPongBuffers();
 
         const auto CurRTV = Graphics.GetCurrentRenderTargetView();
         Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, nullptr);
-        Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
+        Graphics.DeviceContext->OMSetDepthStencilState(Renderer->GetDepthStencilState(EDepthStencilState::DepthNone), 0);
 
         Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         
-        ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Linear);
+        ID3D11SamplerState* Sampler = Renderer->GetSamplerState(ESamplerType::Linear);
         Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
 
         const auto PreviousSRV = Graphics.GetPreviousShaderResourceView();

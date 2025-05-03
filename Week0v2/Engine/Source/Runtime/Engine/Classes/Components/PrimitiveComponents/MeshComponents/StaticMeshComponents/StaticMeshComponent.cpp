@@ -4,34 +4,34 @@
 #include "Launch/EditorEngine.h"
 #include "UObject/ObjectFactory.h"
 #include "UnrealEd/PrimitiveBatch.h"
-#include "Classes/Engine/FLoaderOBJ.h"
-#include "Components/Mesh/StaticMesh.h"
+#include "Classes/Engine/FObjLoader.h"
+#include "Engine/StaticMesh.h"
 
 UStaticMeshComponent::UStaticMeshComponent(const UStaticMeshComponent& Other)
     : UMeshComponent(Other)
-    , staticMesh(Other.staticMesh)
+    , StaticMesh(Other.StaticMesh)
     , selectedSubMeshIndex(Other.selectedSubMeshIndex)
 {
 }
 uint32 UStaticMeshComponent::GetNumMaterials() const
 {
-    if (staticMesh == nullptr) return 0;
+    if (StaticMesh == nullptr) return 0;
 
-    return staticMesh->GetMaterials().Num();
+    return StaticMesh->GetMaterials().Num();
 }
 
 UMaterial* UStaticMeshComponent::GetMaterial(uint32 ElementIndex) const
 {
-    if (staticMesh != nullptr)
+    if (StaticMesh != nullptr)
     {
         if (OverrideMaterials[ElementIndex] != nullptr)
         {
             return OverrideMaterials[ElementIndex];
         }
     
-        if (staticMesh->GetMaterials().IsValidIndex(ElementIndex))
+        if (StaticMesh->GetMaterials().IsValidIndex(ElementIndex))
         {
-            return staticMesh->GetMaterials()[ElementIndex]->Material;
+            return StaticMesh->GetMaterials()[ElementIndex]->Material;
         }
     }
     return nullptr;
@@ -39,17 +39,17 @@ UMaterial* UStaticMeshComponent::GetMaterial(uint32 ElementIndex) const
 
 uint32 UStaticMeshComponent::GetMaterialIndex(FName MaterialSlotName) const
 {
-    if (staticMesh == nullptr) return -1;
+    if (StaticMesh == nullptr) return -1;
 
-    return staticMesh->GetMaterialIndex(MaterialSlotName);
+    return StaticMesh->GetMaterialIndex(MaterialSlotName);
 }
 
 TArray<FName> UStaticMeshComponent::GetMaterialSlotNames() const
 {
     TArray<FName> MaterialNames;
-    if (staticMesh == nullptr) return MaterialNames;
+    if (StaticMesh == nullptr) return MaterialNames;
 
-    for (const FStaticMaterial* Material : staticMesh->GetMaterials())
+    for (const FStaticMaterial* Material : StaticMesh->GetMaterials())
     {
         MaterialNames.Emplace(Material->MaterialSlotName);
     }
@@ -59,8 +59,8 @@ TArray<FName> UStaticMeshComponent::GetMaterialSlotNames() const
 
 void UStaticMeshComponent::GetUsedMaterials(TArray<UMaterial*>& Out) const
 {
-    if (staticMesh == nullptr) return;
-    staticMesh->GetUsedMaterials(Out);
+    if (StaticMesh == nullptr) return;
+    StaticMesh->GetUsedMaterials(Out);
     for (int materialIndex = 0; materialIndex < GetNumMaterials(); materialIndex++)
     {
         if (OverrideMaterials[materialIndex] != nullptr)
@@ -74,9 +74,9 @@ int UStaticMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayD
 {
     if (!AABB.IntersectRay(rayOrigin, rayDirection, pfNearHitDistance)) return 0;
     int nIntersections = 0;
-    if (staticMesh == nullptr) return 0;
+    if (StaticMesh == nullptr) return 0;
 
-    OBJ::FStaticMeshRenderData* renderData = staticMesh->GetRenderData();
+    OBJ::FStaticMeshRenderData* renderData = StaticMesh->GetRenderData();
 
     FVertexSimple* vertices = renderData->Vertices.GetData();
     int vCount = renderData->Vertices.Num();
@@ -122,10 +122,10 @@ int UStaticMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayD
 
 void UStaticMeshComponent::SetStaticMesh(UStaticMesh* value)
 { 
-    staticMesh = value;
+    StaticMesh = value;
     OverrideMaterials.SetNum(value->GetMaterials().Num());
-    AABB = FBoundingBox(staticMesh->GetRenderData()->BoundingBoxMin, staticMesh->GetRenderData()->BoundingBoxMax);
-    VBIBTopologyMappingName = staticMesh->GetRenderData()->DisplayName;
+    AABB = FBoundingBox(StaticMesh->GetRenderData()->BoundingBoxMin, StaticMesh->GetRenderData()->BoundingBoxMax);
+    VBIBTopologyMappingName = StaticMesh->GetRenderData()->DisplayName;
 }
 
 std::unique_ptr<FActorComponentInfo> UStaticMeshComponent::GetComponentInfo()
@@ -141,7 +141,7 @@ void UStaticMeshComponent::SaveComponentInfo(FActorComponentInfo& OutInfo)
     FStaticMeshComponentInfo* Info = static_cast<FStaticMeshComponentInfo*>(&OutInfo);
     Super::SaveComponentInfo(*Info);
 
-    Info->StaticMeshPath = staticMesh->GetRenderData()->PathName;
+    Info->StaticMeshPath = StaticMesh->GetRenderData()->PathName;
 }
 void UStaticMeshComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 {

@@ -51,12 +51,11 @@ void FFogRenderPass::PrePrepare()
     }
 }
 
-void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+void FFogRenderPass::Prepare(FRenderer* Renderer, std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName)
 {
     if (bRender)
     {
-        FBaseRenderPass::Prepare(InViewportClient);
-        const FRenderer& Renderer = GEngineLoop.Renderer;
+        FBaseRenderPass::Prepare(Renderer, InViewportClient, InShaderName);
         FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
         const auto CurRTV = Graphics.GetCurrentRenderTargetView();

@@ -3,7 +3,7 @@
 #include "Container/Array.h"
 
 class USkySphereComponent;
-struct FObjMaterialInfo;
+struct FMaterialInfo;
 struct FMatrix;
 class UStaticMeshComponent;
 class UGizmoBaseComponent;
@@ -17,12 +17,12 @@ public:
 
     virtual ~FGizmoRenderPass() {}
     void AddRenderObjectsToRenderPass() override;
-    void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
+    void Prepare(FRenderer* Renderer, std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName = FString("")) override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
     void ClearRenderObjects() override;
 private:
     static void UpdateMatrixConstants(UGizmoBaseComponent* InGizmoComponent, const FMatrix& InView, const FMatrix& InProjection);
-    static void UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo);
+    static void UpdateMaterialConstants(const FMaterialInfo& MaterialInfo);
 private:
     TArray<UGizmoBaseComponent*> GizmoComponents;
 };

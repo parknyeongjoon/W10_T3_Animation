@@ -22,7 +22,7 @@ public:
     void AddRenderObjectsToRenderPass() override;
     void ClearRenderObjects() override;
 
-    void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
+    void Prepare(FRenderer* Renderer, std::shared_ptr<FViewportClient> InViewportClient, const FString& InShaderName = FString("")) override;
     void RenderPointLightShadowMap(UPointLightComponent* PointLight, FGraphicsDevice& Graphics);
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
     void SetShaderResource(FShadowResource* ShadowResource);
