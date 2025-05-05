@@ -1,42 +1,53 @@
-﻿#pragma once
+#pragma once
 #include "Define.h"
 #include "Container/Array.h"
+#include "Container/Map.h"
 #include "Math/Matrix.h"
 #include "Math/Vector.h"
 
-struct FBone;
+struct FBone
+{
+    FString BoneName;
+    FMatrix SkinningMatrix;
+    FMatrix InverseBindPoseMatrix;
+    FMatrix GlobalTransform;
+    FMatrix LocalTransform;
+    int ParentIndex;
+};
+
+struct FBoneNode
+{
+    FString BoneName;
+    int BoneIndex;             // Index in the Bones array
+    TArray<int> ChildIndices;  // Indices of child bones
+};
 
 struct FSkeletalVertex
 {
-    FVector position;
-    FVector normal;
-    FVector tangent;
-    FVector2D texCoord;
+    FVector4 Position;
+    FVector Normal;
+    FVector Tangent;
+    FVector2D TexCoord;
+    int32 BoneIndices[4];
+    float BoneWeights[4];
+
+    FVector SkinVertexPosition(const TArray<FBone>& bones) const;
+    void TranslateVertexByBone(const TArray<FBone>& bones);
 };
 
-struct FSkinnedWeight
-{
-    int boneIndices[4];
-    float boneWeights[4];
-};
-
-struct FBone
-{
-    FMatrix SkinningMatrix;
-};
 
 struct FSkeletalMeshRenderData
 {
     FString Name;
     TArray<FSkeletalVertex> Vertices;
-    TArray<UINT32> Indices;
-    TArray<FSkinnedWeight> Weights;
+    TArray<FBone> Bones;
+    TArray<uint32> Indices;
     TArray<UMaterial*> Materials;
     TArray<FMaterialSubset> MaterialSubsets;
     FBoundingBox BoundingBox;
-};
 
-struct FSkeletalAnimationData
-{
-    TArray<FBone> Bones;
+    // Tree structure for bones
+    TArray<FBoneNode> BoneTree;
+    TArray<int> RootBoneIndices;  // Indices of root bones (no parents)
+    TMap<FString, int> BoneNameToIndexMap;  // For quick lookups
 };

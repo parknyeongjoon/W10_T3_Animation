@@ -1,4 +1,4 @@
-﻿#include "TestFBXLoader.h"
+#include "TestFBXLoader.h"
 #include "Components/Material/Material.h"
 #include "Engine/FLoaderOBJ.h"
 
@@ -88,14 +88,15 @@ void TestFBXLoader::ExtractVertices(FbxMesh* Mesh, FSkeletalMeshRenderData* Mesh
         FSkeletalVertex Vertex;
         
         // 위치 설정
-        Vertex.position.X = static_cast<float>(ControlPoints[i][0]);
-        Vertex.position.Y = static_cast<float>(ControlPoints[i][1]);
-        Vertex.position.Z = static_cast<float>(ControlPoints[i][2]);
+        Vertex.Position.X = static_cast<float>(ControlPoints[i][0]);
+        Vertex.Position.Y = static_cast<float>(ControlPoints[i][1]);
+        Vertex.Position.Z = static_cast<float>(ControlPoints[i][2]);
+        Vertex.Position.W = 1;
         
         // 기본값으로 초기화
-        Vertex.normal = FVector(0.0f, 0.0f, 1.0f);
-        Vertex.texCoord = FVector2D(0.0f, 0.0f);
-        Vertex.tangent = FVector(1.0f, 0.0f, 0.0f);
+        Vertex.Normal = FVector(0.0f, 0.0f, 1.0f);
+        Vertex.TexCoord = FVector2D(0.0f, 0.0f);
+        Vertex.Tangent = FVector(1.0f, 0.0f, 0.0f);
         
         MeshData->Vertices.Add(Vertex);
     }
@@ -108,9 +109,12 @@ void TestFBXLoader::ExtractVertices(FbxMesh* Mesh, FSkeletalMeshRenderData* Mesh
     
     // 탄젠트 데이터 추출
     ExtractTangents(Mesh, MeshData, BaseVertexIndex);
+
+    // 스키닝 정보 추출 (bone weight 추출)
+    ExtractSkinningData(Mesh, MeshData, BaseVertexIndex);
 }
 
-void TestFBXLoader::ExtractNormals(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int BaseVertexIndex) const
+void TestFBXLoader::ExtractNormals(FbxMesh* Mesh, FSkeletalMeshRenderData* RenderData, int BaseVertexIndex) const
 {
     FbxGeometryElementNormal* NormalElement = Mesh->GetElementNormal();
     if (!NormalElement)
@@ -154,9 +158,9 @@ void TestFBXLoader::ExtractNormals(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshD
             FbxVector4 Normal = NormalElement->GetDirectArray().GetAt(NormalIndex);
             
             // 해당 정점의 법선 설정
-            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].normal.X = static_cast<float>(Normal[0]);
-            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].normal.Y = static_cast<float>(Normal[1]);
-            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].normal.Z = static_cast<float>(Normal[2]);
+            RenderData->Vertices[BaseVertexIndex + ControlPointIndex].Normal.X = static_cast<float>(Normal[0]);
+            RenderData->Vertices[BaseVertexIndex + ControlPointIndex].Normal.Y = static_cast<float>(Normal[1]);
+            RenderData->Vertices[BaseVertexIndex + ControlPointIndex].Normal.Z = static_cast<float>(Normal[2]);
         }
     }
 }
@@ -201,8 +205,8 @@ void TestFBXLoader::ExtractUVs(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData,
             FbxVector2 UV = UVElement->GetDirectArray().GetAt(UVIndex);
             
             // 해당 정점의 UV 설정
-            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].texCoord.X = static_cast<float>(UV[0]);
-            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].texCoord.Y = 1.0f - static_cast<float>(UV[1]); // DirectX UV 좌표계로 변환
+            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].TexCoord.X = static_cast<float>(UV[0]);
+            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].TexCoord.Y = 1.0f - static_cast<float>(UV[1]); // DirectX UV 좌표계로 변환
         }
     }
 }
@@ -250,9 +254,215 @@ void TestFBXLoader::ExtractTangents(FbxMesh* Mesh, FSkeletalMeshRenderData* Mesh
             FbxVector4 Tangent = TangentElement->GetDirectArray().GetAt(TangentIndex);
             
             // 해당 정점의 탄젠트 설정
-            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].tangent.X = static_cast<float>(Tangent[0]);
-            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].tangent.Y = static_cast<float>(Tangent[1]);
-            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].tangent.Z = static_cast<float>(Tangent[2]);
+            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].Tangent.X = static_cast<float>(Tangent[0]);
+            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].Tangent.Y = static_cast<float>(Tangent[1]);
+            MeshData->Vertices[BaseVertexIndex + ControlPointIndex].Tangent.Z = static_cast<float>(Tangent[2]);
+        }
+    }
+}
+
+void TestFBXLoader::ExtractSkinningData(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int BaseVertexIndex) const
+{
+    int VertexCount = Mesh->GetControlPointsCount();
+    for (int i=BaseVertexIndex; i<BaseVertexIndex+VertexCount; i++)
+    {
+        // Reset bone indices and weights
+        for (int j = 0; j < 4; j++)
+        {
+            MeshData->Vertices[i].BoneIndices[j] = 0;
+            MeshData->Vertices[i].BoneWeights[j] = 0.0f;
+        }
+    }
+
+    // Get deformer count (skins)
+    int DeformerCount = Mesh->GetDeformerCount(FbxDeformer::eSkin);
+    if (DeformerCount == 0)
+        return;
+        
+    // Process each skin deformer
+    for (int DeformerIndex = 0; DeformerIndex < DeformerCount; DeformerIndex++)
+    {
+        FbxSkin* Skin = static_cast<FbxSkin*>(Mesh->GetDeformer(DeformerIndex, FbxDeformer::eSkin));
+        if (Skin)
+        {
+            ProcessSkinning(Skin, MeshData, BaseVertexIndex);
+        }
+    }
+
+    // Normalize bone weights
+    for (int i = BaseVertexIndex; i < MeshData->Vertices.Num(); i++)
+    {
+        float Sum = 0.0f;
+        for (int j = 0; j < 4; j++)
+        {
+            Sum += MeshData->Vertices[i].BoneWeights[j];
+        }
+        
+        if (Sum > 0.0f)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                MeshData->Vertices[i].BoneWeights[j] /= Sum;
+            }
+        }
+        else
+        {
+            // If no weights, bind to first bone
+            MeshData->Vertices[i].BoneIndices[0] = 0;
+            MeshData->Vertices[i].BoneWeights[0] = 1.0f;
+        }
+    }
+}
+
+void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* MeshData, int BaseVertexIndex) const
+{
+    int ClusterCount = Skin->GetClusterCount();
+
+    // Clear existing bone tree data
+    MeshData->BoneTree.Empty();
+    MeshData->RootBoneIndices.Empty();
+    MeshData->BoneNameToIndexMap.Empty();
+    
+    // First pass - collect all bone nodes from clusters and add to flat bone array
+    for (int ClusterIndex = 0; ClusterIndex < ClusterCount; ClusterIndex++)
+    {
+        FbxCluster* Cluster = Skin->GetCluster(ClusterIndex);
+        FbxNode* BoneNode = Cluster->GetLink();
+        
+        if (!BoneNode)
+            continue;
+            
+        FString BoneName = BoneNode->GetName();
+        
+        // Check if this bone already exists
+        int* ExistingBoneIndex = MeshData->BoneNameToIndexMap.Find(BoneName);
+        if (ExistingBoneIndex)
+            continue;
+            
+        // Create new bone and add to array
+        FBone NewBone;
+        NewBone.BoneName = BoneName;
+        NewBone.ParentIndex = -1; // Will be set in second pass
+        
+        // Get transform matrices
+        FbxAMatrix GlobalTransform = BoneNode->EvaluateGlobalTransform();
+        FbxAMatrix LocalTransform = BoneNode->EvaluateLocalTransform();
+        
+        // Store transforms
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                NewBone.GlobalTransform.M[i][j] = static_cast<float>(GlobalTransform.Get(i, j));
+                NewBone.LocalTransform.M[i][j] = static_cast<float>(LocalTransform.Get(i, j));
+            }
+        }
+        
+        // Get binding pose transformation
+        NewBone.InverseBindPoseMatrix = FMatrix::Inverse(NewBone.GlobalTransform);
+        // FbxAMatrix BindPoseTransform;
+        // Cluster->GetTransformLinkMatrix(BindPoseTransform);
+        // BindPoseTransform = BindPoseTransform.Inverse();
+        //
+        // for (int i = 0; i < 4; i++) {
+        //     for (int j = 0; j < 4; j++) {
+        //         NewBone.InverseBindPoseMatrix.M[i][j] = static_cast<float>(BindPoseTransform.Get(i, j));
+        //     }
+        // }
+        
+        NewBone.SkinningMatrix = NewBone.InverseBindPoseMatrix * NewBone.GlobalTransform;
+        
+        // Add bone to array and create mapping
+        int BoneIndex = MeshData->Bones.Add(NewBone);
+        MeshData->BoneNameToIndexMap.Add(BoneName, BoneIndex);
+        
+        // Create corresponding bone tree node
+        FBoneNode NewNode;
+        NewNode.BoneName = BoneName;
+        NewNode.BoneIndex = BoneIndex;
+        MeshData->BoneTree.Add(NewNode);
+    }
+    
+    // Second pass - establish parent-child relationships
+    for (int ClusterIndex = 0; ClusterIndex < ClusterCount; ClusterIndex++)
+    {
+        FbxCluster* Cluster = Skin->GetCluster(ClusterIndex);
+        FbxNode* BoneNode = Cluster->GetLink();
+        
+        if (!BoneNode)
+            continue;
+            
+        FString BoneName = BoneNode->GetName();
+        FbxNode* ParentNode = BoneNode->GetParent();
+        
+        if (!MeshData->BoneNameToIndexMap.Contains(BoneName))
+            continue;
+            
+        int BoneIndex = MeshData->BoneNameToIndexMap[BoneName];
+        
+        if (ParentNode)
+        {
+            FString ParentName = ParentNode->GetName();
+            
+            // If parent is also a bone, establish the relationship
+            if (MeshData->BoneNameToIndexMap.Contains(ParentName))
+            {
+                int ParentIndex = MeshData->BoneNameToIndexMap[ParentName];
+                
+                // Update parent index in the bone
+                MeshData->Bones[BoneIndex].ParentIndex = ParentIndex;
+                
+                // Add this bone as a child of the parent in the tree structure
+                MeshData->BoneTree[ParentIndex].ChildIndices.Add(BoneIndex);
+            }
+        }
+    }
+    
+    // Find root bones (bones with no parents in our bone set)
+    for (int i = 0; i < MeshData->Bones.Num(); i++)
+    {
+        if (MeshData->Bones[i].ParentIndex == -1)
+        {
+            MeshData->RootBoneIndices.Add(i);
+        }
+    }
+    
+    // Process vertex weights
+    for (int ClusterIndex = 0; ClusterIndex < ClusterCount; ClusterIndex++)
+    {
+        FbxCluster* Cluster = Skin->GetCluster(ClusterIndex);
+        FbxNode* BoneNode = Cluster->GetLink();
+        
+        if (!BoneNode || !MeshData->BoneNameToIndexMap.Contains(BoneNode->GetName()))
+            continue;
+        
+        int BoneIndex = MeshData->BoneNameToIndexMap[BoneNode->GetName()];
+        
+        // Get control point indices and weights
+        int VertexCount = Cluster->GetControlPointIndicesCount();
+        int* ControlPointIndices = Cluster->GetControlPointIndices();
+        double* ControlPointWeights = Cluster->GetControlPointWeights();
+        
+        // Apply weights to vertices
+        for (int i = 0; i < VertexCount; i++)
+        {
+            int VertexIndex = BaseVertexIndex + ControlPointIndices[i];
+            float Weight = static_cast<float>(ControlPointWeights[i]);
+            
+            // Make sure vertex index is valid
+            if (VertexIndex >= 0 && VertexIndex < MeshData->Vertices.Num())
+            {
+                // Find first empty weight slot
+                for (int j = 0; j < 4; j++)
+                {
+                    if (MeshData->Vertices[VertexIndex].BoneWeights[j] == 0.0f)
+                    {
+                        MeshData->Vertices[VertexIndex].BoneIndices[j] = BoneIndex;
+                        MeshData->Vertices[VertexIndex].BoneWeights[j] = Weight;
+                        break;
+                    }
+                }
+            }
         }
     }
 }
@@ -358,13 +568,13 @@ void TestFBXLoader::UpdateBoundingBox(FSkeletalMeshRenderData* MeshData) const
         return;
         
     // 초기값 설정
-    FVector Min = MeshData->Vertices[0].position;
-    FVector Max = MeshData->Vertices[0].position;
+    FVector Min = MeshData->Vertices[0].Position.xyz();
+    FVector Max = MeshData->Vertices[0].Position.xyz();
     
     // 모든 정점을 순회하며 최소/최대값 업데이트
     for (int i = 1; i < MeshData->Vertices.Num(); i++)
     {
-        const FVector& Pos = MeshData->Vertices[i].position;
+        const FVector& Pos = MeshData->Vertices[i].Position.xyz();
         
         // 최소값 갱신
         Min.X = FMath::Min(Min.X, Pos.X);
@@ -380,8 +590,6 @@ void TestFBXLoader::UpdateBoundingBox(FSkeletalMeshRenderData* MeshData) const
     // 바운딩 박스 설정
     MeshData->BoundingBox.min = Min;
     MeshData->BoundingBox.max = Max;
-    MeshData->BoundingBox.Center = (Min + Max) * 0.5f;
-    MeshData->BoundingBox.Extents = (Max - Min) * 0.5f;
 }
 
 FSkeletalMeshRenderData* TestFBXLoader::GetSkeletalMesh(FString FilePath)

@@ -11,6 +11,7 @@
 #include "RenderPass/FogRenderPass.h"
 #include "RenderPass/ShadowRenderPass.h"
 
+class FSkeletalMeshRenderPass;
 class FLetterBoxRenderPass;
 struct FLetterBoxConstants;
 class FBlurRenderPass;
@@ -100,6 +101,7 @@ private:
     std::shared_ptr<FStaticMeshRenderPass> GoroudRenderPass;
     std::shared_ptr<FStaticMeshRenderPass> LambertRenderPass;
     std::shared_ptr<FStaticMeshRenderPass> PhongRenderPass;
+    std::shared_ptr<FSkeletalMeshRenderPass> SkeletalRenderPass;
     std::shared_ptr<FLineBatchRenderPass> LineBatchRenderPass;
     std::shared_ptr<FGizmoRenderPass> GizmoRenderPass;
     //std::shared_ptr<FComputeTileLightCulling> ComputeTileLightCulling;

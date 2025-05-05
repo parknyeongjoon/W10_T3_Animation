@@ -1,6 +1,7 @@
 #pragma once
 #include "Define.h"
 #include "Components/ActorComponent.h"
+#include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "UnrealEd/EditorPanel.h"
 
 class UStaticMeshComponent;
@@ -22,9 +23,11 @@ private:
 
     /* Static Mesh Settings */
     void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp);
+    void RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMesh);
     
     /* Materials Settings */
     void RenderForMaterial(UStaticMeshComponent* StaticMeshComp);
+    void RenderForMaterial(USkeletalMeshComponent* SkeletalMeshComp);
     void RenderMaterialView(UMaterial* Material);
     void RenderCreateMaterialView();
 
@@ -38,6 +41,7 @@ private:
     int SelectedMaterialIndex = -1;
     int CurMaterialIndex = -1;
     UStaticMeshComponent* SelectedStaticMeshComp = nullptr;
+    USkeletalMeshComponent* SelectedSkeletalMeshComp = nullptr;
     FObjMaterialInfo tempMaterialInfo;
     bool IsCreateMaterial;
     UActorComponent* PickedComponent = nullptr;

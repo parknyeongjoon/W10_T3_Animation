@@ -17,7 +17,6 @@ public:
     OBJ::FStaticMeshRenderData* GetRenderData() const { return staticMeshRenderData; }
 
     void SetData(OBJ::FStaticMeshRenderData* renderData);
-
 private:
     OBJ::FStaticMeshRenderData* staticMeshRenderData = nullptr;
     TArray<FMaterialSlot*> materials;

@@ -16,8 +16,11 @@ public:
     void GetUsedMaterials(TArray<UMaterial*>& Out) const;
 
     void SetData(FSkeletalMeshRenderData* renderData);
-
+    
+    void UpdateBoneHierarchy() const;
 private:
     FSkeletalMeshRenderData* SkeletalMeshRenderData = nullptr;
     TArray<FMaterialSlot*> MaterialSlots;
+
+    void UpdateChildBones(int ParentIndex) const;
 };

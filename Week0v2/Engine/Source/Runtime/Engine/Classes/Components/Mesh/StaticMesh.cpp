@@ -56,7 +56,8 @@ void UStaticMesh::SetData(OBJ::FStaticMeshRenderData* renderData)
     }
     GEngineLoop.Renderer.MappingVBTopology(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, sizeof(FVertexSimple), verticeNum);
     GEngineLoop.Renderer.MappingIB(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, indexNum);
-    
+
+    materials.Empty();
     for (int materialIndex = 0; materialIndex < staticMeshRenderData->Materials.Num(); materialIndex++) {
         FMaterialSlot* newMaterialSlot = new FMaterialSlot();
         UMaterial* newMaterial = FManagerOBJ::CreateMaterial(staticMeshRenderData->Materials[materialIndex]);

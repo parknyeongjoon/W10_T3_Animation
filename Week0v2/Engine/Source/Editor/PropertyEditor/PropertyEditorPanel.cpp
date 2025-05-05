@@ -25,6 +25,8 @@
 #include <shellapi.h> // ShellExecute 관련 함수 정의 포함
 
 #include "LaunchEngineLoop.h"
+#include "TestFBXLoader.h"
+#include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "Light/ShadowMapAtlas.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/FunctionRegistry.h"
@@ -611,11 +613,18 @@ void PropertyEditorPanel::Render()
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)
+    {
         if (UStaticMeshComponent* StaticMeshComponent = PickedActor->GetComponentByClass<UStaticMeshComponent>())
         {
             RenderForStaticMesh(StaticMeshComponent);
             RenderForMaterial(StaticMeshComponent);
         }
+        else if (USkeletalMeshComponent* SkeletalMeshComponet = PickedActor->GetComponentByClass<USkeletalMeshComponent>())
+        {
+            RenderForSkeletalMesh(SkeletalMeshComponet);
+            RenderForMaterial(SkeletalMeshComponet);
+        }
+    }
 
     if (PickedActor && PickedComponent && PickedComponent->IsA<UBillboardComponent>())
     {
@@ -902,6 +911,44 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
     ImGui::PopStyleColor();
 }
 
+void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMesh)
+{
+    if (SkeletalMesh->GetSkeletalMesh() == nullptr)
+    {
+        return;
+    }
+
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+    if (ImGui::TreeNodeEx("Skeletal Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
+    {
+        ImGui::Text("Skeletal Mesh");
+        ImGui::SameLine();
+
+        // FString PreviewName = SkeletalMesh->GetSkeletalMesh()->GetRenderData()->Name;
+        // const TMap<FName, USkeletalMesh*> Meshes = TestFBXLoader::GetSkeletalMesh();
+        // if (ImGui::BeginCombo("##StaticMesh", GetData(PreviewName), ImGuiComboFlags_None))
+        // {
+        //     for (const auto Mesh : Meshes)
+        //     {
+        //         if (ImGui::Selectable(GetData(Mesh.Value->GetRenderData()->DisplayName), false))
+        //         {
+        //             StaticMeshComp->SetStaticMesh(Mesh.Value);
+        //         }
+        //     }
+        //
+        //     ImGui::EndCombo();
+        // }
+
+        for (const auto& Bone : SkeletalMesh->GetSkeletalMesh()->GetRenderData()->Bones)
+        {
+            ImGui::Text(GetData("Bone" + Bone.BoneName));
+        }
+
+        ImGui::TreePop();
+    }
+    ImGui::PopStyleColor();
+}
+
 
 void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp)
 {
@@ -953,6 +1000,72 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
         {
             if (ImGui::IsMouseDoubleClicked(0))
                 StaticMeshComp->SetselectedSubMeshIndex(-1);
+        }
+
+        ImGui::TreePop();
+    }
+
+    ImGui::PopStyleColor();
+
+    if (SelectedMaterialIndex != -1)
+    {
+        RenderMaterialView(SelectedStaticMeshComp->GetMaterial(SelectedMaterialIndex));
+    }
+    if (IsCreateMaterial) {
+        RenderCreateMaterialView();
+    }
+}
+
+void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMeshComp)
+{
+    if (SkeletalMeshComp->GetSkeletalMesh() == nullptr)
+    {
+        return;
+    }
+
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+    if (ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
+    {
+        for (uint32 i = 0; i < SkeletalMeshComp->GetNumMaterials(); ++i)
+        {
+            if (ImGui::Selectable(GetData(SkeletalMeshComp->GetMaterialSlotNames()[i].ToString()), false, ImGuiSelectableFlags_AllowDoubleClick))
+            {
+                if (ImGui::IsMouseDoubleClicked(0))
+                {
+                    std::cout << GetData(SkeletalMeshComp->GetMaterialSlotNames()[i].ToString()) << std::endl;
+                    SelectedMaterialIndex = i;
+                    SelectedSkeletalMeshComp = SkeletalMeshComp;
+                }
+            }
+        }
+
+        if (ImGui::Button("    +    ")) {
+            IsCreateMaterial = true;
+        }
+
+        ImGui::TreePop();
+    }
+
+    if (ImGui::TreeNodeEx("SubMeshes", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
+    {
+        auto subsets = SkeletalMeshComp->GetSkeletalMesh()->GetRenderData()->MaterialSubsets;
+        for (uint32 i = 0; i < subsets.Num(); ++i)
+        {
+            std::string temp = "subset " + std::to_string(i);
+            if (ImGui::Selectable(temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+            {
+                if (ImGui::IsMouseDoubleClicked(0))
+                {
+                    SkeletalMeshComp->SetSelectedSubMeshIndex(i);
+                    SelectedSkeletalMeshComp = SkeletalMeshComp;
+                }
+            }
+        }
+        std::string temp = "clear subset";
+        if (ImGui::Selectable(temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+        {
+            if (ImGui::IsMouseDoubleClicked(0))
+                SkeletalMeshComp->SetSelectedSubMeshIndex(-1);
         }
 
         ImGui::TreePop();
