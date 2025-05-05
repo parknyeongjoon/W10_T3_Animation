@@ -40,8 +40,8 @@ void UEditorEngine::Init()
 
     /* must be initialized before window. */
     LevelEditor->Initialize(GEngineLoop.GetDefaultWindow());
-    FVector2D ClientPos = FWindowsCursor::GetClientPosition(GEngineLoop.GetDefaultWindow());
-    UnrealEditor->Initialize(LevelEditor, ClientPos.X, ClientPos.Y);
+
+    UnrealEditor->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().screenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().screenHeight);
     ContentsUI->Initialize();
     CollisionManager.Initialize();  
     FLuaManager::Get().Initialize();

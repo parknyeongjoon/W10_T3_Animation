@@ -5,6 +5,7 @@
 
 #include "EditorEngine.h"
 #include "LaunchEngineLoop.h"
+#include "WindowsCursor.h"
 #include "Engine/World.h"
 #include "Math/MathUtility.h"
 #include "UnrealEd/EditorViewportClient.h"
@@ -164,22 +165,15 @@ bool UBillboardComponent::CheckPickingOnNDC(const TArray<FVector>& checkQuad, fl
     }
     
 	bool result = false;
-	POINT mousePos;
-	GetCursorPos(&mousePos);
-	ScreenToClient(GEngineLoop.AppWnd, &mousePos);
-
+    FVector2D ClientPos = FWindowsCursor::GetClientPosition(GEngineLoop.GetDefaultWindow());
 	D3D11_VIEWPORT viewport;
 	UINT numViewports = 1;
 	GEngineLoop.GraphicDevice.DeviceContext->RSGetViewports(&numViewports, &viewport);
-	float screenWidth = viewport.Width;
-	float screenHeight = viewport.Height;
 
 	FVector pickPosition;
-	int screenX = mousePos.x;
-	int screenY = mousePos.y;
     FMatrix projectionMatrix = EditorEngine->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
-	pickPosition.X = ((2.0f * screenX / viewport.Width) - 1);
-	pickPosition.Y = -((2.0f * screenY / viewport.Height) - 1);
+	pickPosition.X = ((2.0f * ClientPos.X / viewport.Width) - 1);
+	pickPosition.Y = -((2.0f * ClientPos.Y / viewport.Height) - 1);
 	pickPosition.Z = 1.0f; // Near Plane
 
 	FMatrix M = CreateBillboardMatrix();

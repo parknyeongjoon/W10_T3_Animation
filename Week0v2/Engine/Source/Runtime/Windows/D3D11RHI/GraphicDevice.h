@@ -53,8 +53,8 @@ public:
     int CurrentPingPongIndex = 0; // 현재 쓰기용 버퍼 인덱스
     HWND CurrentAppWnd = nullptr;
     
-    ID3D11RasterizerState* RasterizerStateSOLID = nullptr;
-    ID3D11RasterizerState* RasterizerStateWIREFRAME = nullptr;
+    // ID3D11RasterizerState* RasterizerStateSOLID = nullptr;
+    // ID3D11RasterizerState* RasterizerStateWIREFRAME = nullptr;
     
     // Depth-Stencil 관련 변수
     ID3D11Texture2D* DepthStencilBuffer = nullptr;  // 깊이/스텐실 텍스처
@@ -64,10 +64,12 @@ public:
     
     FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear) 할 때 사용할 색상(RGBA)
 
+    void Initialize(HWND hWindow);
     void AddWindow(HWND hWindow);
     void RemoveWindow(HWND hWindow);
-    
+
     void CreateDeviceAndSwapChain(HWND hWindow);
+    void CreateSwapChain(HWND AppWnd);
     void CreateDepthStencilBuffer(HWND AppWnd);
     bool CreateDepthStencilState(const D3D11_DEPTH_STENCIL_DESC* pDepthStencilDesc, ID3D11DepthStencilState** ppDepthStencilState) const;
     bool CreateRasterizerState(const D3D11_RASTERIZER_DESC* pRasterizerDesc, ID3D11RasterizerState** ppRasterizerState) const;

@@ -22,13 +22,15 @@ FEngineLoop::FEngineLoop() : ImGuiUIManager(nullptr)
 int32 FEngineLoop::Init(HINSTANCE hInstance)
 {
     WCHAR EngineWindowClass[] = L"JungleWindowClass";
-    WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass";
     WCHAR EngineTitle[] = L"GTL TTAL KKAK";
+    WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass";
+    WCHAR EnginePreviewTitle[] = L"Preview";
+
     
     AppMessageHandler = std::make_unique<FSlateAppMessageHandler>();
     
     CreateEngineWindow(hInstance, EngineWindowClass, EngineTitle);
-    CreateEngineWindow(hInstance, EnginePreviewWindowClass, EngineTitle);
+    CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
 
     ImGuiManager* ImGuiUIManager = new ImGuiManager();
     ImGuiUIManager->Initialize(GetDefaultWindow(), GraphicDevice.Device, GraphicDevice.DeviceContext);
