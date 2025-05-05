@@ -27,6 +27,8 @@ bool TestFBXLoader::InitFBX(const FString& FilePath)
         return false;
 
     Importer->Import(Scene);
+
+
     Importer->Destroy();
 
     FSkeletalMeshRenderData* NewMeshData = new FSkeletalMeshRenderData();
@@ -359,16 +361,16 @@ void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* Mesh
         }
         
         // Get binding pose transformation
-        NewBone.InverseBindPoseMatrix = FMatrix::Inverse(NewBone.GlobalTransform);
-        // FbxAMatrix BindPoseTransform;
-        // Cluster->GetTransformLinkMatrix(BindPoseTransform);
-        // BindPoseTransform = BindPoseTransform.Inverse();
-        //
-        // for (int i = 0; i < 4; i++) {
-        //     for (int j = 0; j < 4; j++) {
-        //         NewBone.InverseBindPoseMatrix.M[i][j] = static_cast<float>(BindPoseTransform.Get(i, j));
-        //     }
-        // }
+      //  NewBone.InverseBindPoseMatrix = FMatrix::Inverse(NewBone.GlobalTransform);
+        FbxAMatrix BindPoseTransform;
+        Cluster->GetTransformLinkMatrix(BindPoseTransform);
+        BindPoseTransform = BindPoseTransform.Inverse();
+       
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                NewBone.InverseBindPoseMatrix.M[i][j] = static_cast<float>(BindPoseTransform.Get(i, j));
+            }
+        }
         
         NewBone.SkinningMatrix = NewBone.InverseBindPoseMatrix * NewBone.GlobalTransform;
         

@@ -21,6 +21,7 @@
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 #include "Script/LuaManager.h"
 #include "UObject/UObjectArray.h"
+#include "UnrealEd/PrimitiveBatch.h"
 
 UWorld::UWorld(const UWorld& Other): UObject(Other)
                                    , defaultMapName(Other.defaultMapName)
@@ -68,8 +69,8 @@ void UWorld::CreateBaseObject()
     SkeletalMesh->SetData(TestFBXLoader.GetSkeletalMesh("NyeongFBX.fbx"));
     
     SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
-    FMatrix testMatrix = FMatrix::CreateRotationMatrix(30,0,0) * SkeletalMesh->GetRenderData()->Bones[0].LocalTransform;
-    SkeletalMesh->GetRenderData()->Bones[0].LocalTransform = testMatrix;
+    //FMatrix testMatrix = FMatrix::CreateRotationMatrix(30,0,0) * SkeletalMesh->GetRenderData()->Bones[0].LocalTransform;
+   // SkeletalMesh->GetRenderData()->Bones[0].LocalTransform = testMatrix;
     
     SkeletalMeshComp->GetSkeletalMesh()->UpdateBoneHierarchy();
     
@@ -91,9 +92,19 @@ void UWorld::CreateBaseObject()
         auto temp = BonePos->AddComponent<UStaticMeshComponent>(EComponentOrigin::Runtime);
         FManagerOBJ::CreateStaticMesh("Contents/helloBlender.obj");
         temp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"helloBlender.obj"));
-        BonePos->SetActorLocation(Bone.GlobalTransform.GetTranslationVector());
+
+        FVector bonePosition= Bone.GlobalTransform.GetTranslationVector();
+      
+        bonePosition *= 4.8;
+
+        BonePos->SetActorLocation(bonePosition);
+
+
         BonePos->SetActorScale(FVector(0.1,0.1,0.1));
     }
+
+
+  
 }
 
 void UWorld::ReleaseBaseObject()
