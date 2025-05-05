@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <fbxsdk.h>
 
 #include "Container/Map.h"
@@ -30,5 +30,5 @@ private:
     bool bInitialized = false;
     inline static FbxManager* FbxManager = nullptr;
 
-    static TMap<FName, FSkeletalMeshRenderData*> SkeletalMeshData;
+   inline static TMap<FName, FSkeletalMeshRenderData*> SkeletalMeshData;
 };
