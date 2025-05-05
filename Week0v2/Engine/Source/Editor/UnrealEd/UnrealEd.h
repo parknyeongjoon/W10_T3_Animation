@@ -10,7 +10,7 @@ class UnrealEd
 public:
     UnrealEd() = default;
     ~UnrealEd() = default;
-    void Initialize(SLevelEditor* leveleditor);
+    void Initialize(SLevelEditor* LevelEditor, float Width, float Height);
     
      void Render() const;
      void OnResize(HWND hWnd) const;

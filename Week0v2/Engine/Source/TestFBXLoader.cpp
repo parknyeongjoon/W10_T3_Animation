@@ -1,4 +1,5 @@
 #include "TestFBXLoader.h"
+
 #include "Components/Material/Material.h"
 #include "Engine/FLoaderOBJ.h"
 
@@ -26,10 +27,18 @@ bool TestFBXLoader::InitFBX(const FString& FilePath)
     if (!bResult)
         return false;
 
+    FbxAxisSystem UnrealAxisSystem(
+    FbxAxisSystem::eZAxis,
+    FbxAxisSystem::eParityEven, // TODO Check
+    FbxAxisSystem::eLeftHanded);
+    
+    UnrealAxisSystem.ConvertScene(Scene);
+    
     Importer->Import(Scene);
 
 
     Importer->Destroy();
+
 
     FSkeletalMeshRenderData* NewMeshData = new FSkeletalMeshRenderData();
     NewMeshData->Name = FilePath;

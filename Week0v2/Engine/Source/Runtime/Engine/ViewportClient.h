@@ -13,5 +13,11 @@ public:
     virtual void Draw(FViewport* Viewport) = 0;
     virtual UWorld* GetWorld() const { return nullptr; }
     // FViewport에 대한 참조 (혹은 소유)
+
+    // TODO 이렇게 하는게 맞으려나 모르겠다 Owner
+    virtual void SetOwner(HWND InOwnerWindow) { OwnerWindow = InOwnerWindow; }
+
+    // 종속된 Window
+    HWND OwnerWindow;
 };
     

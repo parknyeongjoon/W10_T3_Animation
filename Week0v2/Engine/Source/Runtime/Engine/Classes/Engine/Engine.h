@@ -29,7 +29,7 @@ public:
     virtual ~UEngine() = default;
 
 public:
-    virtual void Init(HWND hWnd);
+    virtual void Init();
     virtual void Tick(float DeltaTime);
     virtual void Release() {}
     UWorld* GetWorld() override;

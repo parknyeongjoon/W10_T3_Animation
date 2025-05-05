@@ -6,6 +6,7 @@
 #include "LaunchEngineLoop.h"
 #include "ShowFlags.h"
 #include "UnrealEd.h"
+#include "WindowsCursor.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "BaseGizmos/TransformGizmo.h"
 #include "Components/LightComponents/LightComponentBase.h"
@@ -23,7 +24,7 @@ using namespace DirectX;
 void UEditorPlayer::Initialize()
 {
     FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
-    Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
         if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
         {
@@ -36,33 +37,29 @@ void UEditorPlayer::Initialize()
         {
             return;
         }
-        
-        POINT mousePos;
-        GetCursorPos(&mousePos);
+
+        // TODO - 해당 윈도우에만 작동하게 해야됨.
         GetCursorPos(&LastMousePosision);
         if (bLAltDown && bLCtrlDown)
         {
             MultiSelectingStart();
         }
 
-        ScreenToClient(GEngineLoop.AppWnd, &mousePos);
-    
-        FVector pickPosition;
-
-        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
-        if (EditorEngine)
+        if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
         {
+            FVector2D ClientPos = FWindowsCursor::GetClientPosition(AppWnd);
+            FVector PickPosition;
             std::shared_ptr<FEditorViewportClient> ActiveViewport = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
-            ScreenToViewSpace(mousePos.x, mousePos.y, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix(), pickPosition);
-            bool Result = PickGizmo(pickPosition);
+            ScreenToViewSpace(ClientPos.X, ClientPos.Y, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix(), PickPosition);
+            bool Result = PickGizmo(PickPosition);
             if (Result == false)
             {
-                PickActor(pickPosition);
+                PickActor(PickPosition);
             }
         }
     });
     
-    Handler->OnMouseMoveDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseMoveDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
         if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
         {
@@ -81,7 +78,7 @@ void UEditorPlayer::Initialize()
         PickedObjControl();
     });
     
-    Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
         if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
         {
@@ -104,7 +101,7 @@ void UEditorPlayer::Initialize()
         }
     });
 
-    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
+    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent, HWND AppWnd)
     {
         if (GetKeyState(VK_RBUTTON) & 0x8000)
         {

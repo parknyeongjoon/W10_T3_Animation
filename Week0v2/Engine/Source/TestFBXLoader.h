@@ -1,9 +1,7 @@
 #pragma once
 #include <fbxsdk.h>
 
-#include "Container/Map.h"
 #include "FBX/FBXDefine.h"
-#include "UObject/NameTypes.h"
 
 class TestFBXLoader
 {

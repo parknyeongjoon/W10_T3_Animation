@@ -20,22 +20,17 @@ FSlateAppMessageHandler::FSlateAppMessageHandler()
     {
         KeyState = false;
     }
-
-    RawInputHandler = std::make_unique<FRawInput>(GEngineLoop.AppWnd, [this](const RAWINPUT& RawInput)
-    {
-        HandleRawInput(RawInput);
-    });
 }
 
-void FSlateAppMessageHandler::HandleRawInput(const RAWINPUT& RawInput)
+void FSlateAppMessageHandler::HandleRawInput(HWND AppWnd, const RAWINPUT& RawInput)
 {
     if (RawInput.header.dwType == RIM_TYPEMOUSE)
     {
-        OnRawMouseInput(RawInput.data.mouse);
+        OnRawMouseInput(AppWnd, RawInput.data.mouse);
     }
     else if (RawInput.header.dwType == RIM_TYPEKEYBOARD)
     {
-        OnRawKeyboardInput(RawInput.data.keyboard);
+        OnRawKeyboardInput(AppWnd, RawInput.data.keyboard);
     }
 }
 
@@ -57,7 +52,7 @@ void FSlateAppMessageHandler::ProcessMessage(HWND hWnd, uint32 Msg, WPARAM wPara
 
         // lParam의 30번째 비트(0x40000000)는 키가 계속 눌려져 있는 상태(키 반복)인지 확인
         const bool bIsRepeat = (lParam & 0x40000000) != 0;
-        OnKeyChar(Character, bIsRepeat);
+        OnKeyChar(hWnd, Character, bIsRepeat);
         return;
     }
 
@@ -141,7 +136,7 @@ void FSlateAppMessageHandler::ProcessMessage(HWND hWnd, uint32 Msg, WPARAM wPara
         }
 
         const uint32 CharCode = ::MapVirtualKey(Win32Key, MAPVK_VK_TO_CHAR);
-        OnKeyDown(ActualKey, CharCode, bIsRepeat);
+        OnKeyDown(hWnd, ActualKey, CharCode, bIsRepeat);
         return;
     }
 
@@ -219,7 +214,7 @@ void FSlateAppMessageHandler::ProcessMessage(HWND hWnd, uint32 Msg, WPARAM wPara
 
         // Key up events are never repeats
         constexpr bool bIsRepeat = false;
-        OnKeyUp(ActualKey, CharCode, bIsRepeat);
+        OnKeyUp(hWnd, ActualKey, CharCode, bIsRepeat);
         return;
     }
 
@@ -303,15 +298,15 @@ void FSlateAppMessageHandler::ProcessMessage(HWND hWnd, uint32 Msg, WPARAM wPara
 
         if (bMouseUp)
         {
-            OnMouseUp(MouseButton, CursorPos);
+            OnMouseUp(hWnd, MouseButton, CursorPos);
         }
         else if (bDoubleClick)
         {
-            OnMouseDoubleClick(MouseButton, CursorPos);
+            OnMouseDoubleClick(hWnd, MouseButton, CursorPos);
         }
         else
         {
-            OnMouseDown(MouseButton, CursorPos);
+            OnMouseDown(hWnd, MouseButton, CursorPos);
         }
         return;
     }
@@ -321,7 +316,7 @@ void FSlateAppMessageHandler::ProcessMessage(HWND hWnd, uint32 Msg, WPARAM wPara
     case WM_MOUSEMOVE:   // 클라이언트 영역에서 마우스가 움직였을 때 발생하는 메시지
     {
         UpdateCursorPosition(FWindowsCursor::GetPosition());
-        OnMouseMove(); // TODO: UE [WindowsApplication.cpp:2286]
+        OnMouseMove(hWnd); // TODO: UE [WindowsApplication.cpp:2286]
         return;
     }
 
@@ -339,14 +334,14 @@ void FSlateAppMessageHandler::ProcessMessage(HWND hWnd, uint32 Msg, WPARAM wPara
             static_cast<float>(CursorPoint.x),
             static_cast<float>(CursorPoint.y)
         };
-        OnMouseWheel(static_cast<float>(WheelDelta) * SpinFactor, CursorPos);
+        OnMouseWheel(hWnd, static_cast<float>(WheelDelta) * SpinFactor, CursorPos);
         return;
     }
 
     case WM_INPUT:
     {
         // RawInput을 처리하는 부분
-        RawInputHandler->ProcessRawInput(lParam);
+        RawInputHandlerMap[hWnd]->ProcessRawInput(lParam);
         return;
     }
 
@@ -359,12 +354,31 @@ void FSlateAppMessageHandler::ProcessMessage(HWND hWnd, uint32 Msg, WPARAM wPara
     }
 }
 
-void FSlateAppMessageHandler::OnKeyChar(const TCHAR Character, const bool IsRepeat)
+void FSlateAppMessageHandler::AddWindow(HWND AppWnd)
 {
-    OnKeyCharDelegate.Broadcast(Character, IsRepeat);
+    std::shared_ptr<FRawInput> RawInputHandler = std::make_shared<FRawInput>(AppWnd, [this, AppWnd](const RAWINPUT& RawInput)
+        {
+            HandleRawInput(AppWnd, RawInput);
+        });
+    RawInputHandlerMap.Add(AppWnd, std::move(RawInputHandler));
 }
 
-void FSlateAppMessageHandler::OnKeyDown(const uint32 KeyCode, const uint32 CharacterCode, const bool IsRepeat)
+void FSlateAppMessageHandler::RemoveWindow(HWND AppWnd)
+{
+    if (!RawInputHandlerMap.Contains(AppWnd))
+    {
+        return;
+    }
+    
+    RawInputHandlerMap.Remove(AppWnd);
+}
+
+void FSlateAppMessageHandler::OnKeyChar(HWND AppWnd, const TCHAR Character, const bool IsRepeat)
+{
+    OnKeyCharDelegate.Broadcast(Character, IsRepeat, AppWnd);
+}
+
+void FSlateAppMessageHandler::OnKeyDown(HWND AppWnd, const uint32 KeyCode, const uint32 CharacterCode, const bool IsRepeat)
 {
     FInputKeyManager::Get();
     OnKeyDownDelegate.Broadcast(FKeyEvent{
@@ -373,10 +387,10 @@ void FSlateAppMessageHandler::OnKeyDown(const uint32 KeyCode, const uint32 Chara
         IsRepeat ? IE_Repeat : IE_Pressed,
         CharacterCode,
         KeyCode,
-    });
+    }, AppWnd);
 }
 
-void FSlateAppMessageHandler::OnKeyUp(const uint32 KeyCode, const uint32 CharacterCode, const bool IsRepeat)
+void FSlateAppMessageHandler::OnKeyUp(HWND AppWnd, const uint32 KeyCode, const uint32 CharacterCode, const bool IsRepeat)
 {
     assert(!IsRepeat);  // KeyUp 이벤트에서 IsRepeat가 true일수가 없기 때문에
 
@@ -386,10 +400,10 @@ void FSlateAppMessageHandler::OnKeyUp(const uint32 KeyCode, const uint32 Charact
         IE_Released,
         CharacterCode,
         KeyCode,
-    });
+    }, AppWnd);
 }
 
-void FSlateAppMessageHandler::OnMouseDown(const EMouseButtons::Type Button, const FVector2D CursorPos)
+void FSlateAppMessageHandler::OnMouseDown(HWND AppWnd, const EMouseButtons::Type Button, const FVector2D CursorPos)
 {
     EKeys::Type EffectingButton = EKeys::Invalid;
     switch (Button)
@@ -423,10 +437,10 @@ void FSlateAppMessageHandler::OnMouseDown(const EMouseButtons::Type Button, cons
         PressedMouseButtons,
         GetModifierKeys(),
         IE_Pressed,
-    });
+    }, AppWnd);
 }
 
-void FSlateAppMessageHandler::OnMouseUp(const EMouseButtons::Type Button, const FVector2D CursorPos)
+void FSlateAppMessageHandler::OnMouseUp(HWND AppWnd, const EMouseButtons::Type Button, const FVector2D CursorPos)
 {
     EKeys::Type EffectingButton = EKeys::Invalid;
     switch (Button)
@@ -460,10 +474,10 @@ void FSlateAppMessageHandler::OnMouseUp(const EMouseButtons::Type Button, const 
         PressedMouseButtons,
         GetModifierKeys(),
         IE_Released,
-    });
+    }, AppWnd);
 }
 
-void FSlateAppMessageHandler::OnMouseDoubleClick(const EMouseButtons::Type Button, const FVector2D CursorPos)
+void FSlateAppMessageHandler::OnMouseDoubleClick(HWND AppWnd, const EMouseButtons::Type Button, const FVector2D CursorPos)
 {
     EKeys::Type EffectingButton = EKeys::Invalid;
     switch (Button)
@@ -497,10 +511,10 @@ void FSlateAppMessageHandler::OnMouseDoubleClick(const EMouseButtons::Type Butto
         PressedMouseButtons,
         GetModifierKeys(),
         IE_DoubleClick,
-    });
+    }, AppWnd);
 }
 
-void FSlateAppMessageHandler::OnMouseWheel(const float Delta, const FVector2D CursorPos)
+void FSlateAppMessageHandler::OnMouseWheel(HWND AppWnd, const float Delta, const FVector2D CursorPos)
 {
     OnMouseWheelDelegate.Broadcast(FPointerEvent{
         CursorPos,
@@ -510,10 +524,10 @@ void FSlateAppMessageHandler::OnMouseWheel(const float Delta, const FVector2D Cu
         PressedMouseButtons,
         GetModifierKeys(),
         IE_Axis,
-    });
+    }, AppWnd);
 }
 
-void FSlateAppMessageHandler::OnMouseMove()
+void FSlateAppMessageHandler::OnMouseMove(HWND AppWnd)
 {
     OnMouseMoveDelegate.Broadcast(FPointerEvent{
         GetCursorPos(),
@@ -523,10 +537,10 @@ void FSlateAppMessageHandler::OnMouseMove()
         PressedMouseButtons,
         GetModifierKeys(),
         IE_Axis,
-    });
+    }, AppWnd);
 }
 
-void FSlateAppMessageHandler::OnRawMouseInput(const RAWMOUSE& RawMouseInput)
+void FSlateAppMessageHandler::OnRawMouseInput(HWND AppWnd, const RAWMOUSE& RawMouseInput)
 {
     // 눌린 버튼 상태 (PressedMouseButtons) 업데이트 및 EffectingButton 결정
     const USHORT ButtonFlags = LOWORD(RawMouseInput.ulButtons); // 하위 워드: 버튼 변경 플래그
@@ -541,7 +555,7 @@ void FSlateAppMessageHandler::OnRawMouseInput(const RAWMOUSE& RawMouseInput)
         {
             // 커서가 화면 안에 있는지 검사
             RECT WindowRect;
-            ::GetWindowRect(GEngineLoop.AppWnd, &WindowRect);
+            ::GetWindowRect(AppWnd, &WindowRect);
     
             POINT Pos;
             ::GetCursorPos(&Pos);
@@ -644,7 +658,7 @@ void FSlateAppMessageHandler::OnRawMouseInput(const RAWMOUSE& RawMouseInput)
             PressedMouseButtons,
             GetModifierKeys(),
             InputEventType,
-        });
+        }, AppWnd);
     }
 
     // 버튼과 관련없는 이벤트
@@ -675,11 +689,11 @@ void FSlateAppMessageHandler::OnRawMouseInput(const RAWMOUSE& RawMouseInput)
             PressedMouseButtons,
             GetModifierKeys(),
             InputEventType,
-        });
+        }, AppWnd);
     }
 }
 
-void FSlateAppMessageHandler::OnRawKeyboardInput(const RAWKEYBOARD& RawKeyboardInput)
+void FSlateAppMessageHandler::OnRawKeyboardInput(HWND AppWnd, const RAWKEYBOARD& RawKeyboardInput)
 {
     // 입력 이벤트 타입 설정
     const EInputEvent InputEventType = (RawKeyboardInput.Flags & RI_KEY_BREAK) ? IE_Released : IE_Pressed;
@@ -690,7 +704,7 @@ void FSlateAppMessageHandler::OnRawKeyboardInput(const RAWKEYBOARD& RawKeyboardI
         InputEventType,
         0, // RawInput에서 Char를 얻기 어렵기 때문에
         RawKeyboardInput.VKey
-    });
+    }, AppWnd);
 }
 
 void FSlateAppMessageHandler::UpdateCursorPosition(const FVector2D& NewPos)

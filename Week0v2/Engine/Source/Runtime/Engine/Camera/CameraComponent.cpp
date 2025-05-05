@@ -66,14 +66,3 @@ FMatrix UCameraComponent::GetViewMatrix() const
 
     return JungleMath::CreateViewMatrix(CameraPos, CameraPos + CameraForward, CameraUP);
 }
-
-FMatrix UCameraComponent::GetProjectionMatrix() const
-{
-    float AspectRatio = GEngineLoop.GraphicDevice.GetAspectRatio();
-    return JungleMath::CreateProjectionMatrix(
-        FMath::DegreesToRadians(FOV),
-        AspectRatio,
-        nearClip,
-        farClip
-    );
-}

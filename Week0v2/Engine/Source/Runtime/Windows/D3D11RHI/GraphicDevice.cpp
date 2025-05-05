@@ -1,14 +1,13 @@
 #include "GraphicDevice.h"
 
 #include <d3dcompiler.h>
-#include <filesystem>
 
 #include "Define.h"
 
-void FGraphicsDevice::Initialize(const HWND hWindow)
+void FGraphicsDevice::AddWindow(HWND hWindow)
 {
     CreateDeviceAndSwapChain(hWindow);
-    CreateFrameBuffer();
+    CreateFrameBuffer(hWindow);
     CreateDepthStencilBuffer(hWindow);
 
     //CreateDepthStencilState();
@@ -20,11 +19,19 @@ void FGraphicsDevice::Initialize(const HWND hWindow)
     OnResize(hWindow);
 }
 
+void FGraphicsDevice::RemoveWindow(HWND hWindow)
+{
+    ReleaseFrameBuffer(hWindow);
+    ReleaseSwapChain(hWindow);
+    SwapChains.Remove(hWindow);
+}
+
 void FGraphicsDevice::CreateDeviceAndSwapChain(HWND hWindow)
 {
     // 지원하는 Direct3D 기능 레벨을 정의
-    D3D_FEATURE_LEVEL featurelevels[] = { D3D_FEATURE_LEVEL_11_0 };
-
+    D3D_FEATURE_LEVEL FeatureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
+    IDXGISwapChain* SwapChain = nullptr;
+    DXGI_SWAP_CHAIN_DESC SwapchainDesc = DXGI_SWAP_CHAIN_DESC {};
     // 스왑 체인 설정 구조체 초기화
     SwapchainDesc.BufferDesc.Width = 0; // 창 크기에 맞게 자동으로 설정
     SwapchainDesc.BufferDesc.Height = 0; // 창 크기에 맞게 자동으로 설정
@@ -39,7 +46,7 @@ void FGraphicsDevice::CreateDeviceAndSwapChain(HWND hWindow)
     // 디바이스와 스왑 체인 생성
     HRESULT hr = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
         D3D11_CREATE_DEVICE_BGRA_SUPPORT | D3D11_CREATE_DEVICE_DEBUG,
-        featurelevels, ARRAYSIZE(featurelevels), D3D11_SDK_VERSION,
+        FeatureLevels, ARRAYSIZE(FeatureLevels), D3D11_SDK_VERSION,
         &SwapchainDesc, &SwapChain, &Device, nullptr, &DeviceContext);
 
     if (FAILED(hr))
@@ -48,24 +55,23 @@ void FGraphicsDevice::CreateDeviceAndSwapChain(HWND hWindow)
         return;
     }
 
-    // 스왑 체인 정보 가져오기 (이후에 사용을 위해)
     SwapChain->GetDesc(&SwapchainDesc);
-    screenWidth = SwapchainDesc.BufferDesc.Width;
-    screenHeight = SwapchainDesc.BufferDesc.Height;
+
+    FWindowData WindowData;
+    WindowData.SwapChain = SwapChain;
+    WindowData.screenWidth = SwapchainDesc.BufferDesc.Width;
+    WindowData.screenHeight = SwapchainDesc.BufferDesc.Height;
+
+    SwapChains.Add(hWindow, WindowData);
 }
 
-void FGraphicsDevice::CreateDepthStencilBuffer(HWND hWindow)
+void FGraphicsDevice::CreateDepthStencilBuffer(HWND AppWnd)
 {
-    RECT clientRect;
-    GetClientRect(hWindow, &clientRect);
-    const uint32 width = clientRect.right - clientRect.left;
-    const uint32 height = clientRect.bottom - clientRect.top;
-
     // 깊이/스텐실 텍스처 생성
     D3D11_TEXTURE2D_DESC descDepth;
     ZeroMemory(&descDepth, sizeof(descDepth));
-    descDepth.Width = width; // 텍스처 너비 설정
-    descDepth.Height = height; // 텍스처 높이 설정
+    descDepth.Width = SwapChains[AppWnd].screenWidth; // 텍스처 너비 설정
+    descDepth.Height = SwapChains[AppWnd].screenHeight; // 텍스처 높이 설정
     descDepth.MipLevels = 1; // 미맵 레벨 수 (1로 설정하여 미맵 없음)
     descDepth.ArraySize = 1; // 텍스처 배열의 크기 (1로 단일 텍스처)
     descDepth.Format = DXGI_FORMAT_R24G8_TYPELESS; // 24비트 깊이와 8비트 스텐실을 위한 포맷, Typeless -> SRV와 DSV 모두 사용 가능
@@ -80,7 +86,7 @@ void FGraphicsDevice::CreateDepthStencilBuffer(HWND hWindow)
 
     if (FAILED(hr))
     {
-        MessageBox(hWindow, L"Failed to create depth stencilBuffer!", L"Error", MB_ICONERROR | MB_OK);
+        MessageBox(nullptr, L"Failed to create depth stencilBuffer!", L"Error", MB_ICONERROR | MB_OK);
         return;
     }
 
@@ -99,7 +105,7 @@ void FGraphicsDevice::CreateDepthStencilBuffer(HWND hWindow)
     {
         wchar_t errorMsg[256];
         swprintf_s(errorMsg, L"Failed to create depth stencil view! HRESULT: 0x%08X", hr);
-        MessageBox(hWindow, errorMsg, L"Error", MB_ICONERROR | MB_OK);
+        MessageBox(nullptr, errorMsg, L"Error", MB_ICONERROR | MB_OK);
         return;
     }
 }
@@ -134,12 +140,12 @@ bool FGraphicsDevice::CreateBlendState(const D3D11_BLEND_DESC* pBlendState, ID3D
     return true;
 }
 
-void FGraphicsDevice::CreateDepthCopyTexture()
+void FGraphicsDevice::CreateDepthCopyTexture(HWND AppWnd)
 {
     D3D11_TEXTURE2D_DESC descDepth;
     ZeroMemory(&descDepth, sizeof(descDepth));
-    descDepth.Width = screenWidth; // 텍스처 너비 설정
-    descDepth.Height = screenHeight; // 텍스처 높이 설정
+    descDepth.Width = SwapChains[AppWnd].screenWidth; // 텍스처 너비 설정
+    descDepth.Height = SwapChains[AppWnd].screenHeight; // 텍스처 높이 설정
     descDepth.MipLevels = 1; // 미맵 레벨 수 (1로 설정하여 미맵 없음)
     descDepth.ArraySize = 1; // 텍스처 배열의 크기 (1로 단일 텍스처)
     descDepth.Format = DXGI_FORMAT_R24G8_TYPELESS; // 24비트 깊이와 8비트 스텐실을 위한 포맷, Typeless -> SRV와 DSV 모두 사용 가능
@@ -168,38 +174,42 @@ void FGraphicsDevice::CreateDepthCopyTexture()
 	}
 }
 
-void FGraphicsDevice::ReleaseDeviceAndSwapChain()
+void FGraphicsDevice::ReleaseDevice()
 {
     if (DeviceContext)
     {
         DeviceContext->Flush(); // 남아있는 GPU 명령 실행
     }
-
-    SAFE_RELEASE(SwapChain);
+    
     SAFE_RELEASE(DeviceContext);
     SAFE_RELEASE(Device);
 }
 
-void FGraphicsDevice::CreateFrameBuffer()
+void FGraphicsDevice::CreateFrameBuffer(const HWND hWindow)
 {
-    ReleaseFrameBuffer();
+    ReleaseFrameBuffer(hWindow);
 
-    // 스왑 체인으로부터 백 버퍼 텍스처 가져오기
-    SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&FrameBuffer));
+    if (!SwapChains.Contains(hWindow))
+    {
+        return;
+    }
+
+    FWindowData& WindowData = SwapChains[hWindow];
+    WindowData.SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&WindowData.FrameBuffer));
 
     // 렌더 타겟 뷰 생성
     D3D11_RENDER_TARGET_VIEW_DESC framebufferRTVdesc = {};
     framebufferRTVdesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB; // 색상 포맷
     framebufferRTVdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
 
-    Device->CreateRenderTargetView(FrameBuffer, &framebufferRTVdesc, &FrameBufferRTV);
+    Device->CreateRenderTargetView(WindowData.FrameBuffer, &framebufferRTVdesc, &WindowData.FrameBufferRTV);
 
-    for (int i=0; i < 2; i++)
+    for (int i = 0; i < 2; i++)
     {
         // 텍스처 생성을 위한 속성 설정
         D3D11_TEXTURE2D_DESC textureDesc = {};
-        textureDesc.Width = screenWidth;
-        textureDesc.Height = screenHeight;
+        textureDesc.Width = WindowData.screenWidth;
+        textureDesc.Height = WindowData.screenHeight;
         textureDesc.MipLevels = 1;
         textureDesc.ArraySize = 1;
         textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
@@ -211,7 +221,7 @@ void FGraphicsDevice::CreateFrameBuffer()
         textureDesc.MiscFlags = 0;
 
         // 텍스처 생성
-        Device->CreateTexture2D(&textureDesc, nullptr, &PingPongFrameBuffers[i]);
+        Device->CreateTexture2D(&textureDesc, nullptr, &WindowData.PingPongFrameBuffers[i]);
         
         // 렌더 타겟 뷰 생성
         D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
@@ -219,7 +229,7 @@ void FGraphicsDevice::CreateFrameBuffer()
         rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
         rtvDesc.Texture2D.MipSlice = 0;
         
-        Device->CreateRenderTargetView(PingPongFrameBuffers[i], &rtvDesc, &PingPongRTVs[i]);
+        Device->CreateRenderTargetView(WindowData.PingPongFrameBuffers[i], &rtvDesc, &WindowData.PingPongRTVs[i]);
 
         // 셰이더 리소스 뷰 생성
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -228,38 +238,56 @@ void FGraphicsDevice::CreateFrameBuffer()
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Texture2D.MipLevels = 1;
         
-        Device->CreateShaderResourceView(PingPongFrameBuffers[i], &srvDesc, &PingPongSRVs[i]);
+        Device->CreateShaderResourceView(WindowData.PingPongFrameBuffers[i], &srvDesc, &WindowData.PingPongSRVs[i]);
     }
+}
+
+void FGraphicsDevice::ReleaseSwapChain(HWND hWindow)
+{
+    if (!SwapChains.Contains(hWindow))
+    {
+        return;
+    }
+
+    SAFE_RELEASE(SwapChains[hWindow].SwapChain);
 }
 
 void FGraphicsDevice::SwapPingPongBuffers()
 {
     // PingPong 버퍼 인덱스 전환 - 0과 1 사이를 번갈아가며 사용
+
     CurrentPingPongIndex = 1 - CurrentPingPongIndex;
+}
+
+const FWindowData* FGraphicsDevice::GetCurrentWindowData() const
+{
+    return &SwapChains[CurrentAppWnd];
 }
 
 ID3D11RenderTargetView* FGraphicsDevice::GetCurrentRenderTargetView() const
 {
     // 현재 쓰기용 렌더 타겟 뷰 반환
-    return PingPongRTVs[CurrentPingPongIndex];
+    return SwapChains[CurrentAppWnd].PingPongRTVs[CurrentPingPongIndex];
 }
 
 ID3D11ShaderResourceView* FGraphicsDevice::GetPreviousShaderResourceView() const
 {
     // 이전(읽기용) 셰이더 리소스 뷰 반환
-    return PingPongSRVs[1 - CurrentPingPongIndex];
+    return SwapChains[CurrentAppWnd].PingPongSRVs[1 - CurrentPingPongIndex];
 }
 
-void FGraphicsDevice::ReleaseFrameBuffer()
+void FGraphicsDevice::ReleaseFrameBuffer(HWND AppWnd)
 {
-    SAFE_RELEASE(FrameBuffer);
-    SAFE_RELEASE(FrameBufferRTV);
+    FWindowData& WindowData = SwapChains[AppWnd];
     
-    for (int i =0;i<2;i++)
+    SAFE_RELEASE(WindowData.FrameBuffer);
+    SAFE_RELEASE(WindowData.FrameBufferRTV);
+    
+    for (int i = 0; i < 2; i++)
     {
-        SAFE_RELEASE(PingPongFrameBuffers[i]);
-        SAFE_RELEASE(PingPongRTVs[i]);
-        SAFE_RELEASE(PingPongSRVs[i]);
+        SAFE_RELEASE(WindowData.PingPongFrameBuffers[i]);
+        SAFE_RELEASE(WindowData.PingPongRTVs[i]);
+        SAFE_RELEASE(WindowData.PingPongSRVs[i]);
     }
 }
 
@@ -273,18 +301,26 @@ void FGraphicsDevice::Release()
 {
     DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 
-    ReleaseFrameBuffer();
     ReleaseDepthStencilResources();
-    ReleaseDeviceAndSwapChain();
+    ReleaseDevice();
+
+    TMap<HWND, FWindowData> CopiedWindowData = SwapChains;
+    for (auto& [AppWnd, _] : CopiedWindowData)
+    {
+        RemoveWindow(AppWnd);
+    }
 }
 
-void FGraphicsDevice::SwapBuffer() const
+void FGraphicsDevice::SwapBuffer(HWND AppWnd) const
 {
-    SwapChain->Present(0, 0);
+    SwapChains[AppWnd].SwapChain->Present(0, 0);
     // PingPong 버퍼 교체 - 다음 프레임에서는 이전 프레임의 결과를 입력으로 사용할 수 있음
 }
-void FGraphicsDevice::Prepare() const
+void FGraphicsDevice::Prepare(HWND AppWnd)
 {
+    // 순서 바뀌면 위험함.  CurrentAppWnd에 따라 GetCurrentRenderTargetView 등의 함수 실행됨
+    CurrentAppWnd = AppWnd;
+    
     DeviceContext->ClearRenderTargetView(GetCurrentRenderTargetView(), ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
     DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0); // 깊이 버퍼 초기화 추가
 
@@ -299,59 +335,52 @@ void FGraphicsDevice::Prepare() const
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌뎅 상태 설정, 기본블렌딩 상태임
 }
 
-void FGraphicsDevice::Prepare(D3D11_VIEWPORT* viewport)
+void FGraphicsDevice::OnResize(HWND AppWindow)
 {
-    DeviceContext->ClearRenderTargetView(GetCurrentRenderTargetView(), ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
-    DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0); // 깊이 버퍼 초기화 추가
-
-    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
-
-    DeviceContext->RSSetViewports(1, viewport); // GPU가 화면을 렌더링할 영역 설정
-    //DeviceContext->RSSetState(CurrentRasterizer); //레스터 라이저 상태 설정
-
-    //DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
-    const auto CurRTV = GetCurrentRenderTargetView();
-    DeviceContext->OMSetRenderTargets(1, &CurRTV, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
-    DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌뎅 상태 설정, 기본블렌딩 상태임
-}
-
-
-void FGraphicsDevice::OnResize(HWND hWindow)
-{
-    if (SwapChain == nullptr)
+    if (SwapChains.IsEmpty())
     {
         return;
     }
+
+    if (!SwapChains.Contains(AppWindow))
+    {
+        return;
+    }
+
+    FWindowData& ChangedWindowData = SwapChains[AppWindow];
+    
     DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     
     SAFE_RELEASE(DepthCopySRV);
     SAFE_RELEASE(DepthCopyTexture);
     SAFE_RELEASE(DepthStencilView);
-    
-    ReleaseFrameBuffer();
 
-    if (screenWidth == 0 || screenHeight == 0)
+    ReleaseFrameBuffer(AppWindow);
+
+    if (ChangedWindowData.screenWidth == 0 || ChangedWindowData.screenHeight == 0)
     {
-        MessageBox(hWindow, L"Invalid width or height for ResizeBuffers!", L"Error", MB_ICONERROR | MB_OK);
+        MessageBox(AppWindow, L"Invalid width or height for ResizeBuffers!", L"Error", MB_ICONERROR | MB_OK);
         return;
     }
 
     // SwapChain 크기 조정
-    const HRESULT hr = SwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0);  // DXGI_FORMAT_B8G8R8A8_UNORM으로 시도
+    const HRESULT hr = ChangedWindowData.SwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0);  // DXGI_FORMAT_B8G8R8A8_UNORM으로 시도
     if (FAILED(hr))
     {
-        MessageBox(hWindow, L"failed", L"ResizeBuffers failed ", MB_ICONERROR | MB_OK);
+        MessageBox(AppWindow, L"failed", L"ResizeBuffers failed ", MB_ICONERROR | MB_OK);
         return;
     }
-    
-    SwapChain->GetDesc(&SwapchainDesc);
-    screenWidth = SwapchainDesc.BufferDesc.Width;
-    screenHeight = SwapchainDesc.BufferDesc.Height;
 
-    CreateFrameBuffer();
-    CreateDepthStencilBuffer(hWindow);
+    DXGI_SWAP_CHAIN_DESC SwapchainDesc;
+    
+    ChangedWindowData.SwapChain->GetDesc(&SwapchainDesc);
+    ChangedWindowData.screenWidth = SwapchainDesc.BufferDesc.Width;
+    ChangedWindowData.screenHeight = SwapchainDesc.BufferDesc.Height;
+
+    CreateFrameBuffer(AppWindow);
+    CreateDepthStencilBuffer(AppWindow);
     //CreateDepthStencilSRV();
-    CreateDepthCopyTexture();
+    CreateDepthCopyTexture(AppWindow);
 }
 
 void FGraphicsDevice::BindSampler(EShaderStage stage, uint32 StartSlot, uint32 NumSamplers, ID3D11SamplerState* const* ppSamplers) const
@@ -393,13 +422,6 @@ ID3D11ShaderResourceView* FGraphicsDevice::GetCopiedShaderResourceView() const
     DepthResource->Release();
 
     return DepthSRV;
-}
-
-float FGraphicsDevice::GetAspectRatio()
-{
-    DXGI_SWAP_CHAIN_DESC desc;
-    SwapChain->GetDesc(&desc);
-    return static_cast<float>(desc.BufferDesc.Width) / static_cast<float>(desc.BufferDesc.Height);
 }
 
 bool FGraphicsDevice::CompileVertexShader(const std::filesystem::path& InFilePath, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode)

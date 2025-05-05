@@ -47,7 +47,7 @@ D3D_SHADER_MACRO FRenderer::EditorIconDefines[] =
 void FRenderer::Initialize(FGraphicsDevice* graphics)
 {
     Graphics = graphics;
-    RenderResourceManager = new FRenderResourceManager(graphics);
+    RenderResourceManager = new FRenderResourceManager(Graphics);
     RenderResourceManager->Initialize();
 
     //CreateComputeShader();

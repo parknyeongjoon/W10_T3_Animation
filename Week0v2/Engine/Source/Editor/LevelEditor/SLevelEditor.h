@@ -11,7 +11,7 @@ class SLevelEditor
 public:
     SLevelEditor();
     ~SLevelEditor();
-    void Initialize(uint32 InEditorWidth, uint32 InEditorHeight);
+    void Initialize(HWND OwnerWindow);
     void Tick(ELevelTick tickType, double DeltaTime);
     void Release();
     

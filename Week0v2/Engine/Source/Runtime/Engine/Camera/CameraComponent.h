@@ -41,5 +41,4 @@ public:
     float GetMouseSpeed() const { return mouseSpeed; }
 
     FMatrix GetViewMatrix() const;
-    FMatrix GetProjectionMatrix() const;
 };

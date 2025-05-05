@@ -40,12 +40,12 @@ struct FSkeletalMeshRenderData
 {
     FString Name;
     TArray<FSkeletalVertex> Vertices;
-    TArray<FBone> Bones;
     TArray<uint32> Indices;
     TArray<UMaterial*> Materials;
     TArray<FMaterialSubset> MaterialSubsets;
     FBoundingBox BoundingBox;
 
+    TArray<FBone> Bones;
     // Tree structure for bones
     TArray<FBoneNode> BoneTree;
     TArray<int> RootBoneIndices;  // Indices of root bones (no parents)

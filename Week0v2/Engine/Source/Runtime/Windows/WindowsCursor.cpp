@@ -2,7 +2,6 @@
 
 #include "Define.h"
 #include "LaunchEngineLoop.h"
-#include "UObject/Object.h"
 
 bool FWindowsCursor::bShowCursor = true;
 
@@ -24,11 +23,11 @@ void FWindowsCursor::SetPosition(const int32 X, const int32 Y)
     ::SetCursorPos(X, Y);
 }
 
-FVector2D FWindowsCursor::GetClientPosition()
+FVector2D FWindowsCursor::GetClientPosition(HWND TargetWindow)
 {
     POINT CursorPos;
     ::GetCursorPos(&CursorPos);
-    ::ScreenToClient(GEngineLoop.AppWnd, &CursorPos);
+    ::ScreenToClient(TargetWindow, &CursorPos);
 
     return FVector2D {
         static_cast<float>(CursorPos.x),
@@ -36,10 +35,10 @@ FVector2D FWindowsCursor::GetClientPosition()
     };
 }
 
-void FWindowsCursor::SetClientPosition(const int32 X, const int32 Y)
+void FWindowsCursor::SetClientPosition(HWND TargetWindow, const int32 X, const int32 Y)
 {
     POINT CursorPos = { X, Y };
-    ::ClientToScreen(GEngineLoop.AppWnd, &CursorPos);
+    ::ClientToScreen(TargetWindow, &CursorPos);
     ::SetCursorPos(CursorPos.x, CursorPos.y);
 }
 

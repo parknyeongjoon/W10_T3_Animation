@@ -1,6 +1,7 @@
 #include "EditorEngine.h"
 
 #include "LaunchEngineLoop.h"
+#include "WindowsCursor.h"
 #include "Engine/World.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/UnrealEd.h"
@@ -30,27 +31,20 @@ UEditorEngine::UEditorEngine()
 {
 }
 
-void UEditorEngine::Init(HWND hWnd)
+void UEditorEngine::Init()
 {
-    Super::Init(hWnd);
+    Super::Init();
     LevelEditor = new SLevelEditor();
     UnrealEditor = new UnrealEd();
     ContentsUI = new FContentsUI();
 
-    RECT ClientRect = {};
-    GetClientRect(GEngineLoop.AppWnd, &ClientRect);
-    float ClientWidth = ClientRect.right - ClientRect.left;
-    float ClientHeight = ClientRect.bottom - ClientRect.top;
-
     /* must be initialized before window. */
-    LevelEditor->Initialize(ClientWidth, ClientHeight);
-    UnrealEditor->Initialize(LevelEditor);
+    LevelEditor->Initialize(GEngineLoop.GetDefaultWindow());
+    FVector2D ClientPos = FWindowsCursor::GetClientPosition(GEngineLoop.GetDefaultWindow());
+    UnrealEditor->Initialize(LevelEditor, ClientPos.X, ClientPos.Y);
     ContentsUI->Initialize();
-    CollisionManager.Initialize();
+    CollisionManager.Initialize();  
     FLuaManager::Get().Initialize();
-    
-    UnrealEditor->OnResize(hWnd);
-    ContentsUI->OnResize(hWnd);
 
     std::shared_ptr<FWorldContext> EditorContext = CreateNewWorldContext(EWorldType::Editor);
 
@@ -84,15 +78,6 @@ void UEditorEngine::Tick(float deltaSeconds)
     Input();
     
     LevelEditor->Tick(LevelType, deltaSeconds);
-
-    if (LevelEditor->GetEditorStateManager().GetEditorState() != EEditorState::Playing || bForceEditorUI == true )
-    {
-        UnrealEditor->Render();
-    }
-    else
-    {
-        ContentsUI->Render();
-    }
 
     CoroutineManager.Tick(deltaSeconds);
     CoroutineManager.CleanupCoroutines();

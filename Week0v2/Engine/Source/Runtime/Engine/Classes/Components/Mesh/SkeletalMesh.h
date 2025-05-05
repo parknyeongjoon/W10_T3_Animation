@@ -19,6 +19,7 @@ public:
     
     void UpdateBoneHierarchy() const;
 private:
+    
     FSkeletalMeshRenderData* SkeletalMeshRenderData = nullptr;
     TArray<FMaterialSlot*> MaterialSlots;
 

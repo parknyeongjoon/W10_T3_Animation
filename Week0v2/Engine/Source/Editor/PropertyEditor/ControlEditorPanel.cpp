@@ -34,9 +34,11 @@
 #include "UObject/ObjectTypes.h"
 
 
-void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
+void ControlEditorPanel::Initialize(SLevelEditor* levelEditor, float Width, float Height)
 {
     activeLevelEditor = levelEditor;
+    this->Width = Width;
+    this->Height = Height;
 }
 
 void ControlEditorPanel::Render()

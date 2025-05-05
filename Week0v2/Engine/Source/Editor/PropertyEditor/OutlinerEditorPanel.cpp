@@ -6,6 +6,12 @@
 
 extern UEngine* GEngine;
 
+void OutlinerEditorPanel::Initialize(float InWidth, float InHeight)
+{
+    Width = InWidth;
+    Height = InHeight;
+}
+
 void OutlinerEditorPanel::Render()
 {
     /* Pre Setup */

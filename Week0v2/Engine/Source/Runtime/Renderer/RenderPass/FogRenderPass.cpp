@@ -117,13 +117,13 @@ void FFogRenderPass::UpdateScreenConstant(std::shared_ptr<FViewportClient> InVie
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
 
-    FViewportInfo ScreenConstans;
-    float Width = Graphics.screenWidth;
-    float Height = Graphics.screenHeight;
-    ScreenConstans.ViewportSize = FVector2D { curEditorViewportClient->GetD3DViewport().Width / Width, curEditorViewportClient->GetD3DViewport().Height / Height };
-    ScreenConstans.ViewportOffset = FVector2D { curEditorViewportClient->GetD3DViewport().TopLeftX / Width, curEditorViewportClient->GetD3DViewport().TopLeftY / Height };
+    FViewportInfo ScreenConstants;
+    float Width = Graphics.GetCurrentWindowData()->screenHeight;
+    float Height = Graphics.GetCurrentWindowData()->screenHeight;
+    ScreenConstants.ViewportSize = FVector2D { curEditorViewportClient->GetD3DViewport().Width / Width, curEditorViewportClient->GetD3DViewport().Height / Height };
+    ScreenConstants.ViewportOffset = FVector2D { curEditorViewportClient->GetD3DViewport().TopLeftX / Width, curEditorViewportClient->GetD3DViewport().TopLeftY / Height };
 
-    renderResourceManager->UpdateConstantBuffer(TEXT("FViewportInfo"), &ScreenConstans);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FViewportInfo"), &ScreenConstants);
 }
 
 void FFogRenderPass::UpdateFogConstant(const std::shared_ptr<FViewportClient> InViewportClient) const

@@ -11,17 +11,17 @@ namespace EMouseButtons
 enum Type : uint8;
 }
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnKeyCharDelegate, const TCHAR /*Character*/, const bool /*IsRepeat*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnKeyDownDelegate, const FKeyEvent& /*InKeyEvent*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnKeyUpDelegate, const FKeyEvent& /*InKeyEvent*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseDownDelegate, const FPointerEvent& /*InMouseEvent*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseUpDelegate, const FPointerEvent& /*InMouseEvent*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseDoubleClickDelegate, const FPointerEvent& /*InMouseEvent*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseWheelDelegate, const FPointerEvent& /*InMouseEvent*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseMoveDelegate, const FPointerEvent& /*InMouseEvent*/);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnKeyCharDelegate, const TCHAR /*Character*/, const bool /*IsRepeat*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnKeyDownDelegate, const FKeyEvent& /*InKeyEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnKeyUpDelegate, const FKeyEvent& /*InKeyEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseDownDelegate, const FPointerEvent& /*InMouseEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseUpDelegate, const FPointerEvent& /*InMouseEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseDoubleClickDelegate, const FPointerEvent& /*InMouseEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseWheelDelegate, const FPointerEvent& /*InMouseEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseMoveDelegate, const FPointerEvent& /*InMouseEvent*/, HWND /*AppWnd*/);
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnRawMouseInputDelegate, const FPointerEvent& /*InRawMouseEvent*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnRawKeyboardInputDelegate, const FKeyEvent& /*InRawKeyboardEvent*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnRawMouseInputDelegate, const FPointerEvent& /*InRawMouseEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnRawKeyboardInputDelegate, const FKeyEvent& /*InRawKeyboardEvent*/, HWND /*AppWnd*/);
 
 
 class FSlateAppMessageHandler
@@ -30,6 +30,9 @@ public:
     FSlateAppMessageHandler();
 
     void ProcessMessage(HWND hWnd, uint32 Msg, WPARAM wParam, LPARAM lParam);
+
+    void AddWindow(HWND AppWnd);
+    void RemoveWindow(HWND AppWnd);
 
 public:
     /** Cursor와 관련된 변수를 업데이트 합니다. */
@@ -45,17 +48,17 @@ public:
     FModifierKeysState GetModifierKeys() const;
 
 protected:
-    void OnKeyChar(const TCHAR Character, const bool IsRepeat);
-    void OnKeyDown(uint32 KeyCode, const uint32 CharacterCode, const bool IsRepeat);
-    void OnKeyUp(uint32 KeyCode, const uint32 CharacterCode, const bool IsRepeat);
-    void OnMouseDown(const EMouseButtons::Type Button, const FVector2D CursorPos);
-    void OnMouseUp(const EMouseButtons::Type Button, const FVector2D CursorPos);
-    void OnMouseDoubleClick(const EMouseButtons::Type Button, const FVector2D CursorPos);
-    void OnMouseWheel(const float Delta, const FVector2D CursorPos);
-    void OnMouseMove();
+    void OnKeyChar(HWND AppWnd, TCHAR Character, bool IsRepeat);
+    void OnKeyDown(HWND AppWnd, uint32 KeyCode, uint32 CharacterCode, bool IsRepeat);
+    void OnKeyUp(HWND AppWnd, uint32 KeyCode, uint32 CharacterCode, bool IsRepeat);
+    void OnMouseDown(HWND AppWnd, EMouseButtons::Type Button, FVector2D CursorPos);
+    void OnMouseUp(HWND AppWnd, EMouseButtons::Type Button, FVector2D CursorPos);
+    void OnMouseDoubleClick(HWND AppWnd, EMouseButtons::Type Button, FVector2D CursorPos);
+    void OnMouseWheel(HWND AppWnd, float Delta, FVector2D CursorPos);
+    void OnMouseMove(HWND AppWnd);
 
-    void OnRawMouseInput(const RAWMOUSE& RawMouseInput);
-    void OnRawKeyboardInput(const RAWKEYBOARD& RawKeyboardInput);
+    void OnRawMouseInput(HWND AppWnd, const RAWMOUSE& RawMouseInput);
+    void OnRawKeyboardInput(HWND AppWnd, const RAWKEYBOARD& RawKeyboardInput);
     // 추가적인 함수는 UnrealEngine [SlateApplication.h:1628]을 참조
 
 public:
@@ -96,8 +99,8 @@ private:
     bool ModifierKeyState[EModifierKey::Count];
     TSet<EKeys::Type> PressedMouseButtons;
 
-    std::unique_ptr<FRawInput> RawInputHandler;
+    TMap<HWND, std::shared_ptr<FRawInput>> RawInputHandlerMap;
 
 private:
-    void HandleRawInput(const RAWINPUT& RawInput);
+    void HandleRawInput(HWND AppWnd, const RAWINPUT& RawInput);
 };

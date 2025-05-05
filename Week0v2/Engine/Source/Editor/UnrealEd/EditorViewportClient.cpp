@@ -32,16 +32,17 @@ void FEditorViewportClient::Draw(FViewport* Viewport)
 {
 }
 
-void FEditorViewportClient::Initialize(EViewScreenLocation InViewportIndex)
+void FEditorViewportClient::Initialize(HWND InOwnerWindow, EViewScreenLocation InViewportIndex)
 {
+    SetOwner(InOwnerWindow);
     ViewportIndex = static_cast<uint32>(InViewportIndex);
     
     ViewTransformPerspective.SetLocation(FVector(8.0f, 8.0f, 8.f));
     ViewTransformPerspective.SetRotation(FVector(0.0f, 45.0f, -135.0f));
     Viewport = new FViewport(InViewportIndex);
     Viewport->Initialize();
-    
-    ResizeViewport(GEngineLoop.GraphicDevice.SwapchainDesc);
+    FWindowData& WindowData = GEngineLoop.GraphicDevice.SwapChains[InOwnerWindow];
+    ResizeViewport(WindowData.screenWidth, WindowData.screenHeight);
 }
 
 void FEditorViewportClient::Tick(float DeltaTime)
@@ -254,7 +255,7 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                 {
                     if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
                     {
-                        FEngineLoop::GraphicDevice.OnResize(GEngineLoop.AppWnd);
+                        FEngineLoop::GraphicDevice.OnResize(OwnerWindow);
                         SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor();
                         LevelEditor->SetEnableMultiViewport(!LevelEditor->IsMultiViewport());
                     }
@@ -333,27 +334,38 @@ void FEditorViewportClient::MouseMove(const FPointerEvent& InMouseEvent)
     }
 }
 
-void FEditorViewportClient::ResizeViewport(const DXGI_SWAP_CHAIN_DESC& swapchaindesc)
+void FEditorViewportClient::ResizeViewport(float InWidth, float InHeight)
 {
-    if (Viewport) { 
-        Viewport->ResizeViewport(swapchaindesc);    
+    if (Viewport)
+    { 
+        Viewport->ResizeViewport(InWidth, InHeight);    
     }
-    else {
+    else
+    {
         UE_LOG(LogLevel::Error, "Viewport is nullptr");
     }
-    AspectRatio = GEngineLoop.GraphicDevice.GetAspectRatio();
+    
+    float Width = Viewport->GetScreenRect().Width;
+    float Height = Viewport->GetScreenRect().Height;
+    
+    AspectRatio = Width / Height;
     UpdateProjectionMatrix();
     UpdateViewMatrix();
 }
 void FEditorViewportClient::ResizeViewport(FRect Top, FRect Bottom, FRect Left, FRect Right)
 {
-    if (Viewport) {
+    if (Viewport)
+    {
         Viewport->ResizeViewport(Top, Bottom, Left, Right);
     }
-    else {
+    else
+    {
         UE_LOG(LogLevel::Error, "Viewport is nullptr");
     }
-    AspectRatio = GEngineLoop.GraphicDevice.GetAspectRatio();
+    float Width = Viewport->GetScreenRect().Width;
+    float Height = Viewport->GetScreenRect().Height;
+    
+    AspectRatio = Width / Height;
     UpdateProjectionMatrix();
     UpdateViewMatrix();
 }
@@ -416,13 +428,12 @@ void FEditorViewportClient::CalculateFrustumCornersInCameraSpace(float NearDist,
     // 카메라 투영 행렬에서 필요한 값들을 추출
     float fov = GetViewFOV();  // 시야각(라디안)
     fov = FMath::DegreesToRadians(fov);
-    float aspect = GetAspectRatio();  // 종횡비(width/height)
     
     // 근평면과 원평면의 높이와 너비 계산
     float nearHeight = 2.0f * tan(fov * 0.5f) * NearDist;
-    float nearWidth = nearHeight * aspect;
+    float nearWidth = nearHeight * AspectRatio;
     float farHeight = 2.0f * tan(fov * 0.5f) * FarDist;
-    float farWidth = farHeight * aspect;
+    float farWidth = farHeight * AspectRatio;
     
     // 근평면의 4개 모서리 계산 (카메라 공간)
     // 왼쪽 아래
@@ -597,11 +608,8 @@ void FEditorViewportClient::UpdateProjectionMatrix()
         }
         else
         {
-            // 스왑체인의 가로세로 비율을 구합니다.
-            float aspectRatio = GetViewport()->GetScreenRect().Width / GetViewport()->GetScreenRect().Height;
-
             // 오쏘그래픽 너비는 줌 값과 가로세로 비율에 따라 결정됩니다.
-            float orthoWidth = OrthoSize * aspectRatio;
+            float orthoWidth = OrthoSize * AspectRatio;
             float orthoHeight = OrthoSize;
 
             // 오쏘그래픽 투영 행렬 생성 (nearPlane, farPlane 은 기존 값 사용)
@@ -625,7 +633,12 @@ void FEditorViewportClient::UpdateProjectionMatrix()
         }
         if (UCameraComponent* PlayerCamera = Cast<UCameraComponent>(OverrideComponent))
         {
-            Projection = PlayerCamera->GetProjectionMatrix();
+            Projection = JungleMath::CreateProjectionMatrix(
+                    FMath::DegreesToRadians(PlayerCamera->GetFOV()),
+                    AspectRatio,
+                    PlayerCamera->GetNearClip(),
+                    PlayerCamera->GetFarClip()
+                );
         }
     }
 }

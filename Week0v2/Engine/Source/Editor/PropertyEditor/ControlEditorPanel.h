@@ -9,7 +9,7 @@ class SLevelEditor;
 class ControlEditorPanel : public UEditorPanel
 {
 public:
-    void Initialize(SLevelEditor* levelEditor);
+    void Initialize(SLevelEditor* levelEditor, float Width, float Height);
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
 

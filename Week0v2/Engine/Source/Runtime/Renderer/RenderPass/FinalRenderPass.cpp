@@ -15,7 +15,6 @@ void FFinalRenderPass::AddRenderObjectsToRenderPass()
 
 void FFinalRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
 {
-    
     bRender = true;    
     if (bRender)
     {
@@ -25,7 +24,7 @@ void FFinalRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient
         FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
         Graphics.SwapPingPongBuffers();
         
-        Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.FrameBufferRTV, nullptr);
+        Graphics.DeviceContext->OMSetRenderTargets(1, &Graphics.GetCurrentWindowData()->FrameBufferRTV, nullptr);
         Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
 
         Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

@@ -1,6 +1,6 @@
 ﻿#include "Engine.h"
 
-void UEngine::Init(HWND hwnd)
+void UEngine::Init()
 {
     
 }

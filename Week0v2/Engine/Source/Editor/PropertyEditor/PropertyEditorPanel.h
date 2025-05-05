@@ -1,9 +1,10 @@
 #pragma once
 #include "Define.h"
-#include "Components/ActorComponent.h"
-#include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "UnrealEd/EditorPanel.h"
 
+class AActor;
+class USkeletalMeshComponent;
+class UActorComponent;
 class UStaticMeshComponent;
 class USceneComponent;
 class ULevel;
@@ -11,6 +12,7 @@ class ULevel;
 class PropertyEditorPanel : public UEditorPanel
 {
 public:
+    void Initialize(float InWidth, float InHeight);
     virtual void Render() override;
     void DrawSceneComponentTree(USceneComponent* Component, UActorComponent*& PickedComponent);
     void DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent);

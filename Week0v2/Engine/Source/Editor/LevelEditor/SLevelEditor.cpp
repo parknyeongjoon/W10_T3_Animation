@@ -19,14 +19,14 @@ SLevelEditor::~SLevelEditor()
 {
 }
 
-void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
+void SLevelEditor::Initialize(HWND OwnerWindow)
 {
     for (size_t i = 0; i < 4; i++)
     {
         EViewScreenLocation Location = static_cast<EViewScreenLocation>(i);
 
         ViewportClients.Add(std::make_shared<FEditorViewportClient>());
-        ViewportClients[i]->Initialize(Location);
+        ViewportClients[i]->Initialize(OwnerWindow, Location);
     }
 
     OnResize();
@@ -41,7 +41,7 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
 
     FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
     
-    Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
         if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
         {
@@ -49,7 +49,7 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
         }
         
         if (ImGui::GetIO().WantCaptureMouse) return;
-    
+        
         switch (InMouseEvent.GetEffectingButton())  // NOLINT(clang-diagnostic-switch-enum)
         {
         case EKeys::RightMouseButton:
@@ -64,21 +64,19 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
         default:
             break;
         }
-    
+        
         // 마우스 이벤트가 일어난 위치의 뷰포트를 선택
         if (bMultiViewportMode)
         {
-            POINT Point;
-            GetCursorPos(&Point);
-            ScreenToClient(GEngineLoop.AppWnd, &Point);
-            FVector2D ClientPos = FVector2D{static_cast<float>(Point.x), static_cast<float>(Point.y)};
+            // TODO - 급함, 해당 윈도우에만 작동하게 해야됨.
+            FVector2D ClientPos = FWindowsCursor::GetClientPosition(AppWnd);
             SelectViewport(ClientPos);
             VSplitter->OnPressed({ClientPos.X, ClientPos.Y});
             HSplitter->OnPressed({ClientPos.X, ClientPos.Y});
         }
     });
     
-    Handler->OnMouseMoveDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseMoveDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
         if (ImGui::GetIO().WantCaptureMouse) return;
     
@@ -111,11 +109,9 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
             // TODO: 나중에 커서가 Viewport 위에 있을때만 ECursorType::Crosshair로 바꾸게끔 하기
             // ECursorType CursorType = ECursorType::Crosshair;
             ECursorType CursorType = ECursorType::Arrow;
-            POINT Point;
-    
-            GetCursorPos(&Point);
-            ScreenToClient(GEngineLoop.AppWnd, &Point);
-            FVector2D ClientPos = FVector2D{static_cast<float>(Point.x), static_cast<float>(Point.y)};
+            
+            // TODO - 급함, 해당 윈도우에만 작동하게 해야됨.
+            FVector2D ClientPos = FWindowsCursor::GetClientPosition(AppWnd);
             const bool bIsVerticalHovered = VSplitter->IsHover({ClientPos.X, ClientPos.Y});
             const bool bIsHorizontalHovered = HSplitter->IsHover({ClientPos.X, ClientPos.Y});
     
@@ -135,7 +131,7 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
         }
     });
     
-    Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
         switch (InMouseEvent.GetEffectingButton())  // NOLINT(clang-diagnostic-switch-enum)
         {
@@ -162,7 +158,7 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
         }
     });
     
-    Handler->OnRawMouseInputDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    Handler->OnRawMouseInputDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
         if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
         {
@@ -175,6 +171,7 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
             // 에디터 카메라 이동 로직
             if (!InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton) && InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
             {
+                // TODO - 급함, 해당 윈도우에만 작동하게 해야됨.
                 ActiveViewportClient->MouseMove(InMouseEvent);
             }
         }
@@ -184,6 +181,7 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
             // 카메라 속도 조절
             if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton) && ActiveViewportClient->IsPerspective())
             {
+                // TODO - 급함, 해당 윈도우에만 작동하게 해야됨.
                 const float CurrentSpeed = ActiveViewportClient->GetCameraSpeedScalar();
                 const float Adjustment = FMath::Sign(InMouseEvent.GetWheelDelta()) * FMath::Loge(CurrentSpeed + 1.0f) * 0.5f;
     
@@ -192,7 +190,7 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
         }
     });
     
-    Handler->OnMouseWheelDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseWheelDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
         if (ImGui::GetIO().WantCaptureMouse) return;
                 
@@ -201,6 +199,7 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
         {
             if (!InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
             {
+                // TODO - 급함, 해당 윈도우에만 작동하게 해야됨.
                 const FVector CameraLoc = ActiveViewportClient->ViewTransformPerspective.GetLocation();
                 const FVector CameraForward = ActiveViewportClient->ViewTransformPerspective.GetForwardVector();
                 ActiveViewportClient->ViewTransformPerspective.SetLocation(CameraLoc + CameraForward * InMouseEvent.GetWheelDelta() * 50.0f);
@@ -212,13 +211,15 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
         }
     });
 
-    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
+    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent, HWND AppWnd)
     {
+        // TODO - 급함, 해당 윈도우에만 작동하게 해야됨.
         ActiveViewportClient->InputKey(InKeyEvent);
     });
     
-    Handler->OnKeyUpDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
+    Handler->OnKeyUpDelegate.AddLambda([this](const FKeyEvent& InKeyEvent, HWND AppWnd)
     {
+        // TODO - 급함, 해당 윈도우에만 작동하게 해야됨.
         ActiveViewportClient->InputKey(InKeyEvent);
     });
 }
@@ -242,6 +243,7 @@ void SLevelEditor::Release()
 
 void SLevelEditor::SelectViewport(FVector2D Point)
 {
+    // TODO - 1순위 여기만 고쳐도 어느정도 정상작동할것임.
     for (int i = 0; i < 4; i++)
     {
         if (ViewportClients[i]->IsSelected(Point))
@@ -254,10 +256,11 @@ void SLevelEditor::SelectViewport(FVector2D Point)
 
 void SLevelEditor::OnResize()
 {
+    // TODO - 급함, Window 별 Width, Height 갖게 변경
     float PrevWidth = EditorWidth;
     float PrevHeight = EditorHeight;
-    EditorWidth = GEngineLoop.GraphicDevice.screenWidth;
-    EditorHeight = GEngineLoop.GraphicDevice.screenHeight;
+    EditorWidth = GEngineLoop.GraphicDevice.GetDefaultWindowData().screenWidth;
+    EditorHeight = GEngineLoop.GraphicDevice.GetDefaultWindowData().screenHeight;
     if (bInitialize) {
         //HSplitter 에는 바뀐 width 비율이 들어감 
         HSplitter->OnResize(EditorWidth / PrevWidth, EditorHeight);

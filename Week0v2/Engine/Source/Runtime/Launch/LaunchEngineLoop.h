@@ -20,9 +20,10 @@ public:
 
     void Exit();
     
+    void CreateEngineWindow(HINSTANCE hInstance, WCHAR WindowClass[], WCHAR Title[]);
+    void DestroyEngineWindow(HWND AppWnd);
 private:
-    void WindowInit(HINSTANCE hInstance);
-    void UpdateUI() const;
+    void UpdateUI(HWND AppWnd) const;
     
     static LRESULT CALLBACK AppWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
@@ -35,8 +36,10 @@ public:
     static FRenderer Renderer;
     static FResourceManager ResourceManager;
 
-    HWND AppWnd;
 
+    HWND GetDefaultWindow() { return AppWindows[0]; }
+
+    TArray<HWND> AppWindows;
 private:
     std::unique_ptr<FSlateAppMessageHandler> AppMessageHandler;
     ImGuiManager* ImGuiUIManager;

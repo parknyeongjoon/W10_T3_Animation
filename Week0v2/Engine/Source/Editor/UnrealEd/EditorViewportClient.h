@@ -90,14 +90,14 @@ public:
 
     virtual void        Draw(FViewport* Viewport) override;
     virtual UWorld*     GetWorld() const { return nullptr; }
-    void Initialize(EViewScreenLocation InViewportIndex);
+    void Initialize(HWND InOwnerWindow, EViewScreenLocation InViewportIndex);
     void Tick(float DeltaTime);
     void Release();
     void UpdateEditorCameraMovement(float DeltaTime);
     
     void InputKey(const FKeyEvent& InKeyEvent);
     void MouseMove(const FPointerEvent& InMouseEvent);
-    void ResizeViewport(const DXGI_SWAP_CHAIN_DESC& swapchaindesc);
+    void ResizeViewport(float InWidth, float InHeight);
     void ResizeViewport(FRect Top, FRect Bottom, FRect Left, FRect Right);
 
     bool IsSelected(FVector2D Point);

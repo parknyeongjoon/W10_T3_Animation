@@ -18,7 +18,7 @@ class UEditorEngine : public UEngine
     
 public:
     UEditorEngine();
-    void Init(HWND hWnd) override;
+    void Init() override;
     void Tick(float deltaSeconds) override;
     void Release() override;
     void Input();
@@ -55,16 +55,18 @@ public:
 private:
     std::shared_ptr<FWorldContext> CreateNewWorldContext(EWorldType::Type InWorldType);
 
+    // TODO 임시 Public 바꿔잇
+public:
+    UnrealEd* UnrealEditor;
+    FContentsUI* ContentsUI;
 private:
     UWorld* PIEWorld = nullptr;
     UWorld* EditorWorld = nullptr;
     
     SLevelEditor* LevelEditor;
-    UnrealEd* UnrealEditor;
 
     UWorld* ActiveWorld;
 
-    FContentsUI* ContentsUI;
     
     bool bIsMKeyDown = false;
     UEditorPlayer* EditorPlayer = nullptr;

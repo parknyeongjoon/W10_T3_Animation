@@ -1,13 +1,19 @@
 #include "PropertyEditorPanel.h"
 
+#include <shellapi.h> // ShellExecute 관련 함수 정의 포함
+
+#include "ImGUI/imgui.h"
+
+#include "tinyfiledialogs/tinyfiledialogs.h"
+
 #include "Engine/World.h"
 #include "Engine/FLoaderOBJ.h"
 #include "UnrealEd/ImGuiWidget.h"
 
+#include "Math/JungleMath.h"
+
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Components/GameFramework/RotatingMovementComponent.h"
-#include <Math/JungleMath.h>
-
 #include "Components/LuaComponent.h"
 #include "Components/LightComponents/DirectionalLightComponent.h"
 #include "Components/LightComponents/PointLightComponent.h"
@@ -17,21 +23,21 @@
 #include "Components/PrimitiveComponents/UParticleSubUVComp.h"
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/CubeComp.h"
-#include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
 
 #include "LevelEditor/SLevelEditor.h"
-#include "tinyfiledialogs/tinyfiledialogs.h"
-#include <shellapi.h> // ShellExecute 관련 함수 정의 포함
 
 #include "LaunchEngineLoop.h"
-#include "TestFBXLoader.h"
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "Light/ShadowMapAtlas.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/FunctionRegistry.h"
 
-extern UEngine* GEngine;
+void PropertyEditorPanel::Initialize(float InWidth, float InHeight)
+{
+    Width = InWidth;
+    Height = InHeight;
+}
 
 void PropertyEditorPanel::Render()
 {
@@ -434,7 +440,7 @@ void PropertyEditorPanel::Render()
             }
             ImTextureID LightDepth = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()->GetSRV());
             ImGui::Text("Shadow Map");
-            ImGui::Image(LightDepth, imageSize);
+             (LightDepth, imageSize);
             ImTextureID LightDepth1 = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()[1].GetSRV());
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth1, imageSize);
