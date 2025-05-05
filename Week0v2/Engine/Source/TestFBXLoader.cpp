@@ -350,6 +350,8 @@ void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* Mesh
         FbxAMatrix GlobalTransform = BoneNode->EvaluateGlobalTransform();
         FbxAMatrix LocalTransform = BoneNode->EvaluateLocalTransform();
         
+
+
         // Store transforms
         for (int i = 0; i < 4; i++)
         {
@@ -362,13 +364,17 @@ void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* Mesh
         
         // Get binding pose transformation
       //  NewBone.InverseBindPoseMatrix = FMatrix::Inverse(NewBone.GlobalTransform);
-        FbxAMatrix BindPoseTransform;
-        Cluster->GetTransformLinkMatrix(BindPoseTransform);
-        BindPoseTransform = BindPoseTransform.Inverse();
+        FbxAMatrix MeshTransform;
+        Cluster->GetTransformMatrix(MeshTransform); // 메시의 변환 행렬 (기준점)
+
+        FbxAMatrix LinkTransform;
+        Cluster->GetTransformLinkMatrix(LinkTransform); // 본의 바인드 포즈 행렬
        
+        FbxAMatrix InverseBindMatrix = LinkTransform.Inverse() * MeshTransform;
+
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
-                NewBone.InverseBindPoseMatrix.M[i][j] = static_cast<float>(BindPoseTransform.Get(i, j));
+                NewBone.InverseBindPoseMatrix.M[i][j] = static_cast<float>(InverseBindMatrix.Get(i, j));
             }
         }
         

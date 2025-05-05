@@ -95,7 +95,7 @@ void UWorld::CreateBaseObject()
 
         FVector bonePosition= Bone.GlobalTransform.GetTranslationVector();
       
-        bonePosition *= 4.8;
+      
 
         BonePos->SetActorLocation(bonePosition);
 
