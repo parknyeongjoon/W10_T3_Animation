@@ -50,11 +50,8 @@ void USkeletalMesh::SetData(FSkeletalMeshRenderData* renderData)
     MaterialSlots.Empty();
     for (int materialIndex = 0; materialIndex < SkeletalMeshRenderData->Materials.Num(); materialIndex++) {
         FMaterialSlot* newMaterialSlot = new FMaterialSlot();
-        UMaterial* newMaterial = FManagerOBJ::CreateMaterial(SkeletalMeshRenderData->Materials[materialIndex]->GetMaterialInfo());
-
-        newMaterialSlot->Material = newMaterial;
+        newMaterialSlot->Material = SkeletalMeshRenderData->Materials[materialIndex];
         newMaterialSlot->MaterialSlotName = SkeletalMeshRenderData->Materials[materialIndex]->GetMaterialInfo().MTLName;
-
         MaterialSlots.Add(newMaterialSlot);
     }
 }

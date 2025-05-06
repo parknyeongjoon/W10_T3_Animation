@@ -11,10 +11,10 @@ static const int filterSize = 1; // 중앙을 포함한 반경 EX. (-2, -1, 0, 1
 static const int CASCADE_COUNT = 4;
 
 //Texture2D SpotLightShadowMap[8] : register(t3);
-Texture2D SpotLightAtlas : register(t3);
+Texture2D SpotLightAtlas : register(t6);
 Texture2D DirectionalLightShadowMap[CASCADE_COUNT] : register(t11);
 
-TextureCubeArray<float> PointLightShadowMapArray : register(t4);
+TextureCubeArray<float> PointLightShadowMapArray : register(t7);
 //TextureCube<float> PointLightShadowMap[8] : register(t15);
 
 Texture2DArray<float2> PointLightVSM[8] : register(t23);
