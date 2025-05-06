@@ -149,6 +149,37 @@ void SLevelEditor::Initialize(UWorld* World, HWND OwnerWindow)
             }
             FWindowsCursor::SetMouseCursor(CursorType);
         }
+
+        std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
+
+        if (WindowViewportData.ViewportClients.Num() == 0)
+        {
+            return;
+        }
+
+        UWorld* World = WindowViewportData.ViewportClients[0]->GetWorld();
+        if (World->WorldType != EWorldType::Editor && World->WorldType != EWorldType::EditorPreview)
+        {
+            return;
+        }
+        
+        if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
+        {
+            // Mouse Move 이벤트 일때만 실행
+            if (InMouseEvent.GetInputEvent() == IE_Axis && InMouseEvent.GetEffectingButton() == EKeys::Invalid)
+            {
+                // 에디터 카메라 이동 로직
+                if (!InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton) && InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
+                {
+                    if (World->WorldType == EWorldType::Editor)
+                    {
+                        std::cout << ActiveViewportClient->ViewTransformPerspective.GetRotation().X << ", " << ActiveViewportClient->ViewTransformPerspective.GetRotation().Y << ", " << ActiveViewportClient->ViewTransformPerspective.GetRotation().Z << '\n';
+                    }
+                    ActiveViewportClient->MouseMove(InMouseEvent);
+                    UE_LOG(LogLevel::Display, "%f, %f, %f", ActiveViewportClient->ViewTransformPerspective.GetRotation().X, ActiveViewportClient->ViewTransformPerspective.GetRotation().Y, ActiveViewportClient->ViewTransformPerspective.GetRotation().Z);
+                }
+            }
+        }
     });
     
     Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
@@ -188,52 +219,6 @@ void SLevelEditor::Initialize(UWorld* World, HWND OwnerWindow)
         }
     });
     
-    Handler->OnRawMouseInputDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
-    {
-        if (!WindowViewportDataMap.Contains(AppWnd))
-        {
-            return;
-        }
-
-        FWindowViewportClientData& WindowViewportData = WindowViewportDataMap[AppWnd];
-        std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
-
-        if (WindowViewportData.ViewportClients.Num() == 0)
-        {
-            return;
-        }
-        
-        UWorld* World = WindowViewportData.ViewportClients[0]->GetWorld();
-        if (World->WorldType != EWorldType::Editor && World->WorldType != EWorldType::EditorPreview)
-        {
-            return;
-        }
-        
-        // Mouse Move 이벤트 일때만 실행
-        if (InMouseEvent.GetInputEvent() == IE_Axis && InMouseEvent.GetEffectingButton() == EKeys::Invalid)
-        {
-            // 에디터 카메라 이동 로직
-            if (!InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton) && InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
-            {
-                ActiveViewportClient->MouseMove(InMouseEvent);
-                UE_LOG(LogLevel::Display, "%f, %f, %f", ActiveViewportClient->ViewTransformPerspective.GetRotation().X, ActiveViewportClient->ViewTransformPerspective.GetRotation().Y, ActiveViewportClient->ViewTransformPerspective.GetRotation().Z);
-                std::cout << ActiveViewportClient->ViewTransformPerspective.GetRotation().X << ", " << ActiveViewportClient->ViewTransformPerspective.GetRotation().Y << ", " << ActiveViewportClient->ViewTransformPerspective.GetRotation().Z << '\n';
-            }
-        }
-        // 마우스 휠 이벤트
-        else if (InMouseEvent.GetEffectingButton() == EKeys::MouseWheelAxis)
-        {
-            // 카메라 속도 조절
-            if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton) && ActiveViewportClient->IsPerspective())
-            {
-                const float CurrentSpeed = ActiveViewportClient->GetCameraSpeedScalar();
-                const float Adjustment = FMath::Sign(InMouseEvent.GetWheelDelta()) * FMath::Loge(CurrentSpeed + 1.0f) * 0.5f;
-    
-                ActiveViewportClient->SetCameraSpeed(CurrentSpeed + Adjustment);
-            }
-        }
-    });
-    
     Handler->OnMouseWheelDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
         if (ImGui::GetIO().WantCaptureMouse) return;
@@ -249,7 +234,18 @@ void SLevelEditor::Initialize(UWorld* World, HWND OwnerWindow)
         // 뷰포트에서 앞뒤 방향으로 화면 이동
         if (GetActiveViewportClient()->IsPerspective())
         {
-            if (!InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
+            if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
+            {
+                // 카메라 속도 조절
+                if (ActiveViewportClient->IsPerspective())
+                {
+                    const float CurrentSpeed = ActiveViewportClient->GetCameraSpeedScalar();
+                    const float Adjustment = FMath::Sign(InMouseEvent.GetWheelDelta()) * FMath::Loge(CurrentSpeed + 1.0f) * 0.5f;
+            
+                    ActiveViewportClient->SetCameraSpeed(CurrentSpeed + Adjustment);
+                }
+            }
+            else
             {
                 const FVector CameraLoc = ActiveViewportClient->ViewTransformPerspective.GetLocation();
                 const FVector CameraForward = ActiveViewportClient->ViewTransformPerspective.GetForwardVector();

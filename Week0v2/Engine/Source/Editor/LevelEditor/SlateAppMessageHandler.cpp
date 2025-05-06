@@ -340,6 +340,7 @@ void FSlateAppMessageHandler::ProcessMessage(HWND hWnd, uint32 Msg, WPARAM wPara
 
     case WM_INPUT:
     {
+        // TODO - HWnd가 마지막으로 생성한 HWnd만 들어옴.
         // RawInput을 처리하는 부분
         RawInputHandlerMap[hWnd]->ProcessRawInput(lParam);
         return;
@@ -356,7 +357,7 @@ void FSlateAppMessageHandler::ProcessMessage(HWND hWnd, uint32 Msg, WPARAM wPara
 
 void FSlateAppMessageHandler::AddWindow(HWND AppWnd)
 {
-    std::shared_ptr<FRawInput> RawInputHandler = std::make_shared<FRawInput>(AppWnd, [this, AppWnd](const RAWINPUT& RawInput)
+    std::shared_ptr<FRawInput> RawInputHandler = std::make_shared<FRawInput>(AppWnd, [this](const RAWINPUT& RawInput, HWND AppWnd)
         {
             HandleRawInput(AppWnd, RawInput);
         });
