@@ -31,7 +31,9 @@ struct FWindowsCursor
 
     /** 현재 클라이언트 기준으로 Cursor의 위치를 가져옵니다. */
     static FVector2D GetClientPosition(HWND TargetWindow);
-
+    
+    static FVector2D GetClientSize(HWND TargetWindow);
+    
     /** 현재 클라이언트의 기준으로 Cursor의 위치를 설정합니다. */
     static void SetClientPosition(HWND TargetWindow, int32 X, int32 Y);
 

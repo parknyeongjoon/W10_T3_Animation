@@ -1,13 +1,14 @@
 #include "ComputeTileLightCulling.h"
 
 #include "LaunchEngineLoop.h"
-#include "UnrealClient.h"
+#include "Viewport.h"
 #include "Components/LightComponents/DirectionalLightComponent.h"
 #include "Components/LightComponents/PointLightComponent.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "Renderer/Renderer.h"
+#include "SlateCore/Layout/SlateRect.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
 
@@ -37,7 +38,7 @@ void FComputeTileLightCulling::AddRenderObjectsToRenderPass(UWorld* InWorld)
 {
     LightComponents.Empty();
     
-    if (InWorld->WorldType == EWorldType::Editor)
+    if (InWorld->WorldType == EWorldType::Editor || InWorld->WorldType == EWorldType::EditorPreview)
     {
         for (const auto iter : TObjectRange<USceneComponent>())
         {
@@ -63,8 +64,8 @@ void FComputeTileLightCulling::Dispatch(const std::shared_ptr<FViewportClient> I
         
     FEditorViewportClient* ViewPort = dynamic_cast<FEditorViewportClient*>(InViewportClient.get());
     
-    int screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;  // 화면 가로 픽셀 수
-    int screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;  // 화면 세로 픽셀 수
+    int screenWidth = ViewPort->GetViewport()->GetFSlateRect().Width;  // 화면 가로 픽셀 수
+    int screenHeight = ViewPort->GetViewport()->GetFSlateRect().Height;  // 화면 세로 픽셀 수
     
     // 타일 크기 (예: 16x16 픽셀)
     const int TILE_SIZE_X = 16;
@@ -154,7 +155,7 @@ void FComputeTileLightCulling::UpdateComputeConstants(const std::shared_ptr<FVie
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
-    FEditorViewportClient* ViewPort = dynamic_cast<FEditorViewportClient*>(InViewportClient.get());
+    FEditorViewportClient* EditorViewPortClient = dynamic_cast<FEditorViewportClient*>(InViewportClient.get());
     
     FMatrix InvView = FMatrix::Identity;
     FMatrix InvProj = FMatrix::Identity;
@@ -167,8 +168,8 @@ void FComputeTileLightCulling::UpdateComputeConstants(const std::shared_ptr<FVie
     
     FComputeConstants ComputeConstants;
     
-    ComputeConstants.screenHeight = ViewPort->GetViewport()->GetScreenRect().Height;
-    ComputeConstants.screenWidth = ViewPort->GetViewport()->GetScreenRect().Width;
+    ComputeConstants.screenHeight = EditorViewPortClient->GetViewport()->GetFSlateRect().Height;
+    ComputeConstants.screenWidth = EditorViewPortClient->GetViewport()->GetFSlateRect().Width;
     ComputeConstants.InverseProj = InvProj;
     ComputeConstants.InverseView = InvView;
     ComputeConstants.tileCountX = NumTileX;

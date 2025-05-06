@@ -41,7 +41,7 @@ void UEditorEngine::Init()
     /* must be initialized before window. */
     LevelEditor->Initialize(GEngineLoop.GetDefaultWindow());
 
-    UnrealEditor->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().screenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().screenHeight);
+    UnrealEditor->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
     ContentsUI->Initialize();
     CollisionManager.Initialize();  
     FLuaManager::Get().Initialize();
@@ -77,7 +77,7 @@ void UEditorEngine::Tick(float deltaSeconds)
     
     Input();
     
-    LevelEditor->Tick(LevelType, deltaSeconds);
+    LevelEditor->Tick(deltaSeconds);
 
     CoroutineManager.Tick(deltaSeconds);
     CoroutineManager.CleanupCoroutines();

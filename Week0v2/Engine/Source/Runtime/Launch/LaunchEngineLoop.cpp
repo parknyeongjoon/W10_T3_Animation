@@ -1,6 +1,7 @@
 #include "LaunchEngineLoop.h"
 
 #include "ImGuiManager.h"
+#include "WindowsCursor.h"
 #include "Contents/UI/ContentsUI.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "PropertyEditor/ViewportTypePanel.h"
@@ -23,21 +24,16 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
 {
     WCHAR EngineWindowClass[] = L"JungleWindowClass";
     WCHAR EngineTitle[] = L"GTL TTAL KKAK";
-    WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass";
-    WCHAR EnginePreviewTitle[] = L"Preview";
-
     
     AppMessageHandler = std::make_unique<FSlateAppMessageHandler>();
     
     CreateEngineWindow(hInstance, EngineWindowClass, EngineTitle);
-    CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
-
+    
     ImGuiManager* ImGuiUIManager = new ImGuiManager();
     ImGuiUIManager->Initialize(GetDefaultWindow(), GraphicDevice.Device, GraphicDevice.DeviceContext);
     
     Renderer.Initialize(&GraphicDevice);
     ResourceManager.Initialize(&GraphicDevice);
-
     
     // if (bIsEditor)
     {
@@ -50,6 +46,22 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     }
 
     GEngine->Init();
+    
+    if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+    {
+        WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass";
+        WCHAR EnginePreviewTitle[] = L"Preview";
+        HWND AppWnd = CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
+        EditorEngine->GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd);
+    }
+
+    if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+    {
+        WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass1";
+        WCHAR EnginePreviewTitle[] = L"Preview1";
+        HWND AppWnd = CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
+        EditorEngine->GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd);
+    }
 
     for (auto& AppWnd : AppWindows)
     {
@@ -110,6 +122,8 @@ void FEngineLoop::Render()
     {
         if (SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor())
         {
+            uint32 OriginalIndex = LevelEditor->GetCurrentViewportClientIndex();
+            HWND OriginalWindow = LevelEditor->GetCurrentViewportWindow();
             ImGuiUIManager->BeginFrame();
             for (auto& AppWindow : AppWindows)
             {
@@ -122,21 +136,27 @@ void FEngineLoop::Render()
                     EditorEngine->ContentsUI->Render();
                 }
                 GraphicDevice.Prepare(AppWindow);
-                if (LevelEditor->IsMultiViewport())
+                if (LevelEditor->IsMultiViewport(AppWindow))
                 {
-                    const std::shared_ptr<FEditorViewportClient> OriginViewportClient = LevelEditor->GetActiveViewportClient();
-                    for (std::shared_ptr<FEditorViewportClient>& ViewportClient : LevelEditor->GetViewports())
+                    TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients = LevelEditor->GetViewportClients(AppWindow);
+                    for (uint32 i = 0; i < ViewportClients.Num(); i++)
                     {
-                        LevelEditor->SetViewportClient(ViewportClient);
+                        std::shared_ptr<FEditorViewportClient> ViewportClient = ViewportClients[i];
+                        LevelEditor->FocusViewportClient(AppWindow, i);
                         EditorEngine->UpdateGizmos();
                         Renderer.Render(ViewportClient);
                     }
-                    LevelEditor->SetViewportClient(OriginViewportClient);
                 }
                 else
                 {
-                    EditorEngine->UpdateGizmos();
-                    Renderer.Render(LevelEditor->GetActiveViewportClient());
+                    TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients = LevelEditor->GetViewportClients(AppWindow);
+                    for (uint32 i = 0; i < ViewportClients.Num(); i++)
+                    {
+                        std::shared_ptr<FEditorViewportClient> ViewportClient = ViewportClients[i];
+                        LevelEditor->FocusViewportClient(AppWindow, i);
+                        EditorEngine->UpdateGizmos();
+                        Renderer.Render(ViewportClient);
+                    }
                 }
                 
 
@@ -148,6 +168,8 @@ void FEngineLoop::Render()
                 GraphicDevice.SwapBuffer(AppWindow);
             }
             ImGuiUIManager->EndFrame();
+
+            LevelEditor->FocusViewportClient(OriginalWindow, OriginalIndex);
         }
     }
 }
@@ -168,7 +190,7 @@ void FEngineLoop::ClearPendingCleanupObjects()
 {
 }
 
-void FEngineLoop::CreateEngineWindow(HINSTANCE hInstance, WCHAR WindowClass[], WCHAR Title[])
+HWND FEngineLoop::CreateEngineWindow(HINSTANCE hInstance, WCHAR WindowClass[], WCHAR Title[])
 {
     WNDCLASSW wc{};
     wc.lpfnWndProc = AppWndProc;
@@ -190,6 +212,8 @@ void FEngineLoop::CreateEngineWindow(HINSTANCE hInstance, WCHAR WindowClass[], W
     AppMessageHandler->AddWindow(AppWnd);
 
     UpdateUI(AppWnd);
+
+    return AppWnd;
 }
 
 void FEngineLoop::DestroyEngineWindow(HWND AppWnd)
@@ -230,11 +254,13 @@ LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, UINT message, WPARAM wParam,
             {
                 if (SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor())
                 {
-                    for (std::shared_ptr<FEditorViewportClient>& ViewportClient : LevelEditor->GetViewports())
-                    {
-                        FWindowData& WindowData = FEngineLoop::GraphicDevice.SwapChains[hWnd];
-                        ViewportClient->ResizeViewport(WindowData.screenWidth, WindowData.screenHeight);
-                    }
+                    FVector2D ClientSize = FWindowsCursor::GetClientSize(hWnd);
+                    LevelEditor->ResizeWindow(hWnd, ClientSize);
+                    // for (std::shared_ptr<FEditorViewportClient>& ViewportClient : LevelEditor->GetViewports())
+                    // {
+                    //     FWindowData& WindowData = FEngineLoop::GraphicDevice.SwapChains[hWnd];
+                    //     ViewportClient->ResizeViewport(WindowData.screenWidth, WindowData.screenHeight);
+                    // }
                 }   
             }
         }

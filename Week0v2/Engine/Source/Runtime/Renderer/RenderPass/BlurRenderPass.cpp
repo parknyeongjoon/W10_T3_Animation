@@ -4,11 +4,12 @@
 
 #include "EditorEngine.h"
 #include "LaunchEngineLoop.h"
+#include "Viewport.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Renderer/Renderer.h"
-#include "UObject/UObjectIterator.h"
+#include "SlateCore/Layout/SlateRect.h"
 #include "UnrealEd/EditorViewportClient.h"
 
 class FRenderResourceManager;
@@ -59,7 +60,7 @@ void FBlurRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
         auto viewPort = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
         if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
         {
-            UpdateBlurConstant(EditorEngine->testBlurStrength,1 / viewPort->GetD3DViewport().Width, 1 / viewPort->GetD3DViewport().Height);
+            UpdateBlurConstant(EditorEngine->testBlurStrength,1 / viewPort->GetViewport()->GetFSlateRect().Width, 1 / viewPort->GetViewport()->GetFSlateRect().Height);
         }
         Graphics.DeviceContext->Draw(6, 0);
 

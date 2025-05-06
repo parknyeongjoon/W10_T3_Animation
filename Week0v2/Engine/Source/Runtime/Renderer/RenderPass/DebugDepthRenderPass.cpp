@@ -3,9 +3,11 @@
 #include <EditorEngine.h>
 
 #include "LaunchEngineLoop.h"
+#include "Viewport.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "Renderer/VBIBTopologyMapping.h"
+#include "SlateCore/Layout/SlateRect.h"
 
 void FDebugDepthRenderPass::AddRenderObjectsToRenderPass()
 {
@@ -65,10 +67,10 @@ void FDebugDepthRenderPass::UpdateScreenConstant(const std::shared_ptr<FViewport
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
 
     FViewportInfo ScreenConstants;
-    float Width = Graphics.GetCurrentWindowData()->screenWidth;
-    float Height = Graphics.GetCurrentWindowData()->screenHeight;
-    ScreenConstants.ViewportSize = FVector2D { curEditorViewportClient->GetD3DViewport().Width / Width, curEditorViewportClient->GetD3DViewport().Height / Height };
-    ScreenConstants.ViewportOffset = FVector2D { curEditorViewportClient->GetD3DViewport().TopLeftX / Width, curEditorViewportClient->GetD3DViewport().TopLeftY / Height };
+    float Width = Graphics.GetCurrentWindowData()->ScreenWidth;
+    float Height = Graphics.GetCurrentWindowData()->ScreenHeight;
+    ScreenConstants.ViewportSize = FVector2D { curEditorViewportClient->GetViewport()->GetFSlateRect().Width / Width, curEditorViewportClient->GetViewport()->GetFSlateRect().Height / Height };
+    ScreenConstants.ViewportOffset = FVector2D { curEditorViewportClient->GetViewport()->GetFSlateRect().LeftTopX / Width, curEditorViewportClient->GetViewport()->GetFSlateRect().LeftTopY / Height };
 
     renderResourceManager->UpdateConstantBuffer(TEXT("FViewportInfo"), &ScreenConstants);
 }

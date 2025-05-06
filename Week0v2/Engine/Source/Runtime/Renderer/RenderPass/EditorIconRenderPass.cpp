@@ -21,7 +21,7 @@ void FEditorIconRenderPass::AddRenderObjectsToRenderPass()
 {
     for (UBillboardComponent* BillboardComponent : TObjectRange<UBillboardComponent>())
     {
-        if ((BillboardComponent->GetWorld()->WorldType != EWorldType::Editor && BillboardComponent->bOnlyForEditor == true) || BillboardComponent->GetWorld() != GEngine->GetWorld())
+        if (((BillboardComponent->GetWorld()->WorldType != EWorldType::Editor && BillboardComponent->GetWorld()->WorldType != EWorldType::EditorPreview) && BillboardComponent->bOnlyForEditor == true) || BillboardComponent->GetWorld() != GEngine->GetWorld())
         {
             continue;
         }

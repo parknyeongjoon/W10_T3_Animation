@@ -56,7 +56,10 @@ void UProjectileMovementComponent::InitializeComponent()
 
 void UProjectileMovementComponent::TickComponent(float DeltaTime)
 {
-    if (GetWorld()->WorldType == EWorldType::Editor) return; // Todo: change code.
+    if (GetWorld()->WorldType == EWorldType::Editor || GetWorld()->WorldType == EWorldType::EditorPreview)
+    {
+        return; // Todo: change code.
+    }
     
     AActor* ActorOwner = UpdatedComponent->GetOwner();
 

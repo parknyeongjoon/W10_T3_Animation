@@ -68,8 +68,8 @@ void FGraphicsDevice::CreateDeviceAndSwapChain(HWND hWindow)
 
     FWindowData WindowData;
     WindowData.SwapChain = SwapChain;
-    WindowData.screenWidth = SwapchainDesc.BufferDesc.Width;
-    WindowData.screenHeight = SwapchainDesc.BufferDesc.Height;
+    WindowData.ScreenWidth = SwapchainDesc.BufferDesc.Width;
+    WindowData.ScreenHeight = SwapchainDesc.BufferDesc.Height;
 
     SwapChains.Add(hWindow, WindowData);
 }
@@ -135,8 +135,8 @@ void FGraphicsDevice::CreateSwapChain(HWND AppWnd)
 
     FWindowData WindowData;
     WindowData.SwapChain = SwapChain;
-    WindowData.screenWidth = SwapchainDesc.BufferDesc.Width;
-    WindowData.screenHeight = SwapchainDesc.BufferDesc.Height;
+    WindowData.ScreenWidth = SwapchainDesc.BufferDesc.Width;
+    WindowData.ScreenHeight = SwapchainDesc.BufferDesc.Height;
     
     SwapChains.Add(AppWnd, WindowData);
     
@@ -150,8 +150,8 @@ void FGraphicsDevice::CreateDepthStencilBuffer(HWND AppWnd)
     // 깊이/스텐실 텍스처 생성
     D3D11_TEXTURE2D_DESC descDepth;
     ZeroMemory(&descDepth, sizeof(descDepth));
-    descDepth.Width = SwapChains[AppWnd].screenWidth; // 텍스처 너비 설정
-    descDepth.Height = SwapChains[AppWnd].screenHeight; // 텍스처 높이 설정
+    descDepth.Width = SwapChains[AppWnd].ScreenWidth; // 텍스처 너비 설정
+    descDepth.Height = SwapChains[AppWnd].ScreenHeight; // 텍스처 높이 설정
     descDepth.MipLevels = 1; // 미맵 레벨 수 (1로 설정하여 미맵 없음)
     descDepth.ArraySize = 1; // 텍스처 배열의 크기 (1로 단일 텍스처)
     descDepth.Format = DXGI_FORMAT_R24G8_TYPELESS; // 24비트 깊이와 8비트 스텐실을 위한 포맷, Typeless -> SRV와 DSV 모두 사용 가능
@@ -224,8 +224,8 @@ void FGraphicsDevice::CreateDepthCopyTexture(HWND AppWnd)
 {
     D3D11_TEXTURE2D_DESC descDepth;
     ZeroMemory(&descDepth, sizeof(descDepth));
-    descDepth.Width = SwapChains[AppWnd].screenWidth; // 텍스처 너비 설정
-    descDepth.Height = SwapChains[AppWnd].screenHeight; // 텍스처 높이 설정
+    descDepth.Width = SwapChains[AppWnd].ScreenWidth; // 텍스처 너비 설정
+    descDepth.Height = SwapChains[AppWnd].ScreenHeight; // 텍스처 높이 설정
     descDepth.MipLevels = 1; // 미맵 레벨 수 (1로 설정하여 미맵 없음)
     descDepth.ArraySize = 1; // 텍스처 배열의 크기 (1로 단일 텍스처)
     descDepth.Format = DXGI_FORMAT_R24G8_TYPELESS; // 24비트 깊이와 8비트 스텐실을 위한 포맷, Typeless -> SRV와 DSV 모두 사용 가능
@@ -292,8 +292,8 @@ void FGraphicsDevice::CreateFrameBuffer(const HWND hWindow)
     {
         // 텍스처 생성을 위한 속성 설정
         D3D11_TEXTURE2D_DESC textureDesc = {};
-        textureDesc.Width = WindowData.screenWidth;
-        textureDesc.Height = WindowData.screenHeight;
+        textureDesc.Width = WindowData.ScreenWidth;
+        textureDesc.Height = WindowData.ScreenHeight;
         textureDesc.MipLevels = 1;
         textureDesc.ArraySize = 1;
         textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
@@ -453,7 +453,7 @@ void FGraphicsDevice::OnResize(HWND AppWindow)
 
     ReleaseFrameBuffer(AppWindow);
 
-    if (ChangedWindowData.screenWidth == 0 || ChangedWindowData.screenHeight == 0)
+    if (ChangedWindowData.ScreenWidth == 0 || ChangedWindowData.ScreenHeight == 0)
     {
         MessageBox(AppWindow, L"Invalid width or height for ResizeBuffers!", L"Error", MB_ICONERROR | MB_OK);
         return;
@@ -470,8 +470,8 @@ void FGraphicsDevice::OnResize(HWND AppWindow)
     DXGI_SWAP_CHAIN_DESC SwapchainDesc;
     
     ChangedWindowData.SwapChain->GetDesc(&SwapchainDesc);
-    ChangedWindowData.screenWidth = SwapchainDesc.BufferDesc.Width;
-    ChangedWindowData.screenHeight = SwapchainDesc.BufferDesc.Height;
+    ChangedWindowData.ScreenWidth = SwapchainDesc.BufferDesc.Width;
+    ChangedWindowData.ScreenHeight = SwapchainDesc.BufferDesc.Height;
 
     CreateFrameBuffer(AppWindow);
     CreateDepthStencilBuffer(AppWindow);

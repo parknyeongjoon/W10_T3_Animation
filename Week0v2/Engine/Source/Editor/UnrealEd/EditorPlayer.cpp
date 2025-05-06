@@ -5,6 +5,7 @@
 
 #include "LaunchEngineLoop.h"
 #include "ShowFlags.h"
+#include "Viewport.h"
 #include "UnrealEd.h"
 #include "WindowsCursor.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
@@ -17,6 +18,7 @@
 #include "GameFramework/Actor.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "PropertyEditor/PrimitiveDrawEditor.h"
+#include "SlateCore/Layout/SlateRect.h"
 #include "UObject/UObjectIterator.h"
 
 using namespace DirectX;
@@ -26,7 +28,7 @@ void UEditorPlayer::Initialize()
     FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
     Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
-        if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
+        if (GEngine->GetWorld()->WorldType != EWorldType::Editor && GEngine->GetWorld()->WorldType != EWorldType::EditorPreview)
         {
             return;
         }
@@ -61,7 +63,7 @@ void UEditorPlayer::Initialize()
     
     Handler->OnMouseMoveDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
-        if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
+        if (GEngine->GetWorld()->WorldType != EWorldType::Editor && GEngine->GetWorld()->WorldType != EWorldType::EditorPreview)
         {
             return;
         }
@@ -80,7 +82,7 @@ void UEditorPlayer::Initialize()
     
     Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
-        if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
+        if (GEngine->GetWorld()->WorldType != EWorldType::Editor && GEngine->GetWorld()->WorldType != EWorldType::EditorPreview)
         {
             return;
         }
@@ -399,13 +401,13 @@ void UEditorPlayer::ScreenToViewSpace(int screenX, int screenY, const FMatrix& v
     auto ActiveViewport = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
 
     
-    D3D11_VIEWPORT viewport = ActiveViewport->GetD3DViewport();
+    FRect ViewportRect = ActiveViewport->GetViewport()->GetFSlateRect();
     
-    float viewportX = screenX - viewport.TopLeftX;
-    float viewportY = screenY - viewport.TopLeftY;
+    float viewportX = screenX - ViewportRect.LeftTopX;
+    float viewportY = screenY - ViewportRect.LeftTopY;
 
-    pickPosition.X = ((2.0f * viewportX / viewport.Width) - 1) / projectionMatrix[0][0];
-    pickPosition.Y = -((2.0f * viewportY / viewport.Height) - 1) / projectionMatrix[1][1];
+    pickPosition.X = ((2.0f * viewportX / ViewportRect.Width) - 1) / projectionMatrix[0][0];
+    pickPosition.Y = -((2.0f * viewportY / ViewportRect.Height) - 1) / projectionMatrix[1][1];
     if (ActiveViewport->IsOrtho())
     {
         pickPosition.Z = 0.0f;  // 오쏘 모드에서는 unproject 시 near plane 위치를 기준

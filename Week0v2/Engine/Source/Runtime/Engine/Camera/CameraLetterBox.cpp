@@ -38,8 +38,8 @@ void UCameraLetterBox::ModifyPostProcess(float DeltaTime, float& PostProcessBlen
     float ViewportHeight = 1080.0f; // 기본값
     if (CameraOwner) // CameraOwner (APlayerCameraManager)가 유효한지 확인
     {        
-        ViewportWidth = GEngineLoop.GraphicDevice.GetDefaultWindowData().screenWidth;
-        ViewportHeight = GEngineLoop.GraphicDevice.GetDefaultWindowData().screenHeight;
+        ViewportWidth = GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth;
+        ViewportHeight = GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight;
     }
 
     // 0으로 나누기 방지

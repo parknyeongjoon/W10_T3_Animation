@@ -44,7 +44,8 @@ public:
     
     bool bForceEditorUI = false;
 public:
-    UWorld* GetWorld() const { return ActiveWorld; }
+    // UISOO TODO NOW
+    UWorld* GetWorld() const override { return ActiveWorld; }
     SLevelEditor* GetLevelEditor() const { return LevelEditor; }
     UnrealEd* GetUnrealEditor() const { return UnrealEditor; }    
 
@@ -58,11 +59,13 @@ public:
     UnrealEd* UnrealEditor;
     FContentsUI* ContentsUI;
 private:
+    // UISOO TODO NOW
     UWorld* PIEWorld = nullptr;
     UWorld* EditorWorld = nullptr;
     
     SLevelEditor* LevelEditor;
 
+    // UISOO TODO NOW
     UWorld* ActiveWorld;
 
     

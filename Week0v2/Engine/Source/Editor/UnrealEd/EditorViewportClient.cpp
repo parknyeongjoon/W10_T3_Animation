@@ -5,7 +5,7 @@
 
 #include "Math/JungleMath.h"
 #include "LaunchEngineLoop.h"
-#include "UnrealClient.h"
+#include "Viewport.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
@@ -14,11 +14,12 @@
 #include "Components/LightComponents/SpotLightComponent.h"
 #include "Engine/FEditorStateManager.h"
 #include "LevelEditor/SLevelEditor.h"
+#include "SlateCore/Layout/SlateRect.h"
 
 FVector FEditorViewportClient::Pivot = FVector(0.0f, 0.0f, 0.0f);
 float FEditorViewportClient::OrthoSize = 10.0f;
 
-FEditorViewportClient::FEditorViewportClient() : Viewport(nullptr), ViewMode(VMI_Lit_Phong), ViewportType(LVT_Perspective), ShowFlag(31)
+FEditorViewportClient::FEditorViewportClient() : Viewport(nullptr), ViewportType(LVT_Perspective), ShowFlag(31), ViewMode(VMI_Lit_Phong)
 {
 
 }
@@ -32,22 +33,27 @@ void FEditorViewportClient::Draw(FViewport* Viewport)
 {
 }
 
-void FEditorViewportClient::Initialize(HWND InOwnerWindow, EViewScreenLocation InViewportIndex)
+UWorld* FEditorViewportClient::GetWorld() const
+{
+    // UISOO TODO NOW
+    return nullptr;
+}
+
+void FEditorViewportClient::Initialize(HWND InOwnerWindow, uint32 InViewportIndex)
 {
     SetOwner(InOwnerWindow);
-    ViewportIndex = static_cast<uint32>(InViewportIndex);
+    ViewportIndex = InViewportIndex;
     
     ViewTransformPerspective.SetLocation(FVector(8.0f, 8.0f, 8.f));
     ViewTransformPerspective.SetRotation(FVector(0.0f, 45.0f, -135.0f));
-    Viewport = new FViewport(InViewportIndex);
-    Viewport->Initialize();
+    Viewport = new FViewport();
     FWindowData& WindowData = GEngineLoop.GraphicDevice.SwapChains[InOwnerWindow];
-    ResizeViewport(WindowData.screenWidth, WindowData.screenHeight);
+    ResizeViewport(FRect(0, 0, WindowData.ScreenWidth, WindowData.ScreenHeight));
 }
 
 void FEditorViewportClient::Tick(float DeltaTime)
 {
-    if (GEngine->GetWorld()->WorldType == EWorldType::Editor)
+    if (GEngine->GetWorld()->WorldType == EWorldType::Editor || GEngine->GetWorld()->WorldType == EWorldType::EditorPreview)
     {
         UpdateEditorCameraMovement(DeltaTime);
     }
@@ -123,7 +129,7 @@ void FEditorViewportClient::UpdateEditorCameraMovement(const float DeltaTime)
     }
 }
 
-void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
+void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
 {
     // TODO: 나중에 InKeyEvent.GetKey();로 가져오는걸로 수정하기
     // TODO: 나중에 PIEViewportClient에서 처리하는걸로 수정하기
@@ -257,7 +263,7 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                     {
                         FEngineLoop::GraphicDevice.OnResize(OwnerWindow);
                         SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor();
-                        LevelEditor->SetEnableMultiViewport(!LevelEditor->IsMultiViewport());
+                        LevelEditor->SetEnableMultiViewport(AppWnd, !LevelEditor->IsMultiViewport(AppWnd));
                     }
                     break;
                 }
@@ -334,47 +340,50 @@ void FEditorViewportClient::MouseMove(const FPointerEvent& InMouseEvent)
     }
 }
 
-void FEditorViewportClient::ResizeViewport(float InWidth, float InHeight)
-{
-    if (Viewport)
-    { 
-        Viewport->ResizeViewport(InWidth, InHeight);    
-    }
-    else
-    {
-        UE_LOG(LogLevel::Error, "Viewport is nullptr");
-    }
-    
-    float Width = Viewport->GetScreenRect().Width;
-    float Height = Viewport->GetScreenRect().Height;
-    
-    AspectRatio = Width / Height;
-    UpdateProjectionMatrix();
-    UpdateViewMatrix();
-}
 void FEditorViewportClient::ResizeViewport(FRect Top, FRect Bottom, FRect Left, FRect Right)
 {
     if (Viewport)
-    {
-        Viewport->ResizeViewport(Top, Bottom, Left, Right);
+    { 
+        Viewport->ResizeViewport(Top, Bottom, Left, Right);    
     }
     else
     {
         UE_LOG(LogLevel::Error, "Viewport is nullptr");
     }
-    float Width = Viewport->GetScreenRect().Width;
-    float Height = Viewport->GetScreenRect().Height;
+    
+    float Width = Viewport->GetFSlateRect().Width;
+    float Height = Viewport->GetFSlateRect().Height;
     
     AspectRatio = Width / Height;
     UpdateProjectionMatrix();
     UpdateViewMatrix();
 }
+
+void FEditorViewportClient::ResizeViewport(FRect InRect)
+{
+    if (Viewport)
+    { 
+        Viewport->ResizeViewport(InRect);    
+    }
+    else
+    {
+        UE_LOG(LogLevel::Error, "Viewport is nullptr");
+    }
+    
+    float Width = Viewport->GetFSlateRect().Width;
+    float Height = Viewport->GetFSlateRect().Height;
+    
+    AspectRatio = Width / Height;
+    UpdateProjectionMatrix();
+    UpdateViewMatrix();
+}
+
 bool FEditorViewportClient::IsSelected(FVector2D Point)
 {
-    float TopLeftX = Viewport->GetScreenRect().TopLeftX;
-    float TopLeftY = Viewport->GetScreenRect().TopLeftY;
-    float Width = Viewport->GetScreenRect().Width;
-    float Height = Viewport->GetScreenRect().Height;
+    float TopLeftX = Viewport->GetFSlateRect().LeftTopX;
+    float TopLeftY = Viewport->GetFSlateRect().LeftTopY;
+    float Width = Viewport->GetFSlateRect().Width;
+    float Height = Viewport->GetFSlateRect().Height;
 
     if (Point.X >= TopLeftX && Point.X <= TopLeftX + Width &&
         Point.Y >= TopLeftY && Point.Y <= TopLeftY + Height)
@@ -383,9 +392,9 @@ bool FEditorViewportClient::IsSelected(FVector2D Point)
     }
     return false;
 }
-D3D11_VIEWPORT& FEditorViewportClient::GetD3DViewport()
+const D3D11_VIEWPORT& FEditorViewportClient::GetD3DViewport()
 {
-    return Viewport->GetScreenRect();
+    return Viewport->GetViewport();
 }
 
 void FEditorViewportClient::CalculateCascadeSplits(float NearClip, float FarClip)
@@ -601,7 +610,7 @@ void FEditorViewportClient::UpdateProjectionMatrix()
         if (IsPerspective()) {
             Projection = JungleMath::CreateProjectionMatrix(
                 ViewFOV * (3.141592f / 180.0f),
-                GetViewport()->GetScreenRect().Width / GetViewport()->GetScreenRect().Height,
+                GetViewport()->GetFSlateRect().Width / GetViewport()->GetFSlateRect().Height,
                 nearPlane,
                 farPlane
             );

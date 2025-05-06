@@ -27,8 +27,8 @@ struct FWindowData
 {
     IDXGISwapChain* SwapChain = nullptr;
     
-    UINT screenWidth = 0;
-    UINT screenHeight = 0;
+    UINT ScreenWidth = 0;
+    UINT ScreenHeight = 0;
 
     ID3D11Texture2D* FrameBuffer = nullptr;
     ID3D11RenderTargetView* FrameBufferRTV = nullptr;
@@ -39,7 +39,7 @@ struct FWindowData
 
     float GetAspectRatio() const
     {
-        return static_cast<float>(screenWidth) / static_cast<float>(screenHeight);
+        return static_cast<float>(ScreenWidth) / static_cast<float>(ScreenHeight);
     }
 };
 

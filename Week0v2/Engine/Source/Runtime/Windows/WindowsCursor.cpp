@@ -35,6 +35,20 @@ FVector2D FWindowsCursor::GetClientPosition(HWND TargetWindow)
     };
 }
 
+FVector2D FWindowsCursor::GetClientSize(HWND TargetWindow)
+{
+    RECT ClientRect = {};
+    GetClientRect(TargetWindow, &ClientRect);
+            
+    uint32 OutWidth = ClientRect.right - ClientRect.left;
+    uint32 OutHeight = ClientRect.bottom - ClientRect.top;
+
+    return FVector2D {
+        static_cast<float>(OutWidth),
+        static_cast<float>(OutHeight)
+    };
+}
+
 void FWindowsCursor::SetClientPosition(HWND TargetWindow, const int32 X, const int32 Y)
 {
     POINT CursorPos = { X, Y };

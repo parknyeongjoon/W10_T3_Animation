@@ -5,8 +5,10 @@
 #include <D3D11RHI/CBStructDefine.h>
 
 #include "LaunchEngineLoop.h"
+#include "Viewport.h"
 #include "Components/PrimitiveComponents/HeightFogComponent.h"
 #include "Renderer/Renderer.h"
+#include "SlateCore/Layout/SlateRect.h"
 #include "UnrealEd/EditorViewportClient.h"
 
 extern UEngine* GEngine;
@@ -118,10 +120,10 @@ void FFogRenderPass::UpdateScreenConstant(std::shared_ptr<FViewportClient> InVie
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
 
     FViewportInfo ScreenConstants;
-    float Width = Graphics.GetCurrentWindowData()->screenHeight;
-    float Height = Graphics.GetCurrentWindowData()->screenHeight;
-    ScreenConstants.ViewportSize = FVector2D { curEditorViewportClient->GetD3DViewport().Width / Width, curEditorViewportClient->GetD3DViewport().Height / Height };
-    ScreenConstants.ViewportOffset = FVector2D { curEditorViewportClient->GetD3DViewport().TopLeftX / Width, curEditorViewportClient->GetD3DViewport().TopLeftY / Height };
+    float Width = Graphics.GetCurrentWindowData()->ScreenHeight;
+    float Height = Graphics.GetCurrentWindowData()->ScreenHeight;
+    ScreenConstants.ViewportSize = FVector2D { curEditorViewportClient->GetViewport()->GetFSlateRect().Width / Width, curEditorViewportClient->GetViewport()->GetFSlateRect().Height / Height };
+    ScreenConstants.ViewportOffset = FVector2D { curEditorViewportClient->GetViewport()->GetFSlateRect().LeftTopX / Width, curEditorViewportClient->GetViewport()->GetFSlateRect().LeftTopY / Height };
 
     renderResourceManager->UpdateConstantBuffer(TEXT("FViewportInfo"), &ScreenConstants);
 }

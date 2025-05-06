@@ -20,7 +20,7 @@ public:
 
     void Exit();
     
-    void CreateEngineWindow(HINSTANCE hInstance, WCHAR WindowClass[], WCHAR Title[]);
+    HWND CreateEngineWindow(HINSTANCE hInstance, WCHAR WindowClass[], WCHAR Title[]);
     void DestroyEngineWindow(HWND AppWnd);
 private:
     void UpdateUI(HWND AppWnd) const;
