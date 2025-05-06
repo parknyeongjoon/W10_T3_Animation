@@ -16,6 +16,7 @@ class UCameraComponent;
 class USceneComponent;
 class UTransformGizmo;
 class APlayerCameraManager;
+class USkeletalMesh;
 
 class UWorld final : public UObject
 {
@@ -87,7 +88,7 @@ private:
     APlayerCameraManager* PlayerCameraManager = nullptr;
 public:
 
-
+    USkeletalMesh* SelectedSkeletalMesh = nullptr;
     
     EWorldType::Type WorldType = EWorldType::None;
     const TArray<AActor*>& GetActors() const { return Level->GetActors(); }

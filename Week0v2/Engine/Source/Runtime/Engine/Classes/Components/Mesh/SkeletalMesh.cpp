@@ -99,86 +99,6 @@ void USkeletalMesh::UpdateChildBones(int ParentIndex) const
     }
 }
 
-void USkeletalMesh::RotateBone(const FString& BoneName, float RotX, float RotY, float RotZ)
-{
-    if (!SkeletalMeshRenderData)
-        return;
-
-    // 이름으로 본 찾기
-    int* BoneIndexPtr = SkeletalMeshRenderData->BoneNameToIndexMap.Find(BoneName);
-    if (!BoneIndexPtr)
-        return;
-
-    int BoneIndex = *BoneIndexPtr;
-    FBone& Bone = SkeletalMeshRenderData->Bones[BoneIndex];
-
-    // 회전 행렬 생성
-    FMatrix RotXMatrix, RotYMatrix, RotZMatrix = FMatrix::Identity;
-
-
-    // X축 회전행렬
-    float CosX = cos(FMath::DegreesToRadians(RotX));
-    float SinX = sin(FMath::DegreesToRadians(RotX));
-    RotXMatrix.M[1][1] = CosX;
-    RotXMatrix.M[1][2] = -SinX;
-    RotXMatrix.M[2][1] = SinX;
-    RotXMatrix.M[2][2] = CosX;
-
-    // Y축 회전행렬
-    float CosY = cos(FMath::DegreesToRadians(RotY));
-    float SinY = sin(FMath::DegreesToRadians(RotY));
-    RotYMatrix.M[0][0] = CosY;
-    RotYMatrix.M[0][2] = SinY;
-    RotYMatrix.M[2][0] = -SinY;
-    RotYMatrix.M[2][2] = CosY;
-
-    // Z축 회전행렬
-    float CosZ = cos(FMath::DegreesToRadians(RotZ));
-    float SinZ = sin(FMath::DegreesToRadians(RotZ));
-    RotZMatrix.M[0][0] = CosZ;
-    RotZMatrix.M[0][1] = -SinZ;
-    RotZMatrix.M[1][0] = SinZ;
-    RotZMatrix.M[1][1] = CosZ;
-
-    // 현재 로컬 행렬에 회전 적용
-    FMatrix RotationMatrix = RotXMatrix * RotYMatrix * RotZMatrix;
-    Bone.LocalTransform = RotationMatrix * Bone.LocalTransform;
-
-    // 본 계층 구조 업데이트
-    UpdateBoneHierarchy();
-
-    // 정점 스키닝 업데이트
-    UpdateSkinnedVertices();
-
-    // 버텍스 버퍼 업데이트
-    UpdateVertexBuffer();
-}
-
-//void USkeletalMesh::UpdateSkinnedVertices()
-//{
-//    if (!SkeletalMeshRenderData)
-//        return;
-//
-//    // 모든 정점에 본 가중치 적용
-//    for (auto& Vertex : SkeletalMeshRenderData->Vertices)
-//    {
-//        // 정점 위치 리셋 (예: TranslateVertexByBone 구현)
-//        Vertex.TranslateVertexByBone(SkeletalMeshRenderData->Bones);
-//    }
-//}
-
-//void USkeletalMesh::UpdateVertexBuffer()
-//{
-//    if (!SkeletalMeshRenderData)
-//        return;
-//
-//    // 렌더러 리소스 매니저를 통해 버텍스 버퍼 업데이트
-//    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
-//    const auto VB = renderResourceManager->GetVertexBuffer(SkeletalMeshRenderData->Name);
-//    renderResourceManager->UpdateDynamicVertexBuffer(VB, &SkeletalMeshRenderData->Vertices, SkeletalMeshRenderData->Vertices.Num());
-//}
-
-
 // USkeletalMesh 클래스에 추가할 함수
 void USkeletalMesh::RotateBoneByName(const FString& BoneName, float AngleInDegrees, const FVector& RotationAxis)
 {
@@ -267,7 +187,7 @@ void USkeletalMesh::ProcessBoneRotationInput(float DeltaTime)
     }
 
     // 회전 속도 설정 (초당 각도)
-    float rotationSpeed = 60.0f * DeltaTime;
+    float rotationSpeed = 1.0f * DeltaTime;
 
     // 키 입력 처리 - 엔진의 입력 시스템에 맞게 조정 필요
     // X축 회전 (Q/A 키)

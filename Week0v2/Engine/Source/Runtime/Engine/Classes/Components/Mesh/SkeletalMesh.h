@@ -19,8 +19,6 @@ public:
     
     void UpdateBoneHierarchy() const;
 public:
-    // 특정 본을 회전시키는 함수
-    void RotateBone(const FString& BoneName, float RotX, float RotY, float RotZ);
 
     // 정점 스키닝을 업데이트하는 함수
     void UpdateSkinnedVertices();
