@@ -21,7 +21,9 @@ public:
     void ExtractIndices(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData) const;
     void ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData) const;
     void UpdateBoundingBox(FSkeletalMeshRenderData* MeshData) const;
-
+    static FObjMaterialInfo ConvertFbxToObjMaterialInfo(FbxSurfaceMaterial* FbxMat, const FString& BasePath = TEXT(""));
+    static UMaterial* CreateMaterial(const FObjMaterialInfo& materialInfo);
+    
     FSkeletalMeshRenderData* GetSkeletalMesh(FString FilePath);
 
 private:
@@ -30,4 +32,5 @@ private:
     FbxManager* FbxManager = nullptr;
 
     TMap<FName, FSkeletalMeshRenderData*> SkeletalMeshData;
+    static TMap<FString, UMaterial*> MaterialMap;
 };

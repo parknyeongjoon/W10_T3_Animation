@@ -2,6 +2,8 @@
 #include "Components/Material/Material.h"
 #include "Engine/FLoaderOBJ.h"
 
+TMap<FString, UMaterial*> TestFBXLoader::MaterialMap;
+
 bool TestFBXLoader::InitFBXManager()
 {
     if (bInitialized)
@@ -507,6 +509,7 @@ void TestFBXLoader::ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMesh
     // 재질 정보 추출
     for (int i = 0; i < MaterialCount; i++)
     {
+        // FBX에서 i번째 Material 객체
         FbxSurfaceMaterial* FbxMaterial = Node->GetMaterial(i);
         if (!FbxMaterial)
             continue;
@@ -514,8 +517,9 @@ void TestFBXLoader::ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMesh
         // 재질 이름 가져오기
         FString MaterialName = FbxMaterial->GetName();
         
-        // 엔진 재질 생성 또는 검색
-        UMaterial* Material = FManagerOBJ::GetMaterial(MaterialName);
+        // 재질 파싱 및 생성
+        FObjMaterialInfo MatInfo = ConvertFbxToObjMaterialInfo(FbxMaterial);
+        UMaterial* Material = CreateMaterial(MatInfo);
         
         // 재질 추가
         int MaterialIndex = MeshData->Materials.Add(Material);
@@ -600,4 +604,126 @@ FSkeletalMeshRenderData* TestFBXLoader::GetSkeletalMesh(FString FilePath)
     }
     
     return nullptr;
+}
+
+// FBX 머티리얼 → FObjMaterialInfo 변환 헬퍼
+FObjMaterialInfo TestFBXLoader::ConvertFbxToObjMaterialInfo(
+    FbxSurfaceMaterial* FbxMat,
+    const FString& BasePath)
+{
+    FObjMaterialInfo OutInfo;
+
+    // Material Name
+    OutInfo.MTLName = FString(FbxMat->GetName());
+    
+    // Lambert 전용 프로퍼티
+    if (auto* Lam = FbxCast<FbxSurfaceLambert>(FbxMat))
+    {
+        // Ambient
+        {
+            auto c = Lam->Ambient.Get();
+            float f = (float)Lam->AmbientFactor.Get();
+            OutInfo.Ambient = FVector(c[0]*f, c[1]*f, c[2]*f);
+        }
+        // Diffuse
+        {
+            auto c = Lam->Diffuse.Get();
+            float f = (float)Lam->DiffuseFactor.Get();
+            OutInfo.Diffuse = FVector(c[0]*f, c[1]*f, c[2]*f);
+        }
+        // Emissive
+        {
+            auto c = Lam->Emissive.Get();
+            float f = (float)Lam->EmissiveFactor.Get();
+            OutInfo.Emissive = FVector(c[0]*f, c[1]*f, c[2]*f);
+        }
+        // BumpScale
+        OutInfo.NormalScale = (float)Lam->BumpFactor.Get();
+    }
+
+    // Phong 전용 프로퍼티
+    if (auto* Pho = FbxCast<FbxSurfacePhong>(FbxMat))
+    {
+        // Specular
+        {
+            auto c = Pho->Specular.Get();
+            OutInfo.Specular = FVector((float)c[0], (float)c[1], (float)c[2]);
+        }
+        // Shininess
+        OutInfo.SpecularScalar = (float)Pho->Shininess.Get();
+    }
+
+    // 공통 프로퍼티
+    {
+        // TransparencyFactor
+        if (auto prop = FbxMat->FindProperty(FbxSurfaceMaterial::sTransparencyFactor); prop.IsValid())
+        {
+            double tf = prop.Get<FbxDouble>();
+            OutInfo.TransparencyScalar = (float)tf;
+            OutInfo.bTransparent = OutInfo.TransparencyScalar < 1.f - KINDA_SMALL_NUMBER;
+        }
+
+        // Index of Refraction
+        constexpr char const* sIndexOfRefraction = "IndexOfRefraction";
+        if (auto prop = FbxMat->FindProperty(sIndexOfRefraction); prop.IsValid())
+        {
+            OutInfo.DensityScalar = (float)prop.Get<FbxDouble>();
+        }
+
+        // Illumination Model은 FBX에 따로 없으므로 기본 0
+        OutInfo.IlluminanceModel = 0;
+    }
+
+    // 텍스처 채널 (Diffuse, Ambient, Specular, Bump/Normal, Alpha)
+    auto ReadFirstTexture = [&](const char* PropName, FString& OutName, FWString& OutPath)
+    {
+        auto prop = FbxMat->FindProperty(PropName);
+        if (!prop.IsValid()) return;
+        int nbTex = prop.GetSrcObjectCount<FbxFileTexture>();
+        if (nbTex <= 0) return;
+        if (auto* Tex = prop.GetSrcObject<FbxFileTexture>(0))
+        {
+            FString fname = FString(Tex->GetFileName());
+            OutName = fname;
+            OutPath = (BasePath + fname).ToWideString();
+            OutInfo.bHasTexture = true;
+        }
+    };
+
+    // map_Kd
+    ReadFirstTexture(FbxSurfaceMaterial::sDiffuse,
+                     OutInfo.DiffuseTextureName,
+                     OutInfo.DiffuseTexturePath);
+    // map_Ka
+    ReadFirstTexture(FbxSurfaceMaterial::sAmbient,
+                     OutInfo.AmbientTextureName,
+                     OutInfo.AmbientTexturePath);
+    // map_Ks
+    ReadFirstTexture(FbxSurfaceMaterial::sSpecular,
+                     OutInfo.SpecularTextureName,
+                     OutInfo.SpecularTexturePath);
+    // map_Bump 또는 map_Ns
+    ReadFirstTexture(FbxSurfaceMaterial::sBump,
+                     OutInfo.BumpTextureName,
+                     OutInfo.BumpTexturePath);
+    ReadFirstTexture(FbxSurfaceMaterial::sNormalMap,
+                     OutInfo.NormalTextureName,
+                     OutInfo.NormalTexturePath);
+    // map_d (Alpha)
+    ReadFirstTexture(FbxSurfaceMaterial::sTransparentColor,
+                     OutInfo.AlphaTextureName,
+                     OutInfo.AlphaTexturePath);
+
+    return OutInfo;
+}
+
+UMaterial* TestFBXLoader::CreateMaterial(const FObjMaterialInfo& materialInfo)
+{
+    if (MaterialMap[materialInfo.MTLName] != nullptr)
+        return MaterialMap[materialInfo.MTLName];
+
+    UMaterial* newMaterial = FObjectFactory::ConstructObject<UMaterial>();
+    newMaterial->SetMaterialInfo(materialInfo);
+    MaterialMap.Add(materialInfo.MTLName, newMaterial);
+    return newMaterial;
 }

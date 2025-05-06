@@ -61,11 +61,11 @@ void UWorld::CreateBaseObject()
 
     TestFBXLoader TestFBXLoader;
     TestFBXLoader.InitFBXManager();
-    TestFBXLoader.InitFBX("NyeongFBX.fbx");
+    TestFBXLoader.InitFBX("FBX/Wizard.fbx");
     AActor* SkeletalActor = SpawnActor<AActor>();
     USkeletalMeshComponent* SkeletalMeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>(EComponentOrigin::Editor);
     USkeletalMesh* SkeletalMesh = new USkeletalMesh();
-    SkeletalMesh->SetData(TestFBXLoader.GetSkeletalMesh("NyeongFBX.fbx"));
+    SkeletalMesh->SetData(TestFBXLoader.GetSkeletalMesh("FBX/Wizard.fbx"));
     
     SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
     FMatrix testMatrix = FMatrix::CreateRotationMatrix(30,0,0) * SkeletalMesh->GetRenderData()->Bones[0].LocalTransform;
