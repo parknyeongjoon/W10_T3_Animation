@@ -48,21 +48,21 @@ void UEditorEngine::Init()
 
     std::shared_ptr<FWorldContext> EditorContext = CreateNewWorldContext(EWorldType::Editor);
 
-    EditorWorld = FObjectFactory::ConstructObject<UWorld>();
+    EditorWorld = FObjectFactory::ConstructObject<UWorld>(this);
     EditorWorld->WorldType = EWorldType::Editor;
     
     EditorContext->SetWorld(EditorWorld);
     ActiveWorld = EditorWorld;
     ActiveWorld->InitWorld(); // UISOO Check
 
-    EditorPlayer = FObjectFactory::ConstructObject<UEditorPlayer>();
+    EditorPlayer = FObjectFactory::ConstructObject<UEditorPlayer>(this);
     EditorPlayer->Initialize();
     
     RegisterWaitHelpers(FLuaManager::Get().GetLuaState());
 
     if (AssetManager == nullptr)
     {
-        AssetManager = FObjectFactory::ConstructObject<UAssetManager>();
+        AssetManager = FObjectFactory::ConstructObject<UAssetManager>(this);
         assert(AssetManager);
         AssetManager->InitAssetManager();
     }

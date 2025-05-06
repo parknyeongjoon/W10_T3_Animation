@@ -171,7 +171,7 @@ UActorComponent* AActor::AddComponentByClass(UClass* ComponentClass, EComponentO
     if (ComponentClass == nullptr)
         return nullptr;
 
-    UActorComponent* Component = ComponentClass->CreateObject<UActorComponent>();
+    UActorComponent* Component = ComponentClass->CreateObject<UActorComponent>(this);
     if (Component == nullptr)
         return nullptr;
 
@@ -224,7 +224,7 @@ void AActor::AddComponent(UActorComponent* Component)
 }
 
 
-UObject* AActor::Duplicate() const
+UObject* AActor::Duplicate()
 {
     AActor* ClonedActor = FObjectFactory::ConstructObjectFrom<AActor>(this);
     ClonedActor->DuplicateSubObjects(this);

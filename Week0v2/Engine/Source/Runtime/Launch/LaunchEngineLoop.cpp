@@ -41,7 +41,7 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     
     // if (bIsEditor)
     {
-        GEngine = FObjectFactory::ConstructObject<UEditorEngine>();
+        GEngine = FObjectFactory::ConstructObject<UEditorEngine>(nullptr);
     }
     //else
     {

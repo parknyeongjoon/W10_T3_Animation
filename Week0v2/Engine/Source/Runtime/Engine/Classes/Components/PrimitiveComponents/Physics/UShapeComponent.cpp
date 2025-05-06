@@ -63,7 +63,7 @@ void UShapeComponent::DestroyComponent()
     UEditorEngine::CollisionManager.Unregister(this);
 }
 
-UObject* UShapeComponent::Duplicate() const
+UObject* UShapeComponent::Duplicate()
 {
     UShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<UShapeComponent>(this);
     NewComp->DuplicateSubObjects(this);

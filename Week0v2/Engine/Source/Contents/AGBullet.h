@@ -29,7 +29,7 @@ public:
     float LifeElapsed = 0;
 
 public:
-    UObject* Duplicate() const override;
+    UObject* Duplicate() override;
     void DuplicateSubObjects(const UObject* Source) override;
     void PostDuplicate() override;
 };

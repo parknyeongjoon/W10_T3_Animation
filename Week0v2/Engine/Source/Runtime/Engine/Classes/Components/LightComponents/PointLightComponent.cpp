@@ -21,7 +21,7 @@ UPointLightComponent::UPointLightComponent(const UPointLightComponent& Other)
     ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::PointLight, 1024);
 }
 
-UObject* UPointLightComponent::Duplicate() const
+UObject* UPointLightComponent::Duplicate()
 {
     UPointLightComponent* NewComp = FObjectFactory::ConstructObjectFrom<UPointLightComponent>(this);
     NewComp->DuplicateSubObjects(this);

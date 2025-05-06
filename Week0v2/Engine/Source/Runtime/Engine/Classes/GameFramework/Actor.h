@@ -95,7 +95,7 @@ public:
     bool SetActorRotation(const FRotator& NewRotation) const;
     bool SetActorScale(const FVector& NewScale);
     
-    virtual UObject* Duplicate() const override;
+    virtual UObject* Duplicate() override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
 
@@ -245,7 +245,7 @@ private:
 template <typename T> requires std::derived_from<T, UActorComponent>
 T* AActor::AddComponent(EComponentOrigin Origin)
 {
-    T* Component = FObjectFactory::ConstructObject<T>();
+    T* Component = FObjectFactory::ConstructObject<T>(this);
     OwnedComponents.Add(Component);
     Component->Owner = this;
 

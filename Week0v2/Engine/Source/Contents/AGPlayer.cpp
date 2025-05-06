@@ -99,7 +99,7 @@ void AGPlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
     UE_LOG(LogLevel::Display, "AGamePlayer End Play");
 }
 
-UObject* AGPlayer::Duplicate() const
+UObject* AGPlayer::Duplicate()
 {
     AGPlayer* NewActor = FObjectFactory::ConstructObjectFrom<AGPlayer>(this);
     NewActor->DuplicateSubObjects(this);
@@ -121,7 +121,7 @@ void AGPlayer::OnCollision(const UPrimitiveComponent* Other)
 {
     if (Other->GetOwner()->IsA(AGEnemy::StaticClass()))
     {
-        UExplosionShake* Shake = FObjectFactory::ConstructObject<UExplosionShake>();
+        UExplosionShake* Shake = FObjectFactory::ConstructObject<UExplosionShake>(this);
         PlayerCameraManager->StartCameraShake(Shake);
     }
 }
@@ -138,11 +138,11 @@ void AGPlayer::Input(float DeltaTime)
 
             if (PlayerCameraManager)
             {
-                UGunRecoilShake* Shake = FObjectFactory::ConstructObject<UGunRecoilShake>();
+                UGunRecoilShake* Shake = FObjectFactory::ConstructObject<UGunRecoilShake>(this);
                 Shake->Duration = 0.5f;
                 
                 // Pitch 튐 → 복귀 곡선
-                UCurveFloat* PitchCurve = FObjectFactory::ConstructObject<UCurveFloat>();
+                UCurveFloat* PitchCurve = FObjectFactory::ConstructObject<UCurveFloat>(this);
                 PitchCurve->AddKey(0.0f, 0.0f);
                 PitchCurve->AddKey(0.1f, 10.f);
                 PitchCurve->AddKey(0.5f, 0.0f);
@@ -165,7 +165,7 @@ void AGPlayer::Input(float DeltaTime)
             bRightMouseDown = true;
             if (PlayerCameraManager)
             {
-                UHitCameraShake* Shake = FObjectFactory::ConstructObject<UHitCameraShake>();
+                UHitCameraShake* Shake = FObjectFactory::ConstructObject<UHitCameraShake>(this);
 
                 Shake->ImpactDirection = FVector(0,0,0); // 또는 HitResult.ImpactPoint
                 Shake->CameraLocation = PlayerCameraManager->GetViewTarget()->GetActorLocation();
@@ -270,7 +270,7 @@ void AGPlayer::Input(float DeltaTime)
          or GetAsyncKeyState('D') & 0x8000) and (bIsMoveStarted == false))
     {
         bIsMoveStarted = true;
-        UCameraLetterBox* CameraModifier = FObjectFactory::ConstructObject<UCameraLetterBox>();
+        UCameraLetterBox* CameraModifier = FObjectFactory::ConstructObject<UCameraLetterBox>(this);
         CameraModifier->ActivateLetterbox(4.f/3.f, 1.f);
         GEngine->GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
     }

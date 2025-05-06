@@ -76,7 +76,7 @@ public:
     void InitializeComponent() override;
     void BeginPlay() override;
     void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-    UObject* Duplicate() const override;
+    UObject* Duplicate() override;
     void DuplicateSubObjects(const UObject* Source) override;
     void PostDuplicate() override;
 

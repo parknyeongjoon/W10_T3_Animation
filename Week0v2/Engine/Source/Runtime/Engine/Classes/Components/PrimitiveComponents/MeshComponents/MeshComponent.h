@@ -22,7 +22,7 @@ protected:
     TArray<UMaterial*> OverrideMaterials;
 public:
     TArray<UMaterial*>& GetOverrideMaterials() { return OverrideMaterials; }
-    virtual UObject* Duplicate() const override;
+    virtual UObject* Duplicate() override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
 };

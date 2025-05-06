@@ -22,7 +22,7 @@ public:
     APlayerCameraManager(const APlayerCameraManager& Other);
     virtual ~APlayerCameraManager() override {};
 
-    UObject* Duplicate() const override;
+    UObject* Duplicate() override;
     
     AActor* GetViewTarget() const { return ViewTarget.Target; }
     FSimpleViewInfo& GetViewInfo() { return ViewTarget.ViewInfo; }

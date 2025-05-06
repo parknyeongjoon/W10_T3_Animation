@@ -55,7 +55,7 @@ void ULevel::PostLoad()
 }
 
 
-UObject* ULevel::Duplicate() const
+UObject* ULevel::Duplicate()
 {
     ULevel* CloneLevel = FObjectFactory::ConstructObjectFrom<ULevel>(this);
     CloneLevel->DuplicateSubObjects(this);

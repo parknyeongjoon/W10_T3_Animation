@@ -76,7 +76,7 @@ int UTextComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirecti
 	return CheckPickingOnNDC(quad,pfNearHitDistance);
 }
 
-UObject* UTextComponent::Duplicate() const
+UObject* UTextComponent::Duplicate()
 {
     UTextComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UTextComponent>(this);
     ClonedActor->DuplicateSubObjects(this);

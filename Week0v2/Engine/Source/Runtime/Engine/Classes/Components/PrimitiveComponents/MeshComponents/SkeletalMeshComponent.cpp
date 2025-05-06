@@ -152,7 +152,7 @@ void USkeletalMeshComponent::SetSkeletalMesh(USkeletalMesh* value)
 //     SetStaticMesh(Mesh);
 // }
 
-UObject* USkeletalMeshComponent::Duplicate() const
+UObject* USkeletalMeshComponent::Duplicate()
 {
     USkeletalMeshComponent* NewComp = FObjectFactory::ConstructObjectFrom<USkeletalMeshComponent>(this);
     NewComp->DuplicateSubObjects(this);

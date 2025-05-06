@@ -40,7 +40,7 @@ bool APointLightActor::Destroy()
     return Super::Destroy();
 }
 
-UObject* APointLightActor::Duplicate() const
+UObject* APointLightActor::Duplicate()
 {
     APointLightActor* NewActor = FObjectFactory::ConstructObjectFrom<APointLightActor>(this);
     NewActor->DuplicateSubObjects(this);

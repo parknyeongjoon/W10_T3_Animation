@@ -41,7 +41,7 @@ FVector4 ULightComponentBase::GetColor() const
     return LightColor;
 }
 
-UObject* ULightComponentBase::Duplicate() const
+UObject* ULightComponentBase::Duplicate()
 {
     ULightComponentBase* NewComp = FObjectFactory::ConstructObjectFrom<ULightComponentBase>(this);
     //NewComp->InitializeLight();

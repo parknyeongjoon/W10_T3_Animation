@@ -172,7 +172,7 @@ void UActorComponent::UnregisterComponent()
     OnUnregister();
     bRegistered = false;
 }
-UObject* UActorComponent::Duplicate() const
+UObject* UActorComponent::Duplicate()
 {
     UActorComponent* NewComp = FObjectFactory::ConstructObjectFrom<UActorComponent>(this);
     NewComp->DuplicateSubObjects(this);

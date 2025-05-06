@@ -41,7 +41,7 @@ public:
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
 
-    UObject* Duplicate() const override;
+    UObject* Duplicate() override;
     void DuplicateSubObjects(const UObject* Source) override;
     void SetRowColumnCount(int _cellsPerRow, int _cellsPerColumn);
 

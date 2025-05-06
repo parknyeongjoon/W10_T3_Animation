@@ -23,7 +23,7 @@ public:
     void TestTranslate();
     void TestRotate();
 
-    UObject* Duplicate() const override;
+    UObject* Duplicate() override;
     void DuplicateSubObjects(const UObject* Source) override;
     void PostDuplicate() override;
     

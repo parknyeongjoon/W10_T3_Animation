@@ -18,7 +18,7 @@ ULuaComponent::~ULuaComponent()
 {
 }
 
-UObject* ULuaComponent::Duplicate() const
+UObject* ULuaComponent::Duplicate()
 {
     ULuaComponent* NewComp = FObjectFactory::ConstructObjectFrom<ULuaComponent>(this);
     NewComp->DuplicateSubObjects(this);

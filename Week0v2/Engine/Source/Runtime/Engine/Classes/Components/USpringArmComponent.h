@@ -17,7 +17,7 @@ public:
     void TickComponent(float DeltaTime) override;
     void DestroyComponent() override;
 
-    virtual UObject* Duplicate() const override;
+    virtual UObject* Duplicate() override;
     void DuplicateSubObjects(const UObject* Source) override;
     void PostDuplicate() override;
 

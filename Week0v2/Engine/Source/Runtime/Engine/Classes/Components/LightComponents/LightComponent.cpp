@@ -68,7 +68,7 @@ void ULightComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
     Super::EndPlay(EndPlayReason);
 }
 
-UObject* ULightComponent::Duplicate() const
+UObject* ULightComponent::Duplicate()
 {
     ULightComponentBase* NewComp = FObjectFactory::ConstructObjectFrom<ULightComponentBase>(this);
     NewComp->DuplicateSubObjects(this);

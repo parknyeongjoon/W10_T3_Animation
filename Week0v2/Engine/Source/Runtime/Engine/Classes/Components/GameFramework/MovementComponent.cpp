@@ -73,7 +73,7 @@ bool UMovementComponent::MoveComponent(const FVector& Delta)
     return false;
 }
 
-UObject* UMovementComponent::Duplicate() const
+UObject* UMovementComponent::Duplicate()
 {
     UMovementComponent* NewComp = FObjectFactory::ConstructObjectFrom<UMovementComponent>(this);
     NewComp->DuplicateSubObjects(this);

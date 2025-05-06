@@ -37,7 +37,7 @@ public:
     UStaticMeshComponent() = default;
     UStaticMeshComponent(const UStaticMeshComponent& Other);
 
-    virtual UObject* Duplicate() const override;
+    virtual UObject* Duplicate() override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
     virtual void TickComponent(float DeltaTime) override;

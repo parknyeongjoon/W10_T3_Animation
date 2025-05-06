@@ -47,7 +47,7 @@ bool AFireBall::Destroy()
     return Super::Destroy();
 }
 
-UObject* AFireBall::Duplicate() const
+UObject* AFireBall::Duplicate()
 {
     AFireBall* NewActor = FObjectFactory::ConstructObjectFrom<AFireBall>(this);
     NewActor->DuplicateSubObjects(this);

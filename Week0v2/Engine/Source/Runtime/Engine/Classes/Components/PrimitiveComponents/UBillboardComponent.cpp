@@ -100,7 +100,7 @@ FMatrix UBillboardComponent::CreateBillboardMatrix()
 	return M;
 }
 
-UObject* UBillboardComponent::Duplicate() const
+UObject* UBillboardComponent::Duplicate()
 {
     UBillboardComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UBillboardComponent>(this);
     ClonedActor->DuplicateSubObjects(this);

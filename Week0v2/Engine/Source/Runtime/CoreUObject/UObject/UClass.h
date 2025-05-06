@@ -21,17 +21,17 @@ public:
     uint32 GetClassSize() const { return ClassSize; }
     uint32 GetClassAlignment() const { return ClassAlignment; }
 
-    using ObjectCreator = void* (*)();
+    using ObjectCreator = void* (*)(UObject*);
     ObjectCreator Creator = nullptr;
 
     template <typename T>
-    T* CreateObject()
+    T* CreateObject(UObject* InOuter)
     {
         if (!Creator)
         {
             return nullptr;
         }
-        return static_cast<T*>(Creator());
+        return static_cast<T*>(Creator(InOuter));
     }
 
     /** SomeBase의 자식 클래스인지 확인합니다. */

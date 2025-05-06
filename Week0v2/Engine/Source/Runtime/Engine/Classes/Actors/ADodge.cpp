@@ -65,7 +65,7 @@ void ADodge::TestRotate()
     SetActorRotation(GetActorRotation() + FRotator(0.01,0,0));
 }
 
-UObject* ADodge::Duplicate() const
+UObject* ADodge::Duplicate()
 {
     ADodge* NewActor = FObjectFactory::ConstructObjectFrom<ADodge>(this);
     NewActor->DuplicateSubObjects(this);

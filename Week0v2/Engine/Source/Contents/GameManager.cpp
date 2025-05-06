@@ -53,7 +53,7 @@ void FGameManager::RestartGame()
         EditorEngine->GetLevelEditor()->GetEditorStateManager().SetState(EEditorState::Stopped);
     }
 
-    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
+    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>(PlayerCameraManager);
     CameraModifier->StartFadeIn(2.0f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
 }
@@ -62,7 +62,7 @@ void FGameManager::StartGame()
 {
     //GEngine->GetWorld()->LoadScene("Assets/Scenes/Game.scene");
 
-    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
+    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>(PlayerCameraManager);
     CameraModifier->StartFadeIn(2.0f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
     
@@ -72,10 +72,10 @@ void FGameManager::EndGame()
 {
     CurrentGameState  = EGameState::Ended;
 
-    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>();
+    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>(PlayerCameraManager);
     CameraModifier->StartFadeOut(1.0f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
-    UCameraLetterBox* CameraLetterBox = FObjectFactory::ConstructObject<UCameraLetterBox>();
+    UCameraLetterBox* CameraLetterBox = FObjectFactory::ConstructObject<UCameraLetterBox>(PlayerCameraManager);
     CameraLetterBox->DeactivateLetterbox(1.0f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
     

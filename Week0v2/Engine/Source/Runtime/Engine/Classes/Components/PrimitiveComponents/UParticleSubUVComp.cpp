@@ -75,7 +75,7 @@ void UParticleSubUVComp::TickComponent(float DeltaTime)
 	finalIndexV = float(indexV) * normalHeightOffset;
 }
 
-UObject* UParticleSubUVComp::Duplicate() const
+UObject* UParticleSubUVComp::Duplicate()
 {
     UParticleSubUVComp* Cloned = FObjectFactory::ConstructObjectFrom(this);
     Cloned->DuplicateSubObjects(this);

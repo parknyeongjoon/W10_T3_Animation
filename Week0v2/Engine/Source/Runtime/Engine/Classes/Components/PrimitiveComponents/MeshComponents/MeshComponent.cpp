@@ -60,7 +60,7 @@ void UMeshComponent::GetUsedMaterials(TArray<UMaterial*>& Out) const
         }
     }
 }
-UObject* UMeshComponent::Duplicate() const
+UObject* UMeshComponent::Duplicate()
 {
     UMeshComponent* NewComp = FObjectFactory::ConstructObjectFrom<UMeshComponent>(this);
     NewComp->DuplicateSubObjects(this);

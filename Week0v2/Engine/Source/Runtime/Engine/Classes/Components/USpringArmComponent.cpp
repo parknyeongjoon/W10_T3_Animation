@@ -87,7 +87,7 @@ void USpringArmComponent::DestroyComponent()
     Super::DestroyComponent();
 }
 
-UObject* USpringArmComponent::Duplicate() const
+UObject* USpringArmComponent::Duplicate()
 {
     Super::Duplicate();
     USpringArmComponent* NewComp = FObjectFactory::ConstructObjectFrom<USpringArmComponent>(this);

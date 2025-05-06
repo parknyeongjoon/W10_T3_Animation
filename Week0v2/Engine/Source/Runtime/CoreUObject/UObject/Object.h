@@ -25,7 +25,7 @@ public:
     static UClass* StaticClass();
     static FFunctionRegistry* FunctionRegistry();
 
-    virtual UObject* Duplicate() const
+    virtual UObject* Duplicate()
     {
         UObject* NewObject = new UObject();
         NewObject->DuplicateSubObjects(this);       // 깊은 복사 수행
@@ -44,11 +44,13 @@ private:
 
     FName NamePrivate;
     UClass* ClassPrivate = nullptr;
+    UObject* OuterPrivate = nullptr;
 
 public:
     UObject();
     virtual ~UObject();
 
+    UObject* GetOuter();
     virtual UWorld* GetWorld();
 
     FName GetFName() const { return NamePrivate; }

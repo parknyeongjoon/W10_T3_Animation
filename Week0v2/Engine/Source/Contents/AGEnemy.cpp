@@ -80,7 +80,7 @@ void AGEnemy::EndPlay(const EEndPlayReason::Type EndPlayReason)
     Super::EndPlay(EndPlayReason);
 }
 
-UObject* AGEnemy::Duplicate() const
+UObject* AGEnemy::Duplicate()
 {
     AGEnemy* NewActor = FObjectFactory::ConstructObjectFrom<AGEnemy>(this);
     NewActor->DuplicateSubObjects(this);

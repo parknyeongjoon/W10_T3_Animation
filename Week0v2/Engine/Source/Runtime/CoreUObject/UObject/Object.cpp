@@ -32,6 +32,11 @@ UObject::~UObject()
     UUID = 0;
 }
 
+UObject* UObject::GetOuter()
+{
+    return OuterPrivate;
+}
+
 UWorld* UObject::GetWorld()
 {
     return GEngine->GetWorld();

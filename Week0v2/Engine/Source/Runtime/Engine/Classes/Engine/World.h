@@ -36,7 +36,7 @@ public:
     void LoadScene(const FString& FileName);
     void SaveScene(const FString& FileName);
     void ClearScene();
-    virtual UObject* Duplicate() const override;
+    virtual UObject* Duplicate() override;
     virtual void DuplicateSubObjects(const UObject* SourceObj) override;
     virtual void PostDuplicate() override;
     /**
@@ -48,12 +48,12 @@ public:
         requires std::derived_from<T, AActor>
     T* SpawnActor();
 
-    AActor* SpawnActorByClass(UClass* ActorClass, bool bCallBeginPlay)
+    AActor* SpawnActorByClass(UClass* ActorClass, UObject* InOuter, bool bCallBeginPlay)
     {
         if (ActorClass == nullptr)
             return nullptr;
 
-        AActor* Actor = ActorClass->CreateObject<AActor>();
+        AActor* Actor = ActorClass->CreateObject<AActor>(InOuter);
         if (Actor == nullptr)
             return nullptr;
 
@@ -140,7 +140,7 @@ template <typename T>
     requires std::derived_from<T, AActor>
 T* UWorld::SpawnActor()
 {
-    T* Actor = FObjectFactory::ConstructObject<T>();
+    T* Actor = FObjectFactory::ConstructObject<T>(this);
     // TODO: 일단 AddComponent에서 Component마다 초기화
     // 추후에 RegisterComponent() 만들어지면 주석 해제
     // Actor->InitializeComponents();
@@ -151,4 +151,4 @@ T* UWorld::SpawnActor()
 }
 
 //LUA용
-static AActor* SpawnActorByName(const FString& ActorName, bool bCallBeginPlay);
+static AActor* SpawnActorByName(const FString& ActorName, UObject* InOuter, bool bCallBeginPlay);

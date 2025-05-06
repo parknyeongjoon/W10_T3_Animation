@@ -34,7 +34,7 @@ UWorld::UWorld(const UWorld& Other): UObject(Other)
 void UWorld::InitWorld()
 {
     // TODO: Load Scene
-    Level = FObjectFactory::ConstructObject<ULevel>();
+    Level = FObjectFactory::ConstructObject<ULevel>(this);
     PreLoadResources();
     LoadScene("Assets/Scenes/NewScene.Scene");
 }
@@ -55,7 +55,7 @@ void UWorld::CreateBaseObject()
 {
     if (LocalGizmo == nullptr)
     {
-        LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
+        LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(this);
     }
     
     PlayerCameraManager = SpawnActor<APlayerCameraManager>();
@@ -183,7 +183,7 @@ void UWorld::ClearScene()
     ReleaseBaseObject();
 }
 
-UObject* UWorld::Duplicate() const
+UObject* UWorld::Duplicate()
 {
     UWorld* CloneWorld = FObjectFactory::ConstructObjectFrom<UWorld>(this);
     CloneWorld->DuplicateSubObjects(this);
@@ -195,7 +195,7 @@ void UWorld::DuplicateSubObjects(const UObject* SourceObj)
 {
     UObject::DuplicateSubObjects(SourceObj);
     Level = Cast<ULevel>(Level->Duplicate());
-    LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
+    LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(this);
 }
 
 void UWorld::PostDuplicate()
@@ -315,7 +315,7 @@ void UWorld::Deserialize(FArchive& ar)
         UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorInfo.Type);
         if (ActorClass)
         {
-            AActor* Actor = SpawnActorByClass(ActorClass, true);
+            AActor* Actor = SpawnActorByClass(ActorClass, this, true);
             if (Actor)
             {
                 Actor->LoadAndConstruct(ActorInfo.ComponentInfos);
@@ -352,14 +352,10 @@ UWorld* UWorld::DuplicateWorldForPIE(UWorld* world)
     return new UWorld();
 }
 
-AActor* SpawnActorByName(const FString& ActorName, bool bCallBeginPlay)
+AActor* SpawnActorByName(const FString& ActorName, UObject* InOuter, bool bCallBeginPlay)
 {
-    {
-        UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorName);
-        return GEngine->GetWorld()->SpawnActorByClass(ActorClass, bCallBeginPlay);
-        
-    }
-
+    UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorName);
+    return GEngine->GetWorld()->SpawnActorByClass(ActorClass, InOuter, bCallBeginPlay);
 }
 
 /**********************************************************/

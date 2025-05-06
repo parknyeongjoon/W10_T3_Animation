@@ -41,7 +41,7 @@ void UBoxShapeComponent::TickComponent(float DeltaTime)
     }
 }
 
-UObject* UBoxShapeComponent::Duplicate() const
+UObject* UBoxShapeComponent::Duplicate()
 {
     UBoxShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<UBoxShapeComponent>(this);
     NewComp->DuplicateSubObjects(this);

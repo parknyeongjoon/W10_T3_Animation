@@ -152,7 +152,7 @@ void UStaticMeshComponent::LoadAndConstruct(const FActorComponentInfo& Info)
     SetStaticMesh(Mesh);
 
 }
-UObject* UStaticMeshComponent::Duplicate() const
+UObject* UStaticMeshComponent::Duplicate()
 {
     UStaticMeshComponent* NewComp = FObjectFactory::ConstructObjectFrom<UStaticMeshComponent>(this);
     NewComp->DuplicateSubObjects(this);

@@ -173,7 +173,7 @@ FMatrix UDirectionalLightComponent::GetCascadeProjectionMatrix(UINT CascadeIndex
         newMinY, newMaxY, nearPlane, farPlane);
 }
 
-UObject* UDirectionalLightComponent::Duplicate() const
+UObject* UDirectionalLightComponent::Duplicate()
 {
     UDirectionalLightComponent* NewComp = FObjectFactory::ConstructObjectFrom<UDirectionalLightComponent>(this);
     NewComp->DuplicateSubObjects(this);

@@ -42,7 +42,7 @@ bool ADirectionalLightActor::Destroy()
     return Super::Destroy();
 }
 
-UObject* ADirectionalLightActor::Duplicate() const
+UObject* ADirectionalLightActor::Duplicate()
 {
     ALight* NewActor = FObjectFactory::ConstructObjectFrom<ALight>(this);
     NewActor->DuplicateSubObjects(this);

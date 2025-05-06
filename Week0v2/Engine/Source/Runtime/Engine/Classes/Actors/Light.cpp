@@ -41,7 +41,7 @@ bool ALight::Destroy()
     return Super::Destroy();
 }
 
-UObject* ALight::Duplicate() const
+UObject* ALight::Duplicate()
 {
     ALight* NewActor = FObjectFactory::ConstructObjectFrom<ALight>(this);
     NewActor->DuplicateSubObjects(this);

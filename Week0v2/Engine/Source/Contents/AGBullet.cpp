@@ -109,7 +109,7 @@ void AGBullet::OnHit(const UPrimitiveComponent* Other)
         ReturnToPool();
 }
 
-UObject* AGBullet::Duplicate() const
+UObject* AGBullet::Duplicate()
 {
     AGBullet* NewActor = FObjectFactory::ConstructObjectFrom<AGBullet>(this);
     NewActor->DuplicateSubObjects(this);

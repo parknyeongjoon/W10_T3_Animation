@@ -22,7 +22,7 @@ void UFireBallComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
 }
 
-UObject* UFireBallComponent::Duplicate() const
+UObject* UFireBallComponent::Duplicate()
 {
     UFireBallComponent* NewComponent = FObjectFactory::ConstructObjectFrom<UFireBallComponent>(this);
     NewComponent->DuplicateSubObjects(this);

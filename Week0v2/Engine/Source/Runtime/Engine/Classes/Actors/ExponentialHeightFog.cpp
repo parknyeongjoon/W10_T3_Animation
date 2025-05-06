@@ -41,7 +41,7 @@ bool AExponentialHeightFogActor::Destroy()
     return Super::Destroy();
 }
 
-UObject* AExponentialHeightFogActor::Duplicate() const
+UObject* AExponentialHeightFogActor::Duplicate()
 {
     AExponentialHeightFogActor* NewActor = FObjectFactory::ConstructObjectFrom<AExponentialHeightFogActor>(this);
     NewActor->DuplicateSubObjects(this);

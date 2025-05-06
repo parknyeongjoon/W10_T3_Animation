@@ -41,7 +41,7 @@ void USphereShapeComponent::TickComponent(float DeltaTime)
     }
 }
 
-UObject* USphereShapeComponent::Duplicate() const
+UObject* USphereShapeComponent::Duplicate()
 {
     USphereShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<USphereShapeComponent>(this);
     NewComp->DuplicateSubObjects(this);
