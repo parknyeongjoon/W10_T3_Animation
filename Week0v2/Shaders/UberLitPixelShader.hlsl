@@ -624,7 +624,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float2 uvAdjusted = input.texcoord;
 
     // 기본 색상 추출  
-    float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) + float4(DiffuseColor, 1.0);  
+    float4 baseColor = Texture.Sample(linearSampler, uvAdjusted) * float4(DiffuseColor, 1.0);  
 
     if (!IsLit && !IsNormal)
     {

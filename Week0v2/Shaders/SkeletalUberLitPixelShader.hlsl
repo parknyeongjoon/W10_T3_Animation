@@ -271,7 +271,8 @@ float3 CalculateDirectionalLight(
     FDirectionalLight Light,  
     float3 Normal,  
     float3 ViewDir,  
-    float3 Albedo)  
+    float3 Albedo,
+    float2 UV)  
 {  
     // 광원 방향  
     float3 LightDir = normalize(-Light.Direction);  
@@ -283,8 +284,9 @@ float3 CalculateDirectionalLight(
     // 스페큘러 (Blinn-Phong)  
     float3 HalfVec = normalize(LightDir + ViewDir);  
     float NdotH = max(dot(Normal, HalfVec), 0.0);  
-    float Specular = pow(NdotH, SpecularScalar * 128.0) * SpecularScalar;  
-    float3 specularColor = Light.Color.rgb * Specular * SpecularColor;  
+    float Specular = pow(NdotH, SpecularScalar * 128.0) * SpecularScalar;
+    float3 SpecMap   = SpecularTexture.Sample(linearSampler, UV).rgb;
+    float3 specularColor = Light.Color.rgb * Specular * SpecularColor * SpecMap;  
 
     // 최종 광원 영향  
     return (Diffuse + specularColor) * Light.Intensity;  
@@ -295,7 +297,8 @@ float3 CalculatePointLight(
     float3 WorldPos,  
     float3 Normal,  
     float3 ViewDir,  
-    float3 Albedo)  
+    float3 Albedo,
+    float2 UV)  
 {  
     // 광원 거리/방향  
     float3 LightDir = Light.Position - WorldPos;
@@ -322,7 +325,8 @@ float3 CalculatePointLight(
     float3 HalfVec = normalize(LightDir + ViewDir);  
     float NdotH = max(dot(Normal, HalfVec), 0.0);  
     float Specular = pow(NdotH, SpecularScalar * 128.0) * SpecularScalar;
-    float3 specularColor = Light.Color.rgb * Specular * SpecularColor;
+    float3 SpecMap   = SpecularTexture.Sample(linearSampler, UV).rgb;
+    float3 specularColor = Light.Color.rgb * Specular * SpecularColor * SpecMap;
 
     return (Diffuse + specularColor) * Light.Intensity * Attenuation;  
 }
@@ -332,7 +336,8 @@ float3 CalculateSpotLight(
     float3 WorldPos,
     float3 Normal,
     float3 ViewDir,
-    float3 Albedo)
+    float3 Albedo,
+    float2 UV)
 {
     // 조명 방향 벡터 (광원 위치 → 픽셀)
     float3 LightDir = normalize(Light.Position - WorldPos);
@@ -363,7 +368,8 @@ float3 CalculateSpotLight(
     float3 HalfVec = normalize(SpotDirection + ViewDir);
     float NdotH = max(dot(Normal, HalfVec), 0.0);
     float Specular = pow(NdotH, SpecularScalar * 128.0) * SpecularScalar;
-    float3 specularColor = Light.Color.rgb * Specular * SpecularColor;
+    float3 SpecMap   = SpecularTexture.Sample(linearSampler, UV).rgb;
+    float3 specularColor = Light.Color.rgb * Specular * SpecularColor * SpecMap;
 
     return (Diffuse + specularColor) * Light.Intensity * SpotAttenuation * DistanceAttenuation;
 }
@@ -624,109 +630,123 @@ PS_OUTPUT mainPS(PS_INPUT input)
     PS_OUTPUT output;
     float2 uv = input.texcoord;
 
-    // 1) 모든 맵 샘플링
-    float4 albedoMap     = DiffuseTexture.Sample(linearSampler, uv);
-    float3 ambientMap    = AmbientTexture.Sample(linearSampler, uv).rgb;
-    float3 specularMap   = SpecularTexture.Sample(linearSampler, uv).rgb;
-    float3 bumpMap       = BumpTexture.Sample(linearSampler, uv).rgb;
-    float  alphaMap      = AlphaTexture.Sample(linearSampler, uv).r;
-    float3 normalMapBase = NormalTexture.Sample(linearSampler, uv).rgb;
-
-    // 2) 알베도·알파 계산
-    float3 albedo     = albedoMap.rgb + DiffuseColor;  
-    float  outAlpha   = albedoMap.a * TransparencyScalar * alphaMap;
-
-    // 3) 노말 디버그 모드
-    if (IsNormal == 1)
+    float4 baseColor = DiffuseTexture.Sample(linearSampler, uv) * float4(DiffuseColor, 1.0);  
+    if (!IsLit && !IsNormal)
     {
-        // 노말을 [0,1]로 매핑해서 출력
-        float3 nn = normalize(mul(normalMapBase * 2.0 - 1.0, input.TBN));
-        output.color = float4(nn * 0.5 + 0.5, 1.0);
+        output.color = float4(baseColor.rgb, 1.0);
         return output;
     }
-
-    // 4) 라이팅 꺼진(Unlit) 모드
-    if (IsLit == 0)
-    {
-        float3 col = albedo;
-        if (IsSelectedActor == 1) col *= 5.0;    // 선택 강조
-        output.color = float4(col, outAlpha);
-        return output;
-    }
-    
-    // 기본 색상 추출  
-    // float4 baseColor = DiffuseTexture.Sample(linearSampler, uv) + float4(DiffuseColor, 1.0);  
-    //
-    // if (!IsLit && !IsNormal)
-    // {
-    //     output.color = float4(baseColor.rgb, 1.0);
-    //     return output;
-    // }
     
 #if LIGHTING_MODEL_GOURAUD
-    // a) Gouraud: 버텍스에서 계산된 컬러가 없으므로 그냥 알베도만
-    float3 gouraudCol = albedo;
-    if (IsSelectedActor == 1) gouraudCol *= 5.0;
-    output.color = float4(gouraudCol, outAlpha);
+    if (IsSelectedActor == 1)
+        input.color *= 5;
+
+    output.color = float4(baseColor.rgb * input.color.rgb, 1.0);
     return output;
 #endif
-    // b) Pixel 셰이딩: 범프+노말 매핑 → 라이팅 계산
+    // Bump (Height)
+    float height = BumpTexture.Sample(linearSampler, uv).r;
+    float scale = 0.05;
+    float2 viewDir = normalize((CameraPos - input.worldPos).xy);
+    float2 pUV = uv + viewDir * ((height - 0.5) * scale);
     
-    // b-1) 법선 보정 (기본 노말 ↔ 범프 노말 블렌딩)
-    float3 n0 = normalize(normalMapBase * 2.0 - 1.0);
-    float3 n1 = normalize(bumpMap       * 2.0 - 1.0);
-    float  bumpStrength = 0.5;  // 필요 시 cbuffer에 넣기
-    float3 N = normalize(lerp(n0, n1, bumpStrength));
-    N = normalize(mul(N, input.TBN));
+    // Normal
+    float4 normalTex = ((NormalTexture.Sample(linearSampler, pUV)- 0.5) * 2);
 
-    // b-2) 뷰 방향
-    float3 V = normalize(CameraPos - input.worldPos);
-
-    // b-3) 앰비언트 + 자체 발광
-    float3 Lsum = ambientMap * MatAmbientColor + EmissiveColor;
-    if (IsSelectedActor == 1) 
-        Lsum *= 10.0;  // 선택 강조
-
-    // b-4) 디렉셔널 라이트
+    float2 tileSize = float2(TILE_SIZE_X, TILE_SIZE_Y);
+    
+    uint2 pixelCoord = uint2(input.position.xy);
+    uint2 tileCoord = pixelCoord / tileSize; // 각 성분별 나눔
+    uint tileIndex = tileCoord.x + tileCoord.y * numTilesX;
+    
+    float3 Normal = input.normal;
+    Normal = normalize(mul(normalTex.rgb, input.TBN));
+    if (length(Normal) < 0.001) // tangent 값이 없을때 ( uv 없을때 )
     {
-        float3 Ld = CalculateDirectionalLight(DirLight, N, V, albedo);
-        if (DirLight.CastShadow)
-            Ld *= 1.0 - CalculateDirectionalShadow(input.worldPos, N);
-        Lsum += Ld;
+        Normal = input.normal;
+    } 
+    
+    if (IsNormal)
+    {
+        //Normal = input.normal;
+        Normal = Normal * 0.5 + 0.5;
+        output.color = float4(Normal.rgb, 1.0);
+        return output;
     }
+    
+    float3 ViewDir = normalize(CameraPos - input.worldPos); // CameraPos도 안 들어오고, ViewDir은 카메라의 Foward 아닌가요?
 
-    // b-5) 포인트 라이트
-    [unroll]
-    for (uint i = 0; i < NumPointLights; ++i)
+    // Ambient
+    float3 ambientTex = AmbientTexture.Sample(linearSampler, uv).rgb;
+    float3 TotalLight = ambientTex * MatAmbientColor;
+    // TODO : Lit이면 낮은 값 Unlit이면 float3(1.0f,1.0f,1.0f)면 됩니다.
+    //float3 TotalLight = float3(0.0f, 0.0f, 0.0f); // 전역 앰비언트  
+
+    // Selected
+    if (IsSelectedActor == 1)
+        TotalLight = TotalLight * 10.0f;
+    TotalLight += EmissiveColor;
+
+    // DirectionalLight
+    float3 DirLightColor = CalculateDirectionalLight(DirLight, Normal, ViewDir, baseColor.rgb, uv);
+    if (length(DirLightColor) > 0.0 && DirLight.CastShadow)
     {
-        float3 Lp = CalculatePointLight(PointLights[i], input.worldPos, N, V, albedo);
-        // 스페큘러 텍스처 추가
-        float NdL = max(dot(N, normalize(PointLights[i].Position - input.worldPos)), 0);
-        Lp += specularMap * pow(NdL, SpecularScalar * 128.0);
-        if (PointLights[i].CastShadow)
-            Lp *= CalculatePointLightShadow(input.worldPos, input.normal, PointLights[i], i);
-        Lsum += Lp;
+        float dirShadow = CalculateShadow(input.worldPos, float3(0, 0, 0) - DirLight.Direction, Normal, DirLight.Direction, DirLight.View[0], DirLight.Projection[0], DirectionalLightShadowMap[0]);
+        DirLightColor *= (1 - dirShadow);
     }
+    TotalLight += DirLightColor;
 
-    // b-6) 스포트 라이트
-    [unroll]
-    for (uint i = 0; i < NumSpotLights; ++i)
+    // PointLight
+    for(uint j=0; j<NumPointLights; ++j)
     {
-        float3 Ls = CalculateSpotLight(SpotLights[i], input.worldPos, N, V, albedo);
-        float NdL = max(dot(N, normalize(-SpotLights[i].Direction)), 0);
-        Ls += specularMap * pow(NdL, SpecularScalar * 128.0);
-        if (SpotLights[i].CastShadow)
+        //uint listIndex = tileIndex * MAX_POINTLIGHT_COUNT + j;
+        //uint lightIndex = TileLightIndices[listIndex];
+        //if (lightIndex == 0xFFFFFFFF)
+        //{
+        //    break;
+        //}
+        float Shadow = 1.0;
+        float3 LightColor = CalculatePointLight(PointLights[j], input.worldPos, Normal, ViewDir, baseColor.rgb, uv);
+        if (length(LightColor) > 0.0 && PointLights[j].CastShadow)
         {
-            float sh = IsVSM
-                ? CalculateSpotLightVSMShadowAtlas(SpotLights[i], SpotLights[i].Position, input.worldPos, N, SpotLights[i].Direction, SpotLights[i].View, SpotLights[i].Proj)
-                : CalculateSpotLightShadowAtlas(SpotLights[i], SpotLights[i].Position, input.worldPos, N, SpotLights[i].Direction, SpotLights[i].View, SpotLights[i].Proj);
-            Ls *= (IsVSM ? 1.0 : (1.0 - sh));
+            Shadow = CalculatePointLightShadow(input.worldPos, input.normal, PointLights[j], j);
         }
-        Lsum += Ls;
+        
+        TotalLight += LightColor * Shadow;
     }
 
-    // b-7) 최종 컬러
-    float3 finalCol = Lsum * albedo;
-    output.color = float4(finalCol, outAlpha);
+    // SpotLight
+    for (uint k = 0; k < NumSpotLights; ++k)
+    {
+        float3 SpotLightColor = CalculateSpotLight(SpotLights[k], input.worldPos, input.normal, ViewDir, baseColor.rgb, uv);
+        if (length(SpotLightColor) > 0.0 && SpotLights[k].CastShadow)
+        {
+            if (IsVSM)
+            {
+                float SpotShadow = CalculateSpotLightVSMShadowAtlas(SpotLights[k], SpotLights[k].Position, input.worldPos,
+                Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj);
+                SpotLightColor *= (SpotShadow);
+            }
+            else
+            {
+                float SpotShadow = CalculateSpotLightShadowAtlas(SpotLights[k], SpotLights[k].Position, input.worldPos,
+                Normal, SpotLights[k].Direction, SpotLights[k].View, SpotLights[k].Proj);
+                SpotLightColor *= (1 - SpotShadow);
+            }
+        }
+        TotalLight += SpotLightColor;
+    }
+
+    // Alpha
+    float alphaMap = AlphaTexture.Sample(linearSampler, uv).r;
+    float finalAlpha = alphaMap * TransparencyScalar;
+    
+    // Final Color
+    float4 FinalColor = float4(
+        TotalLight * baseColor.rgb,  // RGB
+        finalAlpha                   // 알파
+    );
+    output.color = FinalColor;
+    
     return output;
 }

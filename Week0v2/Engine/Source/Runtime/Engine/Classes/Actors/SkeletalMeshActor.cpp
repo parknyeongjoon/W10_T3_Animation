@@ -6,6 +6,6 @@ ASkeletalMeshActor::ASkeletalMeshActor()
 {
     USkeletalMeshComponent* SkeletalMeshComp = AddComponent<USkeletalMeshComponent>(EComponentOrigin::Editor);
     
-    USkeletalMesh* SkeletalMesh = TestFBXLoader::CreateSkeletalMesh(TEXT("FBX/Monster.fbx"));
+    USkeletalMesh* SkeletalMesh = TestFBXLoader::CreateSkeletalMesh(TEXT("FBX/Wizard.fbx"));
     SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
 }
