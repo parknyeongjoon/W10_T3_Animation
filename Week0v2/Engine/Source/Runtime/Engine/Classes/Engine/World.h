@@ -88,9 +88,6 @@ private:
     
     APlayerCameraManager* PlayerCameraManager = nullptr;
 public:
-
-
-    
     EWorldType::Type WorldType = EWorldType::None;
     const TArray<AActor*>& GetActors() const { return Level->GetActors(); }
     ULevel* GetLevel() const { return Level; }

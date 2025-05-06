@@ -768,6 +768,8 @@ void PropertyEditorPanel::Render()
 
             ImGui::TreePop();
         }
+
+        
     }
 
     RenderShapeProperty(PickedActor);
@@ -911,9 +913,9 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
     ImGui::PopStyleColor();
 }
 
-void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMesh)
+void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp)
 {
-    if (SkeletalMesh->GetSkeletalMesh() == nullptr)
+    if (SkeletalMeshComp->GetSkeletalMesh() == nullptr)
     {
         return;
     }
@@ -924,22 +926,23 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         ImGui::Text("Skeletal Mesh");
         ImGui::SameLine();
 
-        // FString PreviewName = SkeletalMesh->GetSkeletalMesh()->GetRenderData()->Name;
-        // const TMap<FName, USkeletalMesh*> Meshes = TestFBXLoader::GetSkeletalMesh();
-        // if (ImGui::BeginCombo("##StaticMesh", GetData(PreviewName), ImGuiComboFlags_None))
-        // {
-        //     for (const auto Mesh : Meshes)
-        //     {
-        //         if (ImGui::Selectable(GetData(Mesh.Value->GetRenderData()->DisplayName), false))
-        //         {
-        //             StaticMeshComp->SetStaticMesh(Mesh.Value);
-        //         }
-        //     }
-        //
-        //     ImGui::EndCombo();
-        // }
+        FString PreviewName = SkeletalMeshComp->GetSkeletalMesh()->GetRenderData()->Name;
+        const TMap<FString, USkeletalMesh*> Meshes = TestFBXLoader::GetSkeletalMeshes();
+        if (ImGui::BeginCombo("##StaticMesh", GetData(PreviewName), ImGuiComboFlags_None))
+        {
+            for (const auto Mesh : Meshes)
+            {
+                if (ImGui::Selectable(GetData(Mesh.Value->GetRenderData()->Name), false))
+                {
+                    SkeletalMeshComp->SetSkeletalMesh(Mesh.Value);
+                }
+            }
+            ImGui::EndCombo();
+        }
 
-        for (const auto& Bone : SkeletalMesh->GetSkeletalMesh()->GetRenderData()->Bones)
+        ImGui::Separator();
+
+        for (const auto& Bone : SkeletalMeshComp->GetSkeletalMesh()->GetRenderData()->Bones)
         {
             ImGui::Text(GetData("Bone" + Bone.BoneName));
         }
@@ -948,7 +951,6 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
     }
     ImGui::PopStyleColor();
 }
-
 
 void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp)
 {
@@ -1009,7 +1011,7 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
 
     if (SelectedMaterialIndex != -1)
     {
-        RenderMaterialView(SelectedStaticMeshComp->GetMaterial(SelectedMaterialIndex));
+        RenderMaterialView(SelectedStaticMeshComp->GetMaterial(SelectedMaterialIndex), true);
     }
     if (IsCreateMaterial) {
         RenderCreateMaterialView();
@@ -1075,14 +1077,14 @@ void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMesh
 
     if (SelectedMaterialIndex != -1)
     {
-        RenderMaterialView(SelectedStaticMeshComp->GetMaterial(SelectedMaterialIndex));
+        RenderMaterialView(SelectedSkeletalMeshComp->GetMaterial(SelectedMaterialIndex), false);
     }
     if (IsCreateMaterial) {
         RenderCreateMaterialView();
     }
 }
 
-void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
+void PropertyEditorPanel::RenderMaterialView(UMaterial* Material, bool IsStaticMesh)
 {
     ImGui::SetNextWindowSize(ImVec2(380, 400), ImGuiCond_Once);
     ImGui::Begin("Material Viewer", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav);
@@ -1165,7 +1167,8 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
 
     ImGui::Text("Material Slot Name |");
     ImGui::SameLine();
-    ImGui::Text(GetData(SelectedStaticMeshComp->GetMaterialSlotNames()[SelectedMaterialIndex].ToString()));
+    TArray<FName> slotNames = IsStaticMesh ?  SelectedStaticMeshComp->GetMaterialSlotNames() : SelectedSkeletalMeshComp->GetMaterialSlotNames();
+    ImGui::Text(GetData(slotNames[SelectedMaterialIndex].ToString()));
 
     ImGui::Text("Override Material |");
     ImGui::SameLine();
@@ -1603,7 +1606,6 @@ void PropertyEditorPanel::RenderDelegate(ULevel* level)
         }
     }
 }
-
 
 void PropertyEditorPanel::OnResize(HWND hWnd)
 {

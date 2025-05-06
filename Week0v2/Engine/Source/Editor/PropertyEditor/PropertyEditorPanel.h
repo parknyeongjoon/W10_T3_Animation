@@ -23,12 +23,12 @@ private:
 
     /* Static Mesh Settings */
     void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp);
-    void RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMesh);
+    void RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp);
     
     /* Materials Settings */
     void RenderForMaterial(UStaticMeshComponent* StaticMeshComp);
     void RenderForMaterial(USkeletalMeshComponent* SkeletalMeshComp);
-    void RenderMaterialView(UMaterial* Material);
+    void RenderMaterialView(UMaterial* Material, bool IsStaticMesh);
     void RenderCreateMaterialView();
 
     void RenderForLua(class ULuaComponent* LuaComponent);
