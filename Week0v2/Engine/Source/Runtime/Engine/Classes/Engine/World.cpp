@@ -59,38 +59,6 @@ void UWorld::CreateBaseObject()
     }
     
     PlayerCameraManager = SpawnActor<APlayerCameraManager>();
-
-    // AActor* SkeletalActor = SpawnActor<AActor>();
-    // USkeletalMeshComponent* SkeletalMeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>(EComponentOrigin::Editor);
-    // USkeletalMesh* SkeletalMesh = TestFBXLoader::CreateSkeletalMesh(TEXT("FBX/Monster.fbx"));
-    // SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
-    
-    // FMatrix testMatrix = FMatrix::CreateRotationMatrix(30,0,0) * SkeletalMesh->GetRenderData()->Bones[0].LocalTransform;
-    // SkeletalMesh->GetRenderData()->Bones[0].LocalTransform = testMatrix;
-    
-    // SkeletalMeshComp->GetSkeletalMesh()->UpdateBoneHierarchy();
-    //
-    // for (auto& Vertex : SkeletalMesh->GetRenderData()->Vertices)
-    // {
-    //     Vertex.TranslateVertexByBone(SkeletalMesh->GetRenderData()->Bones);
-    // }
-    //
-    // SkeletalMesh->SetData(SkeletalMesh->GetRenderData());
-
-    // const auto rscManager = GEngineLoop.Renderer.GetResourceManager();
-    // const auto VB = rscManager->GetVertexBuffer(SkeletalMesh->GetRenderData()->Name);
-    // rscManager->UpdateDynamicVertexBuffer(VB, &SkeletalMesh->GetRenderData()->Vertices, SkeletalMesh->GetRenderData()->Vertices.Num());
-    
-    // for (const auto& Bone : SkeletalMesh->GetRenderData()->Bones)
-    // {
-    //     AActor* BonePos = SpawnActor<AActor>();
-    //     BonePos->AddComponent<USceneComponent>(EComponentOrigin::Runtime);
-    //     auto temp = BonePos->AddComponent<UStaticMeshComponent>(EComponentOrigin::Runtime);
-    //     FManagerOBJ::CreateStaticMesh("Contents/helloBlender.obj");
-    //     temp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"helloBlender.obj"));
-    //     BonePos->SetActorLocation(Bone.GlobalTransform.GetTranslationVector());
-    //     BonePos->SetActorScale(FVector(0.1,0.1,0.1));
-    // }
 }
 
 

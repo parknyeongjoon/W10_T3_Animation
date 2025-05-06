@@ -2,12 +2,6 @@
 #include "Components/Material/Material.h"
 #include "Engine/FLoaderOBJ.h"
 
-TMap<FString, USkeletalMesh*> TestFBXLoader::SkeletalMeshMap;
-TMap<FName, FSkeletalMeshRenderData*> TestFBXLoader::SkeletalMeshData;
-TMap<FString, UMaterial*> TestFBXLoader::MaterialMap;
-bool TestFBXLoader::bInitialized = false;
-FbxManager* TestFBXLoader::FbxManager = nullptr;
-
 bool TestFBXLoader::InitFBXManager()
 {
     if (bInitialized)
