@@ -76,15 +76,15 @@ int USkeletalMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& ra
     int nIntersections = 0;
     if (SkeletalMesh == nullptr) return 0;
 
-    FSkeletalMeshRenderData* renderData = SkeletalMesh->GetRenderData();
+    FSkeletalMeshRenderData renderData = SkeletalMesh->GetRenderData();
 
-    FSkeletalVertex* vertices = renderData->Vertices.GetData();
-    int vCount = renderData->Vertices.Num();
-    UINT* indices = renderData->Indices.GetData();
-    int iCount = renderData->Indices.Num();
+    FSkeletalVertex* vertices = renderData.Vertices.GetData();
+    int vCount = renderData.Vertices.Num();
+    UINT* indices = renderData.Indices.GetData();
+    int iCount = renderData.Indices.Num();
 
     if (!vertices) return 0;
-    BYTE* pbPositions = reinterpret_cast<BYTE*>(renderData->Vertices.GetData());
+    BYTE* pbPositions = reinterpret_cast<BYTE*>(renderData.Vertices.GetData());
 
     int nPrimitives = (!indices) ? (vCount / 3) : (iCount / 3);
     float fNearHitDistance = FLT_MAX;
@@ -124,25 +124,29 @@ void USkeletalMeshComponent::SetSkeletalMesh(USkeletalMesh* value)
 { 
     SkeletalMesh = value;
     OverrideMaterials.SetNum(value->GetMaterials().Num());
-    AABB = SkeletalMesh->GetRenderData()->BoundingBox;
-    VBIBTopologyMappingName = SkeletalMesh->GetRenderData()->Name;
+    AABB = SkeletalMesh->GetRenderData().BoundingBox;
+    VBIBTopologyMappingName = SkeletalMesh->GetRenderData().Name;
 }
 
-void USkeletalMeshComponent::UpdateBornHierarchy()
+void USkeletalMeshComponent::UpdateBoneHierarchy()
 {
+    for (int i=0;i<SkeletalMesh->GetRenderData().Vertices.Num();i++)
+    {
+         SkeletalMesh->GetRenderData().Vertices[i].Position = SkeletalMesh->GetRefSkeletal()->RawVertices[i].Position;
+    }
     SkeletalMesh->UpdateBoneHierarchy();
     SkinningVertex();
 }
 
 void USkeletalMeshComponent::SkinningVertex()
 {
-    for (auto& Vertex : SkeletalMesh->GetRenderData()->Vertices)
+    for (auto& Vertex : SkeletalMesh->GetRenderData().Vertices)
     {
-        Vertex.SkinningVertex(SkeletalMesh->GetRenderData()->Bones);
+        Vertex.SkinningVertex(SkeletalMesh->GetRenderData().Bones);
     }
 
     TestFBXLoader::UpdateBoundingBox(SkeletalMesh->GetRenderData());
-    AABB = SkeletalMesh->GetRenderData()->BoundingBox;
+    AABB = SkeletalMesh->GetRenderData().BoundingBox;
 
     SkeletalMesh->SetData(SkeletalMesh->GetRenderData(), SkeletalMesh->GetRefSkeletal()); // TODO: Dynamic VertexBuffer Update하게 바꾸기
 }

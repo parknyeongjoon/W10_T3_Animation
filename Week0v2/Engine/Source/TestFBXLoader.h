@@ -11,11 +11,12 @@ public:
     bool InitFBXManager();
     static bool InitFBX(const FString& FilePath);
     
-    static FSkeletalMeshRenderData* GetSkeletalMesh(FString FilePath);
+    static FSkeletalMeshRenderData* GetSkeletalRenderData(FString FilePath);
+    static FSkeletalMeshRenderData GetCopiedSkeletalRenderData(FString FilePath);
     static TMap<FName, FSkeletalMeshRenderData*> GetAllSkeletalMeshes() { return SkeletalMeshData; }
     static FRefSkeletal* GetRefSkeletal(FString FilePath);
     static TMap<FName, FRefSkeletal*> GetAllRefSkeletals() { return RefSkeletalData; }
-    static void UpdateBoundingBox(FSkeletalMeshRenderData* MeshData);
+    static void UpdateBoundingBox(FSkeletalMeshRenderData MeshData);
     
 private:
     static void ExtractFBXMeshData(const FbxScene* Scene, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal);
@@ -27,7 +28,7 @@ private:
     static void ExtractSkinningData(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal, int BaseVertexIndex);
     static void ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal, int BaseVertexIndex);
     static void ExtractIndices(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData);
-    static void ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData);
+    static void ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal);
 
 
 private:

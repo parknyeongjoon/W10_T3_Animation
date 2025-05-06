@@ -68,10 +68,10 @@ void TestFBXLoader::ExtractMeshFromNode(FbxNode* Node, FSkeletalMeshRenderData* 
         ExtractIndices(Mesh, MeshData);
         
         // 머테리얼 데이터 추출
-        ExtractMaterials(Node, Mesh, MeshData);
+        ExtractMaterials(Node, Mesh, MeshData, RefSkeletal);
         
         // 바운딩 박스 업데이트
-        UpdateBoundingBox(MeshData);
+        UpdateBoundingBox(*MeshData);
     }
 
     // 자식 노드들에 대해 재귀적으로 수행
@@ -119,6 +119,13 @@ void TestFBXLoader::ExtractVertices(FbxMesh* Mesh, FSkeletalMeshRenderData* Mesh
 
     // 스키닝 정보 추출 (bone weight 추출)
     ExtractSkinningData(Mesh, MeshData, RefSkeletal, BaseVertexIndex);
+
+    for (int i=0;i<VertexCount;i++)
+    {
+        FSkeletalVertex Vertex;
+        Vertex = MeshData->Vertices[i];
+        RefSkeletal->RawVertices.Add(Vertex);
+    }
 }
 
 void TestFBXLoader::ExtractNormals(FbxMesh* Mesh, FSkeletalMeshRenderData* RenderData, int BaseVertexIndex)
@@ -504,7 +511,7 @@ void TestFBXLoader::ExtractIndices(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshD
     }
 }
 
-void TestFBXLoader::ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData)
+void TestFBXLoader::ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal)
 {
     int MaterialCount = Node->GetMaterialCount();
     int BaseIndexOffset = MeshData->Indices.Num();
@@ -529,7 +536,7 @@ void TestFBXLoader::ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMesh
         UMaterial* Material = FManagerOBJ::GetMaterial(MaterialName);
         
         // 재질 추가
-        int MaterialIndex = MeshData->Materials.Add(Material);
+        int MaterialIndex = RefSkeletal->Materials.Add(Material);
         
         // 폴리곤을 순회하며 현재 재질에 해당하는 폴리곤 수 계산
         int PolygonCount = Mesh->GetPolygonCount();
@@ -552,7 +559,7 @@ void TestFBXLoader::ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMesh
         Subset.IndexStart = BaseIndexOffset; // 시작 인덱스
         Subset.MaterialName = MaterialName;
         Subset.IndexCount = TriangleCount * 3; // 삼각형 당 인덱스 3개
-        MeshData->MaterialSubsets.Add(Subset);
+        RefSkeletal->MaterialSubsets.Add(Subset);
 
         BaseIndexOffset += TriangleCount * 3;
     }
@@ -561,7 +568,7 @@ void TestFBXLoader::ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMesh
     if (MaterialCount == 0)
     {
         UMaterial* DefaultMaterial = FManagerOBJ::GetDefaultMaterial();
-        int MaterialIndex = MeshData->Materials.Add(DefaultMaterial);
+        int MaterialIndex = RefSkeletal->Materials.Add(DefaultMaterial);
         
         FMaterialSubset Subset;
         Subset.MaterialName = DefaultMaterial->GetName();
@@ -569,23 +576,23 @@ void TestFBXLoader::ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMesh
         Subset.IndexStart = BaseIndexOffset;
         Subset.IndexCount = MeshData->Indices.Num() - BaseIndexOffset;
         
-        MeshData->MaterialSubsets.Add(Subset);
+        RefSkeletal->MaterialSubsets.Add(Subset);
     }
 }
 
-void TestFBXLoader::UpdateBoundingBox(FSkeletalMeshRenderData* MeshData)
+void TestFBXLoader::UpdateBoundingBox(FSkeletalMeshRenderData MeshData)
 {
-    if (MeshData->Vertices.Num() == 0)
+    if (MeshData.Vertices.Num() == 0)
         return;
         
     // 초기값 설정
-    FVector Min = MeshData->Vertices[0].Position.xyz();
-    FVector Max = MeshData->Vertices[0].Position.xyz();
+    FVector Min = MeshData.Vertices[0].Position.xyz();
+    FVector Max = MeshData.Vertices[0].Position.xyz();
     
     // 모든 정점을 순회하며 최소/최대값 업데이트
-    for (int i = 1; i < MeshData->Vertices.Num(); i++)
+    for (int i = 1; i < MeshData.Vertices.Num(); i++)
     {
-        const FVector& Pos = MeshData->Vertices[i].Position.xyz();
+        const FVector& Pos = MeshData.Vertices[i].Position.xyz();
         
         // 최소값 갱신
         Min.X = FMath::Min(Min.X, Pos.X);
@@ -599,11 +606,11 @@ void TestFBXLoader::UpdateBoundingBox(FSkeletalMeshRenderData* MeshData)
     }
     
     // 바운딩 박스 설정
-    MeshData->BoundingBox.min = Min;
-    MeshData->BoundingBox.max = Max;
+    MeshData.BoundingBox.min = Min;
+    MeshData.BoundingBox.max = Max;
 }
 
-FSkeletalMeshRenderData* TestFBXLoader::GetSkeletalMesh(FString FilePath)
+FSkeletalMeshRenderData* TestFBXLoader::GetSkeletalRenderData(FString FilePath)
 {
     // TODO: 폴더에서 가져올 수 있으면 가져오기
     if (SkeletalMeshData.Contains(FilePath))
@@ -612,6 +619,18 @@ FSkeletalMeshRenderData* TestFBXLoader::GetSkeletalMesh(FString FilePath)
     }
     
     return nullptr;
+}
+
+FSkeletalMeshRenderData TestFBXLoader::GetCopiedSkeletalRenderData(FString FilePath)
+{
+    // 있으면 가져오고
+    FSkeletalMeshRenderData* OriginRenderData = SkeletalMeshData[FilePath];
+    if (OriginRenderData != nullptr)
+    {
+        return *OriginRenderData;
+    }
+    // 없으면 기본 생성자
+    return {};
 }
 
 FRefSkeletal* TestFBXLoader::GetRefSkeletal(FString FilePath)

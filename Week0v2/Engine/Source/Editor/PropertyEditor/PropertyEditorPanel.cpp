@@ -955,7 +955,7 @@ void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int B
 {
     for (const auto& ChildBoneIndex : SkeletalMesh->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices)
     {
-        const FString& boneName = SkeletalMesh->GetRenderData()->Bones[ChildBoneIndex].BoneName;
+        const FString& boneName = SkeletalMesh->GetRenderData().Bones[ChildBoneIndex].BoneName;
         
         // 고유 ID 생성 (뼈 인덱스를 사용)
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
@@ -986,8 +986,8 @@ void PropertyEditorPanel::OnBoneSelected(USkeletalMesh* SkeletalMesh, int BoneIn
     // 선택된 뼈 정보 저장
     SelectedBoneIndex = BoneIndex;
     // 여기에 선택된 뼈에 대한 추가 작업 수행
-    FMatrix temp = SkeletalMesh->GetRenderData()->Bones[BoneIndex].LocalTransform * FMatrix::CreateRotationMatrix(30,0,0);
-    SkeletalMesh->GetRenderData()->Bones[BoneIndex].LocalTransform = temp;
+    FMatrix temp = SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform * FMatrix::CreateRotationMatrix(30,0,0);
+    SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform = temp;
     SkeletalMesh->UpdateBoneHierarchy();
     SkeletalMesh->SetData(SkeletalMesh->GetRenderData(), SkeletalMesh->GetRefSkeletal());
 }
@@ -1090,7 +1090,7 @@ void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMesh
 
     if (ImGui::TreeNodeEx("SubMeshes", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
-        auto subsets = SkeletalMeshComp->GetSkeletalMesh()->GetRenderData()->MaterialSubsets;
+        auto subsets = SkeletalMeshComp->GetSkeletalMesh()->GetRefSkeletal()->MaterialSubsets;
         for (uint32 i = 0; i < subsets.Num(); ++i)
         {
             std::string temp = "subset " + std::to_string(i);

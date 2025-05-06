@@ -1,7 +1,5 @@
 ﻿#include "FBXDefine.h"
 
-#include "TestFBXLoader.h"
-
 FVector FSkeletalVertex::SkinVertexPosition(const TArray<FBone>& bones) const
 {
     FVector result = {0.0f, 0.0f, 0.0f};

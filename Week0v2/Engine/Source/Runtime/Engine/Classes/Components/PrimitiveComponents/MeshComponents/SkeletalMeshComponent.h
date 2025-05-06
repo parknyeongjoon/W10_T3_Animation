@@ -28,7 +28,7 @@ public:
     
     USkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
     void SetSkeletalMesh(USkeletalMesh* value);
-    void UpdateBornHierarchy();
+    void UpdateBoneHierarchy();
 
     // std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
     // virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;

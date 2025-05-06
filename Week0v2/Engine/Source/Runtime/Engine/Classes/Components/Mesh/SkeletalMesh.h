@@ -10,16 +10,16 @@ public:
     USkeletalMesh() = default;
     virtual ~USkeletalMesh() override = default;
 
-    FSkeletalMeshRenderData* GetRenderData() const { return SkeletalMeshRenderData; }
+    FSkeletalMeshRenderData& GetRenderData() { return SkeletalMeshRenderData; }
     FRefSkeletal* GetRefSkeletal() const { return RefSkeletal;}
     const TArray<FMaterialSlot*>& GetMaterials() const { return MaterialSlots; }
     uint32 GetMaterialIndex(FName MaterialSlotName) const;
     void GetUsedMaterials(TArray<UMaterial*>& Out) const;
-    void SetData(FString FilePath);
+    void SetData(const FString& FilePath);
 
-    void SetData(FSkeletalMeshRenderData* InRenderData, FRefSkeletal* InRefSkeletal);
+    void SetData(const FSkeletalMeshRenderData& InRenderData, FRefSkeletal* InRefSkeletal);
     
-    void UpdateBoneHierarchy() const;
+    void UpdateBoneHierarchy();
 public:
 
     // 정점 스키닝을 업데이트하는 함수
@@ -37,9 +37,9 @@ public:
     void ProcessBoneRotationInput(float DeltaTime);
 
 private:
-    FSkeletalMeshRenderData* SkeletalMeshRenderData = nullptr;
+    FSkeletalMeshRenderData SkeletalMeshRenderData;
     FRefSkeletal* RefSkeletal = nullptr;
     TArray<FMaterialSlot*> MaterialSlots;
 
-    void UpdateChildBones(int ParentIndex) const;
+    void UpdateChildBones(int ParentIndex);
 };

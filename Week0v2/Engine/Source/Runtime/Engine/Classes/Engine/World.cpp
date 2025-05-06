@@ -70,14 +70,15 @@ void UWorld::CreateBaseObject()
     SkeletalMesh->SetData("NyeongFBX.fbx");
     
     SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
-
+    SkeletalMeshComp->UpdateBoneHierarchy();
+    
     SkeletalMesh->ApplyRotationToBone(SkeletalMesh->FindBoneIndexByName("Spine"), -60.f, FVector(1, 0, 0));
-    SkeletalMesh->ApplyRotationToBone(SkeletalMesh->FindBoneIndexByName("f_index.01.L"), -60.f, FVector(1, 0, 0));
-
-    SkeletalMeshComp->UpdateBornHierarchy();
+    SkeletalMeshComp->UpdateBoneHierarchy();
+    // SkeletalMesh->ApplyRotationToBone(SkeletalMesh->FindBoneIndexByName("f_index.01.L"), -60.f, FVector(1, 0, 0));
+    // SkeletalMeshComp->UpdateBornHierarchy();
     
     // 본 시각화
-    for (const auto& Bone : SkeletalMesh->GetRenderData()->Bones)
+    for (const auto& Bone : SkeletalMesh->GetRenderData().Bones)
     {
         AActor* BonePos = SpawnActor<AActor>();
         BonePos->AddComponent<USceneComponent>(EComponentOrigin::Runtime);

@@ -31,8 +31,9 @@ struct FSkeletalVertex
     int32 BoneIndices[4];
     float BoneWeights[4];
 
-    FVector SkinVertexPosition(const TArray<FBone>& bones) const;
     void SkinningVertex(const TArray<FBone>& bones);
+private:
+    FVector SkinVertexPosition(const TArray<FBone>& bones) const;
 };
 
 
@@ -44,15 +45,15 @@ struct FRefSkeletal
     TArray<FBoneNode> BoneTree;
     TArray<int> RootBoneIndices;  // Indices of root bones (no parents)
     TMap<FString, int> BoneNameToIndexMap;  // For quick lookups
+    TArray<UMaterial*> Materials;
+    TArray<FMaterialSubset> MaterialSubsets;
 };
 
 struct FSkeletalMeshRenderData
 {
-    FString Name;
+    FString Name = "Empty";
     TArray<FSkeletalVertex> Vertices;
     TArray<uint32> Indices;
     TArray<FBone> Bones;
-    TArray<UMaterial*> Materials;
-    TArray<FMaterialSubset> MaterialSubsets;
     FBoundingBox BoundingBox;
 };
