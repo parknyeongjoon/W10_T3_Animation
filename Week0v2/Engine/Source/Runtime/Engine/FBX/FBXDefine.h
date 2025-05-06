@@ -36,18 +36,23 @@ struct FSkeletalVertex
 };
 
 
+struct FRefSkeletal
+{
+    // Tree structure for bones
+    FString Name;
+    TArray<FSkeletalVertex> RawVertices;
+    TArray<FBoneNode> BoneTree;
+    TArray<int> RootBoneIndices;  // Indices of root bones (no parents)
+    TMap<FString, int> BoneNameToIndexMap;  // For quick lookups
+};
+
 struct FSkeletalMeshRenderData
 {
     FString Name;
     TArray<FSkeletalVertex> Vertices;
-    TArray<FBone> Bones;
     TArray<uint32> Indices;
+    TArray<FBone> Bones;
     TArray<UMaterial*> Materials;
     TArray<FMaterialSubset> MaterialSubsets;
     FBoundingBox BoundingBox;
-
-    // Tree structure for bones
-    TArray<FBoneNode> BoneTree;
-    TArray<int> RootBoneIndices;  // Indices of root bones (no parents)
-    TMap<FString, int> BoneNameToIndexMap;  // For quick lookups
 };

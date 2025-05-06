@@ -144,7 +144,7 @@ void USkeletalMeshComponent::SkinningVertex()
     TestFBXLoader::UpdateBoundingBox(SkeletalMesh->GetRenderData());
     AABB = SkeletalMesh->GetRenderData()->BoundingBox;
 
-    SkeletalMesh->SetData(SkeletalMesh->GetRenderData()); // TODO: Dynamic VertexBuffer Update하게 바꾸기
+    SkeletalMesh->SetData(SkeletalMesh->GetRenderData(), SkeletalMesh->GetRefSkeletal()); // TODO: Dynamic VertexBuffer Update하게 바꾸기
 }
 
 // std::unique_ptr<FActorComponentInfo> USkeletalMeshComponent::GetComponentInfo()

@@ -67,22 +67,15 @@ void UWorld::CreateBaseObject()
     AActor* SkeletalActor = SpawnActor<AActor>();
     USkeletalMeshComponent* SkeletalMeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>(EComponentOrigin::Editor);
     USkeletalMesh* SkeletalMesh = new USkeletalMesh();
-    SkeletalMesh->SetData(TestFBXLoader.GetSkeletalMesh("NyeongFBX.fbx"));
+    SkeletalMesh->SetData("NyeongFBX.fbx");
     
     SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
-
-    SelectedSkeletalMesh = SkeletalMesh;
 
     SkeletalMesh->ApplyRotationToBone(SkeletalMesh->FindBoneIndexByName("Spine"), -60.f, FVector(1, 0, 0));
     SkeletalMesh->ApplyRotationToBone(SkeletalMesh->FindBoneIndexByName("f_index.01.L"), -60.f, FVector(1, 0, 0));
 
-    SkeletalMesh->UpdateBoneHierarchy();
-
-    // 스키닝 적용 및 버퍼 업데이트
-    SkeletalMesh->UpdateSkinnedVertices();
-
-  
-
+    SkeletalMeshComp->UpdateBornHierarchy();
+    
     // 본 시각화
     for (const auto& Bone : SkeletalMesh->GetRenderData()->Bones)
     {

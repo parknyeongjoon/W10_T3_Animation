@@ -25,9 +25,18 @@ void USkeletalMesh::GetUsedMaterials(TArray<UMaterial*>& Out) const
     }
 }
 
-void USkeletalMesh::SetData(FSkeletalMeshRenderData* renderData)
+void USkeletalMesh::SetData(FString FilePath)
 {
-    SkeletalMeshRenderData = renderData;
+    FSkeletalMeshRenderData* SkeletalMeshRenderData = TestFBXLoader::GetSkeletalMesh(FilePath);
+    FRefSkeletal* RefSkeletal = TestFBXLoader::GetRefSkeletal(FilePath);
+
+    SetData(SkeletalMeshRenderData, RefSkeletal);
+}
+
+void USkeletalMesh::SetData(FSkeletalMeshRenderData* InRenderData, FRefSkeletal* InRefSkeletal)
+{
+    SkeletalMeshRenderData = InRenderData;
+    RefSkeletal = InRefSkeletal;
 
     ID3D11Buffer* VB = nullptr; 
     ID3D11Buffer* IB = nullptr;
@@ -62,7 +71,7 @@ void USkeletalMesh::SetData(FSkeletalMeshRenderData* renderData)
 void USkeletalMesh::UpdateBoneHierarchy() const
 {
     // 먼저 루트 뼈들의 글로벌 트랜스폼을 설정
-    for (int32 RootIndex : SkeletalMeshRenderData->RootBoneIndices)
+    for (int32 RootIndex : RefSkeletal->RootBoneIndices)
     {
         // 루트 뼈는 로컬 트랜스폼이 곧 글로벌 트랜스폼이 됨
         SkeletalMeshRenderData->Bones[RootIndex].GlobalTransform
@@ -80,7 +89,7 @@ void USkeletalMesh::UpdateBoneHierarchy() const
 void USkeletalMesh::UpdateChildBones(int ParentIndex) const
 {
     // BoneTree 구조를 사용하여 현재 부모 뼈의 모든 자식을 찾음
-    const FBoneNode& ParentNode = SkeletalMeshRenderData->BoneTree[ParentIndex];
+    const FBoneNode& ParentNode = RefSkeletal->BoneTree[ParentIndex];
     
     // 모든 자식 뼈를 순회
     for (int32 ChildIndex : ParentNode.ChildIndices)
@@ -240,7 +249,7 @@ void USkeletalMesh::UpdateSkinnedVertices()
     // 스키닝 적용
     for (auto& Vertex : SkeletalMeshRenderData->Vertices)
     {
-        Vertex.TranslateVertexByBone(SkeletalMeshRenderData->Bones);
+        Vertex.SkinVertexPosition(SkeletalMeshRenderData->Bones);
     }
 
     // 버퍼 업데이트
@@ -253,6 +262,6 @@ void USkeletalMesh::UpdateVertexBuffer()
         return;
 
     // 버텍스 버퍼 업데이트 - 이미 SetData에서 처리되므로 여기서는 간단히 호출
-    SetData(SkeletalMeshRenderData);
+    SetData(SkeletalMeshRenderData, RefSkeletal);
 }
 

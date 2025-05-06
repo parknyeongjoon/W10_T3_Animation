@@ -31,32 +31,38 @@ bool TestFBXLoader::InitFBX(const FString& FilePath)
     Importer->Destroy();
 
     FSkeletalMeshRenderData* NewMeshData = new FSkeletalMeshRenderData();
+    FRefSkeletal* RefSkeletal = new FRefSkeletal();
+    
     NewMeshData->Name = FilePath;
-    ExtractFBXMeshData(Scene, NewMeshData);
+    RefSkeletal->Name = FilePath;
+    
+    ExtractFBXMeshData(Scene, NewMeshData, RefSkeletal);
+    
     SkeletalMeshData.Add(FilePath, NewMeshData);
+    RefSkeletalData.Add(FilePath, RefSkeletal);
 
     Scene->Destroy();
     
     return true;
 }
 
-void TestFBXLoader::ExtractFBXMeshData(const FbxScene* Scene, FSkeletalMeshRenderData* MeshData)
+void TestFBXLoader::ExtractFBXMeshData(const FbxScene* Scene, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal)
 {
     FbxNode* RootNode = Scene->GetRootNode();
     if (RootNode == nullptr)
         return;
 
-    ExtractMeshFromNode(RootNode, MeshData);
+    ExtractMeshFromNode(RootNode, MeshData, RefSkeletal);
 }
 
-void TestFBXLoader::ExtractMeshFromNode(FbxNode* Node, FSkeletalMeshRenderData* MeshData)
+void TestFBXLoader::ExtractMeshFromNode(FbxNode* Node, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal)
 {
     FbxMesh* Mesh = Node->GetMesh();
     // Mesh가 있다면 데이터 저장
     if (Mesh)
     {
         // 버텍스 데이터 추출
-        ExtractVertices(Mesh, MeshData);
+        ExtractVertices(Mesh, MeshData, RefSkeletal);
         
         // 인덱스 데이터 추출
         ExtractIndices(Mesh, MeshData);
@@ -71,11 +77,11 @@ void TestFBXLoader::ExtractMeshFromNode(FbxNode* Node, FSkeletalMeshRenderData* 
     // 자식 노드들에 대해 재귀적으로 수행
     int childCount = Node->GetChildCount();
     for (int i = 0; i < childCount; i++) {
-        ExtractMeshFromNode(Node->GetChild(i), MeshData);
+        ExtractMeshFromNode(Node->GetChild(i), MeshData, RefSkeletal);
     }
 }
 
-void TestFBXLoader::ExtractVertices(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData)
+void TestFBXLoader::ExtractVertices(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal)
 {
     int VertexCount = Mesh->GetControlPointsCount();
     FbxVector4* ControlPoints = Mesh->GetControlPoints();
@@ -112,7 +118,7 @@ void TestFBXLoader::ExtractVertices(FbxMesh* Mesh, FSkeletalMeshRenderData* Mesh
     ExtractTangents(Mesh, MeshData, BaseVertexIndex);
 
     // 스키닝 정보 추출 (bone weight 추출)
-    ExtractSkinningData(Mesh, MeshData, BaseVertexIndex);
+    ExtractSkinningData(Mesh, MeshData, RefSkeletal, BaseVertexIndex);
 }
 
 void TestFBXLoader::ExtractNormals(FbxMesh* Mesh, FSkeletalMeshRenderData* RenderData, int BaseVertexIndex)
@@ -262,7 +268,7 @@ void TestFBXLoader::ExtractTangents(FbxMesh* Mesh, FSkeletalMeshRenderData* Mesh
     }
 }
 
-void TestFBXLoader::ExtractSkinningData(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int BaseVertexIndex)
+void TestFBXLoader::ExtractSkinningData(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal, int BaseVertexIndex)
 {
     int VertexCount = Mesh->GetControlPointsCount();
     for (int i=BaseVertexIndex; i<BaseVertexIndex+VertexCount; i++)
@@ -286,7 +292,7 @@ void TestFBXLoader::ExtractSkinningData(FbxMesh* Mesh, FSkeletalMeshRenderData* 
         FbxSkin* Skin = static_cast<FbxSkin*>(Mesh->GetDeformer(DeformerIndex, FbxDeformer::eSkin));
         if (Skin)
         {
-            ProcessSkinning(Skin, MeshData, BaseVertexIndex);
+            ProcessSkinning(Skin, MeshData, RefSkeletal, BaseVertexIndex);
         }
     }
 
@@ -315,14 +321,14 @@ void TestFBXLoader::ExtractSkinningData(FbxMesh* Mesh, FSkeletalMeshRenderData* 
     }
 }
 
-void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* MeshData, int BaseVertexIndex)
+void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal, int BaseVertexIndex)
 {
     int ClusterCount = Skin->GetClusterCount();
 
     // Clear existing bone tree data
-    MeshData->BoneTree.Empty();
-    MeshData->RootBoneIndices.Empty();
-    MeshData->BoneNameToIndexMap.Empty();
+    RefSkeletal->BoneTree.Empty();
+    RefSkeletal->RootBoneIndices.Empty();
+    RefSkeletal->BoneNameToIndexMap.Empty();
     
     // First pass - collect all bone nodes from clusters and add to flat bone array
     for (int ClusterIndex = 0; ClusterIndex < ClusterCount; ClusterIndex++)
@@ -336,7 +342,7 @@ void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* Mesh
         FString BoneName = BoneNode->GetName();
         
         // Check if this bone already exists
-        int* ExistingBoneIndex = MeshData->BoneNameToIndexMap.Find(BoneName);
+        int* ExistingBoneIndex = RefSkeletal->BoneNameToIndexMap.Find(BoneName);
         if (ExistingBoneIndex)
             continue;
             
@@ -379,13 +385,13 @@ void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* Mesh
         
         // Add bone to array and create mapping
         int BoneIndex = MeshData->Bones.Add(NewBone);
-        MeshData->BoneNameToIndexMap.Add(BoneName, BoneIndex);
+        RefSkeletal->BoneNameToIndexMap.Add(BoneName, BoneIndex);
         
         // Create corresponding bone tree node
         FBoneNode NewNode;
         NewNode.BoneName = BoneName;
         NewNode.BoneIndex = BoneIndex;
-        MeshData->BoneTree.Add(NewNode);
+        RefSkeletal->BoneTree.Add(NewNode);
     }
     
     // Second pass - establish parent-child relationships
@@ -400,25 +406,25 @@ void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* Mesh
         FString BoneName = BoneNode->GetName();
         FbxNode* ParentNode = BoneNode->GetParent();
         
-        if (!MeshData->BoneNameToIndexMap.Contains(BoneName))
+        if (!RefSkeletal->BoneNameToIndexMap.Contains(BoneName))
             continue;
             
-        int BoneIndex = MeshData->BoneNameToIndexMap[BoneName];
+        int BoneIndex = RefSkeletal->BoneNameToIndexMap[BoneName];
         
         if (ParentNode)
         {
             FString ParentName = ParentNode->GetName();
             
             // If parent is also a bone, establish the relationship
-            if (MeshData->BoneNameToIndexMap.Contains(ParentName))
+            if (RefSkeletal->BoneNameToIndexMap.Contains(ParentName))
             {
-                int ParentIndex = MeshData->BoneNameToIndexMap[ParentName];
+                int ParentIndex = RefSkeletal->BoneNameToIndexMap[ParentName];
                 
                 // Update parent index in the bone
                 MeshData->Bones[BoneIndex].ParentIndex = ParentIndex;
                 
                 // Add this bone as a child of the parent in the tree structure
-                MeshData->BoneTree[ParentIndex].ChildIndices.Add(BoneIndex);
+                RefSkeletal->BoneTree[ParentIndex].ChildIndices.Add(BoneIndex);
             }
         }
     }
@@ -428,7 +434,7 @@ void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* Mesh
     {
         if (MeshData->Bones[i].ParentIndex == -1)
         {
-            MeshData->RootBoneIndices.Add(i);
+            RefSkeletal->RootBoneIndices.Add(i);
         }
     }
     
@@ -438,10 +444,10 @@ void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* Mesh
         FbxCluster* Cluster = Skin->GetCluster(ClusterIndex);
         FbxNode* BoneNode = Cluster->GetLink();
         
-        if (!BoneNode || !MeshData->BoneNameToIndexMap.Contains(BoneNode->GetName()))
+        if (!BoneNode || !RefSkeletal->BoneNameToIndexMap.Contains(BoneNode->GetName()))
             continue;
         
-        int BoneIndex = MeshData->BoneNameToIndexMap[BoneNode->GetName()];
+        int BoneIndex = RefSkeletal->BoneNameToIndexMap[BoneNode->GetName()];
         
         // Get control point indices and weights
         int VertexCount = Cluster->GetControlPointIndicesCount();
@@ -603,6 +609,17 @@ FSkeletalMeshRenderData* TestFBXLoader::GetSkeletalMesh(FString FilePath)
     if (SkeletalMeshData.Contains(FilePath))
     {
         return SkeletalMeshData[FilePath];
+    }
+    
+    return nullptr;
+}
+
+FRefSkeletal* TestFBXLoader::GetRefSkeletal(FString FilePath)
+{
+    // TODO: 폴더에서 가져올 수 있으면 가져오기
+    if (RefSkeletalData.Contains(FilePath))
+    {
+        return RefSkeletalData[FilePath];
     }
     
     return nullptr;

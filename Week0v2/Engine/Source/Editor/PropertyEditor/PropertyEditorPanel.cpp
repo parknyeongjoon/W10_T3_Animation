@@ -936,9 +936,9 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         //     ImGui::EndCombo();
         // }
 
-        for (const auto& Bone : SkeletalMeshComp->GetSkeletalMesh()->GetRenderData()->BoneTree)
+        for (const auto& Bone : SkeletalMeshComp->GetSkeletalMesh()->GetRefSkeletal()->BoneTree)
         {
-            for (const auto& RootBoneIndex : SkeletalMeshComp->GetSkeletalMesh()->GetRenderData()->RootBoneIndices)
+            for (const auto& RootBoneIndex : SkeletalMeshComp->GetSkeletalMesh()->GetRefSkeletal()->RootBoneIndices)
             {
                 if (Bone.BoneIndex == RootBoneIndex)
                 {
@@ -953,7 +953,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
 
 void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int BoneIndex)
 {
-    for (const auto& ChildBoneIndex : SkeletalMesh->GetRenderData()->BoneTree[BoneIndex].ChildIndices)
+    for (const auto& ChildBoneIndex : SkeletalMesh->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices)
     {
         const FString& boneName = SkeletalMesh->GetRenderData()->Bones[ChildBoneIndex].BoneName;
         
@@ -989,7 +989,7 @@ void PropertyEditorPanel::OnBoneSelected(USkeletalMesh* SkeletalMesh, int BoneIn
     FMatrix temp = SkeletalMesh->GetRenderData()->Bones[BoneIndex].LocalTransform * FMatrix::CreateRotationMatrix(30,0,0);
     SkeletalMesh->GetRenderData()->Bones[BoneIndex].LocalTransform = temp;
     SkeletalMesh->UpdateBoneHierarchy();
-    SkeletalMesh->SetData(SkeletalMesh->GetRenderData());
+    SkeletalMesh->SetData(SkeletalMesh->GetRenderData(), SkeletalMesh->GetRefSkeletal());
 }
 
 void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp)

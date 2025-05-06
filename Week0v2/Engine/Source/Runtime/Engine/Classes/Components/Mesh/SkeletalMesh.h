@@ -11,11 +11,13 @@ public:
     virtual ~USkeletalMesh() override = default;
 
     FSkeletalMeshRenderData* GetRenderData() const { return SkeletalMeshRenderData; }
+    FRefSkeletal* GetRefSkeletal() const { return RefSkeletal;}
     const TArray<FMaterialSlot*>& GetMaterials() const { return MaterialSlots; }
     uint32 GetMaterialIndex(FName MaterialSlotName) const;
     void GetUsedMaterials(TArray<UMaterial*>& Out) const;
+    void SetData(FString FilePath);
 
-    void SetData(FSkeletalMeshRenderData* renderData);
+    void SetData(FSkeletalMeshRenderData* InRenderData, FRefSkeletal* InRefSkeletal);
     
     void UpdateBoneHierarchy() const;
 public:
@@ -36,6 +38,7 @@ public:
 
 private:
     FSkeletalMeshRenderData* SkeletalMeshRenderData = nullptr;
+    FRefSkeletal* RefSkeletal = nullptr;
     TArray<FMaterialSlot*> MaterialSlots;
 
     void UpdateChildBones(int ParentIndex) const;
