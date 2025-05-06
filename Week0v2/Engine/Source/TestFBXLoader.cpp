@@ -350,8 +350,6 @@ void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* Mesh
         FbxAMatrix GlobalTransform = BoneNode->EvaluateGlobalTransform();
         FbxAMatrix LocalTransform = BoneNode->EvaluateLocalTransform();
         
-
-
         // Store transforms
         for (int i = 0; i < 4; i++)
         {

@@ -26,6 +26,7 @@ private:
     static void ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData);
     static void UpdateBoundingBox(FSkeletalMeshRenderData* MeshData);
 
+
 private:
     bool bInitialized = false;
     inline static FbxManager* FbxManager = nullptr;

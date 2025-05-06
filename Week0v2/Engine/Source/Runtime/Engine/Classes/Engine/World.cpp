@@ -59,32 +59,21 @@ void UWorld::CreateBaseObject()
     }
     
     PlayerCameraManager = SpawnActor<APlayerCameraManager>();
-
     TestFBXLoader TestFBXLoader;
     TestFBXLoader.InitFBXManager();
     TestFBXLoader.InitFBX("NyeongFBX.fbx");
+    
     AActor* SkeletalActor = SpawnActor<AActor>();
     USkeletalMeshComponent* SkeletalMeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>(EComponentOrigin::Editor);
     USkeletalMesh* SkeletalMesh = new USkeletalMesh();
     SkeletalMesh->SetData(TestFBXLoader.GetSkeletalMesh("NyeongFBX.fbx"));
     
     SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
-    //FMatrix testMatrix = FMatrix::CreateRotationMatrix(30,0,0) * SkeletalMesh->GetRenderData()->Bones[0].LocalTransform;
-   // SkeletalMesh->GetRenderData()->Bones[0].LocalTransform = testMatrix;
     
-    SkeletalMeshComp->GetSkeletalMesh()->UpdateBoneHierarchy();
+    // 원하는 본 이름으로 X축 회전
+    SkeletalMesh->RotateBoneByName("Spine", -60.0f, FVector(1, 0, 0));
     
-    for (auto& Vertex : SkeletalMesh->GetRenderData()->Vertices)
-    {
-        Vertex.TranslateVertexByBone(SkeletalMesh->GetRenderData()->Bones);
-    }
-
-    SkeletalMesh->SetData(SkeletalMesh->GetRenderData());
-
-    // const auto rscManager = GEngineLoop.Renderer.GetResourceManager();
-    // const auto VB = rscManager->GetVertexBuffer(SkeletalMesh->GetRenderData()->Name);
-    // rscManager->UpdateDynamicVertexBuffer(VB, &SkeletalMesh->GetRenderData()->Vertices, SkeletalMesh->GetRenderData()->Vertices.Num());
-    
+    // 본 시각화
     for (const auto& Bone : SkeletalMesh->GetRenderData()->Bones)
     {
         AActor* BonePos = SpawnActor<AActor>();
@@ -92,20 +81,13 @@ void UWorld::CreateBaseObject()
         auto temp = BonePos->AddComponent<UStaticMeshComponent>(EComponentOrigin::Runtime);
         FManagerOBJ::CreateStaticMesh("Contents/helloBlender.obj");
         temp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"helloBlender.obj"));
-
-        FVector bonePosition= Bone.GlobalTransform.GetTranslationVector();
-      
-      
-
+        FVector bonePosition = Bone.GlobalTransform.GetTranslationVector();
+        
         BonePos->SetActorLocation(bonePosition);
-
-
-        BonePos->SetActorScale(FVector(0.1,0.1,0.1));
+        BonePos->SetActorScale(FVector(0.1, 0.1, 0.1));
     }
-
-
-  
 }
+
 
 void UWorld::ReleaseBaseObject()
 {

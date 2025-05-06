@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "FBX/FBXDefine.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
@@ -18,6 +18,24 @@ public:
     void SetData(FSkeletalMeshRenderData* renderData);
     
     void UpdateBoneHierarchy() const;
+public:
+    // 특정 본을 회전시키는 함수
+    void RotateBone(const FString& BoneName, float RotX, float RotY, float RotZ);
+
+    // 정점 스키닝을 업데이트하는 함수
+    void UpdateSkinnedVertices();
+
+    // 버텍스 버퍼를 업데이트하는 함수
+    void UpdateVertexBuffer();
+    void RotateBoneByName(const FString& BoneName, float AngleInDegrees, const FVector& RotationAxis);
+    int FindBoneIndexByName(const FString& BoneName) const;
+    void ApplyRotationToBone(int BoneIndex, float AngleInDegrees, const FVector& RotationAxis);
+
+    FString CurrentSelectedBone;
+
+    // 키 입력 처리 함수
+    void ProcessBoneRotationInput(float DeltaTime);
+
 private:
     FSkeletalMeshRenderData* SkeletalMeshRenderData = nullptr;
     TArray<FMaterialSlot*> MaterialSlots;
