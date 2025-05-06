@@ -39,6 +39,9 @@ public:
     virtual UObject* Duplicate(UObject* InOuter) override;
     virtual void DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter) override;
     virtual void PostDuplicate() override;
+
+    virtual UWorld* GetWorld() const override;
+
     /**
      * World에 Actor를 Spawn합니다.
      * @tparam T AActor를 상속받은 클래스

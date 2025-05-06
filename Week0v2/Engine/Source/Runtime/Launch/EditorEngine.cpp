@@ -138,11 +138,6 @@ void UEditorEngine::Input()
     }
 }
 
-UWorld* UEditorEngine::GetWorld()
-{
-    return ActiveWorld;
-}
-
 void UEditorEngine::PreparePIE()
 {
     std::shared_ptr<FWorldContext> PIEWorldContext = CreateNewWorldContext(EWorldType::PIE);

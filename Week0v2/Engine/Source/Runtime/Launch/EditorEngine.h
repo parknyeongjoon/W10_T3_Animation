@@ -22,8 +22,6 @@ public:
     void Tick(float deltaSeconds) override;
     void Release() override;
     void Input();
-
-    UWorld* GetWorld() override;
     
     void PreparePIE();
     void StartPIE();

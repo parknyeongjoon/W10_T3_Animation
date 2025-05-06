@@ -45,8 +45,8 @@ public:
     UObject();
     virtual ~UObject();
 
-    UObject* GetOuter();
-    virtual UWorld* GetWorld();
+    UObject* GetOuter() const;
+    virtual UWorld* GetWorld() const;
 
     FName GetFName() const { return NamePrivate; }
     FString GetName() const { return NamePrivate.ToString(); }

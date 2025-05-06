@@ -39,15 +39,20 @@ UObject::~UObject()
     UUID = 0;
 }
 
-UObject* UObject::GetOuter()
+UObject* UObject::GetOuter() const
 {
     return OuterPrivate;
 }
 
-UWorld* UObject::GetWorld()
+UWorld* UObject::GetWorld() const
 {
-    return GEngine->GetWorld();
+    if (UObject* Outer = GetOuter())
+    {
+        return Outer->GetWorld();
+    }
+    return nullptr;
 }
+
 
 bool UObject::IsA(const UClass* SomeBase) const
 {

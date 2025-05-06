@@ -32,7 +32,6 @@ public:
     virtual void Init();
     virtual void Tick(float DeltaTime);
     virtual void Release() {}
-    UWorld* GetWorld() override;
 
     UAssetManager* AssetManager = nullptr;
     

@@ -203,6 +203,11 @@ void UWorld::PostDuplicate()
     UObject::PostDuplicate();
 }
 
+UWorld* UWorld::GetWorld() const
+{
+    return const_cast<UWorld*>(this);
+}
+
 void UWorld::ReloadScene(const FString& FileName)
 {
     ClearScene(); // 기존 오브젝트 제거
