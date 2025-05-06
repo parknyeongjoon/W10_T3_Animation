@@ -32,7 +32,7 @@ struct FSkeletalVertex
     float BoneWeights[4];
 
     FVector SkinVertexPosition(const TArray<FBone>& bones) const;
-    void TranslateVertexByBone(const TArray<FBone>& bones);
+    void SkinningVertex(const TArray<FBone>& bones);
 };
 
 

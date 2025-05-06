@@ -1,5 +1,6 @@
 ﻿#include "SkeletalMeshComponent.h"
 
+#include "TestFBXLoader.h"
 #include "Engine/World.h"
 #include "Launch/EditorEngine.h"
 #include "UObject/ObjectFactory.h"
@@ -123,8 +124,27 @@ void USkeletalMeshComponent::SetSkeletalMesh(USkeletalMesh* value)
 { 
     SkeletalMesh = value;
     OverrideMaterials.SetNum(value->GetMaterials().Num());
-    AABB = FBoundingBox(SkeletalMesh->GetRenderData()->BoundingBox.min, SkeletalMesh->GetRenderData()->BoundingBox.max);
+    AABB = SkeletalMesh->GetRenderData()->BoundingBox;
     VBIBTopologyMappingName = SkeletalMesh->GetRenderData()->Name;
+}
+
+void USkeletalMeshComponent::UpdateBornHierarchy()
+{
+    SkeletalMesh->UpdateBoneHierarchy();
+    SkinningVertex();
+}
+
+void USkeletalMeshComponent::SkinningVertex()
+{
+    for (auto& Vertex : SkeletalMesh->GetRenderData()->Vertices)
+    {
+        Vertex.SkinningVertex(SkeletalMesh->GetRenderData()->Bones);
+    }
+
+    TestFBXLoader::UpdateBoundingBox(SkeletalMesh->GetRenderData());
+    AABB = SkeletalMesh->GetRenderData()->BoundingBox;
+
+    SkeletalMesh->SetData(SkeletalMesh->GetRenderData()); // TODO: Dynamic VertexBuffer Update하게 바꾸기
 }
 
 // std::unique_ptr<FActorComponentInfo> USkeletalMeshComponent::GetComponentInfo()

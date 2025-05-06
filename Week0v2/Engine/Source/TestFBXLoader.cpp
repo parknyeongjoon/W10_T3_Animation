@@ -27,8 +27,7 @@ bool TestFBXLoader::InitFBX(const FString& FilePath)
         return false;
 
     Importer->Import(Scene);
-
-
+    
     Importer->Destroy();
 
     FSkeletalMeshRenderData* NewMeshData = new FSkeletalMeshRenderData();
@@ -367,7 +366,7 @@ void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* Mesh
 
         FbxAMatrix LinkTransform;
         Cluster->GetTransformLinkMatrix(LinkTransform); // 본의 바인드 포즈 행렬
-       
+        
         FbxAMatrix InverseBindMatrix = LinkTransform.Inverse() * MeshTransform;
 
         for (int i = 0; i < 4; i++) {

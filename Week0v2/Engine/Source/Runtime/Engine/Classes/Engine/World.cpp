@@ -59,6 +59,7 @@ void UWorld::CreateBaseObject()
     }
     
     PlayerCameraManager = SpawnActor<APlayerCameraManager>();
+
     TestFBXLoader TestFBXLoader;
     TestFBXLoader.InitFBXManager();
     TestFBXLoader.InitFBX("NyeongFBX.fbx");
