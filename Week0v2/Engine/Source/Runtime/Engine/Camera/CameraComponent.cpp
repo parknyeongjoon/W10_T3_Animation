@@ -36,18 +36,18 @@ void UCameraComponent::TickComponent(float DeltaTime)
     SetRelativeRotation(RelativeRotation);
 }
 
-UObject* UCameraComponent::Duplicate()
+UObject* UCameraComponent::Duplicate(UObject* InOuter)
 {
-    UCameraComponent* NewComp = FObjectFactory::ConstructObjectFrom<UCameraComponent>(this);
-    NewComp->DuplicateSubObjects(this);
+    UCameraComponent* NewComp = FObjectFactory::ConstructObjectFrom<UCameraComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
 
     return NewComp;
 }
 
-void UCameraComponent::DuplicateSubObjects(const UObject* Source)
+void UCameraComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    Super::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source, InOuter);
 }
 
 void UCameraComponent::PostDuplicate()

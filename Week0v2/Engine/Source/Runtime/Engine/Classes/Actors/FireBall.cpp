@@ -47,23 +47,23 @@ bool AFireBall::Destroy()
     return Super::Destroy();
 }
 
-UObject* AFireBall::Duplicate()
+UObject* AFireBall::Duplicate(UObject* InOuter)
 {
-    AFireBall* NewActor = FObjectFactory::ConstructObjectFrom<AFireBall>(this);
-    NewActor->DuplicateSubObjects(this);
+    AFireBall* NewActor = FObjectFactory::ConstructObjectFrom<AFireBall>(this, InOuter);
+    NewActor->DuplicateSubObjects(this, InOuter);
     NewActor->PostDuplicate();
     return NewActor;
 }
 
-void AFireBall::DuplicateSubObjects(const UObject* Source)
+void AFireBall::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    Super::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source, InOuter);
     AFireBall* SourceActor = Cast<AFireBall>(Source);
 
-    FireBallComponent = Cast<UFireBallComponent>(SourceActor->FireBallComponent->Duplicate());
-    LightComp = Cast<UPointLightComponent>(SourceActor->LightComp->Duplicate());
-    ProjMovementComp = Cast<UProjectileMovementComponent>(SourceActor->ProjMovementComp->Duplicate());
-    BillboardComponent = Cast<UBillboardComponent>(SourceActor->BillboardComponent->Duplicate());
+    FireBallComponent = Cast<UFireBallComponent>(SourceActor->FireBallComponent->Duplicate(InOuter));
+    LightComp = Cast<UPointLightComponent>(SourceActor->LightComp->Duplicate(InOuter));
+    ProjMovementComp = Cast<UProjectileMovementComponent>(SourceActor->ProjMovementComp->Duplicate(InOuter));
+    BillboardComponent = Cast<UBillboardComponent>(SourceActor->BillboardComponent->Duplicate(InOuter));
 }
 
 void AFireBall::PostDuplicate()

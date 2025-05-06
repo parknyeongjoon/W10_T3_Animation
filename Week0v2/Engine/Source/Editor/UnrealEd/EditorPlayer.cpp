@@ -538,7 +538,7 @@ void UEditorPlayer::ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* 
 
     if (bLAltDown && !bAlreadyDup)
     {
-        GetWorld()->DuplicateSeletedActorsOnLocation();
+        GetWorld()->DuplicateSelectedActorsOnLocation();
         bAlreadyDup = true;
     }
     if (Gizmo->GetGizmoType() == UGizmoBaseComponent::CircleX)
@@ -590,7 +590,7 @@ void UEditorPlayer::ControlTranslation(USceneComponent* pObj, UGizmoBaseComponen
 
     if (bLAltDown && !bAlreadyDup)
     {
-        GetWorld()->DuplicateSeletedActorsOnLocation();
+        GetWorld()->DuplicateSelectedActorsOnLocation();
         bAlreadyDup = true;
     }
     if (cdMode == CDM_LOCAL)

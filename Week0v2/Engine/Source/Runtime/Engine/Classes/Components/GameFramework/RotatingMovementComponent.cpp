@@ -23,17 +23,17 @@ void URotatingMovementComponent::TickComponent(float DeltaTime)
     UpdatedComponent->SetRelativeRotation(NewRotation);
 }
 
-UObject* URotatingMovementComponent::Duplicate()
+UObject* URotatingMovementComponent::Duplicate(UObject* InOuter)
 {
-    URotatingMovementComponent* NewComp = FObjectFactory::ConstructObjectFrom<URotatingMovementComponent>(this);
-    NewComp->DuplicateSubObjects(this);
+    URotatingMovementComponent* NewComp = FObjectFactory::ConstructObjectFrom<URotatingMovementComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;
 }
 
-void URotatingMovementComponent::DuplicateSubObjects(const UObject* Source)
+void URotatingMovementComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    UMovementComponent::DuplicateSubObjects(Source);
+    UMovementComponent::DuplicateSubObjects(Source, InOuter);
 
     URotatingMovementComponent* SourceComp = Cast<URotatingMovementComponent>(Source);
     if (SourceComp)

@@ -45,8 +45,8 @@ public:
     FMatrix GetCascadeProjectionMatrix(UINT CascadeIndex) const;
 
 public:
-    virtual UObject* Duplicate() override;
-    virtual void DuplicateSubObjects(const UObject* Source) override;
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
     virtual void PostDuplicate() override;
 
 public:

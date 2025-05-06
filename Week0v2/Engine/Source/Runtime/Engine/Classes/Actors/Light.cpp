@@ -41,18 +41,18 @@ bool ALight::Destroy()
     return Super::Destroy();
 }
 
-UObject* ALight::Duplicate()
+UObject* ALight::Duplicate(UObject* InOuter)
 {
-    ALight* NewActor = FObjectFactory::ConstructObjectFrom<ALight>(this);
-    NewActor->DuplicateSubObjects(this);
+    ALight* NewActor = FObjectFactory::ConstructObjectFrom<ALight>(this, InOuter);
+    NewActor->DuplicateSubObjects(this, InOuter);
     NewActor->PostDuplicate();
     return NewActor;
 }
 
-void ALight::DuplicateSubObjects(const UObject* Source)
+void ALight::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    Super::DuplicateSubObjects(Source);
-    const ALight* SourceLightActor = FObjectFactory::ConstructObjectFrom<ALight>(this);
+    Super::DuplicateSubObjects(Source, InOuter);
+    const ALight* SourceLightActor = FObjectFactory::ConstructObjectFrom<ALight>(this, InOuter);
     if (SourceLightActor == nullptr) return;
 
     LightComponent = Cast<ULightComponentBase>(SourceLightActor->LightComponent);

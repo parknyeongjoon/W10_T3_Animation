@@ -224,16 +224,16 @@ void AActor::AddComponent(UActorComponent* Component)
 }
 
 
-UObject* AActor::Duplicate()
+UObject* AActor::Duplicate(UObject* InOuter)
 {
-    AActor* ClonedActor = FObjectFactory::ConstructObjectFrom<AActor>(this);
-    ClonedActor->DuplicateSubObjects(this);
+    AActor* ClonedActor = FObjectFactory::ConstructObjectFrom<AActor>(this, InOuter);
+    ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }
-void AActor::DuplicateSubObjects(const UObject* SourceObj)
+void AActor::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
 {
-    UObject::DuplicateSubObjects(SourceObj);
+    UObject::DuplicateSubObjects(SourceObj, InOuter);
 
     const AActor* Source = Cast<AActor>(SourceObj);
     if (!Source) return;
@@ -242,7 +242,7 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
     
     for (UActorComponent* Component : Source->OwnedComponents)
     {
-        UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate());
+        UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate(InOuter));
         dupComponent->Owner = this;
         OwnedComponents.Add(dupComponent);
         GEngine->GetWorld()->GetLevel()->GetDuplicatedObjects().Add(Component, dupComponent);

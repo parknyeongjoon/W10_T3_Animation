@@ -39,10 +39,10 @@ void APlayerCameraManager::AddCameraModifier(UCameraModifier* Modifier)
     }
 }
 
-UObject* APlayerCameraManager::Duplicate()
+UObject* APlayerCameraManager::Duplicate(UObject* InOuter)
 {
-    APlayerCameraManager* ClonedActor = FObjectFactory::ConstructObjectFrom<APlayerCameraManager>(this);
-    ClonedActor->DuplicateSubObjects(this);
+    APlayerCameraManager* ClonedActor = FObjectFactory::ConstructObjectFrom<APlayerCameraManager>(this, InOuter);
+    ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }

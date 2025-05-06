@@ -147,7 +147,7 @@ void UEditorEngine::PreparePIE()
 {
     std::shared_ptr<FWorldContext> PIEWorldContext = CreateNewWorldContext(EWorldType::PIE);
     
-    PIEWorld = Cast<UWorld>(EditorWorld->Duplicate());
+    PIEWorld = Cast<UWorld>(EditorWorld->Duplicate(this));
     PIEWorld->WorldType = EWorldType::PIE;
 
     PIEWorldContext->SetWorld(PIEWorld);

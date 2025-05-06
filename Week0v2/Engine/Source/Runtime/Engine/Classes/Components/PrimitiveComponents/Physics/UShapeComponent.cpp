@@ -63,18 +63,18 @@ void UShapeComponent::DestroyComponent()
     UEditorEngine::CollisionManager.Unregister(this);
 }
 
-UObject* UShapeComponent::Duplicate()
+UObject* UShapeComponent::Duplicate(UObject* InOuter)
 {
-    UShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<UShapeComponent>(this);
-    NewComp->DuplicateSubObjects(this);
+    UShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<UShapeComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
 
     return NewComp;
 }
 
-void UShapeComponent::DuplicateSubObjects(const UObject* Source)
+void UShapeComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    Super::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source, InOuter);
 }
 
 void UShapeComponent::PostDuplicate()

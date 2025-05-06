@@ -131,17 +131,17 @@ FVector UProjectileMovementComponent::CalculateVelocity(FVector OldVelocity, flo
     return LimitVelocity(NewVelocity);
 }
 
-UObject* UProjectileMovementComponent::Duplicate()
+UObject* UProjectileMovementComponent::Duplicate(UObject* InOuter)
 {
-    UProjectileMovementComponent* NewComp = FObjectFactory::ConstructObjectFrom<UProjectileMovementComponent>(this);
-    NewComp->DuplicateSubObjects(this);
+    UProjectileMovementComponent* NewComp = FObjectFactory::ConstructObjectFrom<UProjectileMovementComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;
 }
 
-void UProjectileMovementComponent::DuplicateSubObjects(const UObject* Source)
+void UProjectileMovementComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    UMovementComponent::DuplicateSubObjects(Source);
+    UMovementComponent::DuplicateSubObjects(Source, InOuter);
 }
 
 void UProjectileMovementComponent::PostDuplicate()

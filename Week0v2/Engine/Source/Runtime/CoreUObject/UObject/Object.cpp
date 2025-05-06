@@ -18,6 +18,13 @@ FFunctionRegistry* UObject::FunctionRegistry()
     return &FunctionRegister;
 }
 
+UObject* UObject::Duplicate(UObject* InOuter)
+{
+    UObject* NewObject = new UObject();
+    NewObject->DuplicateSubObjects(this, InOuter);       // 깊은 복사 수행
+    return NewObject;
+}
+
 UObject::UObject()
     : UUID(0)
     // TODO: Object를 생성할 때 직접 설정하기

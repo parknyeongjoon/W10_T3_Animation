@@ -25,14 +25,9 @@ public:
     static UClass* StaticClass();
     static FFunctionRegistry* FunctionRegistry();
 
-    virtual UObject* Duplicate()
-    {
-        UObject* NewObject = new UObject();
-        NewObject->DuplicateSubObjects(this);       // 깊은 복사 수행
-        return NewObject;
-    }
+    virtual UObject* Duplicate(UObject* InOuter);
 
-    virtual void DuplicateSubObjects(const UObject* Source){}; // 하위 클래스에서 override
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter){}; // 하위 클래스에서 override
     virtual void PostDuplicate(){};
 private:
     friend class FObjectFactory;

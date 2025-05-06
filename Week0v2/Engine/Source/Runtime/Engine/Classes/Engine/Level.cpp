@@ -55,20 +55,20 @@ void ULevel::PostLoad()
 }
 
 
-UObject* ULevel::Duplicate()
+UObject* ULevel::Duplicate(UObject* InOuter)
 {
-    ULevel* CloneLevel = FObjectFactory::ConstructObjectFrom<ULevel>(this);
-    CloneLevel->DuplicateSubObjects(this);
+    ULevel* CloneLevel = FObjectFactory::ConstructObjectFrom<ULevel>(this, InOuter);
+    CloneLevel->DuplicateSubObjects(this, InOuter);
     CloneLevel->PostDuplicate();
     return CloneLevel;
 }
 
-void ULevel::DuplicateSubObjects(const UObject* SourceObj)
+void ULevel::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
 {
-    UObject::DuplicateSubObjects(SourceObj);
+    UObject::DuplicateSubObjects(SourceObj, InOuter);
     for (AActor* Actor : Cast<ULevel>(SourceObj)->GetActors())
     {
-        AActor* dupActor = static_cast<AActor*>(Actor->Duplicate());
+        AActor* dupActor = static_cast<AActor*>(Actor->Duplicate(InOuter));
         DuplicatedObjects.Add(Actor, dupActor);
         PendingBeginPlayActors.Add(dupActor);
         Actors.Add(dupActor);

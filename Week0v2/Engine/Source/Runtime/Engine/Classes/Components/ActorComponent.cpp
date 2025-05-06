@@ -172,16 +172,16 @@ void UActorComponent::UnregisterComponent()
     OnUnregister();
     bRegistered = false;
 }
-UObject* UActorComponent::Duplicate()
+UObject* UActorComponent::Duplicate(UObject* InOuter)
 {
-    UActorComponent* NewComp = FObjectFactory::ConstructObjectFrom<UActorComponent>(this);
-    NewComp->DuplicateSubObjects(this);
+    UActorComponent* NewComp = FObjectFactory::ConstructObjectFrom<UActorComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;
 }
-void UActorComponent::DuplicateSubObjects(const UObject* Source)
+void UActorComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    UObject::DuplicateSubObjects(Source);
+    UObject::DuplicateSubObjects(Source, InOuter);
 }
 void UActorComponent::PostDuplicate()
 {

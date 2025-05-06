@@ -41,18 +41,18 @@ void UBoxShapeComponent::TickComponent(float DeltaTime)
     }
 }
 
-UObject* UBoxShapeComponent::Duplicate()
+UObject* UBoxShapeComponent::Duplicate(UObject* InOuter)
 {
-    UBoxShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<UBoxShapeComponent>(this);
-    NewComp->DuplicateSubObjects(this);
+    UBoxShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<UBoxShapeComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
 
     return NewComp;
 }
 
-void UBoxShapeComponent::DuplicateSubObjects(const UObject* Source)
+void UBoxShapeComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    Super::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source, InOuter);
 }
 
 void UBoxShapeComponent::PostDuplicate()

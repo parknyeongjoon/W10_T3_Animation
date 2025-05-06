@@ -100,17 +100,17 @@ FMatrix UBillboardComponent::CreateBillboardMatrix()
 	return M;
 }
 
-UObject* UBillboardComponent::Duplicate()
+UObject* UBillboardComponent::Duplicate(UObject* InOuter)
 {
-    UBillboardComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UBillboardComponent>(this);
-    ClonedActor->DuplicateSubObjects(this);
+    UBillboardComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UBillboardComponent>(this, InOuter);
+    ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }
 
-void UBillboardComponent::DuplicateSubObjects(const UObject* Source)
+void UBillboardComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    UPrimitiveComponent::DuplicateSubObjects(Source);
+    UPrimitiveComponent::DuplicateSubObjects(Source, InOuter);
 
 }
 

@@ -63,8 +63,8 @@ public:
 
     bool ShouldApplyGravity() const { return ProjectileGravityScale != 0.f; }
 
-    virtual UObject* Duplicate() override;
-    virtual void DuplicateSubObjects(const UObject* Source) override;
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
     virtual void PostDuplicate() override;
     
     std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;

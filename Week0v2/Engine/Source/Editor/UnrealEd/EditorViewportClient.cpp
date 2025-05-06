@@ -265,7 +265,7 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                 {
                     if (PressedKeys.Contains(EKeys::LeftControl))
                     {
-                        GEngine->GetWorld()->DuplicateSeletedActors();
+                        GEngine->GetWorld()->DuplicateSelectedActors();
                     }
                 }
             default:

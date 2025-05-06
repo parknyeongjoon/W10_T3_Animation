@@ -36,8 +36,8 @@ public:
     void LoadScene(const FString& FileName);
     void SaveScene(const FString& FileName);
     void ClearScene();
-    virtual UObject* Duplicate() override;
-    virtual void DuplicateSubObjects(const UObject* SourceObj) override;
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter) override;
     virtual void PostDuplicate() override;
     /**
      * World에 Actor를 Spawn합니다.
@@ -72,8 +72,8 @@ public:
 
 
 
-    void DuplicateSeletedActors();
-    void DuplicateSeletedActorsOnLocation();
+    void DuplicateSelectedActors();
+    void DuplicateSelectedActorsOnLocation();
 
     /** World에 존재하는 Actor를 제거합니다. */
     bool DestroyActor(AActor* ThisActor);

@@ -183,19 +183,19 @@ void UWorld::ClearScene()
     ReleaseBaseObject();
 }
 
-UObject* UWorld::Duplicate()
+UObject* UWorld::Duplicate(UObject* InOuter)
 {
-    UWorld* CloneWorld = FObjectFactory::ConstructObjectFrom<UWorld>(this);
-    CloneWorld->DuplicateSubObjects(this);
+    UWorld* CloneWorld = FObjectFactory::ConstructObjectFrom<UWorld>(this, InOuter);
+    CloneWorld->DuplicateSubObjects(this, InOuter);
     CloneWorld->PostDuplicate();
     return CloneWorld;
 }
 
-void UWorld::DuplicateSubObjects(const UObject* SourceObj)
+void UWorld::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
 {
-    UObject::DuplicateSubObjects(SourceObj);
-    Level = Cast<ULevel>(Level->Duplicate());
-    LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(this);
+    UObject::DuplicateSubObjects(SourceObj, InOuter);
+    Level = Cast<ULevel>(Level->Duplicate(InOuter));
+    LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(InOuter);
 }
 
 void UWorld::PostDuplicate()
@@ -222,12 +222,12 @@ void UWorld::LoadScene(const FString& FileName)
     ar >> *this;
 }
 
-void UWorld::DuplicateSeletedActors()
+void UWorld::DuplicateSelectedActors()
 {
     TSet<AActor*> newSelectedActors;
     for (AActor* Actor : SelectedActors)
     {
-        AActor* DupedActor = Cast<AActor>(Actor->Duplicate());
+        AActor* DupedActor = Cast<AActor>(Actor->Duplicate(this));
         FString TypeName = DupedActor->GetActorLabel().Left(DupedActor->GetActorLabel().Find("_", ESearchCase::IgnoreCase,ESearchDir::FromEnd));
         DupedActor->SetActorLabel(TypeName);
         FVector DupedLocation = DupedActor->GetActorLocation();
@@ -238,12 +238,12 @@ void UWorld::DuplicateSeletedActors()
     }
     SelectedActors = newSelectedActors;
 }
-void UWorld::DuplicateSeletedActorsOnLocation()
+void UWorld::DuplicateSelectedActorsOnLocation()
 {
     TSet<AActor*> newSelectedActors;
     for (AActor* Actor : SelectedActors)
     {
-        AActor* DupedActor = Cast<AActor>(Actor->Duplicate());
+        AActor* DupedActor = Cast<AActor>(Actor->Duplicate(this));
         FString TypeName = DupedActor->GetActorLabel().Left(DupedActor->GetActorLabel().Find("_", ESearchCase::IgnoreCase,ESearchDir::FromEnd));
         DupedActor->SetActorLabel(TypeName);
         Level->GetActors().Add(DupedActor);

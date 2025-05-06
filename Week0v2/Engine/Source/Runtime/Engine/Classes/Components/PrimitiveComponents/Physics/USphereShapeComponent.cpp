@@ -41,18 +41,18 @@ void USphereShapeComponent::TickComponent(float DeltaTime)
     }
 }
 
-UObject* USphereShapeComponent::Duplicate()
+UObject* USphereShapeComponent::Duplicate(UObject* InOuter)
 {
-    USphereShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<USphereShapeComponent>(this);
-    NewComp->DuplicateSubObjects(this);
+    USphereShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<USphereShapeComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
 
     return NewComp;
 }
 
-void USphereShapeComponent::DuplicateSubObjects(const UObject* Source)
+void USphereShapeComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    Super::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source, InOuter);
 }
 
 void USphereShapeComponent::PostDuplicate()

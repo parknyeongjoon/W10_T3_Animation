@@ -73,17 +73,17 @@ bool UMovementComponent::MoveComponent(const FVector& Delta)
     return false;
 }
 
-UObject* UMovementComponent::Duplicate()
+UObject* UMovementComponent::Duplicate(UObject* InOuter)
 {
-    UMovementComponent* NewComp = FObjectFactory::ConstructObjectFrom<UMovementComponent>(this);
-    NewComp->DuplicateSubObjects(this);
+    UMovementComponent* NewComp = FObjectFactory::ConstructObjectFrom<UMovementComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;
 }
 
-void UMovementComponent::DuplicateSubObjects(const UObject* Source)
+void UMovementComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    UActorComponent::DuplicateSubObjects(Source);
+    UActorComponent::DuplicateSubObjects(Source, InOuter);
 }
 
 void UMovementComponent::PostDuplicate()

@@ -18,17 +18,17 @@ ULuaComponent::~ULuaComponent()
 {
 }
 
-UObject* ULuaComponent::Duplicate()
+UObject* ULuaComponent::Duplicate(UObject* InOuter)
 {
-    ULuaComponent* NewComp = FObjectFactory::ConstructObjectFrom<ULuaComponent>(this);
-    NewComp->DuplicateSubObjects(this);
+    ULuaComponent* NewComp = FObjectFactory::ConstructObjectFrom<ULuaComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;
 }
 
-void ULuaComponent::DuplicateSubObjects(const UObject* Source)
+void ULuaComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    Super::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source, InOuter);
 }
 
 void ULuaComponent::PostDuplicate()
