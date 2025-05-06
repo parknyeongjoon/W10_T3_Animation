@@ -21,8 +21,8 @@ public:
     static void ExtractTangents(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int BaseVertexIndex);
     static void ExtractSkinningData(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal, int BaseVertexIndex);
     static void ProcessSkinning(FbxSkin* skin, FSkeletalMeshRenderData* mesh_data, FRefSkeletal* RefSkeletal, int base_vertex_index);
-    static void ExtractIndices(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData);
-    static void ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal);
+    static void ExtractIndices(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int BaseVertexIndex);
+    static void ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal, int BaseIndexOffset);
     static void UpdateBoundingBox(FSkeletalMeshRenderData* MeshData);
 
     static FSkeletalMeshRenderData* GetSkeletalRenderData(FString FilePath);
@@ -38,6 +38,8 @@ public:
     static USkeletalMesh* CreateSkeletalMesh(const FString& FilePath);
     static USkeletalMesh* GetSkeletalMesh(const FString& FilePath);
     static const TMap<FString, USkeletalMesh*>& GetSkeletalMeshes() { return SkeletalMeshMap;}
+
+    static void AddVertexFromControlPoint(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int ControlPointIndex);
 
 private:
     static bool bInitialized;
