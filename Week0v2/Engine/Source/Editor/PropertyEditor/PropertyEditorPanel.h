@@ -24,7 +24,9 @@ private:
     /* Static Mesh Settings */
     void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp);
     void RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp);
-    
+    void RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int BoneIndex);
+    void OnBoneSelected(USkeletalMesh* SkeletalMesh, int BoneIndex);
+
     /* Materials Settings */
     void RenderForMaterial(UStaticMeshComponent* StaticMeshComp);
     void RenderForMaterial(USkeletalMeshComponent* SkeletalMeshComp);
@@ -42,6 +44,7 @@ private:
     int CurMaterialIndex = -1;
     UStaticMeshComponent* SelectedStaticMeshComp = nullptr;
     USkeletalMeshComponent* SelectedSkeletalMeshComp = nullptr;
+    int SelectedBoneIndex = -1;
     FObjMaterialInfo tempMaterialInfo;
     bool IsCreateMaterial;
     UActorComponent* PickedComponent = nullptr;

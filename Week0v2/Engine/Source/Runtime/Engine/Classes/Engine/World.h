@@ -16,6 +16,7 @@ class UCameraComponent;
 class USceneComponent;
 class UTransformGizmo;
 class APlayerCameraManager;
+class USkeletalMesh;
 
 class UWorld final : public UObject
 {
@@ -70,8 +71,6 @@ public:
         return Actor;
     }
 
-
-
     void DuplicateSeletedActors();
     void DuplicateSeletedActorsOnLocation();
 
@@ -121,6 +120,9 @@ public:
     bool IsPIEWorld() const;
     void BeginPlay();
     static UWorld* DuplicateWorldForPIE(UWorld* world);
+
+
+
 };
 
 inline void UWorld::SaveScene(const FString& FileName)

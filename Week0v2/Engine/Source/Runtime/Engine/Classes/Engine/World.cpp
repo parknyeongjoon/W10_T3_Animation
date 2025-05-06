@@ -21,6 +21,7 @@
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 #include "Script/LuaManager.h"
 #include "UObject/UObjectArray.h"
+#include "UnrealEd/PrimitiveBatch.h"
 
 UWorld::UWorld(const UWorld& Other): UObject(Other)
                                    , defaultMapName(Other.defaultMapName)
@@ -91,6 +92,7 @@ void UWorld::CreateBaseObject()
     //     BonePos->SetActorScale(FVector(0.1,0.1,0.1));
     // }
 }
+
 
 void UWorld::ReleaseBaseObject()
 {

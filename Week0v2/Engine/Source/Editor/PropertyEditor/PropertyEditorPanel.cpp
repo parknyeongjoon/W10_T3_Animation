@@ -942,14 +942,60 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
 
         ImGui::Separator();
 
-        for (const auto& Bone : SkeletalMeshComp->GetSkeletalMesh()->GetRenderData()->Bones)
+        for (const auto& Bone : SkeletalMeshComp->GetSkeletalMesh()->GetRefSkeletal()->BoneTree)
         {
-            ImGui::Text(GetData("Bone" + Bone.BoneName));
+            for (const auto& RootBoneIndex : SkeletalMeshComp->GetSkeletalMesh()->GetRefSkeletal()->RootBoneIndices)
+            {
+                if (Bone.BoneIndex == RootBoneIndex)
+                {
+                    RenderBoneHierarchy(SkeletalMeshComp->GetSkeletalMesh(), Bone.BoneIndex);
+                }
+            }
         }
-
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();
+}
+
+void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int BoneIndex)
+{
+    for (const auto& ChildBoneIndex : SkeletalMesh->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices)
+    {
+        const FString& boneName = SkeletalMesh->GetRenderData().Bones[ChildBoneIndex].BoneName;
+        
+        // 고유 ID 생성 (뼈 인덱스를 사용)
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)ChildBoneIndex, flags, "%s", GetData(boneName));
+        
+        // 노드가 클릭되었는지 확인
+        if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+        {
+            // 클릭 시 실행할 함수 호출
+            OnBoneSelected(SkeletalMesh, ChildBoneIndex);
+        }
+        
+        // 트리 노드가 열려있으면 자식 노드들을 재귀적으로 렌더링
+        if (isOpen)
+        {
+            // 재귀적으로 자식 뼈대 구조 렌더링
+            RenderBoneHierarchy(SkeletalMesh, ChildBoneIndex);
+            
+            // 트리 노드 종료
+            ImGui::TreePop();
+        }
+    }
+}
+
+// 뼈가 선택되었을 때 호출되는 함수
+void PropertyEditorPanel::OnBoneSelected(USkeletalMesh* SkeletalMesh, int BoneIndex)
+{
+    // 선택된 뼈 정보 저장
+    SelectedBoneIndex = BoneIndex;
+    // 여기에 선택된 뼈에 대한 추가 작업 수행
+    FMatrix temp = SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform * FMatrix::CreateRotationMatrix(30,0,0);
+    SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform = temp;
+    SkeletalMesh->UpdateBoneHierarchy();
+    SkeletalMesh->SetData(SkeletalMesh->GetRenderData(), SkeletalMesh->GetRefSkeletal());
 }
 
 void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp)
@@ -1050,7 +1096,7 @@ void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMesh
 
     if (ImGui::TreeNodeEx("SubMeshes", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
-        auto subsets = SkeletalMeshComp->GetSkeletalMesh()->GetRenderData()->MaterialSubsets;
+        auto subsets = SkeletalMeshComp->GetSkeletalMesh()->GetRefSkeletal()->MaterialSubsets;
         for (uint32 i = 0; i < subsets.Num(); ++i)
         {
             std::string temp = "subset " + std::to_string(i);
