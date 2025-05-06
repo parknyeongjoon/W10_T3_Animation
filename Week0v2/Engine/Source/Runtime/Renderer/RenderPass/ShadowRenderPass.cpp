@@ -38,11 +38,11 @@ FShadowRenderPass::FShadowRenderPass(const FName& InShaderName)
     PointLightShadowMapAtlas = std::make_unique<FShadowMapAtlas>(Graphics.Device, EAtlasType::PointLightCube, 1024);
 }
 
-void FShadowRenderPass::AddRenderObjectsToRenderPass()
+void FShadowRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
     for (USceneComponent* SceneComponent : TObjectRange<USceneComponent>())
     {
-        if (SceneComponent->GetWorld() != GEngine->GetWorld())
+        if (SceneComponent->GetWorld() != World)
         {
             continue;
         }

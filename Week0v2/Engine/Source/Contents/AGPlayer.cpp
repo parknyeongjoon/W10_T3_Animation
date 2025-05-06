@@ -58,7 +58,7 @@ void AGPlayer::BeginPlay()
     FTViewTarget ViewTarget;
     ViewTarget.Target = this;
     ViewTarget.ViewInfo = FSimpleViewInfo(Camera->GetWorldLocation(), Camera->GetWorldRotation(), Camera->GetFOV());
-    for (auto& Actor : GEngine->GetWorld()->GetActors())
+    for (auto& Actor : GetWorld()->GetActors())
     {
         if (APlayerCameraManager* APCM = Cast<APlayerCameraManager>(Actor))
         {
@@ -133,7 +133,7 @@ void AGPlayer::Input(float DeltaTime)
         if (!bLeftMouseDown)
         {
             bLeftMouseDown = true;
-            AGBullet* bullet = GEngine->GetWorld()->SpawnActor<AGBullet>();
+            AGBullet* bullet = GetWorld()->SpawnActor<AGBullet>();
             bullet->Fire(GetActorLocation(), GetActorForwardVector(), 50);
 
             if (PlayerCameraManager)
@@ -272,7 +272,7 @@ void AGPlayer::Input(float DeltaTime)
         bIsMoveStarted = true;
         UCameraLetterBox* CameraModifier = FObjectFactory::ConstructObject<UCameraLetterBox>(this);
         CameraModifier->ActivateLetterbox(4.f/3.f, 1.f);
-        GEngine->GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
+        GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
     }
         
     if (!MoveDirection.IsNearlyZero())

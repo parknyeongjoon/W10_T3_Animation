@@ -48,11 +48,11 @@ FStaticMeshRenderPass::FStaticMeshRenderPass(const FName& InShaderName) : FBaseR
     Graphics.Device->CreateBuffer(&constdesc, nullptr, &LightConstantBuffer);
 }
 
-void FStaticMeshRenderPass::AddRenderObjectsToRenderPass()
+void FStaticMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
     for (USceneComponent* SceneComponent : TObjectRange<USceneComponent>())
     {
-        if (SceneComponent->GetWorld() != GEngine->GetWorld())
+        if (SceneComponent->GetWorld() != World)
         {
             continue;
         }
@@ -140,12 +140,12 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
     
     UpdateCameraConstant(InViewportClient);
     
-    for (UStaticMeshComponent* staticMeshComp : StaticMeshComponents)
+    for (UStaticMeshComponent* StaticMeshComp : StaticMeshComponents)
     {
-        const FMatrix Model = staticMeshComp->GetWorldMatrix();
-        UpdateMatrixConstants(staticMeshComp, View, Proj);
+        const FMatrix Model = StaticMeshComp->GetWorldMatrix();
+        UpdateMatrixConstants(StaticMeshComp, View, Proj);
         // uint32 isSelected = 0;
-        // if (GEngine->GetWorld()->GetSelectedActors().Contains(staticMeshComp->GetOwner()))
+        // if (GetWorld()->GetSelectedActors().Contains(staticMeshComp->GetOwner()))
         // {
         //     isSelected = 1;
         // }
@@ -160,23 +160,24 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         
         if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
         {
-            if ( !GEngine->GetWorld()->GetSelectedActors().IsEmpty() && *GEngine->GetWorld()->GetSelectedActors().begin() == staticMeshComp->GetOwner())
+            TSet<AActor*> Actors = InViewportClient->GetWorld()->GetSelectedActors();
+            if (!Actors.IsEmpty() && *Actors.begin() == StaticMeshComp->GetOwner())
             {
                 UPrimitiveBatch::GetInstance().AddAABB(
-                    staticMeshComp->GetBoundingBox(),
-                    staticMeshComp->GetWorldLocation(),
+                    StaticMeshComp->GetBoundingBox(),
+                    StaticMeshComp->GetWorldLocation(),
                     Model
                 );
             }
         }
 
-        if (!staticMeshComp->GetStaticMesh()) continue;
+        if (!StaticMeshComp->GetStaticMesh()) continue;
         
-        const OBJ::FStaticMeshRenderData* renderData = staticMeshComp->GetStaticMesh()->GetRenderData();
+        const OBJ::FStaticMeshRenderData* renderData = StaticMeshComp->GetStaticMesh()->GetRenderData();
         if (renderData == nullptr) continue;
 
         // VIBuffer Bind
-        const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(staticMeshComp->GetVBIBTopologyMappingName());
+        const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(StaticMeshComp->GetVBIBTopologyMappingName());
         VBIBTopMappingInfo->Bind();
 
         // If There's No Material Subset
@@ -190,7 +191,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         {
             const int materialIndex = renderData->MaterialSubsets[subMeshIndex].MaterialIndex;
             
-            UpdateMaterialConstants(staticMeshComp->GetMaterial(materialIndex)->GetMaterialInfo());
+            UpdateMaterialConstants(StaticMeshComp->GetMaterial(materialIndex)->GetMaterialInfo());
 
             // index draw
             const uint64 startIndex = renderData->MaterialSubsets[subMeshIndex].IndexStart;

@@ -13,8 +13,8 @@ public:
     explicit FFogRenderPass(const FName& InShaderName);
 
     virtual ~FFogRenderPass() {}
-    void AddRenderObjectsToRenderPass() override;
-    void PrePrepare();
+    void AddRenderObjectsToRenderPass(UWorld* World) override;
+    void ClearRenderObjects() override;
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
     bool ShouldRender() { return bRender; }

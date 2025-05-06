@@ -1,6 +1,5 @@
 #pragma once
 #include "Engine/Engine.h"
-#include "EngineBaseTypes.h"
 #include "Coroutine/CoroutineManager.h"
 
 class FCollisionManager;
@@ -19,7 +18,7 @@ class UEditorEngine : public UEngine
 public:
     UEditorEngine();
     void Init() override;
-    void Tick(float deltaSeconds) override;
+    void Tick(float DeltaTime) override;
     void Release() override;
     void Input();
     
@@ -29,15 +28,13 @@ public:
     void ResumingPIE();
     void StopPIE();
 
-    
-    void UpdateGizmos();
+    void UpdateGizmos(UWorld* World);
     UEditorPlayer* GetEditorPlayer() const { return EditorPlayer; }
+    UWorld* CreateWorld(EWorldType::Type WorldType, ELevelTick LevelTick);
 
 public:
-
     static FCollisionManager CollisionManager;
     static FCoroutineManager CoroutineManager;
-    ELevelTick LevelType = ELevelTick::LEVELTICK_ViewportsOnly;
     bool bUButtonDown = false;
 
     void ForceEditorUIOnOff() { bForceEditorUI = !bForceEditorUI; }
@@ -45,30 +42,23 @@ public:
     bool bForceEditorUI = false;
 public:
     // UISOO TODO NOW
-    UWorld* GetWorld() const override { return ActiveWorld; }
     SLevelEditor* GetLevelEditor() const { return LevelEditor; }
     UnrealEd* GetUnrealEditor() const { return UnrealEditor; }    
 
     float testBlurStrength;
 
 private:
-    std::shared_ptr<FWorldContext> CreateNewWorldContext(EWorldType::Type InWorldType);
+    std::shared_ptr<FWorldContext> CreateNewWorldContext(EWorldType::Type InWorldType, ELevelTick LevelType);
 
     // TODO 임시 Public 바꿔잇
 public:
-    UnrealEd* UnrealEditor;
-    FContentsUI* ContentsUI;
+    UnrealEd* UnrealEditor = nullptr;
+    FContentsUI* ContentsUI = nullptr;
+    
+    std::shared_ptr<FWorldContext> PIEWorldContext = nullptr;
+    std::shared_ptr<FWorldContext> EditorWorldContext = nullptr;
 private:
-    // UISOO TODO NOW
-    UWorld* PIEWorld = nullptr;
-    UWorld* EditorWorld = nullptr;
     
-    SLevelEditor* LevelEditor;
-
-    // UISOO TODO NOW
-    UWorld* ActiveWorld;
-
-    
-    bool bIsMKeyDown = false;
+    SLevelEditor* LevelEditor = nullptr;
     UEditorPlayer* EditorPlayer = nullptr;
 };

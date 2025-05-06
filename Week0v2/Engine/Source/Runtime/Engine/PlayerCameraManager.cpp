@@ -28,7 +28,7 @@ APlayerCameraManager::APlayerCameraManager(const APlayerCameraManager& Other)
     // PostProcessBlendCacheWeights(Other.PostProcessBlendCacheWeights),
     // PostProcessBlendCacheOrders(Other.PostProcessBlendCacheOrders)
 {
-    //GEngine->GetWorld()->SetPlayerCameraManager(this);
+    //GetWorld()->SetPlayerCameraManager(this);
 }
 
 void APlayerCameraManager::AddCameraModifier(UCameraModifier* Modifier)

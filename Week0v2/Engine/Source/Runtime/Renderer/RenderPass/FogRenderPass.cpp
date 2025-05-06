@@ -34,16 +34,13 @@ FFogRenderPass::FFogRenderPass(const FName& InShaderName)
     }
 }
 
-void FFogRenderPass::AddRenderObjectsToRenderPass()
+void FFogRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
-}
-
-void FFogRenderPass::PrePrepare()
-{
+    bRender = false;
     FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     for (const auto iter : TObjectRange<UHeightFogComponent>())
     {
-        if (iter->GetWorld() == GEngine->GetWorld())
+        if (iter->GetWorld() == World)
         {
             FogComp = iter;
             Graphics.SwapPingPongBuffers();
@@ -53,8 +50,16 @@ void FFogRenderPass::PrePrepare()
     }
 }
 
-void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+void FFogRenderPass::ClearRenderObjects()
 {
+    FBaseRenderPass::ClearRenderObjects();
+
+    FogComp = nullptr;
+    bRender = false;
+}
+
+void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+{    
     if (bRender)
     {
         FBaseRenderPass::Prepare(InViewportClient);

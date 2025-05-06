@@ -40,11 +40,11 @@ FSkeletalMeshRenderPass::FSkeletalMeshRenderPass(const FName& InShaderName) : FB
     Graphics.Device->CreateBuffer(&constdesc, nullptr, &LightConstantBuffer);
 }
 
-void FSkeletalMeshRenderPass::AddRenderObjectsToRenderPass()
+void FSkeletalMeshRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
     for (USceneComponent* SceneComponent : TObjectRange<USceneComponent>())
     {
-        if (SceneComponent->GetWorld() != GEngine->GetWorld())
+        if (SceneComponent->GetWorld() != World)
         {
             continue;
         }
@@ -130,7 +130,8 @@ void FSkeletalMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InV
         
         if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
         {
-            if ( !GEngine->GetWorld()->GetSelectedActors().IsEmpty() && *GEngine->GetWorld()->GetSelectedActors().begin() == SkeletalMeshComponent->GetOwner())
+            TSet<AActor*> Actors = InViewportClient->GetWorld()->GetSelectedActors();
+            if (!Actors.IsEmpty() && *Actors.begin() == SkeletalMeshComponent->GetOwner())
             {
                 UPrimitiveBatch::GetInstance().AddAABB(
                     SkeletalMeshComponent->GetBoundingBox(),

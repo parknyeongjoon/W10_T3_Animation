@@ -43,7 +43,6 @@ void OutlinerEditorPanel::Render()
 
     if (ImGui::TreeNode("Actors")) // 트리 노드 생성
     {
-        UWorld* World = GEngine->GetWorld();
         for (AActor* Actor : World->GetActors())
         {
             TSet<AActor*> Actros = World->GetSelectedActors();

@@ -23,7 +23,7 @@ FBlurRenderPass::FBlurRenderPass(const FName& InShaderName)
     BlurConstantBuffer = RenderResourceManager->CreateConstantBuffer(sizeof(FFadeConstants));
 }
 
-void FBlurRenderPass::AddRenderObjectsToRenderPass()
+void FBlurRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
 }
 

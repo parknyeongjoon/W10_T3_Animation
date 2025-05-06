@@ -45,6 +45,15 @@ void UnrealEd::OnResize(HWND hWnd) const
     }
 }
 
+void UnrealEd::SetWorld(UWorld* InWorld)
+{
+    World = InWorld;
+    for (auto& [_, Panel] : Panels)
+    {
+        Panel->SetWorld(World);
+    } 
+}
+
 std::shared_ptr<UEditorPanel> UnrealEd::GetEditorPanel(const FString& PanelId)
 {
     return Panels[PanelId];

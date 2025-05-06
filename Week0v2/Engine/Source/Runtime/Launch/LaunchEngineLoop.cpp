@@ -52,15 +52,10 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
         WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass";
         WCHAR EnginePreviewTitle[] = L"Preview";
         HWND AppWnd = CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
-        EditorEngine->GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd);
-    }
-
-    if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
-    {
-        WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass1";
-        WCHAR EnginePreviewTitle[] = L"Preview1";
-        HWND AppWnd = CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
-        EditorEngine->GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd);
+        
+        UWorld* World = EditorEngine->CreateWorld(EWorldType::EditorPreview, LEVELTICK_ViewportsOnly);
+        
+        EditorEngine->GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, World);
     }
 
     for (auto& AppWnd : AppWindows)
@@ -127,38 +122,47 @@ void FEngineLoop::Render()
             ImGuiUIManager->BeginFrame();
             for (auto& AppWindow : AppWindows)
             {
-                if (LevelEditor->GetEditorStateManager().GetEditorState() != EEditorState::Playing || EditorEngine->bForceEditorUI == true)
-                {
-                    EditorEngine->UnrealEditor->Render();
-                }
-                else
-                {
-                    EditorEngine->ContentsUI->Render();
-                }
+                LevelEditor->FocusViewportClient(AppWindow, 0);
+
+                TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients = LevelEditor->GetViewportClients(AppWindow);
+                
                 GraphicDevice.Prepare(AppWindow);
+                if (ViewportClients.Num() > 0)
+                {
+                    EditorEngine->UnrealEditor->SetWorld(ViewportClients[0]->GetWorld());
+                    EditorEngine->ContentsUI->SetWorld(ViewportClients[0]->GetWorld());
+                }
+                if (ViewportClients.Num() > 0)
+                {
+                    if (LevelEditor->GetEditorStateManager().GetEditorState() != EEditorState::Playing || EditorEngine->bForceEditorUI == true)
+                    {
+                        EditorEngine->UnrealEditor->Render();
+                    }
+                    else
+                    {
+                        EditorEngine->ContentsUI->Render();
+                    }
+                }
                 if (LevelEditor->IsMultiViewport(AppWindow))
                 {
-                    TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients = LevelEditor->GetViewportClients(AppWindow);
                     for (uint32 i = 0; i < ViewportClients.Num(); i++)
                     {
                         std::shared_ptr<FEditorViewportClient> ViewportClient = ViewportClients[i];
                         LevelEditor->FocusViewportClient(AppWindow, i);
-                        EditorEngine->UpdateGizmos();
+                        EditorEngine->UpdateGizmos(ViewportClient->GetWorld());
                         Renderer.Render(ViewportClient);
                     }
                 }
                 else
                 {
-                    TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients = LevelEditor->GetViewportClients(AppWindow);
-                    for (uint32 i = 0; i < ViewportClients.Num(); i++)
+                    for (uint32 i = 0; (i < ViewportClients.Num() && i < 1); i++)
                     {
                         std::shared_ptr<FEditorViewportClient> ViewportClient = ViewportClients[i];
                         LevelEditor->FocusViewportClient(AppWindow, i);
-                        EditorEngine->UpdateGizmos();
+                        EditorEngine->UpdateGizmos(ViewportClient->GetWorld());
                         Renderer.Render(ViewportClient);
                     }
                 }
-                
 
                 Console::GetInstance().Draw();        
 

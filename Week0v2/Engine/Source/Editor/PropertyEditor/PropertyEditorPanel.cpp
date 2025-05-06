@@ -53,7 +53,7 @@ void PropertyEditorPanel::Render()
         if (PickedComponent != nullptr)
         {
             AActor* PickedActor = nullptr;
-            PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
+            PickedActor = *World->GetSelectedActors().begin();
 
             //루트 컴포넌트면 삭제 불가
             if (PickedComponent != PickedActor->GetRootComponent())
@@ -90,9 +90,9 @@ void PropertyEditorPanel::Render()
 
     AActor* PickedActor = nullptr;
 
-    if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
+    if (!World->GetSelectedActors().IsEmpty())
     {
-        PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
+        PickedActor = *World->GetSelectedActors().begin();
     }
 
     ImVec2 imageSize = ImVec2(256, 256); // 이미지 출력 크기
@@ -259,7 +259,7 @@ void PropertyEditorPanel::Render()
 
     if (PickedActor) // Delegate Test
     {
-        RenderDelegate(GEngine->GetWorld()->GetLevel());
+        RenderDelegate(World->GetLevel());
     }
 
     if (PickedActor)

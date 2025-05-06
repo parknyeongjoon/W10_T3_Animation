@@ -45,13 +45,14 @@ class SLevelEditor
 public:
     SLevelEditor();
     ~SLevelEditor() = default;
-    void Initialize(HWND OwnerWindow);
+    void Initialize(UWorld* World, HWND OwnerWindow);
     void Tick(double DeltaTime);
     void Release();
-
+    
     template <typename T>
         requires std::derived_from<T, FViewportClient>
-    std::shared_ptr<T> AddViewportClient(HWND OwnerWindow);
+    std::shared_ptr<T> AddViewportClient(HWND OwnerWindow, UWorld* World);
+    
     void RemoveViewportClient(HWND OwnerWindow, std::shared_ptr<FEditorViewportClient> ViewportClient);
     
     void SelectViewport(HWND AppWnd, FVector2D Point);
@@ -65,12 +66,14 @@ private:
     uint32 ActiveViewportClientIndex = 0;
     HWND ActiveViewportWindow = nullptr;
     
-    TMap<HWND, FWindowViewportClientData> WindowViewportDataMap;
 
     /** 우클릭 시 캡처된 마우스 커서의 초기 위치 (스크린 좌표계) */
     FVector2D MousePinPosition;
     
     FEditorStateManager EditorStateManager;
+
+public:
+    TMap<HWND, FWindowViewportClientData> WindowViewportDataMap;
 public:
 
     uint32 GetCurrentViewportClientIndex() const { return ActiveViewportClientIndex; }

@@ -15,13 +15,13 @@ SLevelEditor::SLevelEditor()
 {
 }
 
-void SLevelEditor::Initialize(HWND OwnerWindow)
+void SLevelEditor::Initialize(UWorld* World, HWND OwnerWindow)
 {
     ActiveViewportWindow = OwnerWindow;
     ActiveViewportClientIndex = 0;
     for (size_t i = 0; i < 4; i++)
     {
-        std::shared_ptr<FEditorViewportClient> EditorViewportClient = AddViewportClient<FEditorViewportClient>(OwnerWindow);
+        std::shared_ptr<FEditorViewportClient> EditorViewportClient = AddViewportClient<FEditorViewportClient>(OwnerWindow, World);
         EViewScreenLocation Location = static_cast<EViewScreenLocation>(i);
         EditorViewportClient->GetViewport()->ViewScreenLocation = Location;
     }
@@ -41,12 +41,7 @@ void SLevelEditor::Initialize(HWND OwnerWindow)
     FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
     
     Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
-    {
-        if (GEngine->GetWorld()->WorldType != EWorldType::Editor && GEngine->GetWorld()->WorldType != EWorldType::EditorPreview)
-        {
-            return;
-        }
-        
+    {        
         if (ImGui::GetIO().WantCaptureMouse) return;
 
         if (!WindowViewportDataMap.Contains(AppWnd))
@@ -54,6 +49,17 @@ void SLevelEditor::Initialize(HWND OwnerWindow)
             return;
         }
         FWindowViewportClientData& WindowViewportData = WindowViewportDataMap[AppWnd];
+
+        if (WindowViewportData.ViewportClients.Num() == 0)
+        {
+            return;
+        }
+
+        UWorld* World = WindowViewportData.ViewportClients[0]->GetWorld();
+        if (World->WorldType != EWorldType::Editor && World->WorldType != EWorldType::EditorPreview)
+        {
+            return;
+        }
         
         switch (InMouseEvent.GetEffectingButton())  // NOLINT(clang-diagnostic-switch-enum)
         {
@@ -184,11 +190,6 @@ void SLevelEditor::Initialize(HWND OwnerWindow)
     
     Handler->OnRawMouseInputDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
-        if (GEngine->GetWorld()->WorldType != EWorldType::Editor && GEngine->GetWorld()->WorldType != EWorldType::EditorPreview)
-        {
-            return;
-        }
-
         if (!WindowViewportDataMap.Contains(AppWnd))
         {
             return;
@@ -196,6 +197,17 @@ void SLevelEditor::Initialize(HWND OwnerWindow)
 
         FWindowViewportClientData& WindowViewportData = WindowViewportDataMap[AppWnd];
         std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
+
+        if (WindowViewportData.ViewportClients.Num() == 0)
+        {
+            return;
+        }
+        
+        UWorld* World = WindowViewportData.ViewportClients[0]->GetWorld();
+        if (World->WorldType != EWorldType::Editor && World->WorldType != EWorldType::EditorPreview)
+        {
+            return;
+        }
         
         // Mouse Move 이벤트 일때만 실행
         if (InMouseEvent.GetInputEvent() == IE_Axis && InMouseEvent.GetEffectingButton() == EKeys::Invalid)
@@ -281,7 +293,7 @@ void SLevelEditor::Release()
 
 template <typename T>
     requires std::derived_from<T, FViewportClient>
-std::shared_ptr<T> SLevelEditor::AddViewportClient(HWND OwnerWindow)
+std::shared_ptr<T> SLevelEditor::AddViewportClient(HWND OwnerWindow, UWorld* World)
 {
     if (!WindowViewportDataMap.Contains(OwnerWindow))
     {
@@ -291,7 +303,7 @@ std::shared_ptr<T> SLevelEditor::AddViewportClient(HWND OwnerWindow)
         WindowViewportDataMap[OwnerWindow].EditorHeight = GEngineLoop.GraphicDevice.SwapChains[OwnerWindow].ScreenHeight;
     }
     std::shared_ptr<T> ViewportClient = std::make_shared<T>();
-    ViewportClient->Initialize(OwnerWindow, WindowViewportDataMap[OwnerWindow].ViewportClients.Num());
+    ViewportClient->Initialize(OwnerWindow, WindowViewportDataMap[OwnerWindow].ViewportClients.Num(), World);
 
     WindowViewportDataMap[OwnerWindow].ViewportClients.Add(ViewportClient);
     return ViewportClient;

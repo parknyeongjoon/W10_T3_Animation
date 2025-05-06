@@ -1,4 +1,5 @@
 #pragma once
+#include "EngineBaseTypes.h"
 #include "EngineTypes.h"
 #include "Container/Array.h"
 #include "UObject/ObjectMacros.h"
@@ -12,6 +13,8 @@ public:
 
     EWorldType::Type WorldType;
     // TArray<FWorldContext*> ExternalReferences;
+    ELevelTick LevelType;
+    
 
     UWorld* GetWorld() { return World; }
     void SetWorld(UWorld* InWorld) { World = InWorld; }

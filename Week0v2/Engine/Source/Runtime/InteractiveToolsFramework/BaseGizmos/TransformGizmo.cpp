@@ -83,9 +83,10 @@ void UTransformGizmo::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-    if (!GetWorld()->GetSelectedActors().IsEmpty())
+    TSet<AActor*> SelectedActors = GetWorld()->GetSelectedActors();
+    if (!SelectedActors.IsEmpty())
     {
-        const AActor* PickedActor = *GetWorld()->GetSelectedActors().begin();
+        const AActor* PickedActor = *SelectedActors.begin();
         if (PickedActor == nullptr)
             return;
         SetActorLocation(PickedActor->GetActorLocation());

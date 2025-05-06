@@ -35,13 +35,13 @@ void FEditorViewportClient::Draw(FViewport* Viewport)
 
 UWorld* FEditorViewportClient::GetWorld() const
 {
-    // UISOO TODO NOW
-    return nullptr;
+    return World;
 }
 
-void FEditorViewportClient::Initialize(HWND InOwnerWindow, uint32 InViewportIndex)
+void FEditorViewportClient::Initialize(HWND InOwnerWindow, uint32 InViewportIndex, UWorld* World)
 {
     SetOwner(InOwnerWindow);
+    SetWorld(World);
     ViewportIndex = InViewportIndex;
     
     ViewTransformPerspective.SetLocation(FVector(8.0f, 8.0f, 8.f));
@@ -53,7 +53,7 @@ void FEditorViewportClient::Initialize(HWND InOwnerWindow, uint32 InViewportInde
 
 void FEditorViewportClient::Tick(float DeltaTime)
 {
-    if (GEngine->GetWorld()->WorldType == EWorldType::Editor || GEngine->GetWorld()->WorldType == EWorldType::EditorPreview)
+    if (GetWorld()->WorldType == EWorldType::Editor || GetWorld()->WorldType == EWorldType::EditorPreview)
     {
         UpdateEditorCameraMovement(DeltaTime);
     }
@@ -67,7 +67,7 @@ void FEditorViewportClient::Tick(float DeltaTime)
     // {
     //     for (int i=0;i<CASCADE_COUNT*8;i++)
     //     {
-    //         AStaticMeshActor* TempActor = GEngine->GetWorld()->SpawnActor<AStaticMeshActor>();
+    //         AStaticMeshActor* TempActor = GetWorld()->SpawnActor<AStaticMeshActor>();
     //         TempActor->SetActorLabel(TEXT("OBJ_CUBE"));
     //         UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
     //         FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
@@ -244,9 +244,10 @@ void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
             {
             case 'F':
                 {
-                    if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
+                    TSet<AActor*> SelectedActors = GetWorld()->GetSelectedActors();
+                    if (!SelectedActors.IsEmpty())
                     {
-                        if (AActor* PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin())
+                        if (AActor* PickedActor = *SelectedActors.begin())
                         {
                             FViewportCameraTransform& ViewTransform = ViewTransformPerspective;
                             ViewTransform.SetLocation(
@@ -271,7 +272,7 @@ void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
                 {
                     if (PressedKeys.Contains(EKeys::LeftControl))
                     {
-                        GEngine->GetWorld()->DuplicateSelectedActors();
+                        GetWorld()->DuplicateSelectedActors();
                     }
                 }
             default:
@@ -284,12 +285,12 @@ void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
             {
             case VK_DELETE:
             {
-                for (AActor* Actor : GEngine->GetWorld()->GetSelectedActors())
+                for (AActor* Actor : GetWorld()->GetSelectedActors())
                 {
                     UE_LOG(LogLevel::Display, "Delete Component - %s", *Actor->GetName());
                     Actor->Destroy();
                 }
-                GEngine->GetWorld()->ClearSelectedActors();
+                GetWorld()->ClearSelectedActors();
                 break;
             }
             case VK_SPACE:

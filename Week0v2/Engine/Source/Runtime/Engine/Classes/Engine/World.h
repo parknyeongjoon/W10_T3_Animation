@@ -154,4 +154,4 @@ T* UWorld::SpawnActor()
 }
 
 //LUA용
-static AActor* SpawnActorByName(const FString& ActorName, UObject* InOuter, bool bCallBeginPlay);
+// static AActor* SpawnActorByName(const FString& ActorName, UObject* InOuter, bool bCallBeginPlay);

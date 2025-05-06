@@ -9,7 +9,7 @@
 #include "Renderer/VBIBTopologyMapping.h"
 #include "SlateCore/Layout/SlateRect.h"
 
-void FDebugDepthRenderPass::AddRenderObjectsToRenderPass()
+void FDebugDepthRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
 }
 

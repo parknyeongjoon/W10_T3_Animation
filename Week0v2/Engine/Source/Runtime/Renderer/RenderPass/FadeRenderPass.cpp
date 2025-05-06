@@ -22,11 +22,11 @@ FFadeRenderPass::FFadeRenderPass(const FName& InShaderName)
     FadeConstantBuffer = RenderResourceManager->CreateConstantBuffer(sizeof(FFadeConstants));
 }
 
-void FFadeRenderPass::AddRenderObjectsToRenderPass()
+void FFadeRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
     for (APlayerCameraManager* PlayerCameraManager : TObjectRange<APlayerCameraManager>())
     {
-        if (PlayerCameraManager->GetWorld() != GEngine->GetWorld())
+        if (PlayerCameraManager->GetWorld() != World)
         {
             continue;
         }

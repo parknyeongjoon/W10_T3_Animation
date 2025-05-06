@@ -9,7 +9,7 @@ FFinalRenderPass::FFinalRenderPass(const FName& InShaderName) : FBaseRenderPass(
     bRender = true;
 }
 
-void FFinalRenderPass::AddRenderObjectsToRenderPass()
+void FFinalRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
 }
 

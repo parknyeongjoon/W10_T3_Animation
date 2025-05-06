@@ -36,7 +36,10 @@ void UWorld::InitWorld()
     // TODO: Load Scene
     Level = FObjectFactory::ConstructObject<ULevel>(this);
     PreLoadResources();
-    LoadScene("Assets/Scenes/NewScene.Scene");
+    if (WorldType == EWorldType::Editor)
+    {
+        LoadScene("Assets/Scenes/NewScene.Scene");
+    }
 }
 
 void UWorld::LoadLevel(const FString& LevelName)
@@ -342,7 +345,7 @@ void UWorld::BeginPlay()
 {
     FGameManager::Get().BeginPlay();
 
-    for (auto Actor :GEngine->GetWorld()->GetActors())
+    for (auto Actor :GetActors())
     {
         if (APlayerCameraManager* CameraManager = Cast<APlayerCameraManager>(Actor))
         {
@@ -357,10 +360,11 @@ UWorld* UWorld::DuplicateWorldForPIE(UWorld* world)
     return new UWorld();
 }
 
-AActor* SpawnActorByName(const FString& ActorName, UObject* InOuter, bool bCallBeginPlay)
-{
-    UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorName);
-    return GEngine->GetWorld()->SpawnActorByClass(ActorClass, InOuter, bCallBeginPlay);
-}
+// AActor* SpawnActorByName(const FString& ActorName, UObject* InOuter, bool bCallBeginPlay)
+// {
+//     // GetWorld 문제 발생 여지 많음.
+//     UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorName);
+//     return GetWorld()->SpawnActorByClass(ActorClass, InOuter, bCallBeginPlay);
+// }
 
 /**********************************************************/

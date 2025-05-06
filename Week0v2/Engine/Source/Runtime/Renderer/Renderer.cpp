@@ -249,17 +249,9 @@ void FRenderer::CreateVertexPixelShader(const FString& InPrefix, D3D_SHADER_MACR
 
 void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewportClient)
 {
-    AddRenderObjectsToRenderPass();
+    AddRenderObjectsToRenderPass(ActiveViewportClient->GetWorld());
     SetViewMode(ActiveViewportClient->GetViewMode());
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewportClient->GetD3DViewport());
-
-    if (ActiveViewportClient->GetViewMode() != EViewModeIndex::VMI_Wireframe
-        && ActiveViewportClient->GetViewMode() != EViewModeIndex::VMI_Normal
-        && ActiveViewportClient->GetViewMode() != EViewModeIndex::VMI_Depth
-        && ActiveViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Fog))
-    {
-        FogRenderPass->PrePrepare(); //fog 렌더 여부 결정 및 준비
-    }
     
     //값을 써줄때 
     
@@ -311,7 +303,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     EditorIconRenderPass->Prepare(ActiveViewportClient);
     EditorIconRenderPass->Execute(ActiveViewportClient);
 
-    if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
+    if (!ActiveViewportClient->GetWorld()->GetSelectedActors().IsEmpty())
     {
         GizmoRenderPass->Prepare(ActiveViewportClient);
         GizmoRenderPass->Execute(ActiveViewportClient);
@@ -347,6 +339,9 @@ void FRenderer::ClearRenderObjects() const
     ShadowRenderPass->ClearRenderObjects();
     FadeRenderPass->ClearRenderObjects();
     LetterBoxRenderPass->ClearRenderObjects();
+    FogRenderPass->ClearRenderObjects();
+    BlurRenderPass->ClearRenderObjects();
+    FinalRenderPass->ClearRenderObjects();
 }
 
 void FRenderer::SetViewMode(const EViewModeIndex evi)
@@ -404,23 +399,25 @@ void FRenderer::SetViewMode(const EViewModeIndex evi)
     }
 }
 
-void FRenderer::AddRenderObjectsToRenderPass() const
+void FRenderer::AddRenderObjectsToRenderPass(UWorld* World) const
 {
     //ComputeTileLightCulling->AddRenderObjectsToRenderPass(InWorld);
 
-    GoroudRenderPass->AddRenderObjectsToRenderPass();
-    LambertRenderPass->AddRenderObjectsToRenderPass();
-    PhongRenderPass->AddRenderObjectsToRenderPass();
-    SkeletalRenderPass->AddRenderObjectsToRenderPass();
+    GoroudRenderPass->AddRenderObjectsToRenderPass(World);
+    LambertRenderPass->AddRenderObjectsToRenderPass(World);
+    PhongRenderPass->AddRenderObjectsToRenderPass(World);
+    SkeletalRenderPass->AddRenderObjectsToRenderPass(World);
     
-    GizmoRenderPass->AddRenderObjectsToRenderPass();
-    EditorIconRenderPass->AddRenderObjectsToRenderPass();
-    ShadowRenderPass->AddRenderObjectsToRenderPass();
+    GizmoRenderPass->AddRenderObjectsToRenderPass(World);
+    EditorIconRenderPass->AddRenderObjectsToRenderPass(World);
+    ShadowRenderPass->AddRenderObjectsToRenderPass(World);
 
-    LineBatchRenderPass->AddRenderObjectsToRenderPass();
-    FadeRenderPass->AddRenderObjectsToRenderPass();
-    LetterBoxRenderPass->AddRenderObjectsToRenderPass();
-    
+    LineBatchRenderPass->AddRenderObjectsToRenderPass(World);
+    FadeRenderPass->AddRenderObjectsToRenderPass(World);
+    LetterBoxRenderPass->AddRenderObjectsToRenderPass(World);
+    FogRenderPass->AddRenderObjectsToRenderPass(World);
+    BlurRenderPass->AddRenderObjectsToRenderPass(World);
+    FinalRenderPass->AddRenderObjectsToRenderPass(World);
 }
 
 void FRenderer::MappingVSPSInputLayout(const FName InShaderProgramName, FName VSName, FName PSName, FName InInputLayoutName)

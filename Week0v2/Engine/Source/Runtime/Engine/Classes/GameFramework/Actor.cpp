@@ -245,7 +245,7 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
         UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate(InOuter));
         dupComponent->Owner = this;
         OwnedComponents.Add(dupComponent);
-        GEngine->GetWorld()->GetLevel()->GetDuplicatedObjects().Add(Component, dupComponent);
+        GetWorld()->GetLevel()->GetDuplicatedObjects().Add(Component, dupComponent);
 
         /** Todo. UActorComponent를 상속 받는 컴포넌트는 오류가 발생 코드 로직 수정 필요
          *   임시로 IsA 검사 후 Root 설정

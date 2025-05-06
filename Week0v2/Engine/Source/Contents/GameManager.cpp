@@ -19,10 +19,10 @@ FGameManager& FGameManager::Get()
     }
     return *Instance.get();
 }
-
+//TODO
 void FGameManager::BeginPlay()
 {
-    CurrentGameState= EGameState::Playing;
+    CurrentGameState = EGameState::Playing;
     Score = 0;
     GameTimer = 0.0f;
     for (int i = 0; i < 3; i++)
@@ -60,7 +60,7 @@ void FGameManager::RestartGame()
 
 void FGameManager::StartGame()
 {
-    //GEngine->GetWorld()->LoadScene("Assets/Scenes/Game.scene");
+    //GetWorld()->LoadScene("Assets/Scenes/Game.scene");
 
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>(PlayerCameraManager);
     CameraModifier->StartFadeIn(2.0f);
@@ -79,7 +79,7 @@ void FGameManager::EndGame()
     CameraLetterBox->DeactivateLetterbox(1.0f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
     
-    //GEngine->GetWorld()->ReloadScene("Assets/Scenes/EndGame.scene");
+    //GetWorld()->ReloadScene("Assets/Scenes/EndGame.scene");
 }
 
 void FGameManager::SpawnEnemy()

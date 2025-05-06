@@ -126,7 +126,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 
         if (ImGui::MenuItem("New Scene"))
         {
-            GEngine->GetWorld()->ReloadScene("Assets/Scenes/NewScene.scene");
+            World->ReloadScene("Assets/Scenes/NewScene.scene");
         }
 
         if (ImGui::MenuItem("Load Scene"))
@@ -140,7 +140,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
                 ImGui::End();
                 return;
             }
-            GEngine->GetWorld()->ReloadScene(FileName);
+            World->ReloadScene(FileName);
         }
 
         ImGui::Separator();
@@ -159,8 +159,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
             // TODO: Save Scene
             //int i = 1;
             //FArchive ar;
-            UWorld World = *GEngine->GetWorld();
-            World.SaveScene(FileName);
+            World->SaveScene(FileName);
             // ar << World;
             //
             // FWindowsBinHelper::SaveToBin(FileName, ar);
@@ -349,7 +348,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             // 액터 생성 버튼
             if (ImGui::Selectable(actor.label))
             {
-                UWorld* World = GEngine->GetWorld();
                 AActor* SpawnedActor = nullptr;
 
                 switch (static_cast<OBJECTS>(actor.obj))
@@ -478,9 +476,9 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                         if (actor)
                         {
                             actor->Destroy();
-                            TSet<AActor*> Actors = GEngine->GetWorld()->GetSelectedActors();
+                            TSet<AActor*> Actors = World->GetSelectedActors();
                             if(Actors.Contains(actor))
-                                GEngine->GetWorld()->ClearSelectedActors();
+                                World->ClearSelectedActors();
                         }
                     }
                     SpawnedActor = World->SpawnActor<AExponentialHeightFogActor>();

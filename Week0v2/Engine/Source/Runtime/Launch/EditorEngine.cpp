@@ -24,10 +24,9 @@ FCollisionManager UEditorEngine::CollisionManager;
 FCoroutineManager UEditorEngine::CoroutineManager;
 
 UEditorEngine::UEditorEngine()
-    : LevelEditor(nullptr)
-    , UnrealEditor(nullptr)
-    , ActiveWorld(nullptr)
+    : UnrealEditor(nullptr)
     , ContentsUI(nullptr)
+    , LevelEditor(nullptr)
 {
 }
 
@@ -38,22 +37,15 @@ void UEditorEngine::Init()
     UnrealEditor = new UnrealEd();
     ContentsUI = new FContentsUI();
 
+    UWorld* EditorWorld = CreateWorld(EWorldType::Editor, LEVELTICK_ViewportsOnly);
+    
     /* must be initialized before window. */
-    LevelEditor->Initialize(GEngineLoop.GetDefaultWindow());
+    LevelEditor->Initialize(EditorWorld, GEngineLoop.GetDefaultWindow());
 
     UnrealEditor->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
     ContentsUI->Initialize();
     CollisionManager.Initialize();  
-    FLuaManager::Get().Initialize();
-
-    std::shared_ptr<FWorldContext> EditorContext = CreateNewWorldContext(EWorldType::Editor);
-
-    EditorWorld = FObjectFactory::ConstructObject<UWorld>(this);
-    EditorWorld->WorldType = EWorldType::Editor;
-    
-    EditorContext->SetWorld(EditorWorld);
-    ActiveWorld = EditorWorld;
-    ActiveWorld->InitWorld(); // UISOO Check
+    FLuaManager::Get().Initialize();    
 
     EditorPlayer = FObjectFactory::ConstructObject<UEditorPlayer>(this);
     EditorPlayer->Initialize();
@@ -68,24 +60,32 @@ void UEditorEngine::Init()
     }
 }
 
-void UEditorEngine::Tick(float deltaSeconds)
+void UEditorEngine::Tick(float DeltaTime)
 {
-    ActiveWorld->Tick(LevelType, deltaSeconds);
+    for (std::shared_ptr<FWorldContext> WorldContext : WorldContexts)
+    {
+        WorldContext->GetWorld()->Tick(WorldContext->LevelType, DeltaTime);
+    }
     EditorPlayer->Tick();
     
-    CollisionManager.UpdateCollision(deltaSeconds);
+    CollisionManager.UpdateCollision(DeltaTime);
     
     Input();
     
-    LevelEditor->Tick(deltaSeconds);
+    LevelEditor->Tick(DeltaTime);
 
-    CoroutineManager.Tick(deltaSeconds);
+    CoroutineManager.Tick(DeltaTime);
     CoroutineManager.CleanupCoroutines();
 }
 
 void UEditorEngine::Release()
 {
-    ActiveWorld->Release();
+    for (auto WorldContext : WorldContexts)
+    {
+        WorldContext->GetWorld()->Release();
+    }
+    WorldContexts.Empty();
+    
     LevelEditor->Release();
     
     CollisionManager.Release();
@@ -140,34 +140,30 @@ void UEditorEngine::Input()
 
 void UEditorEngine::PreparePIE()
 {
-    std::shared_ptr<FWorldContext> PIEWorldContext = CreateNewWorldContext(EWorldType::PIE);
+    std::shared_ptr<FWorldContext> PIEWorldContext = CreateNewWorldContext(EWorldType::PIE, LEVELTICK_All);
     
-    PIEWorld = Cast<UWorld>(EditorWorld->Duplicate(this));
+    UWorld* PIEWorld = Cast<UWorld>(EditorWorldContext->GetWorld()->Duplicate(this));
     PIEWorld->WorldType = EWorldType::PIE;
-
+    PIEWorld->InitWorld();
     PIEWorldContext->SetWorld(PIEWorld);
-    ActiveWorld = PIEWorld;
-    
-    LevelType = LEVELTICK_All;    
 }
 
 void UEditorEngine::StartPIE()
 {
     // 1. BeingPlay() 호출
-    ActiveWorld->BeginPlay();
-    LevelType = LEVELTICK_All;
+    PIEWorldContext->GetWorld()->BeginPlay();
     UE_LOG(LogLevel::Error, "Start PIE");
 }
 
 void UEditorEngine::PausedPIE()
 {
-    if (LevelType == LEVELTICK_All)
+    if (PIEWorldContext->LevelType == LEVELTICK_All)
     {
-        LevelType = LEVELTICK_PauseTick;
+        PIEWorldContext->LevelType = LEVELTICK_PauseTick;
     }
-    else if (LevelType == LEVELTICK_PauseTick)
+    else if (PIEWorldContext->LevelType == LEVELTICK_PauseTick)
     {
-        LevelType = LEVELTICK_All;
+        PIEWorldContext->LevelType = LEVELTICK_All;
     }
     UE_LOG(LogLevel::Error, "Pause PIE");
 }
@@ -179,32 +175,30 @@ void UEditorEngine::ResumingPIE()
 
 void UEditorEngine::StopPIE()
 {
-    if (PIEWorld == nullptr)
+    if (PIEWorldContext == nullptr)
     {
         MessageBox(nullptr, L"PIE WORLD is not exist", nullptr, MB_OK | MB_ICONERROR);
+        return;
     }
 
-    ActiveWorld->Release();
+    PIEWorldContext->GetWorld()->Release();
     
-    PIEWorld = nullptr;
+    PIEWorldContext = nullptr;
     WorldContexts.Remove(WorldContexts[1]);
-    
-    ActiveWorld = EditorWorld;
-    LevelType = LEVELTICK_ViewportsOnly;
 }
 
-void UEditorEngine::UpdateGizmos()
+void UEditorEngine::UpdateGizmos(UWorld* World)
 {
     for (UGizmoBaseComponent* GizmoComp : TObjectRange<UGizmoBaseComponent>())
     {
-        if (ActiveWorld != GizmoComp->GetWorld())
+        if (World != GizmoComp->GetWorld())
         {
             continue;
         }
         
-        if (!ActiveWorld->GetSelectedActors().IsEmpty())
+        if (!World->GetSelectedActors().IsEmpty())
         {
-            AActor* PickedActor = *ActiveWorld->GetSelectedActors().begin();
+            AActor* PickedActor = *World->GetSelectedActors().begin();
             if (PickedActor == nullptr)
                 break;
             std::shared_ptr<FEditorViewportClient> activeViewport = GetLevelEditor()->GetActiveViewportClient();
@@ -225,11 +219,25 @@ void UEditorEngine::UpdateGizmos()
     }
 }
 
-std::shared_ptr<FWorldContext> UEditorEngine::CreateNewWorldContext(EWorldType::Type InWorldType)
+UWorld* UEditorEngine::CreateWorld(EWorldType::Type WorldType, ELevelTick LevelTick)
+{
+    std::shared_ptr<FWorldContext> EditorContext = CreateNewWorldContext(WorldType, LevelTick);
+
+    UWorld* World = FObjectFactory::ConstructObject<UWorld>(this);
+    World->WorldType = WorldType;
+    World->InitWorld();
+    EditorContext->SetWorld(World);
+
+    return World;
+}
+
+std::shared_ptr<FWorldContext> UEditorEngine::CreateNewWorldContext(EWorldType::Type InWorldType, ELevelTick LevelType)
 {
     std::shared_ptr<FWorldContext> NewWorldContext = std::make_shared<FWorldContext>();
     NewWorldContext->WorldType = InWorldType;
     WorldContexts.Add(NewWorldContext);
+
+    NewWorldContext->LevelType = LevelType;
     
 
     return NewWorldContext;
