@@ -13,17 +13,17 @@ public:
     static bool InitFBXManager();
     static FSkeletalMeshRenderData* ParseFBX(const FString& FilePath);
 
-    void ExtractFBXMeshData(const FbxScene* Scene, FSkeletalMeshRenderData* MeshData) const;
-    void ExtractMeshFromNode(FbxNode* Node, FSkeletalMeshRenderData* MeshData) const;
-    void ExtractVertices(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData) const;
-    void ExtractNormals(FbxMesh* Mesh, FSkeletalMeshRenderData* RenderData, int BaseVertexIndex) const;
-    void ExtractUVs(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int BaseVertexIndex) const;
-    void ExtractTangents(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int BaseVertexIndex) const;
-    void ExtractSkinningData(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int BaseVertexIndex) const;
-    void ProcessSkinning(FbxSkin* skin, FSkeletalMeshRenderData* mesh_data, int base_vertex_index) const;
-    void ExtractIndices(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData) const;
-    void ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData) const;
-    void UpdateBoundingBox(FSkeletalMeshRenderData* MeshData) const;
+    static void ExtractFBXMeshData(const FbxScene* Scene, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal);
+    static void ExtractMeshFromNode(FbxNode* Node, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal);
+    static void ExtractVertices(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal);
+    static void ExtractNormals(FbxMesh* Mesh, FSkeletalMeshRenderData* RenderData, int BaseVertexIndex);
+    static void ExtractUVs(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int BaseVertexIndex);
+    static void ExtractTangents(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int BaseVertexIndex);
+    static void ExtractSkinningData(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal, int BaseVertexIndex);
+    static void ProcessSkinning(FbxSkin* skin, FSkeletalMeshRenderData* mesh_data, FRefSkeletal* RefSkeletal, int base_vertex_index);
+    static void ExtractIndices(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData);
+    static void ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal);
+    static void UpdateBoundingBox(FSkeletalMeshRenderData* MeshData);
 
     static FSkeletalMeshRenderData* GetSkeletalRenderData(FString FilePath);
     static FSkeletalMeshRenderData GetCopiedSkeletalRenderData(FString FilePath);

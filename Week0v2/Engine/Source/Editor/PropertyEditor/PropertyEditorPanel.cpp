@@ -926,13 +926,13 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         ImGui::Text("Skeletal Mesh");
         ImGui::SameLine();
 
-        FString PreviewName = SkeletalMeshComp->GetSkeletalMesh()->GetRenderData()->Name;
+        FString PreviewName = SkeletalMeshComp->GetSkeletalMesh()->GetRenderData().Name;
         const TMap<FString, USkeletalMesh*> Meshes = TestFBXLoader::GetSkeletalMeshes();
         if (ImGui::BeginCombo("##StaticMesh", GetData(PreviewName), ImGuiComboFlags_None))
         {
             for (const auto Mesh : Meshes)
             {
-                if (ImGui::Selectable(GetData(Mesh.Value->GetRenderData()->Name), false))
+                if (ImGui::Selectable(GetData(Mesh.Value->GetRenderData().Name), false))
                 {
                     SkeletalMeshComp->SetSkeletalMesh(Mesh.Value);
                 }

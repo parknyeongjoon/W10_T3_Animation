@@ -124,9 +124,9 @@ void USkeletalMeshComponent::SetSkeletalMesh(USkeletalMesh* value)
 { 
     SkeletalMesh = value;
     value->UpdateBoneHierarchy();
-    for (auto& Vertex : SkeletalMesh->GetRenderData()->Vertices)
-        Vertex.TranslateVertexByBone(SkeletalMesh->GetRenderData()->Bones);
-    value->SetData(value->GetRenderData());
+    // for (auto& Vertex : SkeletalMesh->GetRenderData().Vertices)
+    //     Vertex.TranslateVertexByBone(SkeletalMesh->GetRenderData().Bones);
+    // value->SetData(value->GetRenderData());
     
     OverrideMaterials.SetNum(value->GetMaterials().Num());
     AABB = SkeletalMesh->GetRenderData().BoundingBox;
