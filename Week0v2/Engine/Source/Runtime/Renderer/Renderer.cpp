@@ -286,8 +286,11 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
             PhongRenderPass->Execute(ActiveViewport);
         }
 
-        SkeletalRenderPass->Prepare(ActiveViewport);
-        SkeletalRenderPass->Execute(ActiveViewport);
+        if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_SkeletalMesh))
+        {
+            SkeletalRenderPass->Prepare(ActiveViewport);
+            SkeletalRenderPass->Execute(ActiveViewport);
+        }
     }
 
     if (FogRenderPass->ShouldRender())
