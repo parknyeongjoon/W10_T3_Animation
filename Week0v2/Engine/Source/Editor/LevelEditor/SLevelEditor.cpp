@@ -333,7 +333,6 @@ void SLevelEditor::Tick(double DeltaTime)
 
 void SLevelEditor::Release()
 {
-    SaveConfig();
     WindowViewportDataMap.Empty();
 }
 
@@ -344,7 +343,6 @@ std::shared_ptr<T> SLevelEditor::AddViewportClient(HWND OwnerWindow, UWorld* Wor
     if (!WindowViewportDataMap.Contains(OwnerWindow))
     {
         WindowViewportDataMap.Add(OwnerWindow, FWindowViewportClientData());
-        WindowViewportDataMap[OwnerWindow].Window = OwnerWindow;
         WindowViewportDataMap[OwnerWindow].EditorWidth = GEngineLoop.GraphicDevice.SwapChains[OwnerWindow].ScreenWidth;
         WindowViewportDataMap[OwnerWindow].EditorHeight = GEngineLoop.GraphicDevice.SwapChains[OwnerWindow].ScreenHeight;
     }
@@ -498,34 +496,30 @@ bool SLevelEditor::IsMultiViewport(HWND AppWnd)
 void SLevelEditor::LoadConfig()
 {
     auto config = ReadIniFile(IniFilePath);
-    for (auto& [AppWnd, WindowViewportData] : WindowViewportDataMap)
-    {
-        
-    }
 
-    // TODO Save Load Config
+    FWindowViewportClientData& WindowViewportData = WindowViewportDataMap[GEngineLoop.GetDefaultWindow()];
+    std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
     
-    // ActiveViewportClient->Pivot.X = GetValueFromConfig(config, "OrthoPivotX", 0.0f);
-    // ActiveViewportClient->Pivot.Y = GetValueFromConfig(config, "OrthoPivotY", 0.0f);
-    // ActiveViewportClient->Pivot.Z = GetValueFromConfig(config, "OrthoPivotZ", 0.0f);
-    // ActiveViewportClient->OrthoSize = GetValueFromConfig(config, "OrthoZoomSize", 10.0f);
-    //
-    // SetViewportClient(GetValueFromConfig(config, "ActiveViewportIndex", 0));
-    // //bMultiViewportMode = GetValueFromConfig(config, "bMutiView", false);
-    // bMultiViewportMode = false;
-    // for (size_t i = 0; i < 4; i++)
-    // {
-    //     ViewportClients[i]->LoadConfig(config);
-    // }
-    //
-    // if (HSplitter)
-    // {
-    //     HSplitter->LoadConfig(config);
-    // }
-    // if (VSplitter)
-    // {
-    //     VSplitter->LoadConfig(config);
-    // }
+    ActiveViewportClient->Pivot.X = GetValueFromConfig(config, "OrthoPivotX", 0.0f);
+    ActiveViewportClient->Pivot.Y = GetValueFromConfig(config, "OrthoPivotY", 0.0f);
+    ActiveViewportClient->Pivot.Z = GetValueFromConfig(config, "OrthoPivotZ", 0.0f);
+    ActiveViewportClient->OrthoSize = GetValueFromConfig(config, "OrthoZoomSize", 10.0f);
+    
+    WindowViewportData.ActiveViewportIndex = GetValueFromConfig(config, "ActiveViewportIndex", 0);
+    WindowViewportData.bMultiViewportMode = GetValueFromConfig(config, "bMutiView", false);
+    for (size_t i = 0; i < 4; i++)
+    {
+        WindowViewportData.ViewportClients[i]->LoadConfig(config);
+    }
+    
+    if (WindowViewportData.HSplitter)
+    {
+        WindowViewportData.HSplitter->LoadConfig(config);
+    }
+    if (WindowViewportData.VSplitter)
+    {
+        WindowViewportData.VSplitter->LoadConfig(config);
+    }
 
     for (auto& [AppWnd, WindowViewportData] : WindowViewportDataMap)
     {
@@ -534,25 +528,27 @@ void SLevelEditor::LoadConfig()
 }
 
 void SLevelEditor::SaveConfig()
-{
-    // TODO Save Load Config
-    
+{    
     TMap<FString, FString> config;
-    // if (HSplitter)
-    //     HSplitter->SaveConfig(config);
-    // if (VSplitter)
-    //     VSplitter->SaveConfig(config);
-    // for (size_t i = 0; i < 4; i++)
-    // {
-    //     ViewportClients[i]->SaveConfig(config);
-    // }
-    // ActiveViewportClient->SaveConfig(config);
-    // config["bMutiView"] = std::to_string(bMultiViewportMode);
-    // config["ActiveViewportIndex"] = std::to_string(ActiveViewportClient->GetViewportIndex());
-    // config["OrthoPivotX"] = std::to_string(ActiveViewportClient->Pivot.X);
-    // config["OrthoPivotY"] = std::to_string(ActiveViewportClient->Pivot.Y);
-    // config["OrthoPivotZ"] = std::to_string(ActiveViewportClient->Pivot.Z);
-    // config["OrthoZoomSize"] = std::to_string(ActiveViewportClient->OrthoSize);
+
+    FWindowViewportClientData& WindowViewportData = WindowViewportDataMap[GEngineLoop.GetDefaultWindow()];
+    
+    if (WindowViewportData.HSplitter)
+        WindowViewportData.HSplitter->SaveConfig(config);
+    if (WindowViewportData.VSplitter)
+        WindowViewportData.VSplitter->SaveConfig(config);
+    for (size_t i = 0; i < 4; i++)
+    {
+        WindowViewportData.ViewportClients[i]->SaveConfig(config);
+    }
+    std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
+    ActiveViewportClient->SaveConfig(config);
+    config["bMutiView"] = std::to_string(WindowViewportData.bMultiViewportMode);
+    config["ActiveViewportIndex"] = std::to_string(ActiveViewportClient->GetViewportIndex());
+    config["OrthoPivotX"] = std::to_string(ActiveViewportClient->Pivot.X);
+    config["OrthoPivotY"] = std::to_string(ActiveViewportClient->Pivot.Y);
+    config["OrthoPivotZ"] = std::to_string(ActiveViewportClient->Pivot.Z);
+    config["OrthoZoomSize"] = std::to_string(ActiveViewportClient->OrthoSize);
     WriteIniFile(IniFilePath, config);
 }
 

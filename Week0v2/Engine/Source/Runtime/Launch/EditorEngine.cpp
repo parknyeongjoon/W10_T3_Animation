@@ -83,13 +83,14 @@ void UEditorEngine::Tick(float DeltaTime)
 
 void UEditorEngine::Release()
 {
+    LevelEditor->Release();
+    
     for (const auto& [World, WorldContext] : WorldContexts)
     {
         World->Release();
     }
     WorldContexts.Empty();
     
-    LevelEditor->Release();
     
     CollisionManager.Release();
 
