@@ -1,6 +1,7 @@
 #include "LaunchEngineLoop.h"
 
 #include "ImGuiManager.h"
+#include "TestFBXLoader.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "PropertyEditor/ViewportTypePanel.h"
 #include "Renderer/Renderer.h"
@@ -32,7 +33,7 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     Renderer.Initialize(&GraphicDevice);
     ImGuiUIManager->Initialize(AppWnd, GraphicDevice.Device, GraphicDevice.DeviceContext);
     ResourceManager.Initialize(&GraphicDevice);
-
+    TestFBXLoader::InitFBXManager();
     
     // if (bIsEditor)
     {

@@ -32,9 +32,8 @@ public:
     static TMap<FName, FRefSkeletal*> GetAllRefSkeletals() { return RefSkeletalData; }
     static void UpdateBoundingBox(FSkeletalMeshRenderData MeshData);
     static FObjMaterialInfo ConvertFbxToObjMaterialInfo(FbxSurfaceMaterial* FbxMat, const FString& BasePath = TEXT(""));
-    static UMaterial* CreateMaterial(const FObjMaterialInfo& materialInfo);
 
-    FSkeletalMeshRenderData* GetSkeletalMeshData(FString FilePath);
+    static USkeletalMesh* GetSkeletalMeshData(FString FilePath) { return SkeletalMeshMap[FilePath]; }
     static USkeletalMesh* CreateSkeletalMesh(const FString& FilePath);
     static USkeletalMesh* GetSkeletalMesh(const FString& FilePath);
     static const TMap<FString, USkeletalMesh*>& GetSkeletalMeshes() { return SkeletalMeshMap;}
@@ -42,13 +41,11 @@ public:
     static void AddVertexFromControlPoint(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int ControlPointIndex);
 
 private:
-    static bool bInitialized;
+    inline static bool bInitialized = false;
     
-    static FbxManager* FbxManager;
+    inline static FbxManager* FbxManager;
 
-    static TMap<FName, FSkeletalMeshRenderData*> SkeletalMeshData;
-    static TMap<FString, USkeletalMesh*> SkeletalMeshMap;
-    static TMap<FString, UMaterial*> MaterialMap;
-
+    inline static TMap<FName, FSkeletalMeshRenderData*> SkeletalMeshData;
+    inline static TMap<FString, USkeletalMesh*> SkeletalMeshMap;
     inline static TMap<FName, FRefSkeletal*> RefSkeletalData;
 };

@@ -724,7 +724,7 @@ void TestFBXLoader::ExtractMaterials(
         // Material 생성 & 등록
         FbxSurfaceMaterial* srcMtl = Node->GetMaterial(matIdx);
         FString            mtlName = srcMtl ? FString(srcMtl->GetName()) : TEXT("Mat") + FString::FromInt(matIdx);
-        auto                newMtl = CreateMaterial(ConvertFbxToObjMaterialInfo(srcMtl));
+        auto                newMtl = FManagerOBJ::CreateMaterial(ConvertFbxToObjMaterialInfo(srcMtl));
         int                 finalIdx = RefSkeletal->Materials.Add(newMtl);
 
         FMaterialSubset subset;
@@ -905,20 +905,8 @@ FObjMaterialInfo TestFBXLoader::ConvertFbxToObjMaterialInfo(
     return OutInfo;
 }
 
-UMaterial* TestFBXLoader::CreateMaterial(const FObjMaterialInfo& materialInfo)
-{
-    if (MaterialMap[materialInfo.MTLName] != nullptr)
-        return MaterialMap[materialInfo.MTLName];
-
-    UMaterial* newMaterial = FObjectFactory::ConstructObject<UMaterial>();
-    newMaterial->SetMaterialInfo(materialInfo);
-    MaterialMap.Add(materialInfo.MTLName, newMaterial);
-    return newMaterial;
-}
-
 USkeletalMesh* TestFBXLoader::CreateSkeletalMesh(const FString& FilePath)
 {
-    InitFBXManager();
     FSkeletalMeshRenderData* MeshData = ParseFBX(FilePath);
     if (MeshData == nullptr)
         return nullptr;

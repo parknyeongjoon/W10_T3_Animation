@@ -123,13 +123,11 @@ int USkeletalMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& ra
 void USkeletalMeshComponent::SetSkeletalMesh(USkeletalMesh* value)
 { 
     SkeletalMesh = value;
-    SkeletalMesh->GetRenderData().Name = GetName();
-    VBIBTopologyMappingName = SkeletalMesh->GetRenderData().Name;
+    VBIBTopologyMappingName = SkeletalMesh->GetFName();
     value->UpdateBoneHierarchy();
     
     OverrideMaterials.SetNum(value->GetMaterials().Num());
     AABB = SkeletalMesh->GetRenderData().BoundingBox;
-    VBIBTopologyMappingName = SkeletalMesh->GetRenderData().Name;
 }
 
 USkeletalMesh* USkeletalMeshComponent::LoadSkeletalMesh(const FString& FilePath)

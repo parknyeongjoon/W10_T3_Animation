@@ -46,15 +46,15 @@ void USkeletalMesh::SetData(const FSkeletalMeshRenderData& InRenderData, FRefSke
 
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     VB = renderResourceManager->CreateDynamicVertexBuffer<FSkeletalVertex>(SkeletalMeshRenderData.Vertices);
-    renderResourceManager->AddOrSetVertexBuffer(SkeletalMeshRenderData.Name, VB);
-    GEngineLoop.Renderer.MappingVBTopology(SkeletalMeshRenderData.Name, SkeletalMeshRenderData.Name, sizeof(FSkeletalVertex), verticeNum);
+    renderResourceManager->AddOrSetVertexBuffer(GetFName(), VB);
+    GEngineLoop.Renderer.MappingVBTopology(GetFName(), GetFName(), sizeof(FSkeletalVertex), verticeNum);
     const uint32 indexNum = SkeletalMeshRenderData.Indices.Num();
     if (indexNum > 0)
     {
         IB = renderResourceManager->CreateIndexBuffer(SkeletalMeshRenderData.Indices);
-        renderResourceManager->AddOrSetIndexBuffer(SkeletalMeshRenderData.Name, IB);
+        renderResourceManager->AddOrSetIndexBuffer(GetFName(), IB);
     }
-    GEngineLoop.Renderer.MappingIB(SkeletalMeshRenderData.Name, SkeletalMeshRenderData.Name, indexNum);
+    GEngineLoop.Renderer.MappingIB(GetFName(), GetFName(), indexNum);
 
     MaterialSlots.Empty();
     for (int materialIndex = 0; materialIndex < RefSkeletal->Materials.Num(); materialIndex++) {
