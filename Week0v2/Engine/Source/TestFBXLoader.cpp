@@ -184,8 +184,18 @@ void TestFBXLoader::ExtractNormals(
         return;
     }
 
+
+
     // 폴리곤-버텍스 순회
     int polyCount = Mesh->GetPolygonCount();
+
+    int totalPolyVerts = 0;
+    for (int p = 0; p < polyCount; ++p)
+        totalPolyVerts += Mesh->GetPolygonSize(p);
+
+    // 이제 여기에 맞춰서
+    RenderData->Vertices.SetNum(BaseVertexIndex + totalPolyVerts);
+
     for (int p = 0; p < polyCount; ++p)
     {
         int polySize = Mesh->GetPolygonSize(p);

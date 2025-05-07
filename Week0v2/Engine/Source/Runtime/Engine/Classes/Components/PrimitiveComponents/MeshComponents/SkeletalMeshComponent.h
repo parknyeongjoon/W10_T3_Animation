@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "MeshComponent.h"
 #include "Components/Mesh/SkeletalMesh.h"
 
@@ -28,7 +28,7 @@ public:
     
     USkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
     void SetSkeletalMesh(USkeletalMesh* value);
-    void LoadSkeletalMesh(const FString& FilePath);
+    USkeletalMesh* LoadSkeletalMesh(const FString& FilePath);
     void UpdateBoneHierarchy();
 
     // std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;

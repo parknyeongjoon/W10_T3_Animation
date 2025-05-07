@@ -183,64 +183,6 @@ void USkeletalMesh::ApplyRotationToBone(int BoneIndex, float AngleInDegrees, con
         rotationMatrix * SkeletalMeshRenderData.Bones[BoneIndex].LocalTransform;
 }
 
-void USkeletalMesh::ProcessBoneRotationInput(float DeltaTime)
-{
-    if (!this)
-        return;
-
-    // 선택된 본이 없으면 첫 번째 본 사용
-    if (CurrentSelectedBone.IsEmpty() && GetRenderData().Bones.Num() > 0)
-    {
-        CurrentSelectedBone = GetRenderData().Bones[0].BoneName;
-        std::cout << "선택된 본:" << CurrentSelectedBone;
-    }
-
-    // 회전 속도 설정 (초당 각도)
-    float rotationSpeed = 1.0f * DeltaTime;
-
-    // 키 입력 처리 - 엔진의 입력 시스템에 맞게 조정 필요
-    // X축 회전 (Q/A 키)
-    if (GetAsyncKeyState('Q') & 0x8000) // Windows API 사용 예시
-    {
-        this->RotateBoneByName(CurrentSelectedBone, rotationSpeed, FVector(1, 0, 0));
-    }
-    else if (GetAsyncKeyState('A') & 0x8000)
-    {
-        this->RotateBoneByName(CurrentSelectedBone, -rotationSpeed, FVector(1, 0, 0));
-    }
-
-    // Y축 회전 (W/S 키)
-    if (GetAsyncKeyState('W') & 0x8000)
-    {
-        this->RotateBoneByName(CurrentSelectedBone, rotationSpeed, FVector(0, 1, 0));
-    }
-    else if (GetAsyncKeyState('S') & 0x8000)
-    {
-        this->RotateBoneByName(CurrentSelectedBone, -rotationSpeed, FVector(0, 1, 0));
-    }
-
-    // Z축 회전 (E/D 키)
-    if (GetAsyncKeyState('E') & 0x8000)
-    {
-        this->RotateBoneByName(CurrentSelectedBone, rotationSpeed, FVector(0, 0, 1));
-    }
-    else if (GetAsyncKeyState('D') & 0x8000)
-    {
-        this->RotateBoneByName(CurrentSelectedBone, -rotationSpeed, FVector(0, 0, 1));
-    }
-
-    // 본 선택 (숫자 키)
-    for (int i = 0; i < 9 && i < this->GetRenderData().Bones.Num(); i++)
-    {
-        if (GetAsyncKeyState('1' + i) & 0x8000)
-        {
-            CurrentSelectedBone = this->GetRenderData().Bones[i].BoneName;
-            std::cout << "선택된 본 :" << CurrentSelectedBone;
-            break;
-        }
-    }
-}
-
 void USkeletalMesh::UpdateSkinnedVertices()
 {
     if (SkeletalMeshRenderData.Vertices.Num() <= 0)

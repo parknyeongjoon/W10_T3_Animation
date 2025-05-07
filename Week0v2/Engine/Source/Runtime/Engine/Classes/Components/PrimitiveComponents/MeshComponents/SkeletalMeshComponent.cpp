@@ -1,4 +1,4 @@
-﻿#include "SkeletalMeshComponent.h"
+#include "SkeletalMeshComponent.h"
 
 #include "TestFBXLoader.h"
 #include "Engine/World.h"
@@ -133,10 +133,12 @@ void USkeletalMeshComponent::SetSkeletalMesh(USkeletalMesh* value)
     VBIBTopologyMappingName = SkeletalMesh->GetRenderData().Name;
 }
 
-void USkeletalMeshComponent::LoadSkeletalMesh(const FString& FilePath)
+USkeletalMesh* USkeletalMeshComponent::LoadSkeletalMesh(const FString& FilePath)
 {
     USkeletalMesh* SkeletalMesh = TestFBXLoader::CreateSkeletalMesh(FilePath);
     SetSkeletalMesh(SkeletalMesh);
+
+    return SkeletalMesh;
 }
 
 void USkeletalMeshComponent::UpdateBoneHierarchy()
