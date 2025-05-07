@@ -203,8 +203,9 @@ void USkeletalMesh::UpdateSkinnedVertices()
         Vertex.SkinningVertex(SkeletalMeshRenderData.Bones);
     }
 
-    // 버퍼 업데이트
-    UpdateVertexBuffer();
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
+    ID3D11Buffer* VB = renderResourceManager->CreateDynamicVertexBuffer<FSkeletalVertex>(SkeletalMeshRenderData.Vertices);
+    renderResourceManager->AddOrSetVertexBuffer(SkeletalMeshRenderData.Name, VB);
 }
 
 void USkeletalMesh::UpdateVertexBuffer()
