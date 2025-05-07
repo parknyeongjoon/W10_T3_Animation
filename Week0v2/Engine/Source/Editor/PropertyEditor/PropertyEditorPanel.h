@@ -24,6 +24,7 @@ private:
     /* Static Mesh Settings */
     void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp);
     void RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp);
+    void RenderForSkeletalMesh2(USkeletalMeshComponent* SkeletalMesh);
     void RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int BoneIndex);
     void OnBoneSelected(USkeletalMesh* SkeletalMesh, int BoneIndex);
 
