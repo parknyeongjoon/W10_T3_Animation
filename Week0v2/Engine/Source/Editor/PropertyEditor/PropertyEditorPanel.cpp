@@ -1169,7 +1169,7 @@ void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32
     if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
     {
         // 클릭 시 실행할 함수 호출
-        OnBoneSelected(SkeletalMesh, BoneIndex);
+        OnBoneSelected(BoneIndex);
     }
 
     // 트리 노드가 열려있으면 자식 노드들을 재귀적으로 렌더링
@@ -1186,7 +1186,7 @@ void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32
 }
 
 // 뼈가 선택되었을 때 호출되는 함수
-void PropertyEditorPanel::OnBoneSelected(USkeletalMesh* SkeletalMesh, int BoneIndex)
+void PropertyEditorPanel::OnBoneSelected(int BoneIndex)
 {
     SelectedBoneIndex = BoneIndex;
 }
