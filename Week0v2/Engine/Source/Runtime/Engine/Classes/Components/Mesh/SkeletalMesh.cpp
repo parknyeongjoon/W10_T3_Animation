@@ -205,7 +205,7 @@ void USkeletalMesh::UpdateSkinnedVertices()
 
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     ID3D11Buffer* VB = renderResourceManager->CreateDynamicVertexBuffer<FSkeletalVertex>(SkeletalMeshRenderData.Vertices);
-    renderResourceManager->AddOrSetVertexBuffer(SkeletalMeshRenderData.Name, VB);
+    renderResourceManager->AddOrSetVertexBuffer(GetFName(), VB);
 }
 
 void USkeletalMesh::UpdateVertexBuffer()
