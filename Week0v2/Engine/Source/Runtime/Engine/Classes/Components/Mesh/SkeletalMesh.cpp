@@ -38,35 +38,26 @@ void USkeletalMesh::SetData(const FSkeletalMeshRenderData& InRenderData, FRefSke
     SkeletalMeshRenderData = InRenderData;
     RefSkeletal = InRefSkeletal;
 
-    ID3D11Buffer* VB = nullptr; 
-    ID3D11Buffer* IB = nullptr;
-
     const uint32 verticeNum = SkeletalMeshRenderData.Vertices.Num();
     if (verticeNum <= 0) return;
 
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
-    VB = renderResourceManager->CreateDynamicVertexBuffer<FSkeletalVertex>(SkeletalMeshRenderData.Vertices);
-    renderResourceManager->AddOrSetVertexBuffer(GetFName(), VB);
-    GEngineLoop.Renderer.MappingVBTopology(GetFName(), GetFName(), sizeof(FSkeletalVertex), verticeNum);
+    GetRenderData().VB = renderResourceManager->CreateDynamicVertexBuffer<FSkeletalVertex>(SkeletalMeshRenderData.Vertices);
+    
     const uint32 indexNum = SkeletalMeshRenderData.Indices.Num();
     if (indexNum > 0)
     {
-        IB = renderResourceManager->CreateIndexBuffer(SkeletalMeshRenderData.Indices);
-        renderResourceManager->AddOrSetIndexBuffer(GetFName(), IB);
+        GetRenderData().IB = renderResourceManager->CreateIndexBuffer(SkeletalMeshRenderData.Indices);
     }
-    GEngineLoop.Renderer.MappingIB(GetFName(), GetFName(), indexNum);
 
     MaterialSlots.Empty();
     for (int materialIndex = 0; materialIndex < RefSkeletal->Materials.Num(); materialIndex++) {
         FMaterialSlot* newMaterialSlot = new FMaterialSlot();
         // Change
-        UMaterial* newMaterial = FManagerOBJ::CreateMaterial(RefSkeletal->Materials[materialIndex]->GetMaterialInfo());
 
-        newMaterialSlot->Material = newMaterial;
+        newMaterialSlot->Material = FManagerOBJ::GetMaterial(RefSkeletal->Materials[materialIndex]->GetMaterialInfo().MTLName);
         newMaterialSlot->MaterialSlotName = RefSkeletal->Materials[materialIndex]->GetMaterialInfo().MTLName;
-
-        // newMaterialSlot->Material = SkeletalMeshRenderData->Materials[materialIndex];
-        // newMaterialSlot->MaterialSlotName = SkeletalMeshRenderData->Materials[materialIndex]->GetMaterialInfo().MTLName;
+        
         MaterialSlots.Add(newMaterialSlot);
     }
 }
@@ -180,6 +171,13 @@ void USkeletalMesh::ApplyRotationToBone(int BoneIndex, float AngleInDegrees, con
         rotationMatrix * SkeletalMeshRenderData.Bones[BoneIndex].LocalTransform;
 }
 
+USkeletalMesh* USkeletalMesh::Duplicate(UObject* InOuter)
+{
+    USkeletalMesh* NewObject = new USkeletalMesh();
+    NewObject->DuplicateSubObjects(this, InOuter);       // 깊은 복사 수행
+    return NewObject;
+}
+
 void USkeletalMesh::UpdateSkinnedVertices()
 {
     if (SkeletalMeshRenderData.Vertices.Num() <= 0)
@@ -201,8 +199,7 @@ void USkeletalMesh::UpdateSkinnedVertices()
     }
 
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
-    ID3D11Buffer* VB = renderResourceManager->CreateDynamicVertexBuffer<FSkeletalVertex>(SkeletalMeshRenderData.Vertices);
-    renderResourceManager->AddOrSetVertexBuffer(GetFName(), VB);
+    GetRenderData().VB = renderResourceManager->CreateDynamicVertexBuffer<FSkeletalVertex>(SkeletalMeshRenderData.Vertices);
 }
 
 void USkeletalMesh::UpdateVertexBuffer()
