@@ -315,9 +315,9 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
     // 아틀라스 텍스쳐 바인딩
     ID3D11ShaderResourceView* SpotLightAtlasSRV = (GEngineLoop.Renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ?
         SpotLightShadowMapAtlas->GetVSMSRV2D() : SpotLightShadowMapAtlas->GetSRV2D();
-    Graphics.DeviceContext->PSSetShaderResources(3, 1, &SpotLightAtlasSRV);
+    Graphics.DeviceContext->PSSetShaderResources(6, 1, &SpotLightAtlasSRV);
     ID3D11ShaderResourceView* PointLightAtlasSRV = PointLightShadowMapAtlas->GetSRVCube();
-    Graphics.DeviceContext->PSSetShaderResources(4, 1, &PointLightAtlasSRV);
+    Graphics.DeviceContext->PSSetShaderResources(7, 1, &PointLightAtlasSRV);
 }
 
 void FShadowRenderPass::SetShaderResource(FShadowResource* ShadowResource)

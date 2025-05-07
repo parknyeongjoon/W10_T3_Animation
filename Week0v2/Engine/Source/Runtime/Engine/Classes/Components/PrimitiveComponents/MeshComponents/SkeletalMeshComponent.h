@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "MeshComponent.h"
 #include "Components/Mesh/SkeletalMesh.h"
 
@@ -28,12 +28,15 @@ public:
     
     USkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
     void SetSkeletalMesh(USkeletalMesh* value);
+    USkeletalMesh* LoadSkeletalMesh(const FString& FilePath);
+    void UpdateBoneHierarchy();
 
-    
     // std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
     // virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     // virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
-
+private:
+    void SkinningVertex();
+    
 protected:
     USkeletalMesh* SkeletalMesh = nullptr;
     int SelectedSubMeshIndex = -1;

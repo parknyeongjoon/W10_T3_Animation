@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Define.h"
 #include "Container/Array.h"
 #include "Container/Map.h"
@@ -31,23 +31,29 @@ struct FSkeletalVertex
     int32 BoneIndices[4];
     float BoneWeights[4];
 
+    void SkinningVertex(const TArray<FBone>& bones);
+private:
     FVector SkinVertexPosition(const TArray<FBone>& bones) const;
-    void TranslateVertexByBone(const TArray<FBone>& bones);
 };
 
 
-struct FSkeletalMeshRenderData
+struct FRefSkeletal
 {
-    FString Name;
-    TArray<FSkeletalVertex> Vertices;
-    TArray<uint32> Indices;
-    TArray<UMaterial*> Materials;
-    TArray<FMaterialSubset> MaterialSubsets;
-    FBoundingBox BoundingBox;
-
-    TArray<FBone> Bones;
     // Tree structure for bones
+    FString Name;
+    TArray<FSkeletalVertex> RawVertices;
     TArray<FBoneNode> BoneTree;
     TArray<int> RootBoneIndices;  // Indices of root bones (no parents)
     TMap<FString, int> BoneNameToIndexMap;  // For quick lookups
+    TArray<UMaterial*> Materials;
+    TArray<FMaterialSubset> MaterialSubsets;
+};
+
+struct FSkeletalMeshRenderData
+{
+    FString Name = "Empty";
+    TArray<FSkeletalVertex> Vertices;
+    TArray<uint32> Indices;
+    TArray<FBone> Bones;
+    FBoundingBox BoundingBox;
 };

@@ -5,6 +5,7 @@
 #include "Actors/ADodge.h"
 #include "Contents/UI/ContentsUI.h"
 #include "ImGUI/imgui.h"
+#include "TestFBXLoader.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "PropertyEditor/ViewportTypePanel.h"
 #include "Renderer/Renderer.h"
@@ -34,6 +35,7 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     
     Renderer.Initialize(&GraphicDevice);
     ResourceManager.Initialize(&GraphicDevice);
+
     
     // if (bIsEditor)
     {

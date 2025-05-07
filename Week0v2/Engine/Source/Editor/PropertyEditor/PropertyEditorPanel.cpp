@@ -628,7 +628,7 @@ void PropertyEditorPanel::Render()
         }
         else if (USkeletalMeshComponent* SkeletalMeshComponet = PickedActor->GetComponentByClass<USkeletalMeshComponent>())
         {
-            RenderForSkeletalMesh(SkeletalMeshComponet);
+            RenderForSkeletalMesh2(SkeletalMeshComponet);
             RenderForMaterial(SkeletalMeshComponet);
         }
     }
@@ -775,6 +775,8 @@ void PropertyEditorPanel::Render()
 
             ImGui::TreePop();
         }
+
+        
     }
 
     RenderShapeProperty(PickedActor);
@@ -918,9 +920,10 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
     ImGui::PopStyleColor();
 }
 
-void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMesh)
+
+void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp)
 {
-    if (SkeletalMesh->GetSkeletalMesh() == nullptr)
+    if (SkeletalMeshComp->GetSkeletalMesh() == nullptr)
     {
         return;
     }
@@ -931,24 +934,179 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         ImGui::Text("Skeletal Mesh");
         ImGui::SameLine();
 
-        // FString PreviewName = SkeletalMesh->GetSkeletalMesh()->GetRenderData()->Name;
-        // const TMap<FName, USkeletalMesh*> Meshes = TestFBXLoader::GetSkeletalMesh();
-        // if (ImGui::BeginCombo("##StaticMesh", GetData(PreviewName), ImGuiComboFlags_None))
-        // {
-        //     for (const auto Mesh : Meshes)
-        //     {
-        //         if (ImGui::Selectable(GetData(Mesh.Value->GetRenderData()->DisplayName), false))
-        //         {
-        //             StaticMeshComp->SetStaticMesh(Mesh.Value);
-        //         }
-        //     }
-        //
-        //     ImGui::EndCombo();
-        // }
-
-        for (const auto& Bone : SkeletalMesh->GetSkeletalMesh()->GetRenderData()->Bones)
+        std::vector<std::string> fbxFiles;
+        static const std::string folder = std::filesystem::current_path().string() + "/Contents/FBX";
+        for (auto& entry : std::filesystem::directory_iterator(folder))
         {
-            ImGui::Text(GetData("Bone" + Bone.BoneName));
+            if (!entry.is_regular_file()) continue;
+            if (entry.path().extension() == ".fbx")
+                fbxFiles.push_back(entry.path().filename().string());
+        }
+
+        static int currentIndex = 0;
+        const char* preview = fbxFiles.empty() 
+            ? "No .fbx files" 
+            : fbxFiles[currentIndex].c_str();
+
+        FString PreviewName = SkeletalMeshComp->GetSkeletalMesh()->GetRenderData().Name;
+        std::filesystem::path P = PreviewName;
+        FString FileName = FString( P.filename().string() ); 
+        
+        const TMap<FString, USkeletalMesh*> Meshes = TestFBXLoader::GetSkeletalMeshes();
+        if (ImGui::BeginCombo("##StaticMesh", GetData(FileName), ImGuiComboFlags_None))
+        {
+            for (int i = 0; i < (int)fbxFiles.size(); ++i)
+            {
+                bool isSelected = (i == currentIndex);
+                if (ImGui::Selectable(fbxFiles[i].c_str(), isSelected))
+                {
+                    currentIndex = i;
+                    std::string fullPath = "FBX/" + fbxFiles[i];
+                    SkeletalMeshComp->LoadSkeletalMesh(fullPath);
+                }
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+
+        ImGui::Separator();
+
+        for (const auto& Bone : SkeletalMeshComp->GetSkeletalMesh()->GetRefSkeletal()->BoneTree)
+        {
+            for (const auto& RootBoneIndex : SkeletalMeshComp->GetSkeletalMesh()->GetRefSkeletal()->RootBoneIndices)
+            {
+                if (Bone.BoneIndex == RootBoneIndex)
+                {
+                    RenderBoneHierarchy(SkeletalMeshComp->GetSkeletalMesh(), Bone.BoneIndex);
+                }
+            }
+        }
+        ImGui::TreePop();
+    }
+    ImGui::PopStyleColor();
+}
+
+void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* SkeletalMesh)
+{
+    if (SkeletalMesh->GetSkeletalMesh() == nullptr)
+    {
+        return;
+    }
+
+
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+    if (ImGui::TreeNodeEx("Skeletal Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Text("Skeletal Mesh");
+
+        // 본 제어 섹션
+        if (ImGui::CollapsingHeader("Bone Controls", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            // 회전값 변경 여부를 추적
+            bool anyRotationChanged = false;
+
+            // 선택된 본이 있을 경우 회전 컨트롤 표시
+            if (SelectedBoneIndex!=-1)
+            {
+                ImGui::Separator();
+                ImGui::Text("Selected Bone: %s", GetData(SkeletalMesh->GetSkeletalMesh()->GetRenderData().Bones[SelectedBoneIndex].BoneName));
+
+                FBoneRotation* foundRotation = BoneRotations.Find(SelectedBoneIndex);
+                if (foundRotation)
+                {
+                    // 저장된 회전값이 있으면 사용
+                    XRotation = foundRotation->X;
+                    YRotation = foundRotation->Y;
+                    ZRotation = foundRotation->Z;
+                }
+                else
+                {
+                     XRotation = 0.f;
+                     YRotation = 0.f;
+                     ZRotation = 0.f;
+                }
+
+                // 회전 슬라이더
+                bool rotationChanged = false;
+                rotationChanged |= ImGui::SliderFloat("X Rotation", &XRotation, -180.0f, 180.0f, "%.1f°");
+                rotationChanged |= ImGui::SliderFloat("Y Rotation", &YRotation, -180.0f, 180.0f, "%.1f°");
+                rotationChanged |= ImGui::SliderFloat("Z Rotation", &ZRotation, -180.0f, 180.0f, "%.1f°");
+
+                // 슬라이더 값이 변경되면 맵에 저장
+                if (rotationChanged)
+                {
+                    BoneRotations[SelectedBoneIndex] = FBoneRotation(XRotation, YRotation, ZRotation);
+                    anyRotationChanged = true;
+                }
+
+                // 리셋 버튼
+                if (ImGui::Button("Reset Bone"))
+                {
+                    XRotation = 0.0f;
+                    YRotation = 0.0f;
+                    ZRotation = 0.0f;
+                    BoneRotations[SelectedBoneIndex] = FBoneRotation(0.0f, 0.0f, 0.0f);
+                    anyRotationChanged = true;
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("Reset All Bones"))
+                {
+                    // 모든 본의 회전값 초기화
+                    BoneRotations.Empty();
+                    XRotation = 0.0f;
+                    YRotation = 0.0f;
+                    ZRotation = 0.0f;
+                    anyRotationChanged = true;
+                }
+            }
+
+            // 회전값이 변경된 경우에만 적용
+            if (anyRotationChanged)
+            {
+                // 모든 본에 회전 적용
+                SkeletalMesh->GetSkeletalMesh()->ResetToOriginalPose();
+
+                // 저장된 모든 본 회전을 적용
+                for (auto& Pair : BoneRotations)
+                {
+                    const int& BoneName = Pair.Key;
+                    const FBoneRotation& Rotation = Pair.Value;
+
+                    int boneIndex = BoneName;
+                    if (boneIndex >= 0)
+                    {
+                        // 각 축별로 회전 적용 (로컬 변환만)
+                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.X, FVector(1.0f, 0.0f, 0.0f));
+                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.Y, FVector(0.0f, 1.0f, 0.0f));
+                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.Z, FVector(0.0f, 0.0f, 1.0f));
+                    }
+                }
+
+                // 모든 회전 적용 후 한 번만 업데이트
+                SkeletalMesh->GetSkeletalMesh()->UpdateBoneHierarchy();
+                SkeletalMesh->GetSkeletalMesh()->UpdateSkinnedVertices();
+            }
+        }
+
+        // 계층적 본 구조 표시
+        if (ImGui::CollapsingHeader("Bone Hierarchy", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            // RefSkeletal이 없는 경우 처리
+            if (SkeletalMesh->GetSkeletalMesh()->GetRefSkeletal() == nullptr)
+            {
+                ImGui::Text("No skeletal hierarchy available");
+            }
+            else
+            {
+                // 루트 본부터 계층 구조 표시
+                for (const auto& RootBoneIndex : SkeletalMesh->GetSkeletalMesh()->GetRefSkeletal()->RootBoneIndices)
+                {
+                    RenderBoneHierarchy(SkeletalMesh->GetSkeletalMesh(), RootBoneIndex);
+                }
+            }
         }
 
         ImGui::TreePop();
@@ -956,6 +1114,89 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
     ImGui::PopStyleColor();
 }
 
+void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32 BoneIndex)
+{
+    // 범위 체크
+    if (BoneIndex < 0 || BoneIndex >= SkeletalMesh->GetRenderData().Bones.Num())
+        return;
+
+    // 본 이름 가져오기
+    const FString& boneName = SkeletalMesh->GetRenderData().Bones[BoneIndex].BoneName;
+
+    // 트리 노드 플래그 설정
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+
+    // 현재 선택된 본인지 확인
+    bool isSelected = (SelectedBoneIndex == BoneIndex);
+    if (isSelected)
+    {
+        flags |= ImGuiTreeNodeFlags_Selected;
+        // 선택된 본의 배경색 변경
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.3f, 0.6f, 0.9f, 1.0f));         // 파란색 배경
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.7f, 1.0f, 1.0f));  // 마우스 오버 시 밝은 파란색
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));   // 클릭 시 어두운 파란색
+    }
+
+    // 자식이 없는 본은 리프 노드로 표시
+    if (SkeletalMesh->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices.Num() == 0)
+    {
+        flags |= ImGuiTreeNodeFlags_Leaf;
+    }
+
+    // 회전 적용 여부에 따라 표시 이름 설정
+    bool isModified = false;
+    FBoneRotation* foundRotation = BoneRotations.Find(BoneIndex);
+    if (foundRotation &&
+        (foundRotation->X != 0.0f || foundRotation->Y != 0.0f || foundRotation->Z != 0.0f))
+    {
+        isModified = true;
+    }
+
+    // 트리 노드 표시
+    bool isOpen = false;
+    if (isModified)
+    {
+        // 수정된 본은 주황색 텍스트로 표시
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
+        isOpen = ImGui::TreeNodeEx((void*)(intptr_t)BoneIndex, flags, "%s [Modified]", GetData(boneName));
+        ImGui::PopStyleColor(); // Text 색상 복원
+    }
+    else
+    {
+        isOpen = ImGui::TreeNodeEx((void*)(intptr_t)BoneIndex, flags, "%s", GetData(boneName));
+    }
+
+    // 선택된 본의 스타일 색상 복원
+    if (isSelected)
+    {
+        ImGui::PopStyleColor(3); // 스타일 색상 3개 복원 (Header, HeaderHovered, HeaderActive)
+    }
+
+    // 노드가 클릭되었는지 확인
+    if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+    {
+        // 클릭 시 실행할 함수 호출
+        OnBoneSelected(BoneIndex);
+    }
+
+    // 트리 노드가 열려있으면 자식 노드들을 재귀적으로 렌더링
+    if (isOpen)
+    {
+        // 모든 자식 본 표시
+        for (int32 ChildIndex : SkeletalMesh->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices)
+        {
+            RenderBoneHierarchy(SkeletalMesh, ChildIndex);
+        }
+
+        ImGui::TreePop();
+    }
+}
+
+// 뼈가 선택되었을 때 호출되는 함수
+void PropertyEditorPanel::OnBoneSelected(int BoneIndex)
+{
+    SelectedBoneIndex = BoneIndex;
+}
 
 void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp)
 {
@@ -1016,7 +1257,7 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
 
     if (SelectedMaterialIndex != -1)
     {
-        RenderMaterialView(SelectedStaticMeshComp->GetMaterial(SelectedMaterialIndex));
+        RenderMaterialView(SelectedStaticMeshComp->GetMaterial(SelectedMaterialIndex), true);
     }
     if (IsCreateMaterial) {
         RenderCreateMaterialView();
@@ -1055,7 +1296,7 @@ void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMesh
 
     if (ImGui::TreeNodeEx("SubMeshes", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
-        auto subsets = SkeletalMeshComp->GetSkeletalMesh()->GetRenderData()->MaterialSubsets;
+        auto subsets = SkeletalMeshComp->GetSkeletalMesh()->GetRefSkeletal()->MaterialSubsets;
         for (uint32 i = 0; i < subsets.Num(); ++i)
         {
             std::string temp = "subset " + std::to_string(i);
@@ -1082,14 +1323,14 @@ void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMesh
 
     if (SelectedMaterialIndex != -1)
     {
-        RenderMaterialView(SelectedStaticMeshComp->GetMaterial(SelectedMaterialIndex));
+        RenderMaterialView(SelectedSkeletalMeshComp->GetMaterial(SelectedMaterialIndex), false);
     }
     if (IsCreateMaterial) {
         RenderCreateMaterialView();
     }
 }
 
-void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
+void PropertyEditorPanel::RenderMaterialView(UMaterial* Material, bool IsStaticMesh)
 {
     ImGui::SetNextWindowSize(ImVec2(380, 400), ImGuiCond_Once);
     ImGui::Begin("Material Viewer", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav);
@@ -1172,7 +1413,8 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material)
 
     ImGui::Text("Material Slot Name |");
     ImGui::SameLine();
-    ImGui::Text(GetData(SelectedStaticMeshComp->GetMaterialSlotNames()[SelectedMaterialIndex].ToString()));
+    TArray<FName> slotNames = IsStaticMesh ?  SelectedStaticMeshComp->GetMaterialSlotNames() : SelectedSkeletalMeshComp->GetMaterialSlotNames();
+    ImGui::Text(GetData(slotNames[SelectedMaterialIndex].ToString()));
 
     ImGui::Text("Override Material |");
     ImGui::SameLine();

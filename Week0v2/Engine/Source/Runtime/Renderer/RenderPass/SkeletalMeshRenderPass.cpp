@@ -29,7 +29,7 @@ extern UEngine* GEngine;
 
 FSkeletalMeshRenderPass::FSkeletalMeshRenderPass(const FName& InShaderName) : FBaseRenderPass(InShaderName)
 {
-    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    const FGraphicsDevice& Graphics = FEngineLoop::GraphicDevice;
 
     D3D11_BUFFER_DESC constdesc = {};
     constdesc.ByteWidth = sizeof(FLightingConstants);
@@ -143,29 +143,29 @@ void FSkeletalMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InV
 
         if (!SkeletalMeshComponent->GetSkeletalMesh()) continue;
         
-        const FSkeletalMeshRenderData* renderData = SkeletalMeshComponent->GetSkeletalMesh()->GetRenderData();
-        if (renderData == nullptr) continue;
+        const FRefSkeletal* RefSKeletal = SkeletalMeshComponent->GetSkeletalMesh()->GetRefSkeletal();
+        if (RefSKeletal == nullptr) continue;
 
         // VIBuffer Bind
         const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(SkeletalMeshComponent->GetVBIBTopologyMappingName());
         VBIBTopMappingInfo->Bind();
 
         // If There's No Material Subset
-        if (renderData->MaterialSubsets.Num() == 0)
+        if (RefSKeletal->MaterialSubsets.Num() == 0)
         {
             Graphics.DeviceContext->DrawIndexed(VBIBTopMappingInfo->GetNumIndices(), 0,0);
         }
 
         // SubSet마다 Material Update 및 Draw
-        for (int subMeshIndex = 0; subMeshIndex < renderData->MaterialSubsets.Num(); ++subMeshIndex)
+        for (int subMeshIndex = 0; subMeshIndex < RefSKeletal->MaterialSubsets.Num(); ++subMeshIndex)
         {
-            const int materialIndex = renderData->MaterialSubsets[subMeshIndex].MaterialIndex;
+            const int materialIndex = RefSKeletal->MaterialSubsets[subMeshIndex].MaterialIndex;
             
             UpdateMaterialConstants(SkeletalMeshComponent->GetMaterial(materialIndex)->GetMaterialInfo());
 
             // index draw
-            const uint64 startIndex = renderData->MaterialSubsets[subMeshIndex].IndexStart;
-            const uint64 indexCount = renderData->MaterialSubsets[subMeshIndex].IndexCount;
+            const uint64 startIndex = RefSKeletal->MaterialSubsets[subMeshIndex].IndexStart;
+            const uint64 indexCount = RefSKeletal->MaterialSubsets[subMeshIndex].IndexCount;
             Graphics.DeviceContext->DrawIndexed(indexCount, startIndex, 0);
         }
     }
@@ -350,43 +350,46 @@ void FSkeletalMeshRenderPass::UpdateLightConstants()
 
 void FSkeletalMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
 {
-    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
+    FGraphicsDevice& Graphics = FEngineLoop::GraphicDevice;
+    FRenderResourceManager* renderResourceManager = FEngineLoop::Renderer.GetResourceManager();
+
+    auto defaultWhiteTex = FEngineLoop::ResourceManager.GetDefaultWhiteTexture();
+    ID3D11ShaderResourceView* defaultSRV = defaultWhiteTex->TextureSRV;
     
     FMaterialConstants MaterialConstants;
-    MaterialConstants.DiffuseColor = MaterialInfo.Diffuse;
+    MaterialConstants.DiffuseColor       = MaterialInfo.Diffuse;
     MaterialConstants.TransparencyScalar = MaterialInfo.TransparencyScalar;
-    MaterialConstants.MatAmbientColor = MaterialInfo.Ambient;
-    MaterialConstants.DensityScalar = MaterialInfo.DensityScalar;
-    MaterialConstants.SpecularColor = MaterialInfo.Specular;
-    MaterialConstants.SpecularScalar = MaterialInfo.SpecularScalar;
-    MaterialConstants.EmissiveColor = MaterialInfo.Emissive;
+    MaterialConstants.MatAmbientColor    = MaterialInfo.Ambient;
+    MaterialConstants.DensityScalar      = MaterialInfo.DensityScalar;
+    MaterialConstants.SpecularColor      = MaterialInfo.Specular;
+    MaterialConstants.SpecularScalar     = MaterialInfo.SpecularScalar;
+    MaterialConstants.EmissiveColor      = MaterialInfo.Emissive;
+    MaterialConstants.bHasNormalTexture  = false;
     //normalScale값 있는데 parse만 하고 constant로 넘기고 있진 않음
-    MaterialConstants.bHasNormalTexture = false;
+
+    auto DiffuseTexture  = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
+    auto AmbientTexture  = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.AmbientTexturePath);
+    auto SpecularTexture = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.SpecularTexturePath);
+    auto BumpTexture     = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.BumpTexturePath);
+    auto AlphaTexture    = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.AlphaTexturePath);
+    auto NormalTexture   = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.NormalTexturePath);
     
-    if (MaterialInfo.bHasTexture == true)
-    {
-        const std::shared_ptr<FTexture> texture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
-        const std::shared_ptr<FTexture> NormalTexture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.NormalTexturePath);
-        if (texture)
-        {
-            Graphics.DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
-        }
-        if (NormalTexture)
-        {
-            Graphics.DeviceContext->PSSetShaderResources(1, 1, &NormalTexture->TextureSRV);
-            MaterialConstants.bHasNormalTexture = true;
-        }
-        
-        ID3D11SamplerState* linearSampler = renderResourceManager->GetSamplerState(ESamplerType::Linear);
-        Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &linearSampler);
-    }
-    else
-    {
-        ID3D11ShaderResourceView* nullSRV[1] = {nullptr};
-        Graphics.DeviceContext->PSSetShaderResources(0, 1, nullSRV);
-    }
-    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FMaterialConstants")), &MaterialConstants);
+    ID3D11ShaderResourceView* srvs[6] = {
+        DiffuseTexture  ? DiffuseTexture->TextureSRV  : defaultSRV,  // t0
+        AmbientTexture  ? AmbientTexture->TextureSRV  : defaultSRV,  // t1
+        SpecularTexture ? SpecularTexture->TextureSRV : defaultSRV,  // t2
+        BumpTexture     ? BumpTexture->TextureSRV     : defaultSRV,  // t3
+        AlphaTexture    ? AlphaTexture->TextureSRV    : defaultSRV,  // t4
+        NormalTexture   ? NormalTexture->TextureSRV   : defaultSRV   // t5
+    };
+    Graphics.DeviceContext->PSSetShaderResources(0, 6, srvs);
+
+    ID3D11SamplerState* linearSampler = renderResourceManager->GetSamplerState(ESamplerType::Linear);
+    Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::Linear), 1, &linearSampler);
+
+    renderResourceManager->UpdateConstantBuffer(
+        renderResourceManager->GetConstantBuffer(TEXT("FMaterialConstants")),
+        &MaterialConstants);
 }
 
 void FSkeletalMeshRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewportClient>& InViewportClient)

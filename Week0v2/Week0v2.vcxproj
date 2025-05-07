@@ -129,7 +129,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)\Engine\Source\ThirdParty\FBX_SDK\2020.3.7\include;$(ProjectDir)\Shaders;$(ProjectDir)\Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)\Engine\Source\ThirdParty;$(VcpkgRoot)\installed\x64-windows\include;$(IncludePath);$(ProjectDir)\Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)\Engine\Source\Runtime;$(ProjectDir)\Engine\Source\Runtime\Windows;$(ProjectDir)\Engine\Source\ThirdParty\include;$(ProjectDir)\Engine\Source\Editor;$(ProjectDir)\Engine\Source\Runtime\CoreUObject;$(ProjectDir)\Engine\Source\Runtime\Core;$(ProjectDir)\Engine\Source\Runtime\Launch;$(ProjectDir)\Engine\Source\Runtime\Engine;$(ProjectDir)\Engine\Source\Runtime\Engine\Classes;$(ProjectDir)\Engine\Source;$(ProjectDir);$(ProjectDir)\Engine\Source\ThirdParty\Lua\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -139,7 +139,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\release;$(ProjectDir)Engine\Source\ThirdParty\DirectXTK\Lib\$(PlatformTarget)\$(Configuration);%(AdditionalLibraryDirectories);$(VcpkgRoot)\installed\x64-windows\lib;$(LibraryPath);$(ProjectDir)\Engine\Source\ThirdParty\Lua\$(Configuration)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\debug;$(ProjectDir)Engine\Source\ThirdParty\DirectXTK\Lib\$(PlatformTarget)\$(Configuration);%(AdditionalLibraryDirectories);$(VcpkgRoot)\installed\x64-windows\lib;$(LibraryPath);$(ProjectDir)Engine\Source\ThirdParty\Lua\$(Configuration)\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>DirectXTK.lib;libfbxsdk.lib;lua.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -152,7 +152,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)\Engine\Source\ThirdParty\FBX_SDK\2020.3.7\include;$(ProjectDir)\Shaders;$(ProjectDir)\Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)\Engine\Source\ThirdParty;$(VcpkgRoot)\installed\x64-windows\include;$(IncludePath);$(ProjectDir)\Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)\Engine\Source\Runtime;$(ProjectDir)\Engine\Source\Runtime\Windows;$(ProjectDir)\Engine\Source\ThirdParty\include;$(ProjectDir)\Engine\Source\Editor;$(ProjectDir)\Engine\Source\Runtime\CoreUObject;$(ProjectDir)\Engine\Source\Runtime\Core;$(ProjectDir)\Engine\Source\Runtime\Launch;$(ProjectDir)\Engine\Source\Runtime\Engine;$(ProjectDir)\Engine\Source\Runtime\Engine\Classes;$(ProjectDir)\Engine\Source;$(ProjectDir);$(ProjectDir)\Engine\Source\ThirdParty\Lua\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -164,7 +164,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\release;$(SolutionDir)Week0v2\Engine\Source\ThirdParty\DirectXTK\Lib\x64\Release;%(AdditionalLibraryDirectories);$(VcpkgRoot)\installed\x64-windows\lib;$(LibraryPath);$(ProjectDir)Engine\Source\ThirdParty\Lua\$(Configuration)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\release;$(SolutionDir)Week0v2\Engine\Source\ThirdParty\DirectXTK\Lib\x64\Release;%(AdditionalLibraryDirectories);$(VcpkgRoot)\installed\x64-windows\lib;$(LibraryPath);$(ProjectDir)Engine\Source\ThirdParty\Lua\$(Configuration)\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>DirectXTK.lib;libfbxsdk.lib;lua.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
@@ -184,6 +184,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\DashShake.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraLetterBox.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\SkeletalMeshActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Mesh\SkeletalMesh.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\MeshComponents\SkeletalMeshComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.cpp" />
@@ -386,6 +387,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\DashShake.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraLetterBox.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\SkeletalMeshActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Mesh\SkeletalMesh.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\MeshComponents\SkeletalMeshComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.h" />
