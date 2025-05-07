@@ -913,14 +913,6 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
     ImGui::PopStyleColor();
 }
 
-struct FBoneRotation
-{
-    float X = 0.0f;
-    float Y = 0.0f;
-    float Z = 0.0f;
-};
-
-TMap<FString, FBoneRotation> BoneRotations;
 
 void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp)
 {
@@ -995,13 +987,6 @@ void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* Skeleta
         return;
     }
 
-    static FString CurrentSelectedBone;
-    static float XRotation = 0.0f;
-    static float YRotation = 0.0f;
-    static float ZRotation = 0.0f;
-    static bool bAnimationEnabled = false;
-    static float AnimationSpeed = 1.0f;
-    static float TotalTime = 0.0f;
 
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
     if (ImGui::TreeNodeEx("Skeletal Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
@@ -1011,50 +996,28 @@ void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* Skeleta
         // 본 제어 섹션
         if (ImGui::CollapsingHeader("Bone Controls", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            // 애니메이션 토글 및 속도 조절
-            ImGui::Checkbox("Auto Animation", &bAnimationEnabled);
-            if (bAnimationEnabled)
-            {
-                ImGui::SameLine();
-                ImGui::SliderFloat("Speed", &AnimationSpeed, 0.1f, 5.0f, "%.1f");
-
-                // 시간 업데이트
-                float DeltaTime = ImGui::GetIO().DeltaTime;
-                TotalTime += DeltaTime * AnimationSpeed;
-
-                // 자동 애니메이션 적용
-                if (!CurrentSelectedBone.IsEmpty())
-                {
-                    // 애니메이션 회전값 계산
-                    XRotation = 30.0f * sin(TotalTime);
-                    YRotation = 20.0f * sin(TotalTime * 1.2f);
-                    ZRotation = 15.0f * sin(TotalTime * 0.8f);
-
-                    // 맵에 저장
-                    FBoneRotation& rotation = BoneRotations.FindOrAdd(CurrentSelectedBone);
-                    rotation.X = XRotation;
-                    rotation.Y = YRotation;
-                    rotation.Z = ZRotation;
-                }
-            }
+            // 회전값 변경 여부를 추적
+            bool anyRotationChanged = false;
 
             // 선택된 본이 있을 경우 회전 컨트롤 표시
-            if (!CurrentSelectedBone.IsEmpty())
+            if (SelectedBoneIndex!=-1)
             {
                 ImGui::Separator();
-                ImGui::Text("Selected Bone: %s", GetData(CurrentSelectedBone));
+                ImGui::Text("Selected Bone: %s", GetData(SkeletalMesh->GetSkeletalMesh()->GetRenderData().Bones[SelectedBoneIndex].BoneName));
 
-                // 현재 선택된 본의 회전값 가져오기
-                if (!bAnimationEnabled)
+                FBoneRotation* foundRotation = BoneRotations.Find(SelectedBoneIndex);
+                if (foundRotation)
                 {
-                    FBoneRotation* foundRotation = BoneRotations.Find(CurrentSelectedBone);
-                    if (foundRotation)
-                    {
-                        // 저장된 회전값이 있으면 사용
-                        XRotation = foundRotation->X;
-                        YRotation = foundRotation->Y;
-                        ZRotation = foundRotation->Z;
-                    }
+                    // 저장된 회전값이 있으면 사용
+                    XRotation = foundRotation->X;
+                    YRotation = foundRotation->Y;
+                    ZRotation = foundRotation->Z;
+                }
+                else
+                {
+                     XRotation = 0.f;
+                     YRotation = 0.f;
+                     ZRotation = 0.f;
                 }
 
                 // 회전 슬라이더
@@ -1066,10 +1029,8 @@ void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* Skeleta
                 // 슬라이더 값이 변경되면 맵에 저장
                 if (rotationChanged)
                 {
-                    FBoneRotation& rotation = BoneRotations.FindOrAdd(CurrentSelectedBone);
-                    rotation.X = XRotation;
-                    rotation.Y = YRotation;
-                    rotation.Z = ZRotation;
+                    BoneRotations[SelectedBoneIndex] = FBoneRotation(XRotation, YRotation, ZRotation);
+                    anyRotationChanged = true;
                 }
 
                 // 리셋 버튼
@@ -1078,12 +1039,8 @@ void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* Skeleta
                     XRotation = 0.0f;
                     YRotation = 0.0f;
                     ZRotation = 0.0f;
-
-                    // 맵에서도 리셋
-                    FBoneRotation& rotation = BoneRotations.FindOrAdd(CurrentSelectedBone);
-                    rotation.X = 0.0f;
-                    rotation.Y = 0.0f;
-                    rotation.Z = 0.0f;
+                    BoneRotations[SelectedBoneIndex] = FBoneRotation(0.0f, 0.0f, 0.0f);
+                    anyRotationChanged = true;
                 }
 
                 ImGui::SameLine();
@@ -1095,75 +1052,54 @@ void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* Skeleta
                     XRotation = 0.0f;
                     YRotation = 0.0f;
                     ZRotation = 0.0f;
+                    anyRotationChanged = true;
                 }
             }
 
-            // 모든 본에 회전 적용
-            SkeletalMesh->GetSkeletalMesh()->ResetToOriginalPose();
-
-            // 저장된 모든 본 회전을 적용 (업데이트 없이)
-            for (auto& Pair : BoneRotations)
+            // 회전값이 변경된 경우에만 적용
+            if (anyRotationChanged)
             {
-                const FString& BoneName = Pair.Key;
-                const FBoneRotation& Rotation = Pair.Value;
+                // 모든 본에 회전 적용
+                SkeletalMesh->GetSkeletalMesh()->ResetToOriginalPose();
 
-                int boneIndex = SkeletalMesh->GetSkeletalMesh()->FindBoneIndexByName(BoneName);
-                if (boneIndex >= 0)
+                // 저장된 모든 본 회전을 적용
+                for (auto& Pair : BoneRotations)
                 {
-                    // 각 축별로 회전 적용 (로컬 변환만)
-                    SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.X, FVector(1.0f, 0.0f, 0.0f));
-                    SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.Y, FVector(0.0f, 1.0f, 0.0f));
-                    SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.Z, FVector(0.0f, 0.0f, 1.0f));
-                }
-            }
+                    const int& BoneName = Pair.Key;
+                    const FBoneRotation& Rotation = Pair.Value;
 
-            // 모든 회전 적용 후 한 번만 업데이트
-            SkeletalMesh->GetSkeletalMesh()->UpdateBoneHierarchy();
-            SkeletalMesh->GetSkeletalMesh()->UpdateSkinnedVertices();
+                    int boneIndex = BoneName;
+                    if (boneIndex >= 0)
+                    {
+                        // 각 축별로 회전 적용 (로컬 변환만)
+                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.X, FVector(1.0f, 0.0f, 0.0f));
+                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.Y, FVector(0.0f, 1.0f, 0.0f));
+                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.Z, FVector(0.0f, 0.0f, 1.0f));
+                    }
+                }
+
+                // 모든 회전 적용 후 한 번만 업데이트
+                SkeletalMesh->GetSkeletalMesh()->UpdateBoneHierarchy();
+                SkeletalMesh->GetSkeletalMesh()->UpdateSkinnedVertices();
+            }
         }
 
-        // 본 리스트 표시 및 선택 기능
-        if (ImGui::CollapsingHeader("Bone List", ImGuiTreeNodeFlags_DefaultOpen))
+        // 계층적 본 구조 표시
+        if (ImGui::CollapsingHeader("Bone Hierarchy", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            ImGui::Indent();
-
-            for (const auto& Bone : SkeletalMesh->GetSkeletalMesh()->GetRenderData().Bones)
+            // RefSkeletal이 없는 경우 처리
+            if (SkeletalMesh->GetSkeletalMesh()->GetRefSkeletal() == nullptr)
             {
-                bool isSelected = (CurrentSelectedBone == Bone.BoneName);
-
-                // 선택 가능한 본 항목 표시
-                if (ImGui::Selectable(GetData(Bone.BoneName), isSelected, ImGuiSelectableFlags_AllowDoubleClick))
+                ImGui::Text("No skeletal hierarchy available");
+            }
+            else
+            {
+                // 루트 본부터 계층 구조 표시
+                for (const auto& RootBoneIndex : SkeletalMesh->GetSkeletalMesh()->GetRefSkeletal()->RootBoneIndices)
                 {
-                    CurrentSelectedBone = Bone.BoneName;
-
-                    // 선택된 본의 현재 회전값 가져오기
-                    FBoneRotation* foundRotation = BoneRotations.Find(CurrentSelectedBone);
-                    if (foundRotation)
-                    {
-                        XRotation = foundRotation->X;
-                        YRotation = foundRotation->Y;
-                        ZRotation = foundRotation->Z;
-                    }
-                    else
-                    {
-                        // 저장된 회전값이 없으면 초기화
-                        XRotation = 0.0f;
-                        YRotation = 0.0f;
-                        ZRotation = 0.0f;
-                    }
-                }
-
-                // 회전된 본은 시각적으로 표시
-                FBoneRotation* foundRotation = BoneRotations.Find(Bone.BoneName);
-                if (foundRotation &&
-                    (foundRotation->X != 0.0f || foundRotation->Y != 0.0f || foundRotation->Z != 0.0f))
-                {
-                    ImGui::SameLine();
-                    ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "[Modified]");
+                    RenderBoneHierarchy(SkeletalMesh->GetSkeletalMesh(), RootBoneIndex);
                 }
             }
-
-            ImGui::Unindent();
         }
 
         ImGui::TreePop();
@@ -1203,13 +1139,7 @@ void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int B
 // 뼈가 선택되었을 때 호출되는 함수
 void PropertyEditorPanel::OnBoneSelected(USkeletalMesh* SkeletalMesh, int BoneIndex)
 {
-    // 선택된 뼈 정보 저장
     SelectedBoneIndex = BoneIndex;
-    // 여기에 선택된 뼈에 대한 추가 작업 수행
-    FMatrix temp = SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform * FMatrix::CreateRotationMatrix(30,0,0);
-    SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform = temp;
-    SkeletalMesh->UpdateBoneHierarchy();
-    SkeletalMesh->SetData(SkeletalMesh->GetRenderData(), SkeletalMesh->GetRefSkeletal());
 }
 
 void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp)

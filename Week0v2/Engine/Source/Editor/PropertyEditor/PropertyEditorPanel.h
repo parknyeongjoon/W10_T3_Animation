@@ -8,6 +8,16 @@ class UStaticMeshComponent;
 class USceneComponent;
 class ULevel;
 
+struct FBoneRotation
+{
+    float X;
+    float Y;
+    float Z;
+    
+    FBoneRotation() : X(0.0f), Y(0.0f), Z(0.0f) {}
+    FBoneRotation(float InX, float InY, float InZ) : X(InX), Y(InY), Z(InZ) {}
+};
+
 class PropertyEditorPanel : public UEditorPanel
 {
 public:
@@ -46,10 +56,19 @@ private:
     UStaticMeshComponent* SelectedStaticMeshComp = nullptr;
     USkeletalMeshComponent* SelectedSkeletalMeshComp = nullptr;
     int SelectedBoneIndex = -1;
+
     FObjMaterialInfo tempMaterialInfo;
     bool IsCreateMaterial;
     UActorComponent* PickedComponent = nullptr;
     UActorComponent* LastComponent = nullptr;
     bool bFirstFrame = true;
+
+
+    //FBX
+private:
+    float XRotation = 0.0f;
+    float YRotation = 0.0f;
+    float ZRotation = 0.0f;
+    TMap<int, FBoneRotation> BoneRotations;
 
 };
