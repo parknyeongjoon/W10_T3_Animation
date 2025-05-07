@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "FBX/FBXDefine.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
@@ -36,5 +36,10 @@ private:
     FRefSkeletal* RefSkeletal = nullptr;
     TArray<FMaterialSlot*> MaterialSlots;
 
+    TArray<FMatrix> OriginalLocalTransforms;
+    TArray<FMatrix> OriginalGlobalMatrices;
+    TArray<FVector4> OriginalVertexPositions;
+
     void UpdateChildBones(int ParentIndex);
+    void ResetToOriginalPose();
 };
