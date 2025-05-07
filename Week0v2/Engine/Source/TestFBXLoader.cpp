@@ -42,6 +42,13 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     RefSkeletal->Name = FilePath;
     
     ExtractFBXMeshData(Scene, NewMeshData, RefSkeletal);
+
+    for (int i=0;i<NewMeshData->Vertices.Num();i++)
+    {
+        FSkeletalVertex Vertex;
+        Vertex = NewMeshData->Vertices[i];
+        RefSkeletal->RawVertices.Add(Vertex);
+    }
     
     SkeletalMeshData.Add(FilePath, NewMeshData);
     RefSkeletalData.Add(FilePath, RefSkeletal);
@@ -151,14 +158,6 @@ void TestFBXLoader::ExtractVertices(
     ExtractUVs           (Mesh, MeshData, BaseVertexIndex);
     ExtractTangents      (Mesh, MeshData, BaseVertexIndex);
     ExtractSkinningData  (Mesh, MeshData, RefSkeletal, BaseVertexIndex);
-
-    // 4) RefSkeletal용 RawVertices에 복사
-    int NewVertCount = MeshData->Vertices.Num() - BaseVertexIndex;
-    RefSkeletal->RawVertices.Reserve(RefSkeletal->RawVertices.Num() + NewVertCount);
-    for (int i = 0; i < NewVertCount; ++i)
-    {
-        RefSkeletal->RawVertices.Add(MeshData->Vertices[BaseVertexIndex + i]);
-    }
 }
 
 void TestFBXLoader::ExtractNormals(
@@ -200,13 +199,6 @@ void TestFBXLoader::ExtractNormals(
 
     // 폴리곤-버텍스 순회
     int polyCount = Mesh->GetPolygonCount();
-
-    int totalPolyVerts = 0;
-    for (int p = 0; p < polyCount; ++p)
-        totalPolyVerts += Mesh->GetPolygonSize(p);
-
-    // 이제 여기에 맞춰서
-    RenderData->Vertices.SetNum(BaseVertexIndex + totalPolyVerts);
 
     for (int p = 0; p < polyCount; ++p)
     {
