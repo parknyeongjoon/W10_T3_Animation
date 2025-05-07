@@ -30,7 +30,8 @@ public:
     void RotateBoneByName(const FString& BoneName, float AngleInDegrees, const FVector& RotationAxis);
     int FindBoneIndexByName(const FString& BoneName) const;
     void ApplyRotationToBone(int BoneIndex, float AngleInDegrees, const FVector& RotationAxis);
-    
+
+    USkeletalMesh* Duplicate(UObject* InOuter) override;
 private:
     
     FSkeletalMeshRenderData SkeletalMeshRenderData;

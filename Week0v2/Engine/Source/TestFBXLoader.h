@@ -26,15 +26,18 @@ public:
 
     static FSkeletalMeshRenderData* GetSkeletalRenderData(FString FilePath);
     static FSkeletalMeshRenderData GetCopiedSkeletalRenderData(FString FilePath);
-    static TMap<FName, FSkeletalMeshRenderData*> GetAllSkeletalMeshes() { return SkeletalMeshData; }
+    
     static FRefSkeletal* GetRefSkeletal(FString FilePath);
     static TMap<FName, FRefSkeletal*> GetAllRefSkeletals() { return RefSkeletalData; }
+    
     static void UpdateBoundingBox(FSkeletalMeshRenderData MeshData);
+    
     static FObjMaterialInfo ConvertFbxToObjMaterialInfo(FbxSurfaceMaterial* FbxMat, const FString& BasePath = TEXT(""));
 
-    static USkeletalMesh* GetSkeletalMeshData(FString FilePath) { return SkeletalMeshMap[FilePath]; }
     static USkeletalMesh* CreateSkeletalMesh(const FString& FilePath);
+    static TMap<FName, FSkeletalMeshRenderData*> GetAllSkeletalMeshes() { return SkeletalMeshData; }
     static USkeletalMesh* GetSkeletalMesh(const FString& FilePath);
+    static USkeletalMesh* GetSkeletalMeshData(FString FilePath) { return SkeletalMeshMap[FilePath]; }
     static const TMap<FString, USkeletalMesh*>& GetSkeletalMeshes() { return SkeletalMeshMap;}
 
     static void AddVertexFromControlPoint(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int ControlPointIndex);
