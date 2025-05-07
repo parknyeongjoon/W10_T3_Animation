@@ -16,6 +16,7 @@
 
 #include "LaunchEngineLoop.h"
 #include "ShowFlags.h"
+#include "Actors/SkeletalMeshActor.h"
 #include "Camera/CameraComponent.h"
 
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
@@ -318,6 +319,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             { "Shapes", "Car (Dodge)",     OBJ_CAR },
             { "Shapes", "SkySphere",       OBJ_SKYSPHERE},
             { "Shapes", "Yeoul",           OBJ_YEOUL},
+            { "Shapes", "SkeletalMesh",    OBJ_SKELETAL},
 
             // ✨ 효과
             { "Effects", "Particle",       OBJ_PARTICLE },
@@ -427,7 +429,13 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
 
                     break; // 누락된 break 추가
                 }
-
+                case OBJ_SKELETAL:
+                {
+                    ASkeletalMeshActor* skeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
+                    skeletalMeshActor->SetActorLabel("SkeletalMesh");
+                    SpawnedActor = skeletalMeshActor;
+                    break;
+                }
                 case OBJ_POINTLIGHT:
                 {
                     SpawnedActor = World->SpawnActor<APointLightActor>();

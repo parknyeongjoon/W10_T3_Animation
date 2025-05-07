@@ -1,5 +1,7 @@
 #include "World.h"
 
+#include "LaunchEngineLoop.h"
+#include "Renderer/Renderer.h"
 #include "PlayerCameraManager.h"
 #include "BaseGizmos/TransformGizmo.h"
 #include "Camera/CameraComponent.h"
@@ -7,16 +9,19 @@
 #include "Engine/FLoaderOBJ.h"
 #include "UObject/UObjectIterator.h"
 #include "Level.h"
+#include "TestFBXLoader.h"
 #include "Actors/ADodge.h"
 #include "Contents/GameManager.h"
 #include "Serialization/FWindowsBinHelper.h"
 
 #include "Actors/PointLightActor.h"
 #include "Components/LightComponents/PointLightComponent.h"
+#include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 #include "Script/LuaManager.h"
 #include "UObject/UObjectArray.h"
+#include "UnrealEd/PrimitiveBatch.h"
 
 UWorld::UWorld(const UWorld& Other): UObject(Other)
                                    , defaultMapName(Other.defaultMapName)
@@ -31,7 +36,7 @@ void UWorld::InitWorld()
     // TODO: Load Scene
     Level = FObjectFactory::ConstructObject<ULevel>();
     PreLoadResources();
-    LoadScene("Assets/Scenes/AutoSave.Scene");
+    LoadScene("Assets/Scenes/NewScene.Scene");
 }
 
 void UWorld::LoadLevel(const FString& LevelName)
@@ -52,44 +57,10 @@ void UWorld::CreateBaseObject()
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
-
     
     PlayerCameraManager = SpawnActor<APlayerCameraManager>();
-    
-    APointLightActor* Light1 = SpawnActor<APointLightActor>();
-    APointLightActor* Light2 = SpawnActor<APointLightActor>();
-    APointLightActor* Light3 = SpawnActor<APointLightActor>();
-    APointLightActor* Light4 = SpawnActor<APointLightActor>();
-    AStaticMeshActor* Ground = SpawnActor<AStaticMeshActor>();
-    Ground->SetActorLabel(TEXT("Cube"));
-    UStaticMeshComponent* MeshComp = Ground->GetStaticMeshComponent();
-    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Cube.obj");
-    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
-    Ground->AddComponent<UBoxShapeComponent>(EComponentOrigin::Editor);
-
-    Ground->SetActorScale(FVector(1000.0f, 1000.0f, 2.0f));
-
-    Light1->SetActorLocation(FVector(-75, -75, 20));
-    Light2->SetActorLocation(FVector(-75, 75, 20));
-    Light3->SetActorLocation(FVector(75, -75, 20));
-    Light4->SetActorLocation(FVector(75, 75, 20));
-
-    Light1->GetComponentByClass<UPointLightComponent>()->SetColor(FVector4(0.8f, 0.05f, 0.05f, 1));
-    Light1->GetComponentByClass<UPointLightComponent>()->SetRadius(50);
-    Light1->GetComponentByClass<UPointLightComponent>()->SetIntensity(2);
-
-    Light2->GetComponentByClass<UPointLightComponent>()->SetColor(FVector4(0.8f, 0.05f, 0.05f, 1));
-    Light2->GetComponentByClass<UPointLightComponent>()->SetRadius(50);
-    Light2->GetComponentByClass<UPointLightComponent>()->SetIntensity(2);
-
-    Light3->GetComponentByClass<UPointLightComponent>()->SetColor(FVector4(0.8f, 0.05f, 0.05f, 1));
-    Light3->GetComponentByClass<UPointLightComponent>()->SetRadius(50);
-    Light3->GetComponentByClass<UPointLightComponent>()->SetIntensity(2);
-
-    Light4->GetComponentByClass<UPointLightComponent>()->SetColor(FVector4(0.8f, 0.05f, 0.05f, 1));
-    Light4->GetComponentByClass<UPointLightComponent>()->SetRadius(50);
-    Light4->GetComponentByClass<UPointLightComponent>()->SetIntensity(2);
 }
+
 
 void UWorld::ReleaseBaseObject()
 {

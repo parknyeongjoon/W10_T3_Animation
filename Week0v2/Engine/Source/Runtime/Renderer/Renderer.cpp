@@ -17,6 +17,7 @@
 #include "RenderPass/GizmoRenderPass.h"
 #include "RenderPass/LetterBoxRenderPass.h"
 #include "RenderPass/LineBatchRenderPass.h"
+#include "RenderPass/SkeletalMeshRenderPass.h"
 #include "RenderPass/StaticMeshRenderPass.h"
 
 D3D_SHADER_MACRO FRenderer::GouradDefines[] =
@@ -71,6 +72,10 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     CreateVertexPixelShader(TEXT("UberLit"), nullptr);
     FString PhongShaderName = TEXT("UberLit");
     PhongRenderPass = std::make_shared<FStaticMeshRenderPass>(PhongShaderName);
+
+    CreateVertexPixelShader(TEXT("SkeletalUberLit"), nullptr);
+    FString SkeletalShaderName = TEXT("SkeletalUberLit");
+    SkeletalRenderPass = std::make_shared<FSkeletalMeshRenderPass>(SkeletalShaderName);
     
     CreateVertexPixelShader(TEXT("Line"), nullptr);
     LineBatchRenderPass = std::make_shared<FLineBatchRenderPass>(TEXT("Line"));
@@ -280,6 +285,9 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
             PhongRenderPass->Prepare(ActiveViewport);
             PhongRenderPass->Execute(ActiveViewport);
         }
+
+        SkeletalRenderPass->Prepare(ActiveViewport);
+        SkeletalRenderPass->Execute(ActiveViewport);
     }
 
     if (FogRenderPass->ShouldRender())
@@ -331,6 +339,7 @@ void FRenderer::ClearRenderObjects() const
     GoroudRenderPass->ClearRenderObjects();
     LambertRenderPass->ClearRenderObjects();
     PhongRenderPass->ClearRenderObjects();
+    SkeletalRenderPass->ClearRenderObjects();
     LineBatchRenderPass->ClearRenderObjects();
     GizmoRenderPass->ClearRenderObjects();
     DebugDepthRenderPass->ClearRenderObjects();
@@ -402,6 +411,7 @@ void FRenderer::AddRenderObjectsToRenderPass() const
     GoroudRenderPass->AddRenderObjectsToRenderPass();
     LambertRenderPass->AddRenderObjectsToRenderPass();
     PhongRenderPass->AddRenderObjectsToRenderPass();
+    SkeletalRenderPass->AddRenderObjectsToRenderPass();
     
     GizmoRenderPass->AddRenderObjectsToRenderPass();
     EditorIconRenderPass->AddRenderObjectsToRenderPass();

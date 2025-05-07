@@ -27,7 +27,7 @@ uint32 UStaticMesh::GetMaterialIndex(FName MaterialSlotName) const
 
 void UStaticMesh::GetUsedMaterials(TArray<UMaterial*>& Out) const
 {
-    for (const FStaticMaterial* Material : materials)
+    for (const FMaterialSlot* Material : materials)
     {
         Out.Emplace(Material->Material);
     }
@@ -56,9 +56,10 @@ void UStaticMesh::SetData(OBJ::FStaticMeshRenderData* renderData)
     }
     GEngineLoop.Renderer.MappingVBTopology(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, sizeof(FVertexSimple), verticeNum);
     GEngineLoop.Renderer.MappingIB(staticMeshRenderData->DisplayName, staticMeshRenderData->DisplayName, indexNum);
-    
+
+    materials.Empty();
     for (int materialIndex = 0; materialIndex < staticMeshRenderData->Materials.Num(); materialIndex++) {
-        FStaticMaterial* newMaterialSlot = new FStaticMaterial();
+        FMaterialSlot* newMaterialSlot = new FMaterialSlot();
         UMaterial* newMaterial = FManagerOBJ::CreateMaterial(staticMeshRenderData->Materials[materialIndex]);
 
         newMaterialSlot->Material = newMaterial;

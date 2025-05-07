@@ -44,8 +44,6 @@ public:
 
     PROPERTY(int, selectedSubMeshIndex);
 
-
-
     virtual uint32 GetNumMaterials() const override;
     virtual UMaterial* GetMaterial(uint32 ElementIndex) const override;
     virtual uint32 GetMaterialIndex(FName MaterialSlotName) const override;

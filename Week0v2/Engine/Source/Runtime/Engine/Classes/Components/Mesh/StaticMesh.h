@@ -11,14 +11,13 @@ class UStaticMesh : public UObject
 public:
     UStaticMesh();
     virtual ~UStaticMesh() override;
-    const TArray<FStaticMaterial*>& GetMaterials() const { return materials; }
+    const TArray<FMaterialSlot*>& GetMaterials() const { return materials; }
     uint32 GetMaterialIndex(FName MaterialSlotName) const;
     void GetUsedMaterials(TArray<UMaterial*>& Out) const;
     OBJ::FStaticMeshRenderData* GetRenderData() const { return staticMeshRenderData; }
 
     void SetData(OBJ::FStaticMeshRenderData* renderData);
-
 private:
     OBJ::FStaticMeshRenderData* staticMeshRenderData = nullptr;
-    TArray<FStaticMaterial*> materials;
+    TArray<FMaterialSlot*> materials;
 };

@@ -16,6 +16,7 @@ class UCameraComponent;
 class USceneComponent;
 class UTransformGizmo;
 class APlayerCameraManager;
+class USkeletalMesh;
 
 class UWorld final : public UObject
 {
@@ -70,8 +71,6 @@ public:
         return Actor;
     }
 
-
-
     void DuplicateSeletedActors();
     void DuplicateSeletedActorsOnLocation();
 
@@ -88,9 +87,6 @@ private:
     
     APlayerCameraManager* PlayerCameraManager = nullptr;
 public:
-
-
-    
     EWorldType::Type WorldType = EWorldType::None;
     const TArray<AActor*>& GetActors() const { return Level->GetActors(); }
     ULevel* GetLevel() const { return Level; }
@@ -124,6 +120,9 @@ public:
     bool IsPIEWorld() const;
     void BeginPlay();
     static UWorld* DuplicateWorldForPIE(UWorld* world);
+
+
+
 };
 
 inline void UWorld::SaveScene(const FString& FileName)

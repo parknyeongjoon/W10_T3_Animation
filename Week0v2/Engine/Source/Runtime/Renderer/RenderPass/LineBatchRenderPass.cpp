@@ -182,7 +182,6 @@ void FLineBatchRenderPass::Execute(const std::shared_ptr<FViewportClient> InView
 
     Graphics.DeviceContext->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
 
-
     PrimitveBatch.ClearBatchPrimitives();
 }
 

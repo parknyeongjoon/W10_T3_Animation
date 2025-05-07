@@ -32,7 +32,7 @@ struct FMaterialSubset
     FString MaterialName; // Material Name
 };
 
-struct FStaticMaterial
+struct FMaterialSlot
 {
     class UMaterial* Material;
     FName MaterialSlotName;
@@ -76,10 +76,10 @@ struct FObjMaterialInfo
     bool bTransparent = false; // Has alpha channel?
 
     // Diffuse (Kd) : 일반적으로 흰색, 완전 불투명한 색상
-    FVector Diffuse = FVector(0.0f, 0.0f, 0.0f);
+    FVector Diffuse = FVector(1.0f, 1.0f, 1.0f);
     
     // Specular (Ks) : 반사광 기본값, 흰색으로 표기하는 경우가 많음
-    FVector Specular = FVector(0.0f, 0.0f, 0.0f);
+    FVector Specular = FVector(1.0f, 1.0f, 1.0f);
     
     // Ambient (Ka) : 주변광 기본값, 너무 강하지 않은 낮은 값으로
     FVector Ambient = FVector(0.1f, 0.1f, 0.1f);
@@ -284,9 +284,8 @@ struct FBoundingBox
     FBoundingBox(){}
     FBoundingBox(FVector _min, FVector _max) : min(_min), max(_max) {}
 	FVector min; // Minimum extents
-	float pad;
 	FVector max; // Maximum extents
-	float pad1;
+    float padding[2];
     bool IntersectRay(const FVector& rayOrigin, const FVector& rayDir, float& outDistance) const
     {
         float tmin = -FLT_MAX;

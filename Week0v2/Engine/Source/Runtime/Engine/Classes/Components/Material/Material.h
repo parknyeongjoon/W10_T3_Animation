@@ -8,6 +8,7 @@ class UMaterial : public UObject {
 
 public:
     UMaterial() {}
+    UMaterial(FObjMaterialInfo InMaterialInfo) : materialInfo(std::move(InMaterialInfo)) {}
     ~UMaterial() {}
     FObjMaterialInfo& GetMaterialInfo() { return materialInfo; }
     void SetMaterialInfo(FObjMaterialInfo value) { materialInfo = value; }

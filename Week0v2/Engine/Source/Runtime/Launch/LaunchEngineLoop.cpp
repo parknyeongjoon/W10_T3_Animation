@@ -1,6 +1,7 @@
 #include "LaunchEngineLoop.h"
 
 #include "ImGuiManager.h"
+#include "TestFBXLoader.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "PropertyEditor/ViewportTypePanel.h"
 #include "Renderer/Renderer.h"
@@ -32,7 +33,7 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     Renderer.Initialize(&GraphicDevice);
     ImGuiUIManager->Initialize(AppWnd, GraphicDevice.Device, GraphicDevice.DeviceContext);
     ResourceManager.Initialize(&GraphicDevice);
-
+    TestFBXLoader::InitFBXManager();
     
     // if (bIsEditor)
     {
@@ -151,7 +152,7 @@ void FEngineLoop::WindowInit(HINSTANCE hInstance)
 {
     WCHAR WindowClass[] = L"JungleWindowClass";
 
-    WCHAR Title[] = L"GTL TARZAN SIU";
+    WCHAR Title[] = L"GTL TTAL KKAK";
 
     WNDCLASSW wc{};
     wc.lpfnWndProc = AppWndProc;
