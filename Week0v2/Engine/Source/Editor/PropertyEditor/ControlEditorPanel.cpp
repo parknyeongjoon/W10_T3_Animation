@@ -471,14 +471,20 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 }
                 case OBJ_FOG:
                 {
-                    for (const auto& actor : TObjectRange<AExponentialHeightFogActor>())
+                    for (const auto& Actor : TObjectRange<AExponentialHeightFogActor>())
                     {
-                        if (actor)
+                        if (Actor)
                         {
-                            actor->Destroy();
+                            if (Actor->GetWorld() != World)
+                            {
+                                continue;
+                            }
+                            Actor->Destroy();
                             TSet<AActor*> Actors = World->GetSelectedActors();
-                            if(Actors.Contains(actor))
+                            if(Actors.Contains(Actor))
+                            {
                                 World->ClearSelectedActors();
+                            }
                         }
                     }
                     SpawnedActor = World->SpawnActor<AExponentialHeightFogActor>();

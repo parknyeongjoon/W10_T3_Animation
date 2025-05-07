@@ -42,6 +42,11 @@ void FComputeTileLightCulling::AddRenderObjectsToRenderPass(UWorld* InWorld)
     {
         for (const auto iter : TObjectRange<USceneComponent>())
         {
+            if (iter->GetWorld() != InWorld)
+            {
+                continue;
+            }
+            
             if (ULightComponentBase* pGizmoComp = Cast<ULightComponentBase>(iter))
             {
                 LightComponents.Add(pGizmoComp);

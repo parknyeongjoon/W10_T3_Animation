@@ -67,7 +67,7 @@ void UWorld::CreateBaseObject()
     
     PlayerCameraManager = SpawnActor<APlayerCameraManager>();
 
-    //if (WorldType == EWorldType::EditorPreview)
+    if (WorldType == EWorldType::EditorPreview)
     {
         TestFBXLoader TestFBXLoader;
         TestFBXLoader.InitFBXManager();
