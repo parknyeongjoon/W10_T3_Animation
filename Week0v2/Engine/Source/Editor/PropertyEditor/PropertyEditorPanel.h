@@ -50,7 +50,7 @@ private:
     void RenderShapeProperty(AActor* PickedActor);
     void RenderDelegate(ULevel* level);
     
-    void DrawSkeletalMeshPreviewButton(USkeletalMesh* SkeletalMesh);
+    void DrawSkeletalMeshPreviewButton(const FString& FilePath);
     
 private:
     float Width = 0, Height = 0;

@@ -997,8 +997,8 @@ void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* Skeleta
     if (ImGui::TreeNodeEx("Skeletal Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::Text("Skeletal Mesh");
-        
-        DrawSkeletalMeshPreviewButton(SkeletalMesh->GetSkeletalMesh());
+
+        DrawSkeletalMeshPreviewButton(SkeletalMesh->GetSkeletalMesh()->GetRenderData().Name);
 
         ImGui::TreePop();
     }
@@ -1744,7 +1744,7 @@ void PropertyEditorPanel::RenderDelegate(ULevel* level)
     }
 }
 
-void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(USkeletalMesh* SkeletalMesh)
+void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
 {
     if (ImGui::Button("Preview##"))
     {
@@ -1781,7 +1781,8 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(USkeletalMesh* SkeletalM
         ASkeletalMeshActor* SkeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
         SkeletalMeshActor->SetActorLabel("SkeletalMesh");
         USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->GetComponentByClass<USkeletalMeshComponent>();
-        SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
+
+        SkeletalMeshComp->SetSkeletalMesh(TestFBXLoader::CreateSkeletalMesh(FilePath));
     }
 }
 

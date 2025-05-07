@@ -16,7 +16,6 @@ public:
     float EditorWidth;
     float EditorHeight;
 
-    // Multi Viewport인 경우
     bool bMultiViewportMode;
     uint32 ActiveViewportIndex;
 
