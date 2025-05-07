@@ -207,6 +207,35 @@ void USkeletalMesh::UpdateVertexBuffer()
     SetData(SkeletalMeshRenderData, RefSkeletal);
 }
 
+void USkeletalMesh::StoreOriginalBoneData()
+{
+    if (SkeletalMeshRenderData.Bones.Num() <= 0)
+    {
+
+        return;
+    }
+
+    // 배열 초기화
+    OriginalLocalTransforms.Empty();
+    OriginalGlobalMatrices.Empty();
+    OriginalVertexPositions.Empty();
+    // 각 본의 초기 데이터 저장
+    for (int i = 0; i < SkeletalMeshRenderData.Bones.Num(); i++)
+    {
+        // 로컬 트랜스폼과 InverseBindPose 저장
+        OriginalLocalTransforms.Add(SkeletalMeshRenderData.Bones[i].LocalTransform);
+        OriginalGlobalMatrices.Add(SkeletalMeshRenderData.Bones[i].GlobalTransform);
+
+    }
+
+    for (const auto& Vertex : SkeletalMeshRenderData.Vertices)
+    {
+        OriginalVertexPositions.Add(Vertex.Position);
+    }
+
+}
+
+
 void USkeletalMesh::ResetToOriginalPose()
 {
     // 본 트랜스폼 복원
