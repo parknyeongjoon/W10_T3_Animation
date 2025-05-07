@@ -322,13 +322,19 @@ void SLevelEditor::RemoveViewportClient(HWND OwnerWindow, const std::shared_ptr<
     if (WindowViewportData.ViewportClients.Num() == 0)
     {
         WindowViewportDataMap.Remove(OwnerWindow);
+        
+        ActiveViewportWindow = nullptr;
+        ActiveViewportClientIndex = 0;
     }
     else
     {
         for (uint32 i = 0; i < WindowViewportData.ViewportClients.Num(); i++)
         {
             WindowViewportDataMap[OwnerWindow].ViewportClients[i]->SetViewportIndex(i);
-        }     
+        }
+        
+        ActiveViewportWindow = WindowViewportDataMap.begin()->Key;
+        ActiveViewportClientIndex = WindowViewportDataMap.begin()->Value.ActiveViewportIndex;
     }
 }
 
@@ -340,6 +346,16 @@ void SLevelEditor::RemoveViewportClients(HWND HWnd)
     //     ViewportClient->Release();
     // }
     WindowViewportDataMap.Remove(HWnd);
+    if (WindowViewportDataMap.Num() > 0)
+    {
+        ActiveViewportWindow = WindowViewportDataMap.begin()->Key;
+        ActiveViewportClientIndex = WindowViewportDataMap.begin()->Value.ActiveViewportIndex;
+    }
+    else
+    {
+        ActiveViewportWindow = nullptr;
+        ActiveViewportClientIndex = 0;
+    }
 }
 
 void SLevelEditor::SelectViewport(HWND AppWnd, FVector2D Point)
