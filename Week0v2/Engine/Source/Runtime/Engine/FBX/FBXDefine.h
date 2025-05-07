@@ -56,4 +56,6 @@ struct FSkeletalMeshRenderData
     TArray<uint32> Indices;
     TArray<FBone> Bones;
     FBoundingBox BoundingBox;
+    ID3D11Buffer* VB = nullptr;
+    ID3D11Buffer* IB = nullptr;
 };
