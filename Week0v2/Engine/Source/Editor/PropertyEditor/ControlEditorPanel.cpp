@@ -26,6 +26,7 @@
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 #include "Components/USpringArmComponent.h"
+#include "Components/Mesh/StaticMesh.h"
 
 #include "Contents/AGBullet.h"
 #include "Contents/AGPlayer.h"
@@ -35,9 +36,11 @@
 #include "UObject/ObjectTypes.h"
 
 
-void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
+void ControlEditorPanel::Initialize(SLevelEditor* levelEditor, float Width, float Height)
 {
     activeLevelEditor = levelEditor;
+    this->Width = Width;
+    this->Height = Height;
 }
 
 void ControlEditorPanel::Render()
@@ -125,7 +128,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 
         if (ImGui::MenuItem("New Scene"))
         {
-            GEngine->GetWorld()->ReloadScene("Assets/Scenes/NewScene.scene");
+            World->ReloadScene("Assets/Scenes/NewScene.scene");
         }
 
         if (ImGui::MenuItem("Load Scene"))
@@ -139,7 +142,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
                 ImGui::End();
                 return;
             }
-            GEngine->GetWorld()->ReloadScene(FileName);
+            World->ReloadScene(FileName);
         }
 
         ImGui::Separator();
@@ -158,8 +161,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
             // TODO: Save Scene
             //int i = 1;
             //FArchive ar;
-            UWorld World = *GEngine->GetWorld();
-            World.SaveScene(FileName);
+            World->SaveScene(FileName);
             // ar << World;
             //
             // FWindowsBinHelper::SaveToBin(FileName, ar);
@@ -349,7 +351,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             // 액터 생성 버튼
             if (ImGui::Selectable(actor.label))
             {
-                UWorld* World = GEngine->GetWorld();
                 AActor* SpawnedActor = nullptr;
 
                 switch (static_cast<OBJECTS>(actor.obj))
@@ -413,19 +414,21 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 }
                 case OBJ_SKYSPHERE:
                 {
-                    //AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    //TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
-                    //UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    //FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
-                    //MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
-                    //TempActor->SetActorRotation(FVector(-90.0f, 0.0f, 0.0f));
-                    //TempActor->SetActorScale(FVector(100.0f, 100.0f, 100.0f));
-                    //SpawnedActor = TempActor;
-
-                    AGBullet* TempActor = World->SpawnActor<AGBullet>();
-                    TempActor->SetActorLabel(TEXT("Bullet"));
-
+                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                    TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
+                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                    FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
+                    MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetDiffuse(FVector::OneVector);
+                    MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetEmissive(FVector::OneVector);
+                    TempActor->SetActorRotation(FRotator(0.0f, 0.0f, 90.0f));
+                    TempActor->SetActorScale(FVector(1.0f, 1.0f, 1.0f));
                     SpawnedActor = TempActor;
+
+                    // AGBullet* TempActor = World->SpawnActor<AGBullet>();
+                    // TempActor->SetActorLabel(TEXT("Bullet"));
+                    //
+                    // SpawnedActor = TempActor;
 
                     break; // 누락된 break 추가
                 }
@@ -479,14 +482,20 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 }
                 case OBJ_FOG:
                 {
-                    for (const auto& actor : TObjectRange<AExponentialHeightFogActor>())
+                    for (const auto& Actor : TObjectRange<AExponentialHeightFogActor>())
                     {
-                        if (actor)
+                        if (Actor)
                         {
-                            actor->Destroy();
-                            TSet<AActor*> Actors = GEngine->GetWorld()->GetSelectedActors();
-                            if(Actors.Contains(actor))
-                                GEngine->GetWorld()->ClearSelectedActors();
+                            if (Actor->GetWorld() != World)
+                            {
+                                continue;
+                            }
+                            Actor->Destroy();
+                            TSet<AActor*> Actors = World->GetSelectedActors();
+                            if(Actors.Contains(Actor))
+                            {
+                                World->ClearSelectedActors();
+                            }
                         }
                     }
                     SpawnedActor = World->SpawnActor<AExponentialHeightFogActor>();

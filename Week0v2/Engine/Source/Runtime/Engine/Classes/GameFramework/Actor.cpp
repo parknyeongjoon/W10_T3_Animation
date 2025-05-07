@@ -171,7 +171,7 @@ UActorComponent* AActor::AddComponentByClass(UClass* ComponentClass, EComponentO
     if (ComponentClass == nullptr)
         return nullptr;
 
-    UActorComponent* Component = ComponentClass->CreateObject<UActorComponent>();
+    UActorComponent* Component = ComponentClass->CreateObject<UActorComponent>(this);
     if (Component == nullptr)
         return nullptr;
 
@@ -224,16 +224,16 @@ void AActor::AddComponent(UActorComponent* Component)
 }
 
 
-UObject* AActor::Duplicate() const
+UObject* AActor::Duplicate(UObject* InOuter)
 {
-    AActor* ClonedActor = FObjectFactory::ConstructObjectFrom<AActor>(this);
-    ClonedActor->DuplicateSubObjects(this);
+    AActor* ClonedActor = FObjectFactory::ConstructObjectFrom<AActor>(this, InOuter);
+    ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }
-void AActor::DuplicateSubObjects(const UObject* SourceObj)
+void AActor::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
 {
-    UObject::DuplicateSubObjects(SourceObj);
+    UObject::DuplicateSubObjects(SourceObj, InOuter);
 
     const AActor* Source = Cast<AActor>(SourceObj);
     if (!Source) return;
@@ -242,10 +242,10 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
     
     for (UActorComponent* Component : Source->OwnedComponents)
     {
-        UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate());
+        UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate(InOuter));
         dupComponent->Owner = this;
         OwnedComponents.Add(dupComponent);
-        GEngine->GetWorld()->GetLevel()->GetDuplicatedObjects().Add(Component, dupComponent);
+        GetWorld()->GetLevel()->GetDuplicatedObjects().Add(Component, dupComponent);
 
         /** Todo. UActorComponent를 상속 받는 컴포넌트는 오류가 발생 코드 로직 수정 필요
          *   임시로 IsA 검사 후 Root 설정

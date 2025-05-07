@@ -76,17 +76,17 @@ int UTextComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirecti
 	return CheckPickingOnNDC(quad,pfNearHitDistance);
 }
 
-UObject* UTextComponent::Duplicate() const
+UObject* UTextComponent::Duplicate(UObject* InOuter)
 {
-    UTextComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UTextComponent>(this);
-    ClonedActor->DuplicateSubObjects(this);
+    UTextComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UTextComponent>(this, InOuter);
+    ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }
 
-void UTextComponent::DuplicateSubObjects(const UObject* Source)
+void UTextComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    UBillboardComponent::DuplicateSubObjects(Source);
+    UBillboardComponent::DuplicateSubObjects(Source, InOuter);
 }
 
 void UTextComponent::PostDuplicate()

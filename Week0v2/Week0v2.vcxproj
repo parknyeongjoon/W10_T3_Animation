@@ -176,7 +176,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\SkeletalPreviewPropertyEditorPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorPlayer.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\SkeletalPreviewUI.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\Point.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Quat.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraBlur.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\DashShake.cpp" />
@@ -282,7 +285,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\ActorInfo.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowResource.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\UnrealClient.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Viewport.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\UnrealEngine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\UserInterface\Console.cpp" />
     <ClCompile Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\GizmoArrowComponent.cpp" />
@@ -313,6 +316,7 @@
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResourceManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\VBIBTopologyMapping.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Serialization\Archive.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\SlateCore\Layout\SlateRect.cpp" />
     <ClCompile Include="Engine\Source\Runtime\SlateCore\Widgets\SWindow.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Slate\Widgets\Layout\SSplitter.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\PixelShader.cpp" />
@@ -375,9 +379,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\SkeletalPreviewPropertyEditorPanel.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorPlayer.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\SkeletalPreviewUI.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\UnrealEd.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\MathSSE.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\Point.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraBlur.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\DashShake.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.h" />
@@ -508,7 +515,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\ActorInfo.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowResource.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\UnrealClient.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Viewport.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\UnrealEngine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\UserInterface\Console.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\ViewportClient.h" />
@@ -543,6 +550,7 @@
     <ClInclude Include="Engine\Source\Runtime\Serialization\Archive.h" />
     <ClInclude Include="Engine\Source\Runtime\Serialization\FWindowsBinHelper.h" />
     <ClInclude Include="Engine\Source\Runtime\Serialization\Serializer.h" />
+    <ClInclude Include="Engine\Source\Runtime\SlateCore\Layout\SlateRect.h" />
     <ClInclude Include="Engine\Source\Runtime\SlateCore\Widgets\SWindow.h" />
     <ClInclude Include="Engine\Source\Runtime\Slate\Widgets\Layout\SSplitter.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\CBStructDefine.h" />

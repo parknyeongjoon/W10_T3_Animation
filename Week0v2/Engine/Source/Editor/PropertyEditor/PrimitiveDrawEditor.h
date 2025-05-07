@@ -17,6 +17,7 @@ class PrimitiveDrawEditor : public UEditorPanel
 public:
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
+
 private:
     void ClearRenderInfo();
 public:

@@ -38,11 +38,11 @@ FShadowRenderPass::FShadowRenderPass(const FName& InShaderName)
     PointLightShadowMapAtlas = std::make_unique<FShadowMapAtlas>(Graphics.Device, EAtlasType::PointLightCube, 1024);
 }
 
-void FShadowRenderPass::AddRenderObjectsToRenderPass()
+void FShadowRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
     for (USceneComponent* SceneComponent : TObjectRange<USceneComponent>())
     {
-        if (SceneComponent->GetWorld() != GEngine->GetWorld())
+        if (SceneComponent->GetWorld() != World)
         {
             continue;
         }
@@ -310,7 +310,7 @@ void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClien
 
     Graphics.DeviceContext->RSSetViewports(1, &curEditorViewportClient->GetD3DViewport());
     const auto CurRTV = Graphics.GetCurrentRenderTargetView();
-    Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.DepthStencilView);
+    Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.GetCurrentWindowData()->DepthStencilView);
     
     // 아틀라스 텍스쳐 바인딩
     ID3D11ShaderResourceView* SpotLightAtlasSRV = (GEngineLoop.Renderer.GetShadowFilterMode() == EShadowFilterMode::VSM) ?

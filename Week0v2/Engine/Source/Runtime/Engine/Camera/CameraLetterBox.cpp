@@ -32,15 +32,14 @@ void UCameraLetterBox::DeactivateLetterbox(float OutDuration)
 
 void UCameraLetterBox::ModifyPostProcess(float DeltaTime, float& PostProcessBlendWeight, FPostProcessSettings& PostProcessSettings)
 {
-
     // 1. 현재 화면(뷰포트) 크기 가져오기
     //    엔진 구현에 따라 PlayerCameraManager 또는 다른 곳에서 가져와야 함
     float ViewportWidth = 1920.0f; // 기본값
     float ViewportHeight = 1080.0f; // 기본값
     if (CameraOwner) // CameraOwner (APlayerCameraManager)가 유효한지 확인
     {        
-        ViewportWidth = GEngineLoop.GraphicDevice.screenWidth;
-        ViewportHeight = GEngineLoop.GraphicDevice.screenHeight;
+        ViewportWidth = GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth;
+        ViewportHeight = GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight;
     }
 
     // 0으로 나누기 방지

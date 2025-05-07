@@ -40,17 +40,17 @@ bool APointLightActor::Destroy()
     return Super::Destroy();
 }
 
-UObject* APointLightActor::Duplicate() const
+UObject* APointLightActor::Duplicate(UObject* InOuter)
 {
-    APointLightActor* NewActor = FObjectFactory::ConstructObjectFrom<APointLightActor>(this);
-    NewActor->DuplicateSubObjects(this);
+    APointLightActor* NewActor = FObjectFactory::ConstructObjectFrom<APointLightActor>(this, InOuter);
+    NewActor->DuplicateSubObjects(this, InOuter);
     NewActor->PostDuplicate();
     return NewActor;
 }
 
-void APointLightActor::DuplicateSubObjects(const UObject* Source)
+void APointLightActor::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    Super::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source, InOuter);
 }
 
 void APointLightActor::PostDuplicate()

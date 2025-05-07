@@ -5,8 +5,10 @@
 #include <D3D11RHI/CBStructDefine.h>
 
 #include "LaunchEngineLoop.h"
+#include "Viewport.h"
 #include "Components/PrimitiveComponents/HeightFogComponent.h"
 #include "Renderer/Renderer.h"
+#include "SlateCore/Layout/SlateRect.h"
 #include "UnrealEd/EditorViewportClient.h"
 
 extern UEngine* GEngine;
@@ -32,16 +34,13 @@ FFogRenderPass::FFogRenderPass(const FName& InShaderName)
     }
 }
 
-void FFogRenderPass::AddRenderObjectsToRenderPass()
+void FFogRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
-}
-
-void FFogRenderPass::PrePrepare()
-{
+    bRender = false;
     FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     for (const auto iter : TObjectRange<UHeightFogComponent>())
     {
-        if (iter->GetWorld() == GEngine->GetWorld())
+        if (iter->GetWorld() == World)
         {
             FogComp = iter;
             Graphics.SwapPingPongBuffers();
@@ -51,8 +50,16 @@ void FFogRenderPass::PrePrepare()
     }
 }
 
-void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+void FFogRenderPass::ClearRenderObjects()
 {
+    FBaseRenderPass::ClearRenderObjects();
+
+    FogComp = nullptr;
+    bRender = false;
+}
+
+void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+{    
     if (bRender)
     {
         FBaseRenderPass::Prepare(InViewportClient);
@@ -61,7 +68,7 @@ void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
 
         const auto CurRTV = Graphics.GetCurrentRenderTargetView();
         Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, nullptr);
-        Graphics.DeviceContext->CopyResource(Graphics.DepthCopyTexture, Graphics.DepthStencilBuffer);
+        Graphics.DeviceContext->CopyResource(Graphics.GetCurrentWindowData()->DepthCopyTexture, Graphics.GetCurrentWindowData()->DepthStencilBuffer);
         Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
 
         Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -71,7 +78,7 @@ void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
         Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
 
         const auto PreviousSRV = Graphics.GetPreviousShaderResourceView();
-        Graphics.DeviceContext->PSSetShaderResources(0, 1, &Graphics.DepthCopySRV);
+        Graphics.DeviceContext->PSSetShaderResources(0, 1, &Graphics.GetCurrentWindowData()->DepthCopySRV);
         Graphics.DeviceContext->PSSetShaderResources(1, 1, &PreviousSRV);
     }
 }
@@ -117,13 +124,13 @@ void FFogRenderPass::UpdateScreenConstant(std::shared_ptr<FViewportClient> InVie
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
 
-    FViewportInfo ScreenConstans;
-    float Width = Graphics.screenWidth;
-    float Height = Graphics.screenHeight;
-    ScreenConstans.ViewportSize = FVector2D { curEditorViewportClient->GetD3DViewport().Width / Width, curEditorViewportClient->GetD3DViewport().Height / Height };
-    ScreenConstans.ViewportOffset = FVector2D { curEditorViewportClient->GetD3DViewport().TopLeftX / Width, curEditorViewportClient->GetD3DViewport().TopLeftY / Height };
+    FViewportInfo ScreenConstants;
+    float Width = Graphics.GetCurrentWindowData()->ScreenHeight;
+    float Height = Graphics.GetCurrentWindowData()->ScreenHeight;
+    ScreenConstants.ViewportSize = FVector2D { curEditorViewportClient->GetViewport()->GetFSlateRect().Width / Width, curEditorViewportClient->GetViewport()->GetFSlateRect().Height / Height };
+    ScreenConstants.ViewportOffset = FVector2D { curEditorViewportClient->GetViewport()->GetFSlateRect().LeftTopX / Width, curEditorViewportClient->GetViewport()->GetFSlateRect().LeftTopY / Height };
 
-    renderResourceManager->UpdateConstantBuffer(TEXT("FViewportInfo"), &ScreenConstans);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FViewportInfo"), &ScreenConstants);
 }
 
 void FFogRenderPass::UpdateFogConstant(const std::shared_ptr<FViewportClient> InViewportClient) const

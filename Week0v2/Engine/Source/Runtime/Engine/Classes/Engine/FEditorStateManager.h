@@ -69,35 +69,29 @@ inline void FEditorStateManager::SetState(EEditorState NewState)
     {
     case EEditorState::Editing:
         break;
-
     case EEditorState::PreparingPlay:
         // Connect to play button
-            if (EditorEngine->LevelType == LEVELTICK_PauseTick)
-            {
-                EditorEngine->LevelType = LEVELTICK_All;
-                return;
-            }
+        if (EditorEngine->PIEWorldContext && EditorEngine->PIEWorldContext->LevelType == LEVELTICK_PauseTick)
+        {
+            EditorEngine->PIEWorldContext->LevelType = LEVELTICK_All;
+            return;
+        }
         EditorEngine->PreparePIE();      // 추후 Prepare에 실패했을 때 고려 할 수 있어야 할듯
         SetState(EEditorState::Playing);
-        return;
-
+        break;
     case EEditorState::Playing:     // auto Transition
-            
         EditorEngine->StartPIE();
         break;
-
     case EEditorState::Paused:      // Connect to pause button
         EditorEngine->PausedPIE();
         break;
-
     case EEditorState::Resuming:    // Connect to resume button
         EditorEngine->ResumingPIE();
         break;
-
     case EEditorState::Stopped:     // Connect to stop button
         EditorEngine->StopPIE();
         SetState(EEditorState::Editing);
-        return;
+        break;
     }
 }
 

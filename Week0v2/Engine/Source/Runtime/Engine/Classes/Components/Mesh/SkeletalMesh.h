@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "FBX/FBXDefine.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
@@ -37,6 +37,7 @@ public:
 
 
 private:
+    
     FSkeletalMeshRenderData SkeletalMeshRenderData;
     FRefSkeletal* RefSkeletal = nullptr;
     TArray<FMaterialSlot*> MaterialSlots;

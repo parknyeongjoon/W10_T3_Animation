@@ -56,8 +56,8 @@ public:
     //외부에서 set 해줄때는 degree로 들어옴
     void SetInnerConeAngle(float Angle);
     void SetOuterConeAngle(float Angle);
-    virtual UObject* Duplicate() const override;
-    virtual void DuplicateSubObjects(const UObject* Source) override;
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
     virtual void PostDuplicate() override;
     FMatrix GetViewMatrix() const override;
     FMatrix GetProjectionMatrix() const override;

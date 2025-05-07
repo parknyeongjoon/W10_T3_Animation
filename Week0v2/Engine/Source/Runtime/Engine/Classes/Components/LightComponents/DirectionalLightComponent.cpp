@@ -173,18 +173,18 @@ FMatrix UDirectionalLightComponent::GetCascadeProjectionMatrix(UINT CascadeIndex
         newMinY, newMaxY, nearPlane, farPlane);
 }
 
-UObject* UDirectionalLightComponent::Duplicate() const
+UObject* UDirectionalLightComponent::Duplicate(UObject* InOuter)
 {
-    UDirectionalLightComponent* NewComp = FObjectFactory::ConstructObjectFrom<UDirectionalLightComponent>(this);
-    NewComp->DuplicateSubObjects(this);
+    UDirectionalLightComponent* NewComp = FObjectFactory::ConstructObjectFrom<UDirectionalLightComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
 
     return NewComp;
 }
 
-void UDirectionalLightComponent::DuplicateSubObjects(const UObject* Source)
+void UDirectionalLightComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    Super::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source, InOuter);
     // 여기서 복사할 것? 방향뿐임
     UDirectionalLightComponent* SourceComp = Cast<UDirectionalLightComponent>(Source);
     SourceComp->Direction = Direction;

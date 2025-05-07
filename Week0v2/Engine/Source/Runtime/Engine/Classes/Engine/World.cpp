@@ -16,7 +16,9 @@
 
 #include "Actors/PointLightActor.h"
 #include "Components/LightComponents/PointLightComponent.h"
+#include "Components/Mesh/StaticMesh.h"
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
+#include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/SkySphereComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 #include "Script/LuaManager.h"
@@ -34,9 +36,16 @@ UWorld::UWorld(const UWorld& Other): UObject(Other)
 void UWorld::InitWorld()
 {
     // TODO: Load Scene
-    Level = FObjectFactory::ConstructObject<ULevel>();
+    Level = FObjectFactory::ConstructObject<ULevel>(this);
     PreLoadResources();
-    LoadScene("Assets/Scenes/NewScene.Scene");
+    if (WorldType == EWorldType::Editor)
+    {
+        LoadScene("Assets/Scenes/NewScene.Scene");
+    }
+    else if (WorldType == EWorldType::EditorPreview)
+    {
+        CreateBaseObject();
+    }
 }
 
 void UWorld::LoadLevel(const FString& LevelName)
@@ -55,7 +64,7 @@ void UWorld::CreateBaseObject()
 {
     if (LocalGizmo == nullptr)
     {
-        LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
+        LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(this);
     }
     
     PlayerCameraManager = SpawnActor<APlayerCameraManager>();
@@ -106,11 +115,14 @@ void UWorld::Release()
         SaveScene("Assets/Scenes/AutoSave.Scene");
     }
     TArray<AActor*> Actors = Level->GetActors();
-	for (AActor* Actor : Actors)
-	{
-	    Actor->Destroy();
-	}
-    LocalGizmo->Destroy();
+    for (AActor* Actor : Actors)
+    {
+        Actor->Destroy();
+    }
+    if (LocalGizmo)
+    {
+        LocalGizmo->Destroy();
+    }
 
     GUObjectArray.MarkRemoveObject(Level);
     // TODO Level -> Release로 바꾸기
@@ -131,31 +143,39 @@ void UWorld::ClearScene()
     
     for (AActor* actor : TObjectRange<AActor>())
     {
-        DestroyActor(actor);
+        if (actor->GetWorld() == this)
+        {
+            DestroyActor(actor);
+        }
     }
     Level->GetActors().Empty();
     Level->PendingBeginPlayActors.Empty();
     ReleaseBaseObject();
 }
 
-UObject* UWorld::Duplicate() const
+UObject* UWorld::Duplicate(UObject* InOuter)
 {
-    UWorld* CloneWorld = FObjectFactory::ConstructObjectFrom<UWorld>(this);
-    CloneWorld->DuplicateSubObjects(this);
+    UWorld* CloneWorld = FObjectFactory::ConstructObjectFrom<UWorld>(this, InOuter);
+    CloneWorld->DuplicateSubObjects(this, InOuter);
     CloneWorld->PostDuplicate();
     return CloneWorld;
 }
 
-void UWorld::DuplicateSubObjects(const UObject* SourceObj)
+void UWorld::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
 {
-    UObject::DuplicateSubObjects(SourceObj);
-    Level = Cast<ULevel>(Level->Duplicate());
-    LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
+    UObject::DuplicateSubObjects(SourceObj, InOuter);
+    Level = Cast<ULevel>(Level->Duplicate(InOuter));
+    LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(InOuter);
 }
 
 void UWorld::PostDuplicate()
 {
     UObject::PostDuplicate();
+}
+
+UWorld* UWorld::GetWorld() const
+{
+    return const_cast<UWorld*>(this);
 }
 
 void UWorld::ReloadScene(const FString& FileName)
@@ -177,12 +197,12 @@ void UWorld::LoadScene(const FString& FileName)
     ar >> *this;
 }
 
-void UWorld::DuplicateSeletedActors()
+void UWorld::DuplicateSelectedActors()
 {
     TSet<AActor*> newSelectedActors;
     for (AActor* Actor : SelectedActors)
     {
-        AActor* DupedActor = Cast<AActor>(Actor->Duplicate());
+        AActor* DupedActor = Cast<AActor>(Actor->Duplicate(this));
         FString TypeName = DupedActor->GetActorLabel().Left(DupedActor->GetActorLabel().Find("_", ESearchCase::IgnoreCase,ESearchDir::FromEnd));
         DupedActor->SetActorLabel(TypeName);
         FVector DupedLocation = DupedActor->GetActorLocation();
@@ -193,12 +213,12 @@ void UWorld::DuplicateSeletedActors()
     }
     SelectedActors = newSelectedActors;
 }
-void UWorld::DuplicateSeletedActorsOnLocation()
+void UWorld::DuplicateSelectedActorsOnLocation()
 {
     TSet<AActor*> newSelectedActors;
     for (AActor* Actor : SelectedActors)
     {
-        AActor* DupedActor = Cast<AActor>(Actor->Duplicate());
+        AActor* DupedActor = Cast<AActor>(Actor->Duplicate(this));
         FString TypeName = DupedActor->GetActorLabel().Left(DupedActor->GetActorLabel().Find("_", ESearchCase::IgnoreCase,ESearchDir::FromEnd));
         DupedActor->SetActorLabel(TypeName);
         Level->GetActors().Add(DupedActor);
@@ -270,7 +290,7 @@ void UWorld::Deserialize(FArchive& ar)
         UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorInfo.Type);
         if (ActorClass)
         {
-            AActor* Actor = SpawnActorByClass(ActorClass, true);
+            AActor* Actor = SpawnActorByClass(ActorClass, this, true);
             if (Actor)
             {
                 Actor->LoadAndConstruct(ActorInfo.ComponentInfos);
@@ -292,7 +312,7 @@ void UWorld::BeginPlay()
 {
     FGameManager::Get().BeginPlay();
 
-    for (auto Actor :GEngine->GetWorld()->GetActors())
+    for (auto Actor :GetActors())
     {
         if (APlayerCameraManager* CameraManager = Cast<APlayerCameraManager>(Actor))
         {
@@ -307,14 +327,11 @@ UWorld* UWorld::DuplicateWorldForPIE(UWorld* world)
     return new UWorld();
 }
 
-AActor* SpawnActorByName(const FString& ActorName, bool bCallBeginPlay)
-{
-    {
-        UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorName);
-        return GEngine->GetWorld()->SpawnActorByClass(ActorClass, bCallBeginPlay);
-        
-    }
-
-}
+// AActor* SpawnActorByName(const FString& ActorName, UObject* InOuter, bool bCallBeginPlay)
+// {
+//     // GetWorld 문제 발생 여지 많음.
+//     UClass* ActorClass = UClassRegistry::Get().FindClassByName(ActorName);
+//     return GetWorld()->SpawnActorByClass(ActorClass, InOuter, bCallBeginPlay);
+// }
 
 /**********************************************************/

@@ -18,7 +18,7 @@ public:
     explicit FStaticMeshRenderPass(const FName& InShaderName);
 
     virtual ~FStaticMeshRenderPass() {}
-    void AddRenderObjectsToRenderPass() override;
+    void AddRenderObjectsToRenderPass(UWorld* World) override;
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void UpdateComputeResource();
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;

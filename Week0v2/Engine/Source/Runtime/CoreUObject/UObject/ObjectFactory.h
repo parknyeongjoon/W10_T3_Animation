@@ -12,7 +12,7 @@ class FObjectFactory
 public:
     template <typename T>
         requires std::derived_from<T, UObject>
-    static T* ConstructObject()
+    static T* ConstructObject(UObject* InOuter)
     {
         uint32 id = UEngineStatics::GenUUID();
         FString Name = T::StaticClass()->GetName() + "_" + std::to_string(id);
@@ -20,6 +20,7 @@ public:
         T* Obj = new T; // TODO: FPlatformMemory::Malloc으로 변경, placement new 사용시 Free방법 생각하기
         Obj->ClassPrivate = T::StaticClass();
         Obj->NamePrivate = Name;
+        Obj->OuterPrivate = InOuter;
         Obj->UUID = id;
 
         GUObjectArray.AddObject(Obj);
@@ -29,7 +30,7 @@ public:
     }
     template <typename T>
         requires std::derived_from<T, UObject>
-    static T* ConstructObjectFrom(const T* Source)
+    static T* ConstructObjectFrom(const T* Source, UObject* InOuter)
     {
         uint32 id = UEngineStatics::GenUUID();
         FString Name = T::StaticClass()->GetName() + "_Copy_" + std::to_string(id);
@@ -37,6 +38,7 @@ public:
         T* Obj = new T(*Source); // 복사 생성자 사용
         Obj->ClassPrivate = T::StaticClass();
         Obj->NamePrivate = Name;
+        Obj->OuterPrivate = InOuter;
         Obj->UUID = id;
 
         GUObjectArray.AddObject(Obj);

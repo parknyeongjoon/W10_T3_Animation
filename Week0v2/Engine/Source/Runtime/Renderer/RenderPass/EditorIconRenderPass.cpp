@@ -17,11 +17,11 @@ FEditorIconRenderPass::~FEditorIconRenderPass()
     BillboardComponents.Empty();
 }
 
-void FEditorIconRenderPass::AddRenderObjectsToRenderPass()
+void FEditorIconRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
     for (UBillboardComponent* BillboardComponent : TObjectRange<UBillboardComponent>())
     {
-        if ((BillboardComponent->GetWorld()->WorldType != EWorldType::Editor && BillboardComponent->bOnlyForEditor == true) || BillboardComponent->GetWorld() != GEngine->GetWorld())
+        if (((BillboardComponent->GetWorld()->WorldType != EWorldType::Editor && BillboardComponent->GetWorld()->WorldType != EWorldType::EditorPreview) && BillboardComponent->bOnlyForEditor == true) || BillboardComponent->GetWorld() != World)
         {
             continue;
         }
@@ -44,7 +44,7 @@ void FEditorIconRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
     const auto CurRTV = Graphics.GetCurrentRenderTargetView();
     if (CurRTV != nullptr)
     {
-        Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.DepthStencilView); // 렌더 타겟 설정
+        Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.GetCurrentWindowData()->DepthStencilView); // 렌더 타겟 설정
     }
     else
     {

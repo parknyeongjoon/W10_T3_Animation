@@ -5,7 +5,7 @@
 
 #include "Math/JungleMath.h"
 #include "LaunchEngineLoop.h"
-#include "UnrealClient.h"
+#include "Viewport.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
@@ -14,11 +14,12 @@
 #include "Components/LightComponents/SpotLightComponent.h"
 #include "Engine/FEditorStateManager.h"
 #include "LevelEditor/SLevelEditor.h"
+#include "SlateCore/Layout/SlateRect.h"
 
 FVector FEditorViewportClient::Pivot = FVector(0.0f, 0.0f, 0.0f);
 float FEditorViewportClient::OrthoSize = 10.0f;
 
-FEditorViewportClient::FEditorViewportClient() : Viewport(nullptr), ViewMode(VMI_Lit_Phong), ViewportType(LVT_Perspective), ShowFlag(31)
+FEditorViewportClient::FEditorViewportClient() : Viewport(nullptr), ViewportType(LVT_Perspective), ShowFlag(31), ViewMode(VMI_Lit_Phong)
 {
 
 }
@@ -32,21 +33,27 @@ void FEditorViewportClient::Draw(FViewport* Viewport)
 {
 }
 
-void FEditorViewportClient::Initialize(EViewScreenLocation InViewportIndex)
+UWorld* FEditorViewportClient::GetWorld() const
 {
-    ViewportIndex = static_cast<uint32>(InViewportIndex);
+    return World;
+}
+
+void FEditorViewportClient::Initialize(HWND InOwnerWindow, uint32 InViewportIndex, UWorld* World)
+{
+    SetOwner(InOwnerWindow);
+    SetWorld(World);
+    ViewportIndex = InViewportIndex;
     
     ViewTransformPerspective.SetLocation(FVector(8.0f, 8.0f, 8.f));
     ViewTransformPerspective.SetRotation(FVector(0.0f, 45.0f, -135.0f));
-    Viewport = new FViewport(InViewportIndex);
-    Viewport->Initialize();
-    
-    ResizeViewport(GEngineLoop.GraphicDevice.SwapchainDesc);
+    Viewport = new FViewport();
+    FWindowData& WindowData = GEngineLoop.GraphicDevice.SwapChains[InOwnerWindow];
+    ResizeViewport(FRect(0, 0, WindowData.ScreenWidth, WindowData.ScreenHeight));
 }
 
 void FEditorViewportClient::Tick(float DeltaTime)
 {
-    if (GEngine->GetWorld()->WorldType == EWorldType::Editor)
+    if (GetWorld()->WorldType == EWorldType::Editor || GetWorld()->WorldType == EWorldType::EditorPreview)
     {
         UpdateEditorCameraMovement(DeltaTime);
     }
@@ -60,7 +67,7 @@ void FEditorViewportClient::Tick(float DeltaTime)
     // {
     //     for (int i=0;i<CASCADE_COUNT*8;i++)
     //     {
-    //         AStaticMeshActor* TempActor = GEngine->GetWorld()->SpawnActor<AStaticMeshActor>();
+    //         AStaticMeshActor* TempActor = GetWorld()->SpawnActor<AStaticMeshActor>();
     //         TempActor->SetActorLabel(TEXT("OBJ_CUBE"));
     //         UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
     //         FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
@@ -122,7 +129,7 @@ void FEditorViewportClient::UpdateEditorCameraMovement(const float DeltaTime)
     }
 }
 
-void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
+void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
 {
     // TODO: 나중에 InKeyEvent.GetKey();로 가져오는걸로 수정하기
     // TODO: 나중에 PIEViewportClient에서 처리하는걸로 수정하기
@@ -237,9 +244,10 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
             {
             case 'F':
                 {
-                    if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
+                    TSet<AActor*> SelectedActors = GetWorld()->GetSelectedActors();
+                    if (!SelectedActors.IsEmpty())
                     {
-                        if (AActor* PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin())
+                        if (AActor* PickedActor = *SelectedActors.begin())
                         {
                             FViewportCameraTransform& ViewTransform = ViewTransformPerspective;
                             ViewTransform.SetLocation(
@@ -254,9 +262,9 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                 {
                     if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
                     {
-                        FEngineLoop::GraphicDevice.OnResize(GEngineLoop.AppWnd);
+                        FEngineLoop::GraphicDevice.OnResize(OwnerWindow);
                         SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor();
-                        LevelEditor->SetEnableMultiViewport(!LevelEditor->IsMultiViewport());
+                        LevelEditor->SetEnableMultiViewport(AppWnd, !LevelEditor->IsMultiViewport(AppWnd));
                     }
                     break;
                 }
@@ -264,7 +272,7 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
                 {
                     if (PressedKeys.Contains(EKeys::LeftControl))
                     {
-                        GEngine->GetWorld()->DuplicateSeletedActors();
+                        GetWorld()->DuplicateSelectedActors();
                     }
                 }
             default:
@@ -277,12 +285,12 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
             {
             case VK_DELETE:
             {
-                for (AActor* Actor : GEngine->GetWorld()->GetSelectedActors())
+                for (AActor* Actor : GetWorld()->GetSelectedActors())
                 {
                     UE_LOG(LogLevel::Display, "Delete Component - %s", *Actor->GetName());
                     Actor->Destroy();
                 }
-                GEngine->GetWorld()->ClearSelectedActors();
+                GetWorld()->ClearSelectedActors();
                 break;
             }
             case VK_SPACE:
@@ -333,36 +341,50 @@ void FEditorViewportClient::MouseMove(const FPointerEvent& InMouseEvent)
     }
 }
 
-void FEditorViewportClient::ResizeViewport(const DXGI_SWAP_CHAIN_DESC& swapchaindesc)
-{
-    if (Viewport) { 
-        Viewport->ResizeViewport(swapchaindesc);    
-    }
-    else {
-        UE_LOG(LogLevel::Error, "Viewport is nullptr");
-    }
-    AspectRatio = GEngineLoop.GraphicDevice.GetAspectRatio();
-    UpdateProjectionMatrix();
-    UpdateViewMatrix();
-}
 void FEditorViewportClient::ResizeViewport(FRect Top, FRect Bottom, FRect Left, FRect Right)
 {
-    if (Viewport) {
-        Viewport->ResizeViewport(Top, Bottom, Left, Right);
+    if (Viewport)
+    { 
+        Viewport->ResizeViewport(Top, Bottom, Left, Right);    
     }
-    else {
+    else
+    {
         UE_LOG(LogLevel::Error, "Viewport is nullptr");
     }
-    AspectRatio = GEngineLoop.GraphicDevice.GetAspectRatio();
+    
+    float Width = Viewport->GetFSlateRect().Width;
+    float Height = Viewport->GetFSlateRect().Height;
+    
+    AspectRatio = Width / Height;
     UpdateProjectionMatrix();
     UpdateViewMatrix();
 }
+
+void FEditorViewportClient::ResizeViewport(FRect InRect)
+{
+    if (Viewport)
+    { 
+        Viewport->ResizeViewport(InRect);    
+    }
+    else
+    {
+        UE_LOG(LogLevel::Error, "Viewport is nullptr");
+    }
+    
+    float Width = Viewport->GetFSlateRect().Width;
+    float Height = Viewport->GetFSlateRect().Height;
+    
+    AspectRatio = Width / Height;
+    UpdateProjectionMatrix();
+    UpdateViewMatrix();
+}
+
 bool FEditorViewportClient::IsSelected(FVector2D Point)
 {
-    float TopLeftX = Viewport->GetScreenRect().TopLeftX;
-    float TopLeftY = Viewport->GetScreenRect().TopLeftY;
-    float Width = Viewport->GetScreenRect().Width;
-    float Height = Viewport->GetScreenRect().Height;
+    float TopLeftX = Viewport->GetFSlateRect().LeftTopX;
+    float TopLeftY = Viewport->GetFSlateRect().LeftTopY;
+    float Width = Viewport->GetFSlateRect().Width;
+    float Height = Viewport->GetFSlateRect().Height;
 
     if (Point.X >= TopLeftX && Point.X <= TopLeftX + Width &&
         Point.Y >= TopLeftY && Point.Y <= TopLeftY + Height)
@@ -371,9 +393,9 @@ bool FEditorViewportClient::IsSelected(FVector2D Point)
     }
     return false;
 }
-D3D11_VIEWPORT& FEditorViewportClient::GetD3DViewport()
+const D3D11_VIEWPORT& FEditorViewportClient::GetD3DViewport()
 {
-    return Viewport->GetScreenRect();
+    return Viewport->GetViewport();
 }
 
 void FEditorViewportClient::CalculateCascadeSplits(float NearClip, float FarClip)
@@ -416,13 +438,12 @@ void FEditorViewportClient::CalculateFrustumCornersInCameraSpace(float NearDist,
     // 카메라 투영 행렬에서 필요한 값들을 추출
     float fov = GetViewFOV();  // 시야각(라디안)
     fov = FMath::DegreesToRadians(fov);
-    float aspect = GetAspectRatio();  // 종횡비(width/height)
     
     // 근평면과 원평면의 높이와 너비 계산
     float nearHeight = 2.0f * tan(fov * 0.5f) * NearDist;
-    float nearWidth = nearHeight * aspect;
+    float nearWidth = nearHeight * AspectRatio;
     float farHeight = 2.0f * tan(fov * 0.5f) * FarDist;
-    float farWidth = farHeight * aspect;
+    float farWidth = farHeight * AspectRatio;
     
     // 근평면의 4개 모서리 계산 (카메라 공간)
     // 왼쪽 아래
@@ -590,18 +611,15 @@ void FEditorViewportClient::UpdateProjectionMatrix()
         if (IsPerspective()) {
             Projection = JungleMath::CreateProjectionMatrix(
                 ViewFOV * (3.141592f / 180.0f),
-                GetViewport()->GetScreenRect().Width / GetViewport()->GetScreenRect().Height,
+                GetViewport()->GetFSlateRect().Width / GetViewport()->GetFSlateRect().Height,
                 nearPlane,
                 farPlane
             );
         }
         else
         {
-            // 스왑체인의 가로세로 비율을 구합니다.
-            float aspectRatio = GetViewport()->GetScreenRect().Width / GetViewport()->GetScreenRect().Height;
-
             // 오쏘그래픽 너비는 줌 값과 가로세로 비율에 따라 결정됩니다.
-            float orthoWidth = OrthoSize * aspectRatio;
+            float orthoWidth = OrthoSize * AspectRatio;
             float orthoHeight = OrthoSize;
 
             // 오쏘그래픽 투영 행렬 생성 (nearPlane, farPlane 은 기존 값 사용)
@@ -625,7 +643,12 @@ void FEditorViewportClient::UpdateProjectionMatrix()
         }
         if (UCameraComponent* PlayerCamera = Cast<UCameraComponent>(OverrideComponent))
         {
-            Projection = PlayerCamera->GetProjectionMatrix();
+            Projection = JungleMath::CreateProjectionMatrix(
+                    FMath::DegreesToRadians(PlayerCamera->GetFOV()),
+                    AspectRatio,
+                    PlayerCamera->GetNearClip(),
+                    PlayerCamera->GetFarClip()
+                );
         }
     }
 }

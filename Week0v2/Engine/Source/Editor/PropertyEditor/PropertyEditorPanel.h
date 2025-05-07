@@ -1,9 +1,10 @@
 #pragma once
 #include "Define.h"
-#include "Components/ActorComponent.h"
-#include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "UnrealEd/EditorPanel.h"
 
+class AActor;
+class USkeletalMeshComponent;
+class UActorComponent;
 class UStaticMeshComponent;
 class USceneComponent;
 class ULevel;
@@ -21,6 +22,7 @@ struct FBoneRotation
 class PropertyEditorPanel : public UEditorPanel
 {
 public:
+    void Initialize(float InWidth, float InHeight);
     virtual void Render() override;
     void DrawSceneComponentTree(USceneComponent* Component, UActorComponent*& PickedComponent);
     void DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent);
@@ -47,6 +49,9 @@ private:
     void RenderForLua(class ULuaComponent* LuaComponent);
     void RenderShapeProperty(AActor* PickedActor);
     void RenderDelegate(ULevel* level);
+    
+    void DrawSkeletalMeshPreviewButton(USkeletalMesh* SkeletalMesh);
+    
 private:
     float Width = 0, Height = 0;
     

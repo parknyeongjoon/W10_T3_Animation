@@ -8,7 +8,7 @@
 class FRawInput
 {
 public:
-    using InputCallback = std::function<void(const RAWINPUT& RawInput)>;
+    using InputCallback = std::function<void(const RAWINPUT& RawInput, HWND AppWnd)>;
 
     FRawInput(HWND hWnd, InputCallback InCallback);
 

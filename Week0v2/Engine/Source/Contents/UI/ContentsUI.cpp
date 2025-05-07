@@ -24,6 +24,15 @@ void FContentsUI::OnResize(HWND hWnd) const
     }
 }
 
+void FContentsUI::SetWorld(UWorld* InWorld)
+{
+    World = InWorld;
+    for (auto& [_, Panel] : Panels)
+    {
+        Panel->SetWorld(World);
+    } 
+}
+
 void FContentsUI::AddEditorPanel(const FString& PanelId, const std::shared_ptr<FContentsPanel>& EditorPanel)
 {
     Panels[PanelId] = EditorPanel;
