@@ -2,6 +2,8 @@
 #include "MeshComponent.h"
 #include "Components/Mesh/SkeletalMesh.h"
 
+class UStaticMeshComponent;
+
 class USkeletalMeshComponent : public UMeshComponent
 {
     DECLARE_CLASS(USkeletalMeshComponent, UMeshComponent)
@@ -29,12 +31,11 @@ public:
     USkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
     void SetSkeletalMesh(USkeletalMesh* value);
     USkeletalMesh* LoadSkeletalMesh(const FString& FilePath);
+    void CreateBoneComponents();
     void UpdateBoneHierarchy();
 
-    // std::unique_ptr<FActorComponentInfo> GetComponentInfo() override;
-    // virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
-    // virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 private:
+    TArray<UStaticMeshComponent*> BoneComponents;
     void SkinningVertex();
     
 protected:

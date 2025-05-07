@@ -20,8 +20,6 @@ public:
     void SetData(const FSkeletalMeshRenderData& InRenderData, FRefSkeletal* InRefSkeletal);
     
     void UpdateBoneHierarchy();
-public:
-
     // 정점 스키닝을 업데이트하는 함수
     void UpdateSkinnedVertices();
 
@@ -32,10 +30,7 @@ public:
     void RotateBoneByName(const FString& BoneName, float AngleInDegrees, const FVector& RotationAxis);
     int FindBoneIndexByName(const FString& BoneName) const;
     void ApplyRotationToBone(int BoneIndex, float AngleInDegrees, const FVector& RotationAxis);
-
-    FString CurrentSelectedBone;
-
-
+    
 private:
     FSkeletalMeshRenderData SkeletalMeshRenderData;
     FRefSkeletal* RefSkeletal = nullptr;
