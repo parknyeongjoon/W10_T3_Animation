@@ -176,6 +176,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\PreviewControlEditorPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\SkeletalPreviewPropertyEditorPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorPlayer.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\SkeletalPreviewUI.cpp" />
@@ -379,6 +380,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\PreviewControlEditorPanel.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\SkeletalPreviewPropertyEditorPanel.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorPlayer.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\SkeletalPreviewUI.h" />

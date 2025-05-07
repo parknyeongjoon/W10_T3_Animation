@@ -1,7 +1,6 @@
 #include "SLevelEditor.h"
 
 #include "ImGuiManager.h"
-#include "ImGUI/imgui.h"
 
 #include "Slate/Widgets/Layout/SSplitter.h"
 #include "Viewport.h"
@@ -220,21 +219,22 @@ void SLevelEditor::Initialize(UWorld* World, HWND OwnerWindow)
     
     Handler->OnMouseWheelDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
+        if (!WindowViewportDataMap.Contains(AppWnd))
+        {
+            return;
+        }
+        
+        FWindowViewportClientData& WindowViewportClientData = WindowViewportDataMap[AppWnd];
+        
         if (ImGuiManager::Get().GetWantCaptureMouse(AppWnd))
         {
             return;
         }
 
-        if (!WindowViewportDataMap.Contains(AppWnd))
-        {
-            return;
-        }
-
-        FWindowViewportClientData& WindowViewportData = WindowViewportDataMap[AppWnd];
-        std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
+        std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportClientData.GetActiveViewportClient();
         
         // 뷰포트에서 앞뒤 방향으로 화면 이동
-        if (GetActiveViewportClient()->IsPerspective())
+        if (ActiveViewportClient->IsPerspective())
         {
             if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
             {
@@ -263,12 +263,60 @@ void SLevelEditor::Initialize(UWorld* World, HWND OwnerWindow)
 
     Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent, HWND AppWnd)
     {
-        GetActiveViewportClient()->InputKey(AppWnd, InKeyEvent);
+        if (!WindowViewportDataMap.Contains(AppWnd))
+        {
+            return;
+        }
+        
+        FWindowViewportClientData& WindowViewportClientData = WindowViewportDataMap[AppWnd];
+        WindowViewportClientData.GetActiveViewportClient()->InputKey(AppWnd, InKeyEvent);
+
+        if (GetKeyState(VK_RBUTTON) & 0x8000)
+        {
+            return;
+        }
+        
+        if (InKeyEvent.GetInputEvent() != IE_Pressed)
+        {
+            return;
+        }
+        
+        switch (InKeyEvent.GetCharacter())
+        {
+        case 'Q':
+            {
+                //GetWorld()->SetPickingObj(nullptr);
+                break;
+            }
+        case 'W':
+            {
+                WindowViewportClientData.SetMode(CM_TRANSLATION);
+                break;
+            }
+        case 'E':
+            {
+                WindowViewportClientData.SetMode(CM_ROTATION);
+                break;
+            }
+        case 'R':
+            {
+                WindowViewportClientData.SetMode(CM_SCALE);
+                break;
+            }
+        default:
+            break;
+        }
     });
     
     Handler->OnKeyUpDelegate.AddLambda([this](const FKeyEvent& InKeyEvent, HWND AppWnd)
     {
-        GetActiveViewportClient()->InputKey(AppWnd, InKeyEvent);
+        if (!WindowViewportDataMap.Contains(AppWnd))
+        {
+            return;
+        }
+        
+        FWindowViewportClientData WindowViewportClientData = WindowViewportDataMap[AppWnd];
+        WindowViewportClientData.GetActiveViewportClient()->InputKey(AppWnd, InKeyEvent);
     });
 }
 

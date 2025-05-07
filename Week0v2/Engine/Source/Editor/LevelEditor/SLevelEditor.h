@@ -1,6 +1,7 @@
 #pragma once
 #include "Math/Vector.h"
 #include "Runtime/Engine/Classes/Engine/FEditorStateManager.h"
+#include "UObject/ObjectTypes.h"
 
 class FViewportClient;
 class SSplitterH;
@@ -19,15 +20,39 @@ public:
     bool bMultiViewportMode;
     uint32 ActiveViewportIndex;
 
+    ControlMode cMode;
+    CoordiMode cdMode;
+
     TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients;
     
-    std::shared_ptr<SSplitterH> HSplitter = nullptr;
-    std::shared_ptr<SSplitterV> VSplitter = nullptr;
+    std::shared_ptr<SSplitterH> HSplitter;
+    std::shared_ptr<SSplitterV> VSplitter;
 
 public:
+    void SetMode(ControlMode _Mode)
+    {
+        cMode = _Mode;
+    }
+    ControlMode GetControlMode() const
+    {
+        return cMode;
+    }
+    CoordiMode GetCoordiMode() const { return cdMode; }
+    
     std::shared_ptr<FEditorViewportClient> GetActiveViewportClient()
     {
         return ViewportClients[ActiveViewportIndex];
+    }
+
+    
+    void AddControlMode()
+    {
+        cMode = static_cast<ControlMode>((cMode + 1) % CM_END);
+    }
+
+    void AddCoordiMode()
+    {
+        cdMode = static_cast<CoordiMode>((cdMode + 1) % CDM_END);
     }
 
     FWindowViewportClientData()
@@ -36,6 +61,8 @@ public:
         , EditorHeight(0.0f)
         , bMultiViewportMode(false)
         , ActiveViewportIndex(0)
+        , cMode()
+        , cdMode()
     {
     }
 };
@@ -97,6 +124,26 @@ public:
             return nullptr;
         }
         return WindowViewportDataMap[ActiveViewportWindow].ViewportClients[ActiveViewportClientIndex];
+    }
+
+    FWindowViewportClientData& GetActiveViewportClientData()
+    {
+        if (!WindowViewportDataMap.Contains(ActiveViewportWindow))
+        {
+            FWindowViewportClientData temp = FWindowViewportClientData();
+            return temp;
+        }
+        return WindowViewportDataMap[ActiveViewportWindow];
+    }
+
+    FWindowViewportClientData& GetViewportClientData(HWND HWnd)
+    {
+        if (!WindowViewportDataMap.Contains(HWnd))
+        {
+            FWindowViewportClientData temp = FWindowViewportClientData();
+            return temp;
+        }
+        return WindowViewportDataMap[HWnd];
     }
     
     void FocusViewportClient(HWND InAppWnd, uint32 InViewportClientIndex)

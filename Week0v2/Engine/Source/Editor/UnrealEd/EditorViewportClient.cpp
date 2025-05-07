@@ -295,7 +295,7 @@ void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
             }
             case VK_SPACE:
             {
-                EditorEngine->GetEditorPlayer()->AddControlMode();
+                EditorEngine->GetLevelEditor()->GetActiveViewportClientData().AddControlMode();
                 break;
             }
             case VK_LCONTROL:

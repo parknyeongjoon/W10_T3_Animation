@@ -6,6 +6,7 @@
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/VBIBTopologyMapping.h"
 #include "UnrealEd/EditorPlayer.h"
@@ -77,7 +78,7 @@ void FGizmoRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewport
     {
         if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
         {
-            ControlMode ControlMode = EditorEngine->GetEditorPlayer()->GetControlMode();
+            ControlMode ControlMode = EditorEngine->GetLevelEditor()->GetActiveViewportClientData().GetControlMode();
             if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowX ||
                 GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowY ||
                 GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowZ)

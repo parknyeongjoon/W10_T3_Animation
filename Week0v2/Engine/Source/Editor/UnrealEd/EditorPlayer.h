@@ -17,21 +17,19 @@ class UEditorPlayer : public UObject
 
     void Initialize();
     
-    bool PickGizmo(UWorld* World, FVector& pickPosition);
+    bool PickGizmo(ControlMode cMode, UWorld* World, FVector& pickPosition);
     void PickActor(UWorld* World, const FVector& pickPosition);
-    void AddControlMode();
-    void AddCoordiMode();
 
 private:
     int RayIntersectsObject(const FVector& pickPosition, USceneComponent* obj, float& hitDistance, int& intersectCount);
     void ScreenToViewSpace(int screenX, int screenY, const FMatrix& viewMatrix, const FMatrix& projectionMatrix, FVector& rayOrigin);
-    void PickedObjControl(UWorld* World);
+    void PickedObjControl(ControlMode cMode, CoordiMode cdMode, UWorld* World);
     void MultiSelectingStart();
     void MultiSelectingEnd(UWorld* World);
     void MakeMulitRect();
 
-    void ControlRotation(UWorld* World, USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY);
-    void ControlTranslation(UWorld* World, USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY);
+    void ControlRotation(CoordiMode cdMode, UWorld* World, USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY);
+    void ControlTranslation(CoordiMode cdMode, UWorld* World, USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY);
     void ControlScale(USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY);
     bool bLeftMouseDown = false;
     bool bRightMouseDown = false;
@@ -45,12 +43,5 @@ private:
     
     POINT multiSelectingStartPos;
     POINT LastMousePosision;
-    ControlMode cMode = CM_TRANSLATION;
-    CoordiMode cdMode = CDM_WORLD;
-
-public:
-    void SetMode(ControlMode _Mode) { cMode = _Mode; }
-    ControlMode GetControlMode() const { return cMode; }
-    CoordiMode GetCoordiMode() const { return cdMode; }
 };
 

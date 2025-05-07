@@ -4,6 +4,7 @@
 #include "GizmoRectangleComponent.h"
 #include "Engine/World.h"
 #include "Engine/FLoaderOBJ.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "UnrealEd/EditorPlayer.h"
 
 extern UEngine* GEngine;
@@ -92,7 +93,7 @@ void UTransformGizmo::Tick(float DeltaTime)
         SetActorLocation(PickedActor->GetActorLocation());
         if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
         {
-            ControlMode ControlMode = EditorEngine->GetEditorPlayer()->GetControlMode();
+            ControlMode ControlMode = EditorEngine->GetLevelEditor()->GetActiveViewportClientData().GetControlMode();
             if (ControlMode == CoordiMode::CDM_LOCAL)
             {
                 // TODO: 임시로 RootComponent의 정보로 사용

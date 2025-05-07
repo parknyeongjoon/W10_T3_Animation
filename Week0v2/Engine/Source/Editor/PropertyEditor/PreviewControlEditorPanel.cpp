@@ -1,4 +1,4 @@
-#include "ControlEditorPanel.h"
+﻿#include "PreviewControlEditorPanel.h"
 
 #include "Engine/World.h"
 #include "Engine/FLoaderOBJ.h"
@@ -9,7 +9,6 @@
 #include "Classes/Actors/DirectionalLightActor.h"
 #include "Classes/Actors/PointLightActor.h"
 #include "Components/GameFramework/ProjectileMovementComponent.h"
-#include "Serialization/FWindowsBinHelper.h"
 #include "Actors/SpotLightActor.h"
 #include <Actors/ExponentialHeightFog.h>
 #include <UObject/UObjectIterator.h>
@@ -28,7 +27,6 @@
 #include "Components/USpringArmComponent.h"
 #include "Components/Mesh/StaticMesh.h"
 
-#include "Contents/AGBullet.h"
 #include "Contents/AGPlayer.h"
 #include "ImGUI/imgui.h"
 #include "Renderer/Renderer.h"
@@ -36,14 +34,14 @@
 #include "UObject/ObjectTypes.h"
 
 
-void ControlEditorPanel::Initialize(SLevelEditor* levelEditor, float Width, float Height)
+void PreviewControlEditorPanel::Initialize(SLevelEditor* levelEditor, float Width, float Height)
 {
     activeLevelEditor = levelEditor;
     this->Width = Width;
     this->Height = Height;
 }
 
-void ControlEditorPanel::Render()
+void PreviewControlEditorPanel::Render()
 {
     /* Pre Setup */
     ImGuiIO& io = ImGui::GetIO();
@@ -72,7 +70,7 @@ void ControlEditorPanel::Render()
     ImGuiWindowFlags PanelFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground;
 
     /* Render Start */
-    ImGui::Begin("Control Panel", nullptr, PanelFlags);
+    ImGui::Begin("Control Panel##", nullptr, PanelFlags);
 
     CreateMenuButton(IconSize, IconFont);
 
@@ -83,17 +81,6 @@ void ControlEditorPanel::Render()
     ImGui::SameLine();
 
     CreateModifyButton(IconSize, IconFont);
-
-    ImGui::SameLine();
-
-    CreateShaderHotReloadButton(IconSize);
-
-    ImGui::SameLine();
-    
-    ImVec2 PIEIconSize = ImVec2(IconSize.x + 8, IconSize.y);
-    ImGui::PushFont(IconFont);
-    CreatePIEButton(PIEIconSize);
-    ImGui::PopFont();
 
     ImGui::SameLine();
 
@@ -110,7 +97,7 @@ void ControlEditorPanel::Render()
     ImGui::End();
 }
 
-void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
+void PreviewControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 {
     ImGui::PushFont(IconFont);
     if (ImGui::Button("\ue9ad", ButtonSize)) // Menu
@@ -126,67 +113,10 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 
         ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
-        if (ImGui::MenuItem("New Scene"))
-        {
-            World->ReloadScene("Assets/Scenes/NewScene.scene");
-        }
-
-        if (ImGui::MenuItem("Load Scene"))
-        {
-            char const* lFilterPatterns[1] = { "*.scene" };
-            const char* FileName = tinyfd_openFileDialog("Open Scene File", "Assets/Scenes", 1, lFilterPatterns, "Scene(.scene) file", 0);
-
-            if (FileName == nullptr)
-            {
-                tinyfd_messageBox("Error", "파일을 불러올 수 없습니다.", "ok", "error", 1);
-                ImGui::End();
-                return;
-            }
-            World->ReloadScene(FileName);
-        }
-
-        ImGui::Separator();
-
-        if (ImGui::MenuItem("Save Scene"))
-        {
-            char const* lFilterPatterns[1] = { "*.scene" };
-            const char* FileName = tinyfd_saveFileDialog("Save Scene File", "Assets/Scenes", 1, lFilterPatterns, "Scene(.scene) file");
-
-            if (FileName == nullptr)
-            {
-                ImGui::End();
-                return;
-            }
-
-            // TODO: Save Scene
-            //int i = 1;
-            //FArchive ar;
-            World->SaveScene(FileName);
-            // ar << World;
-            //
-            // FWindowsBinHelper::SaveToBin(FileName, ar);
-
-            tinyfd_messageBox("알림", "저장되었습니다.", "ok", "info", 1);
-        }
-
-        ImGui::Separator();
-
         if (ImGui::BeginMenu("Import"))
         {
-            if (ImGui::MenuItem("Wavefront (.obj)"))
+            if (ImGui::MenuItem("Fbx"))
             {
-                char const* lFilterPatterns[1] = { "*.obj" };
-                const char* FileName = tinyfd_openFileDialog("Open OBJ File", "", 1, lFilterPatterns, "Wavefront(.obj) file", 0);
-
-                if (FileName != nullptr)
-                {
-                    std::cout << FileName << std::endl;
-
-                    if (FManagerOBJ::CreateStaticMesh(FileName) == nullptr)
-                    {
-                        tinyfd_messageBox("Error", "파일을 불러올 수 없습니다.", "ok", "error", 1);
-                    }
-                }
             }
 
             ImGui::EndMenu();
@@ -194,45 +124,26 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Quit"))
-        {
-            ImGui::OpenPopup("프로그램 종료");
-        }
-
-        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-
-        if (ImGui::BeginPopupModal("프로그램 종료", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            ImGui::Text("정말 프로그램을 종료하시겠습니까?");
-            ImGui::Separator();
-
-            float ContentWidth = ImGui::GetWindowContentRegionMax().x;
-
-            /* Move Cursor X Position */
-            ImGui::SetCursorPosX(ContentWidth - (160.f + 10.0f));
-
-            if (ImGui::Button("OK", ImVec2(80, 0))) { PostQuitMessage(0); }
-
-            ImGui::SameLine();
-
-            ImGui::SetItemDefaultFocus();
-            ImGui::PushID("CancelButtonWithQuitWindow");
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.0f, 1.0f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.0f, 0.9f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.0f, 1.0f, 1.0f));
-            if (ImGui::Button("Cancel", ImVec2(80, 0))) { ImGui::CloseCurrentPopup(); }
-            ImGui::PopStyleColor(3);
-            ImGui::PopID();
-
-            ImGui::EndPopup();
-        }
+        // if (ImGui::MenuItem("Quit"))
+        // {
+        //     // GEngineLoop.DestroyEngineWindow(hWnd, hInstance, ClassName);
+        //     // if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+        //     // {
+        //     //     if (!EditorEngine->GetLevelEditor()->GetViewportClients(hWnd).IsEmpty())
+        //     //     {
+        //     //         EditorEngine->RemoveWorld(EditorEngine->GetLevelEditor()->GetViewportClients(hWnd)[0]->World);
+        //     //     }
+        //     //     EditorEngine->GetLevelEditor()->RemoveViewportClients(hWnd);
+        //     // }
+        //
+        //     ImGui::EndMenu();
+        // }
 
         ImGui::End();
     }
 }
 
-void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
+void PreviewControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
 {
     UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
 
@@ -534,7 +445,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
     }
 }
 
-void ControlEditorPanel::CreateFlagButton() const
+void PreviewControlEditorPanel::CreateFlagButton() const
 {
     UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
 
@@ -633,7 +544,7 @@ void ControlEditorPanel::CreateFlagButton() const
     }
 }
 
-void ControlEditorPanel::CreateShaderHotReloadButton(const ImVec2 ButtonSize) const
+void PreviewControlEditorPanel::CreateShaderHotReloadButton(const ImVec2 ButtonSize) const
 {
     ID3D11ShaderResourceView* IconTextureSRV = GEngineLoop.ResourceManager.GetTexture(L"Assets/Texture/HotReload.png")->TextureSRV;
     const ImTextureID textureID = reinterpret_cast<ImTextureID>(IconTextureSRV); // 실제 사용되는 텍스처 SRV
@@ -643,7 +554,7 @@ void ControlEditorPanel::CreateShaderHotReloadButton(const ImVec2 ButtonSize) co
     }
 }
 
-void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
+void PreviewControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
 {
     float TotalWidth = ButtonSize.x * 3.0f + 16.0f;
     float ContentWidth = ImGui::GetWindowContentRegionMax().x;
@@ -697,7 +608,7 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
 }
 
 // code is so dirty / Please refactor
-void ControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
+void PreviewControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
 {
     UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
 
@@ -756,7 +667,7 @@ void ControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
     }
 }
 
-uint64 ControlEditorPanel::ConvertSelectionToFlags(const bool selected[]) const
+uint64 PreviewControlEditorPanel::ConvertSelectionToFlags(const bool selected[]) const
 {
     uint64 flags = static_cast<uint64>(EEngineShowFlags::None);
 
@@ -776,7 +687,7 @@ uint64 ControlEditorPanel::ConvertSelectionToFlags(const bool selected[]) const
 }
 
 
-void ControlEditorPanel::OnResize(HWND hWnd)
+void PreviewControlEditorPanel::OnResize(HWND hWnd)
 {
     RECT clientRect;
     GetClientRect(hWnd, &clientRect);
