@@ -37,9 +37,12 @@ public:
     void LoadScene(const FString& FileName);
     void SaveScene(const FString& FileName);
     void ClearScene();
-    virtual UObject* Duplicate() const override;
-    virtual void DuplicateSubObjects(const UObject* SourceObj) override;
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter) override;
     virtual void PostDuplicate() override;
+
+    virtual UWorld* GetWorld() const override;
+
     /**
      * World에 Actor를 Spawn합니다.
      * @tparam T AActor를 상속받은 클래스
@@ -49,12 +52,12 @@ public:
         requires std::derived_from<T, AActor>
     T* SpawnActor();
 
-    AActor* SpawnActorByClass(UClass* ActorClass, bool bCallBeginPlay)
+    AActor* SpawnActorByClass(UClass* ActorClass, UObject* InOuter, bool bCallBeginPlay)
     {
         if (ActorClass == nullptr)
             return nullptr;
 
-        AActor* Actor = ActorClass->CreateObject<AActor>();
+        AActor* Actor = ActorClass->CreateObject<AActor>(InOuter);
         if (Actor == nullptr)
             return nullptr;
 
@@ -71,8 +74,8 @@ public:
         return Actor;
     }
 
-    void DuplicateSeletedActors();
-    void DuplicateSeletedActorsOnLocation();
+    void DuplicateSelectedActors();
+    void DuplicateSelectedActorsOnLocation();
 
     /** World에 존재하는 Actor를 제거합니다. */
     bool DestroyActor(AActor* ThisActor);
@@ -139,7 +142,7 @@ template <typename T>
     requires std::derived_from<T, AActor>
 T* UWorld::SpawnActor()
 {
-    T* Actor = FObjectFactory::ConstructObject<T>();
+    T* Actor = FObjectFactory::ConstructObject<T>(this);
     // TODO: 일단 AddComponent에서 Component마다 초기화
     // 추후에 RegisterComponent() 만들어지면 주석 해제
     // Actor->InitializeComponents();
@@ -150,4 +153,4 @@ T* UWorld::SpawnActor()
 }
 
 //LUA용
-static AActor* SpawnActorByName(const FString& ActorName, bool bCallBeginPlay);
+// static AActor* SpawnActorByName(const FString& ActorName, UObject* InOuter, bool bCallBeginPlay);

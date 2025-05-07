@@ -12,8 +12,8 @@ class ULevel : public UObject
 public:
     ULevel();
     ~ULevel();
-    virtual UObject* Duplicate() const override;
-    virtual void DuplicateSubObjects(const UObject* SourceObj) override;
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter) override;
     virtual void PostDuplicate() override;
     
     ULevel(const ULevel& Other);

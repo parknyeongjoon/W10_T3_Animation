@@ -263,22 +263,6 @@ struct FOBB
     FVector corners[8];
 };
 
-struct FRect
-{
-    FRect() : leftTopX(0), leftTopY(0), width(0), height(0) {}
-    FRect(float x, float y, float w, float h) : leftTopX(x), leftTopY(y), width(w), height(h) {}
-    float leftTopX, leftTopY, width, height;
-};
-
-struct FPoint
-{
-    FPoint() : x(0), y(0) {}
-    FPoint(float _x, float _y) : x(_x), y(_y) {}
-    FPoint(long _x, long _y) : x(_x), y(_y) {}
-    FPoint(int _x, int _y) : x(_x), y(_y) {}
-
-    float x, y;
-};
 struct FBoundingBox
 {
     FBoundingBox(){}

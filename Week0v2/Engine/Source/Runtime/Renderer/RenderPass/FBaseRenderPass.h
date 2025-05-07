@@ -13,7 +13,7 @@ public:
         :  ShaderName(InShaderName) {}
     virtual ~FBaseRenderPass() {}
 
-    virtual void AddRenderObjectsToRenderPass() = 0;
+    virtual void AddRenderObjectsToRenderPass(UWorld* World) = 0;
     virtual void Prepare(std::shared_ptr<FViewportClient> InViewportClient);
     virtual void Execute(std::shared_ptr<FViewportClient> InViewportClient) = 0;
     virtual void ClearRenderObjects() {};

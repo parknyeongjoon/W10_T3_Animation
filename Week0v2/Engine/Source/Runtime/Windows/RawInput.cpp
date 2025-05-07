@@ -42,7 +42,7 @@ void FRawInput::ProcessRawInput(LPARAM lParam) const
     const RAWINPUT* RawInput = reinterpret_cast<const RAWINPUT*>(Buffer.GetData());
     if (Callback)
     {
-        Callback(*RawInput);
+        Callback(*RawInput, AppWnd);
     }
 }
 

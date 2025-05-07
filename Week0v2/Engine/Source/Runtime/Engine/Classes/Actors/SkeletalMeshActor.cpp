@@ -4,7 +4,8 @@
 
 ASkeletalMeshActor::ASkeletalMeshActor()
 {
-    USkeletalMeshComponent* SkeletalMeshComp = AddComponent<USkeletalMeshComponent>(EComponentOrigin::Editor);
+    USkeletalMeshComponent* SkeletalMeshComp = AddComponent<USkeletalMeshComponent>(EComponentOrigin::Constructor);
+    RootComponent = SkeletalMeshComp;
     USkeletalMesh* SkeletalMesh = SkeletalMeshComp->LoadSkeletalMesh(TEXT("FBX/Zombie.fbx"));
     SkeletalMesh->StoreOriginalBoneData();
 }

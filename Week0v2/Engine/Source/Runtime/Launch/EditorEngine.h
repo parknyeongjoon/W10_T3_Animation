@@ -1,8 +1,8 @@
 #pragma once
 #include "Engine/Engine.h"
-#include "EngineBaseTypes.h"
 #include "Coroutine/CoroutineManager.h"
 
+class FSkeletalPreviewUI;
 class FCollisionManager;
 class FRenderer;
 class UEditorPlayer;
@@ -18,12 +18,10 @@ class UEditorEngine : public UEngine
     
 public:
     UEditorEngine();
-    void Init(HWND hWnd) override;
-    void Tick(float deltaSeconds) override;
+    void Init() override;
+    void Tick(float DeltaTime) override;
     void Release() override;
     void Input();
-
-    UWorld* GetWorld() override;
     
     void PreparePIE();
     void StartPIE();
@@ -31,41 +29,43 @@ public:
     void ResumingPIE();
     void StopPIE();
 
-    
-    void UpdateGizmos();
+    void UpdateGizmos(UWorld* World);
     UEditorPlayer* GetEditorPlayer() const { return EditorPlayer; }
+    UWorld* CreateWorld(EWorldType::Type WorldType, ELevelTick LevelTick);
+    void RemoveWorld(UWorld* World);
+
+    UWorld* CreatePreviewWindow();
 
 public:
-
     static FCollisionManager CollisionManager;
     static FCoroutineManager CoroutineManager;
-    ELevelTick LevelType = ELevelTick::LEVELTICK_ViewportsOnly;
     bool bUButtonDown = false;
 
     void ForceEditorUIOnOff() { bForceEditorUI = !bForceEditorUI; }
     
     bool bForceEditorUI = false;
 public:
-    UWorld* GetWorld() const { return ActiveWorld; }
     SLevelEditor* GetLevelEditor() const { return LevelEditor; }
-    UnrealEd* GetUnrealEditor() const { return UnrealEditor; }    
+    UnrealEd* GetUnrealEditor() const { return UnrealEditor; }
+    FSkeletalPreviewUI* GetSkeletalPreviewUI() const { return SkeletalPreviewUI; }    
+
 
     float testBlurStrength;
 
 private:
-    std::shared_ptr<FWorldContext> CreateNewWorldContext(EWorldType::Type InWorldType);
+    std::shared_ptr<FWorldContext> CreateNewWorldContext(UWorld* InWorld, EWorldType::Type InWorldType, ELevelTick LevelType);
 
+    // TODO 임시 Public 바꿔잇
+public:
+    FContentsUI* ContentsUI = nullptr;
+    
+    std::shared_ptr<FWorldContext> PIEWorldContext = nullptr;
+    std::shared_ptr<FWorldContext> EditorWorldContext = nullptr;
 private:
-    UWorld* PIEWorld = nullptr;
-    UWorld* EditorWorld = nullptr;
+    UnrealEd* UnrealEditor = nullptr;
+    FSkeletalPreviewUI* SkeletalPreviewUI = nullptr;
     
-    SLevelEditor* LevelEditor;
-    UnrealEd* UnrealEditor;
-
-    UWorld* ActiveWorld;
-
-    FContentsUI* ContentsUI;
-    
-    bool bIsMKeyDown = false;
+    SLevelEditor* LevelEditor = nullptr;
     UEditorPlayer* EditorPlayer = nullptr;
+    UWorld* PreviewWorld = nullptr;
 };

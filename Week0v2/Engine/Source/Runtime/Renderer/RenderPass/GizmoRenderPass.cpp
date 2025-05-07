@@ -16,11 +16,11 @@
 
 extern UEngine* GEngine;
 
-void FGizmoRenderPass::AddRenderObjectsToRenderPass()
+void FGizmoRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
     for (UGizmoBaseComponent* GizmoBaseComponent : TObjectRange<UGizmoBaseComponent>())
     {
-        if (GizmoBaseComponent->GetWorld()->WorldType != EWorldType::Editor || GizmoBaseComponent->GetWorld() != GEngine->GetWorld())
+        if ((GizmoBaseComponent->GetWorld()->WorldType != EWorldType::Editor && GizmoBaseComponent->GetWorld()->WorldType != EWorldType::EditorPreview) || GizmoBaseComponent->GetWorld() != World)
         {
             continue;
         }
@@ -43,7 +43,7 @@ void FGizmoRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewport
     const auto CurRTV = Graphics.GetCurrentRenderTargetView();
     if (CurRTV != nullptr)
     {
-        Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.DepthStencilView); // 렌더 타겟 설정
+        Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.GetCurrentWindowData()->DepthStencilView); // 렌더 타겟 설정
     }
     else
     {
@@ -144,7 +144,8 @@ void FGizmoRenderPass::UpdateMatrixConstants(UGizmoBaseComponent* InGizmoCompone
     MatrixConstants.Model = Model;
     MatrixConstants.ViewProj = InView * InProjection;
     MatrixConstants.MInverseTranspose = NormalMatrix;
-    if (!InGizmoComponent->GetWorld()->GetSelectedActors().IsEmpty() &&*InGizmoComponent->GetWorld()->GetSelectedActors().begin() == InGizmoComponent->GetOwner())
+    TSet<AActor*> SelectedActors = InGizmoComponent->GetWorld()->GetSelectedActors();
+    if (!SelectedActors.IsEmpty() && *SelectedActors.begin() == InGizmoComponent->GetOwner())
     {
         MatrixConstants.isSelected = true;
     }

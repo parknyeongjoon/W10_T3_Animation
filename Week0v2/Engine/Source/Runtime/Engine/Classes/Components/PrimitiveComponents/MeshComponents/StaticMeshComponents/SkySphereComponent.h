@@ -14,7 +14,7 @@ public:
 
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
+    
     float UOffset = 0;
     float VOffset = 0;
-
 };

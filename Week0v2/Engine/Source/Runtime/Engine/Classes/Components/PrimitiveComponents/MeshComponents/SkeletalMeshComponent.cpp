@@ -1,4 +1,4 @@
-#include "SkeletalMeshComponent.h"
+﻿#include "SkeletalMeshComponent.h"
 
 #include "TestFBXLoader.h"
 #include "Engine/World.h"
@@ -186,17 +186,17 @@ void USkeletalMeshComponent::SkinningVertex()
 //     SetStaticMesh(Mesh);
 // }
 
-UObject* USkeletalMeshComponent::Duplicate() const
+UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
 {
-    USkeletalMeshComponent* NewComp = FObjectFactory::ConstructObjectFrom<USkeletalMeshComponent>(this);
-    NewComp->DuplicateSubObjects(this);
+    USkeletalMeshComponent* NewComp = FObjectFactory::ConstructObjectFrom<USkeletalMeshComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;
 }
 
-void USkeletalMeshComponent::DuplicateSubObjects(const UObject* Source)
+void USkeletalMeshComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    UMeshComponent::DuplicateSubObjects(Source);
+    UMeshComponent::DuplicateSubObjects(Source, InOuter);
     // TODO: Material 복사
 }
 

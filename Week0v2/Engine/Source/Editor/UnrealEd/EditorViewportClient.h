@@ -14,7 +14,7 @@
 #define MIN_ORTHOZOOM				1.0							/* 2D ortho viewport zoom >= MIN_ORTHOZOOM */
 #define MAX_ORTHOZOOM				1e25	
 
-enum class EViewScreenLocation;
+class FRect;
 class AActor;
 class USceneComponent;
 
@@ -89,18 +89,21 @@ public:
     ~FEditorViewportClient();
 
     virtual void        Draw(FViewport* Viewport) override;
-    virtual UWorld*     GetWorld() const { return nullptr; }
-    void Initialize(EViewScreenLocation InViewportIndex);
+    UWorld*             GetWorld() const override;
+    virtual void        Initialize(HWND InOwnerWindow, uint32 InViewportIndex, UWorld* World) override;
+    
     void Tick(float DeltaTime);
     void Release();
     void UpdateEditorCameraMovement(float DeltaTime);
     
-    void InputKey(const FKeyEvent& InKeyEvent);
+    void InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent);
     void MouseMove(const FPointerEvent& InMouseEvent);
-    void ResizeViewport(const DXGI_SWAP_CHAIN_DESC& swapchaindesc);
+
     void ResizeViewport(FRect Top, FRect Bottom, FRect Left, FRect Right);
+    void ResizeViewport(FRect InRect);
 
     bool IsSelected(FVector2D Point);
+
 protected:
     /** Camera speed setting */
     int32 CameraSpeedSetting = 1;
@@ -111,12 +114,17 @@ public:
     float GridSize;
 
 public: 
+    FViewport* GetViewport() const { return Viewport; }
+
+    const D3D11_VIEWPORT& GetD3DViewport();
+    
+    uint32 GetViewportIndex() const { return ViewportIndex; }
+    void SetViewportIndex(uint32 InIndex) { ViewportIndex = InIndex; }
+    
+private:
     FViewport* Viewport;
     uint32 ViewportIndex;
-    FViewport* GetViewport() const { return Viewport; }
-    D3D11_VIEWPORT& GetD3DViewport();
-
-
+    
 public:
     //카메라
     /** Viewport camera transform data for perspective viewports */
@@ -131,8 +139,10 @@ public:
     float AspectRatio;
     float nearPlane = 0.1f;
     float farPlane = 1000.0f;
+
     static FVector Pivot;
     static float OrthoSize;
+    
     ELevelViewportType ViewportType;
     uint64 ShowFlag;
     EViewModeIndex ViewMode;

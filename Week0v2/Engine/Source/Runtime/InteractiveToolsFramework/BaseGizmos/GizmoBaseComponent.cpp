@@ -65,9 +65,10 @@ void UGizmoBaseComponent::TickComponent(float DeltaTime)
     
     Super::TickComponent(DeltaTime);
 
-    if (!GetWorld()->GetSelectedActors().IsEmpty())
+    TSet<AActor*> SelectedActors = GetWorld()->GetSelectedActors();
+    if (!SelectedActors.IsEmpty())
     {
-        AActor* PickedActor = *GetWorld()->GetSelectedActors().begin();
+        AActor* PickedActor = *SelectedActors.begin();
         if (PickedActor == nullptr)
         {
             return;

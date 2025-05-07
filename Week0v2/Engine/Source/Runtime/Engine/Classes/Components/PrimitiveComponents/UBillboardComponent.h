@@ -50,8 +50,8 @@ public:
     void SetTexture(FWString _fileName);
     //void SetUUIDParent(USceneComponent* _parent);
     FMatrix CreateBillboardMatrix();
-    virtual UObject* Duplicate() const override;
-    virtual void DuplicateSubObjects(const UObject* Source) override;
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
     virtual void PostDuplicate() override;
     
     float finalIndexU = 0.0f;

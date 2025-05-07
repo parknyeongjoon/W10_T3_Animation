@@ -58,7 +58,7 @@ void AGPlayer::BeginPlay()
     FTViewTarget ViewTarget;
     ViewTarget.Target = this;
     ViewTarget.ViewInfo = FSimpleViewInfo(Camera->GetWorldLocation(), Camera->GetWorldRotation(), Camera->GetFOV());
-    for (auto& Actor : GEngine->GetWorld()->GetActors())
+    for (auto& Actor : GetWorld()->GetActors())
     {
         if (APlayerCameraManager* APCM = Cast<APlayerCameraManager>(Actor))
         {
@@ -99,16 +99,16 @@ void AGPlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
     UE_LOG(LogLevel::Display, "AGamePlayer End Play");
 }
 
-UObject* AGPlayer::Duplicate() const
+UObject* AGPlayer::Duplicate(UObject* InOuter)
 {
-    AGPlayer* NewActor = FObjectFactory::ConstructObjectFrom<AGPlayer>(this);
-    NewActor->DuplicateSubObjects(this);
+    AGPlayer* NewActor = FObjectFactory::ConstructObjectFrom<AGPlayer>(this, InOuter);
+    NewActor->DuplicateSubObjects(this, InOuter);
     return NewActor;
 }
 
-void AGPlayer::DuplicateSubObjects(const UObject* Source)
+void AGPlayer::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    Super::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source, InOuter);
     AGPlayer* Origin = Cast<AGPlayer>(Source);
 }
 
@@ -121,7 +121,7 @@ void AGPlayer::OnCollision(const UPrimitiveComponent* Other)
 {
     if (Other->GetOwner()->IsA(AGEnemy::StaticClass()))
     {
-        UExplosionShake* Shake = FObjectFactory::ConstructObject<UExplosionShake>();
+        UExplosionShake* Shake = FObjectFactory::ConstructObject<UExplosionShake>(this);
         PlayerCameraManager->StartCameraShake(Shake);
     }
 }
@@ -133,16 +133,16 @@ void AGPlayer::Input(float DeltaTime)
         if (!bLeftMouseDown)
         {
             bLeftMouseDown = true;
-            AGBullet* bullet = GEngine->GetWorld()->SpawnActor<AGBullet>();
+            AGBullet* bullet = GetWorld()->SpawnActor<AGBullet>();
             bullet->Fire(GetActorLocation(), GetActorForwardVector(), 50);
 
             if (PlayerCameraManager)
             {
-                UGunRecoilShake* Shake = FObjectFactory::ConstructObject<UGunRecoilShake>();
+                UGunRecoilShake* Shake = FObjectFactory::ConstructObject<UGunRecoilShake>(this);
                 Shake->Duration = 0.5f;
                 
                 // Pitch 튐 → 복귀 곡선
-                UCurveFloat* PitchCurve = FObjectFactory::ConstructObject<UCurveFloat>();
+                UCurveFloat* PitchCurve = FObjectFactory::ConstructObject<UCurveFloat>(this);
                 PitchCurve->AddKey(0.0f, 0.0f);
                 PitchCurve->AddKey(0.1f, 10.f);
                 PitchCurve->AddKey(0.5f, 0.0f);
@@ -165,7 +165,7 @@ void AGPlayer::Input(float DeltaTime)
             bRightMouseDown = true;
             if (PlayerCameraManager)
             {
-                UHitCameraShake* Shake = FObjectFactory::ConstructObject<UHitCameraShake>();
+                UHitCameraShake* Shake = FObjectFactory::ConstructObject<UHitCameraShake>(this);
 
                 Shake->ImpactDirection = FVector(0,0,0); // 또는 HitResult.ImpactPoint
                 Shake->CameraLocation = PlayerCameraManager->GetViewTarget()->GetActorLocation();
@@ -270,9 +270,9 @@ void AGPlayer::Input(float DeltaTime)
          or GetAsyncKeyState('D') & 0x8000) and (bIsMoveStarted == false))
     {
         bIsMoveStarted = true;
-        UCameraLetterBox* CameraModifier = FObjectFactory::ConstructObject<UCameraLetterBox>();
+        UCameraLetterBox* CameraModifier = FObjectFactory::ConstructObject<UCameraLetterBox>(this);
         CameraModifier->ActivateLetterbox(4.f/3.f, 1.f);
-        GEngine->GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
+        GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
     }
         
     if (!MoveDirection.IsNearlyZero())
