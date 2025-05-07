@@ -69,6 +69,18 @@ void TestFBXLoader::ExtractMeshFromNode(FbxNode* Node, FSkeletalMeshRenderData* 
         int BaseVertexIndex = MeshData->Vertices.Num();
         int BaseIndexOffset = MeshData->Indices.Num();
         
+        for (int d = 0; d < Mesh->GetDeformerCount(FbxDeformer::eSkin); ++d)
+        {
+            auto* Skin = static_cast<FbxSkin*>(Mesh->GetDeformer(d, FbxDeformer::eSkin));
+            if (Skin)
+            {
+                // BaseVertexIndex는 Vertex 추출 직후 오프셋을 위해 넘겨 줍니다.
+                ProcessSkinning(Skin, MeshData, RefSkeletal, BaseVertexIndex);
+                // 보통 메시당 하나의 Skin만 쓰므로 break 해도 무방합니다.
+                break;
+            }
+        }
+
         // 버텍스 데이터 추출
         ExtractVertices(Mesh, MeshData, RefSkeletal);
         
