@@ -44,7 +44,7 @@ void FEditorIconRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVie
     const auto CurRTV = Graphics.GetCurrentRenderTargetView();
     if (CurRTV != nullptr)
     {
-        Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.DepthStencilView); // 렌더 타겟 설정
+        Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.GetCurrentWindowData()->DepthStencilView); // 렌더 타겟 설정
     }
     else
     {

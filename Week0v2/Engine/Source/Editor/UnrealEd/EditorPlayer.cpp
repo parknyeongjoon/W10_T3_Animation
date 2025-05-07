@@ -1,6 +1,7 @@
 #include "EditorPlayer.h"
 
 #include "EditorViewportClient.h"
+#include "ImGuiManager.h"
 #include "ImGUI/imgui.h"
 
 #include "LaunchEngineLoop.h"
@@ -49,7 +50,10 @@ void UEditorPlayer::Initialize()
             return;
         }
         
-        if (ImGui::GetIO().WantCaptureMouse) return;
+        if (ImGuiManager::Get().GetWantCaptureMouse(AppWnd))
+        {
+            return;
+        }
     
         if (InMouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
         {
@@ -98,7 +102,7 @@ void UEditorPlayer::Initialize()
             return;
         }
         
-        if (ImGui::GetIO().WantCaptureMouse)
+        if (ImGuiManager::Get().GetWantCaptureMouse(AppWnd))
         {
             return;
         }
@@ -152,6 +156,21 @@ void UEditorPlayer::Initialize()
 
     Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent, HWND AppWnd)
     {
+        if (InKeyEvent.GetKeyCode() == VK_LSHIFT)
+        {
+            bLShiftDown = true;
+        }
+
+        if (InKeyEvent.GetKeyCode() == VK_LCONTROL)
+        {
+            bLCtrlDown = true;
+        }
+        
+        if (InKeyEvent.GetKeyCode() == VK_LMENU)
+        {
+            bLAltDown = true;
+        }        
+        
         if (GetKeyState(VK_RBUTTON) & 0x8000)
         {
             return;
@@ -189,11 +208,24 @@ void UEditorPlayer::Initialize()
             break;
         }
     });
-}
 
-void UEditorPlayer::Tick()
-{
-    Input();
+    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent, HWND AppWnd)
+    {
+        if (InKeyEvent.GetKeyCode() == VK_LSHIFT)
+        {
+            bLShiftDown = false;
+        }
+
+        if (InKeyEvent.GetKeyCode() == VK_LCONTROL)
+        {
+            bLCtrlDown = false;
+        }
+
+        if (InKeyEvent.GetKeyCode() == VK_LMENU)
+        {
+            bLAltDown = false;
+        }
+    });
 }
 
 void UEditorPlayer::MultiSelectingStart()
@@ -235,45 +267,6 @@ void UEditorPlayer::MakeMulitRect()
     }
 }
 
-void UEditorPlayer::Input()
-{
-    ImGuiIO& io = ImGui::GetIO();
-    if (io.WantCaptureMouse) return;
-    if (GetAsyncKeyState(VK_LSHIFT) & 0x8000)
-    {
-        if (!bLShiftDown)
-        {
-            bLShiftDown = true;
-        }
-    }
-    else
-    {
-        bLShiftDown = false;
-    }
-    if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
-    {
-        if (!bLCtrlDown)
-        {
-            bLCtrlDown = true;
-        }
-    }
-    else
-    {
-        bLCtrlDown = false;
-    }
-    if (GetAsyncKeyState(VK_LMENU) & 0x8000)
-    {
-        if (!bLAltDown)
-        {
-            bLAltDown = true;
-        }
-    }
-    else
-    {
-        bLAltDown =false;
-    }
-    
-}
 
 bool UEditorPlayer::PickGizmo(UWorld* World, FVector& pickPosition)
 {

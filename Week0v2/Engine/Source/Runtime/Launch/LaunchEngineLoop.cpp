@@ -2,10 +2,13 @@
 
 #include "ImGuiManager.h"
 #include "WindowsCursor.h"
+#include "Actors/ADodge.h"
 #include "Contents/UI/ContentsUI.h"
+#include "ImGUI/imgui.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "PropertyEditor/ViewportTypePanel.h"
 #include "Renderer/Renderer.h"
+#include "UnrealEd/SkeletalPreviewUI.h"
 #include "UnrealEd/UnrealEd.h"
 #include "UObject/Casts.h"
 
@@ -16,7 +19,7 @@ FResourceManager FEngineLoop::ResourceManager;
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-FEngineLoop::FEngineLoop() : ImGuiUIManager(nullptr)
+FEngineLoop::FEngineLoop()
 {
 }
 
@@ -27,10 +30,7 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     
     AppMessageHandler = std::make_unique<FSlateAppMessageHandler>();
     
-    CreateEngineWindow(hInstance, EngineWindowClass, EngineTitle);
-    
-    ImGuiManager* ImGuiUIManager = new ImGuiManager();
-    ImGuiUIManager->Initialize(GetDefaultWindow(), GraphicDevice.Device, GraphicDevice.DeviceContext);
+    DefaultWindow = CreateEngineWindow(hInstance, EngineWindowClass, EngineTitle);
     
     Renderer.Initialize(&GraphicDevice);
     ResourceManager.Initialize(&GraphicDevice);
@@ -86,7 +86,7 @@ void FEngineLoop::Tick()
             TranslateMessage(&msg); // 키보드 입력 메시지를 문자메시지로 변경
             DispatchMessage(&msg);  // 메시지를 WndProc에 전달
 
-            if (msg.message == WM_QUIT)
+            if (msg.message == WM_QUIT && !AppWindows.Contains(DefaultWindow))
             {
                 bIsExit = true;
                 break;
@@ -113,75 +113,94 @@ void FEngineLoop::Tick()
 
 void FEngineLoop::Render()
 {
-    if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    if (EditorEngine == nullptr)
     {
-        if (SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor())
-        {
-            uint32 OriginalIndex = LevelEditor->GetCurrentViewportClientIndex();
-            HWND OriginalWindow = LevelEditor->GetCurrentViewportWindow();
-            ImGuiUIManager->BeginFrame();
-            for (auto& AppWindow : AppWindows)
-            {
-                LevelEditor->FocusViewportClient(AppWindow, 0);
+        return;
+    }
 
-                TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients = LevelEditor->GetViewportClients(AppWindow);
-                
-                GraphicDevice.Prepare(AppWindow);
-                if (ViewportClients.Num() > 0)
+    SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor();
+    if (LevelEditor == nullptr)
+    {
+        return;
+    }
+    
+    uint32 OriginalIndex = LevelEditor->GetCurrentViewportClientIndex();
+    HWND OriginalWindow = LevelEditor->GetCurrentViewportWindow();
+    for (auto& AppWindow : AppWindows)
+    {
+        LevelEditor->FocusViewportClient(AppWindow, 0);
+        TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients = LevelEditor->GetViewportClients(AppWindow);
+        
+        GraphicDevice.Prepare(AppWindow);
+        if (LevelEditor->IsMultiViewport(AppWindow))
+        {
+            for (uint32 i = 0; i < ViewportClients.Num(); i++)
+            {
+                std::shared_ptr<FEditorViewportClient> ViewportClient = ViewportClients[i];
+                LevelEditor->FocusViewportClient(AppWindow, i);
+                EditorEngine->UpdateGizmos(ViewportClient->GetWorld());
+                Renderer.Render(ViewportClient);
+            }
+        }
+        else
+        {
+            for (uint32 i = 0; (i < ViewportClients.Num() && i < 1); i++)
+            {
+                std::shared_ptr<FEditorViewportClient> ViewportClient = ViewportClients[i];
+                LevelEditor->FocusViewportClient(AppWindow, i);
+                EditorEngine->UpdateGizmos(ViewportClient->GetWorld());
+                Renderer.Render(ViewportClient);
+            }
+        }
+
+        ImGuiManager::Get().BeginFrame(AppWindow);
+        // AppWindow의 World를 어떻게 알아내냐
+        if (ViewportClients.Num() > 0)
+        {
+            UWorld* TargetWorld = ViewportClients[0]->GetWorld();
+            EditorEngine->GetUnrealEditor()->SetWorld(TargetWorld);
+            EditorEngine->GetSkeletalPreviewUI()->SetWorld(TargetWorld);
+            EditorEngine->ContentsUI->SetWorld(TargetWorld);
+            if (TargetWorld->WorldType == EWorldType::Editor)
+            {
+                if (LevelEditor->GetEditorStateManager().GetEditorState() != EEditorState::Playing || EditorEngine->bForceEditorUI == true)
                 {
-                    EditorEngine->UnrealEditor->SetWorld(ViewportClients[0]->GetWorld());
-                    EditorEngine->ContentsUI->SetWorld(ViewportClients[0]->GetWorld());
-                }
-                if (ViewportClients.Num() > 0)
-                {
-                    if (LevelEditor->GetEditorStateManager().GetEditorState() != EEditorState::Playing || EditorEngine->bForceEditorUI == true)
-                    {
-                        EditorEngine->UnrealEditor->Render();
-                    }
-                    else
-                    {
-                        EditorEngine->ContentsUI->Render();
-                    }
-                }
-                if (LevelEditor->IsMultiViewport(AppWindow))
-                {
-                    for (uint32 i = 0; i < ViewportClients.Num(); i++)
-                    {
-                        std::shared_ptr<FEditorViewportClient> ViewportClient = ViewportClients[i];
-                        LevelEditor->FocusViewportClient(AppWindow, i);
-                        EditorEngine->UpdateGizmos(ViewportClient->GetWorld());
-                        Renderer.Render(ViewportClient);
-                    }
+                    EditorEngine->GetUnrealEditor()->Render();
+                    Console::GetInstance().Draw();
                 }
                 else
                 {
-                    for (uint32 i = 0; (i < ViewportClients.Num() && i < 1); i++)
-                    {
-                        std::shared_ptr<FEditorViewportClient> ViewportClient = ViewportClients[i];
-                        LevelEditor->FocusViewportClient(AppWindow, i);
-                        EditorEngine->UpdateGizmos(ViewportClient->GetWorld());
-                        Renderer.Render(ViewportClient);
-                    }
-                }
-
-                Console::GetInstance().Draw();        
-
-                // Pending 처리된 오브젝트 제거
-                //GUObjectArray.ProcessPendingDestroyObjects();
-    
-                GraphicDevice.SwapBuffer(AppWindow);
+                    // EditorEngine->ContentsUI->Render();
+                }   
             }
-            ImGuiUIManager->EndFrame();
-
-            LevelEditor->FocusViewportClient(OriginalWindow, OriginalIndex);
+            else if (TargetWorld->WorldType == EWorldType::PIE)
+            {
+                if (LevelEditor->GetEditorStateManager().GetEditorState() != EEditorState::Playing || EditorEngine->bForceEditorUI == true)
+                {
+                }
+                else
+                {
+                    EditorEngine->ContentsUI->Render();
+                }
+            }
+            else if (TargetWorld->WorldType == EWorldType::EditorPreview)
+            {
+                EditorEngine->GetSkeletalPreviewUI()->Render();
+            }
         }
+        ImGuiManager::Get().EndFrame(AppWindow);
+    
+        // Pending 처리된 오브젝트 제거
+        //GUObjectArray.ProcessPendingDestroyObjects();
+        GraphicDevice.SwapBuffer(AppWindow);
     }
+    LevelEditor->FocusViewportClient(OriginalWindow, OriginalIndex);
 }
 
 void FEngineLoop::Exit()
 {
-    ImGuiUIManager->Shutdown();
-    delete ImGuiUIManager;
+    ImGuiManager::Get().Release();
     
     ResourceManager.Release();
     Renderer.Release();
@@ -215,14 +234,22 @@ HWND FEngineLoop::CreateEngineWindow(HINSTANCE hInstance, WCHAR WindowClass[], W
     GraphicDevice.AddWindow(AppWnd);
     AppMessageHandler->AddWindow(AppWnd);
 
+    ImGuiManager::Get().AddWindow(AppWnd, GraphicDevice.Device, GraphicDevice.DeviceContext);
+
     UpdateUI(AppWnd);
 
     return AppWnd;
 }
 
-void FEngineLoop::DestroyEngineWindow(HWND AppWnd)
+void FEngineLoop::DestroyEngineWindow(HWND AppWnd, HINSTANCE hInstance, WCHAR WindowClass[])
 {
+    DestroyWindow(AppWnd);
+    UnregisterClassW(WindowClass, hInstance);
     AppWindows.Remove(AppWnd);
+    GraphicDevice.RemoveWindow(AppWnd);
+    AppMessageHandler->RemoveWindow(AppWnd);
+    
+    ImGuiManager::Get().RemoveWindow(AppWnd);
 }
 
 void FEngineLoop::UpdateUI(HWND AppWnd) const
@@ -234,18 +261,47 @@ void FEngineLoop::UpdateUI(HWND AppWnd) const
         {
             UnrealEditor->OnResize(AppWnd);
         }
+
+        if (FSkeletalPreviewUI* SkeletalPreviewUI = EditorEngine->GetSkeletalPreviewUI())
+        {
+            SkeletalPreviewUI->OnResize(AppWnd);
+        }
+
+        if (EditorEngine->ContentsUI)
+        {
+            EditorEngine->ContentsUI->OnResize(AppWnd);
+        }
     }
 }
 
 LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+    if (ImGuiContext* TargetContext = ImGuiManager::Get().GetImGuiContext(hWnd))
     {
-        return true;
+        ImGuiContext* OriginalContext = ImGui::GetCurrentContext();
+        ImGui::SetCurrentContext(TargetContext);
+        if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+        {
+            ImGui::SetCurrentContext(OriginalContext);
+            return true;
+        }
+        ImGui::SetCurrentContext(OriginalContext);
     }
     
     switch (message)
     {
+    case WM_CLOSE:
+        {
+            HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(hWnd, GWLP_HINSTANCE));
+            WCHAR ClassName[256];
+            GetClassNameW(hWnd, ClassName, sizeof(ClassName) / sizeof(WCHAR));
+            GEngineLoop.DestroyEngineWindow(hWnd, hInstance, ClassName);
+            if (!(GEngineLoop.AppWindows.Num() == 0 || GEngineLoop.DefaultWindow == hWnd))
+            {
+                break;
+            }
+        }
+        //break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;

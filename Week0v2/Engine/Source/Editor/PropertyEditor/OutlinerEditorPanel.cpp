@@ -10,10 +10,14 @@ void OutlinerEditorPanel::Initialize(float InWidth, float InHeight)
 {
     Width = InWidth;
     Height = InHeight;
+
+    static int Index = 0;
+    PanelIndex = Index++;
 }
 
 void OutlinerEditorPanel::Render()
 {
+    ImGui::PushID(PanelIndex);
     /* Pre Setup */
     ImGuiIO& io = ImGui::GetIO();
     
@@ -40,7 +44,7 @@ void OutlinerEditorPanel::Render()
     
     /* Render Start */
     ImGui::Begin("Outliner", nullptr, PanelFlags);
-
+    
     if (ImGui::TreeNode("Actors")) // 트리 노드 생성
     {
         for (AActor* Actor : World->GetActors())
@@ -56,6 +60,7 @@ void OutlinerEditorPanel::Render()
         ImGui::TreePop(); // 트리 닫기
     }
     ImGui::End();
+    ImGui::PopID();
 }
     
 void OutlinerEditorPanel::OnResize(HWND hWnd)

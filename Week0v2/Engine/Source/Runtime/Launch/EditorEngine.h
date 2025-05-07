@@ -2,6 +2,7 @@
 #include "Engine/Engine.h"
 #include "Coroutine/CoroutineManager.h"
 
+class FSkeletalPreviewUI;
 class FCollisionManager;
 class FRenderer;
 class UEditorPlayer;
@@ -41,9 +42,10 @@ public:
     
     bool bForceEditorUI = false;
 public:
-    // UISOO TODO NOW
     SLevelEditor* GetLevelEditor() const { return LevelEditor; }
-    UnrealEd* GetUnrealEditor() const { return UnrealEditor; }    
+    UnrealEd* GetUnrealEditor() const { return UnrealEditor; }
+    FSkeletalPreviewUI* GetSkeletalPreviewUI() const { return SkeletalPreviewUI; }    
+
 
     float testBlurStrength;
 
@@ -52,12 +54,13 @@ private:
 
     // TODO 임시 Public 바꿔잇
 public:
-    UnrealEd* UnrealEditor = nullptr;
     FContentsUI* ContentsUI = nullptr;
     
     std::shared_ptr<FWorldContext> PIEWorldContext = nullptr;
     std::shared_ptr<FWorldContext> EditorWorldContext = nullptr;
 private:
+    UnrealEd* UnrealEditor = nullptr;
+    FSkeletalPreviewUI* SkeletalPreviewUI = nullptr;
     
     SLevelEditor* LevelEditor = nullptr;
     UEditorPlayer* EditorPlayer = nullptr;

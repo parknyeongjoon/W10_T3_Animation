@@ -16,6 +16,7 @@
 #include "UnrealEd/EditorPlayer.h"
 #include "UObject/Casts.h"
 #include "Engine/AssetManager.h"
+#include "UnrealEd/SkeletalPreviewUI.h"
 
 class ULevel;
 
@@ -36,6 +37,7 @@ void UEditorEngine::Init()
     LevelEditor = new SLevelEditor();
     UnrealEditor = new UnrealEd();
     ContentsUI = new FContentsUI();
+    SkeletalPreviewUI = new FSkeletalPreviewUI();
 
     UWorld* EditorWorld = CreateWorld(EWorldType::Editor, LEVELTICK_ViewportsOnly);
     
@@ -43,6 +45,7 @@ void UEditorEngine::Init()
     LevelEditor->Initialize(EditorWorld, GEngineLoop.GetDefaultWindow());
 
     UnrealEditor->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
+    SkeletalPreviewUI->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
     ContentsUI->Initialize();
     CollisionManager.Initialize();  
     FLuaManager::Get().Initialize();    
@@ -66,7 +69,6 @@ void UEditorEngine::Tick(float DeltaTime)
     {
         WorldContext->GetWorld()->Tick(WorldContext->LevelType, DeltaTime);
     }
-    EditorPlayer->Tick();
     
     CollisionManager.UpdateCollision(DeltaTime);
     
@@ -94,6 +96,7 @@ void UEditorEngine::Release()
     
     delete LevelEditor;
     delete UnrealEditor;
+    delete SkeletalPreviewUI;
     delete ContentsUI;
 }
 

@@ -17,10 +17,6 @@ class UEditorPlayer : public UObject
 
     void Initialize();
     
-    virtual void Tick();
-    
-
-    void Input();
     bool PickGizmo(UWorld* World, FVector& pickPosition);
     void PickActor(UWorld* World, const FVector& pickPosition);
     void AddControlMode();

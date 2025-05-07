@@ -199,7 +199,7 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
     
     const auto CurRTV = Graphics.GetCurrentRenderTargetView();
-    Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.DepthStencilView); // 렌더 타겟 설정
+    Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.GetCurrentWindowData()->DepthStencilView); // 렌더 타겟 설정
 
     for (AActor* actor : InViewportClient->GetWorld()->GetSelectedActors())
     {

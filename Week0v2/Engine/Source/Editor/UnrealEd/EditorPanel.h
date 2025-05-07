@@ -19,4 +19,6 @@ public:
     void SetWorld(UWorld* InWorld) { World = InWorld; }
 
     UWorld* World = nullptr;
+
+    uint32 PanelIndex = 0;
 };

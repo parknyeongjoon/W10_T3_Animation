@@ -5,10 +5,50 @@
 #include "Font/RawFonts.h"
 #include "Font/IconDefs.h"
 
-void ImGuiManager::Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+ImGuiManager& ImGuiManager::Get()
+{
+    static ImGuiManager Instance;
+    return Instance;
+}
+
+void ImGuiManager::AddWindow(HWND hWnd, ID3D11Device* Device, ID3D11DeviceContext* DeviceContext)
+{
+    if (WindowContextMap.Contains(hWnd))
+    {
+        return;
+    }
+
+
+    // ImGui Context 생성
+    ImGuiContext* Context = ImGui::CreateContext();
+    ImGui::SetCurrentContext(Context);
+    
+    ImGui_ImplWin32_Init(hWnd);
+    ImGui_ImplDX11_Init(Device, DeviceContext);
+
+    WindowContextMap.Add(hWnd, Context);
+
+    InitializeWindow();
+}
+
+void ImGuiManager::RemoveWindow(HWND hWnd)
+{
+    if (!WindowContextMap.Contains(hWnd))
+    {
+        return;
+    }
+
+    ImGui::SetCurrentContext(WindowContextMap[hWnd]);
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext(WindowContextMap[hWnd]);
+
+    WindowContextMap.Remove(hWnd);
+}
+
+void ImGuiManager::InitializeWindow()
 {
     IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     // ImGuiStyle& style = ImGui::GetStyle();
@@ -18,8 +58,6 @@ void ImGuiManager::Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceConte
     //     style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     // }
     
-    ImGui_ImplWin32_Init(hWnd);
-    ImGui_ImplDX11_Init(device, deviceContext);
     io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\malgun.ttf", 17.0f, NULL, io.Fonts->GetGlyphRangesKorean());
     ImGui::GetStyle().ScaleAllSizes(0.8f);
 
@@ -48,18 +86,30 @@ void ImGuiManager::Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceConte
     PreferenceStyle();
 }
 
-void ImGuiManager::BeginFrame()
+void ImGuiManager::BeginFrame(HWND hWnd)
 {
+    if (!WindowContextMap.Contains(hWnd))
+    {
+        return;
+    }
+
+    ImGui::SetCurrentContext(WindowContextMap[hWnd]);
+    
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 }
 
-void ImGuiManager::EndFrame()
+void ImGuiManager::EndFrame(HWND hWnd)
 {
+    if (!WindowContextMap.Contains(hWnd))
+    {
+        return;
+    }
+    
     ImGui::Render();
+    
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-    // ImGui::UpdatePlatformWindows();
 }
 
 /* GUI Style Preference */
@@ -106,10 +156,40 @@ void ImGuiManager::PreferenceStyle()
     ImGui::GetStyle().Colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
 }
 
-void ImGuiManager::Shutdown()
+void ImGuiManager::Release()
 {
-    ImGui_ImplDX11_Shutdown();
-    ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
+    TMap<HWND, ImGuiContext*> CopiedMap = WindowContextMap;
+    for (auto& [HWnd, WindowContext] : CopiedMap)
+    {
+        RemoveWindow(HWnd);
+    }
+
+    WindowContextMap.Empty();
+}
+
+bool ImGuiManager::GetWantCaptureMouse(HWND hWnd)
+{
+    if (!WindowContextMap.Contains(hWnd))
+    {
+       return false;
+    }
+    ImGuiContext* OriginalContext = ImGui::GetCurrentContext();
+
+    ImGui::SetCurrentContext(WindowContextMap[hWnd]);
+    
+    bool Result = ImGui::GetIO().WantCaptureMouse;
+
+    ImGui::SetCurrentContext(OriginalContext);
+
+    return Result;
+}
+
+ImGuiContext* ImGuiManager::GetImGuiContext(HWND hWnd)
+{
+    if (!WindowContextMap.Contains(hWnd))
+    {
+        return nullptr;
+    }
+    return WindowContextMap[hWnd];
 }
 

@@ -177,6 +177,7 @@
   <ItemGroup>
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorPlayer.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\SkeletalPreviewUI.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Point.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Quat.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraBlur.cpp" />
@@ -377,6 +378,7 @@
   <ItemGroup>
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorPlayer.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\SkeletalPreviewUI.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\UnrealEd.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\MathSSE.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Point.h" />

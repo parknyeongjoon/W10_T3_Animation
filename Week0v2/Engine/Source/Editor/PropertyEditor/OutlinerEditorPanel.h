@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "Components/ActorComponent.h"
 #include "UnrealEd/EditorPanel.h"
 
 class OutlinerEditorPanel : public UEditorPanel

@@ -1,5 +1,6 @@
 #include "SLevelEditor.h"
 
+#include "ImGuiManager.h"
 #include "ImGUI/imgui.h"
 
 #include "Slate/Widgets/Layout/SSplitter.h"
@@ -41,8 +42,8 @@ void SLevelEditor::Initialize(UWorld* World, HWND OwnerWindow)
     FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
     
     Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
-    {        
-        if (ImGui::GetIO().WantCaptureMouse) return;
+    {
+        if (ImGuiManager::Get().GetWantCaptureMouse(AppWnd)) return;
 
         if (!WindowViewportDataMap.Contains(AppWnd))
         {
@@ -92,7 +93,10 @@ void SLevelEditor::Initialize(UWorld* World, HWND OwnerWindow)
     
     Handler->OnMouseMoveDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
-        if (ImGui::GetIO().WantCaptureMouse) return;
+        if (ImGuiManager::Get().GetWantCaptureMouse(AppWnd))
+        {
+            return;
+        }
 
         if (!WindowViewportDataMap.Contains(AppWnd))
         {
@@ -171,12 +175,7 @@ void SLevelEditor::Initialize(UWorld* World, HWND OwnerWindow)
                 // 에디터 카메라 이동 로직
                 if (!InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton) && InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
                 {
-                    if (World->WorldType == EWorldType::Editor)
-                    {
-                        std::cout << ActiveViewportClient->ViewTransformPerspective.GetRotation().X << ", " << ActiveViewportClient->ViewTransformPerspective.GetRotation().Y << ", " << ActiveViewportClient->ViewTransformPerspective.GetRotation().Z << '\n';
-                    }
                     ActiveViewportClient->MouseMove(InMouseEvent);
-                    UE_LOG(LogLevel::Display, "%f, %f, %f", ActiveViewportClient->ViewTransformPerspective.GetRotation().X, ActiveViewportClient->ViewTransformPerspective.GetRotation().Y, ActiveViewportClient->ViewTransformPerspective.GetRotation().Z);
                 }
             }
         }
@@ -221,7 +220,10 @@ void SLevelEditor::Initialize(UWorld* World, HWND OwnerWindow)
     
     Handler->OnMouseWheelDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
-        if (ImGui::GetIO().WantCaptureMouse) return;
+        if (ImGuiManager::Get().GetWantCaptureMouse(AppWnd))
+        {
+            return;
+        }
 
         if (!WindowViewportDataMap.Contains(AppWnd))
         {
@@ -399,8 +401,15 @@ void SLevelEditor::ResizeViewports(HWND AppWnd)
 
 void SLevelEditor::SetEnableMultiViewport(HWND AppWnd, bool bIsEnable)
 {
-    WindowViewportDataMap[AppWnd].bMultiViewportMode = bIsEnable;
-    ResizeViewports(AppWnd);
+    if (WindowViewportDataMap[AppWnd].VSplitter != nullptr || WindowViewportDataMap[AppWnd].HSplitter != nullptr)
+    {
+        WindowViewportDataMap[AppWnd].bMultiViewportMode = bIsEnable;
+        ResizeViewports(AppWnd);
+    }
+    else
+    {
+        WindowViewportDataMap[AppWnd].bMultiViewportMode = false;   
+    }
 }
 
 bool SLevelEditor::IsMultiViewport(HWND AppWnd)

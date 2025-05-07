@@ -37,6 +37,12 @@ struct FWindowData
     ID3D11RenderTargetView* PingPongRTVs[2] = { nullptr, nullptr };
     ID3D11ShaderResourceView* PingPongSRVs[2] = { nullptr, nullptr };
 
+    // Depth-Stencil 관련 변수
+    ID3D11Texture2D* DepthStencilBuffer = nullptr;  // 깊이/스텐실 텍스처
+    ID3D11DepthStencilView* DepthStencilView = nullptr;  // 깊이/스텐실 뷰
+    ID3D11Texture2D* DepthCopyTexture = nullptr;
+    ID3D11ShaderResourceView* DepthCopySRV = nullptr;
+
     float GetAspectRatio() const
     {
         return static_cast<float>(ScreenWidth) / static_cast<float>(ScreenHeight);
@@ -55,12 +61,6 @@ public:
     
     // ID3D11RasterizerState* RasterizerStateSOLID = nullptr;
     // ID3D11RasterizerState* RasterizerStateWIREFRAME = nullptr;
-    
-    // Depth-Stencil 관련 변수
-    ID3D11Texture2D* DepthStencilBuffer = nullptr;  // 깊이/스텐실 텍스처
-    ID3D11DepthStencilView* DepthStencilView = nullptr;  // 깊이/스텐실 뷰
-    ID3D11Texture2D* DepthCopyTexture;
-    ID3D11ShaderResourceView* DepthCopySRV;
     
     FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear) 할 때 사용할 색상(RGBA)
 
@@ -88,7 +88,7 @@ public:
     ID3D11ShaderResourceView* GetPreviousShaderResourceView() const;
     
     void ReleaseFrameBuffer(HWND AppWnd);
-    void ReleaseDepthStencilResources();
+    void ReleaseDepthStencilResources(HWND AppWnd);
     void Release();
     void SwapBuffer(HWND AppWnd) const;
     void Prepare(HWND AppWnd);
@@ -98,7 +98,7 @@ public:
     void BindSamplers(uint32 StartSlot, uint32 NumSamplers, ID3D11SamplerState* const* ppSamplers) const;
     
     // void ChangeDepthStencilState(ID3D11DepthStencilState* newDetptStencil) const;
-    ID3D11ShaderResourceView* GetCopiedShaderResourceView() const;
+    // ID3D11ShaderResourceView* GetCopiedShaderResourceView() const;
 
     FWindowData GetDefaultWindowData() { return SwapChains.begin()->Value;}
 

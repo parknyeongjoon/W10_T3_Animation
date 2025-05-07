@@ -68,7 +68,7 @@ void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
 
         const auto CurRTV = Graphics.GetCurrentRenderTargetView();
         Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, nullptr);
-        Graphics.DeviceContext->CopyResource(Graphics.DepthCopyTexture, Graphics.DepthStencilBuffer);
+        Graphics.DeviceContext->CopyResource(Graphics.GetCurrentWindowData()->DepthCopyTexture, Graphics.GetCurrentWindowData()->DepthStencilBuffer);
         Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
 
         Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -78,7 +78,7 @@ void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
         Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
 
         const auto PreviousSRV = Graphics.GetPreviousShaderResourceView();
-        Graphics.DeviceContext->PSSetShaderResources(0, 1, &Graphics.DepthCopySRV);
+        Graphics.DeviceContext->PSSetShaderResources(0, 1, &Graphics.GetCurrentWindowData()->DepthCopySRV);
         Graphics.DeviceContext->PSSetShaderResources(1, 1, &PreviousSRV);
     }
 }

@@ -23,11 +23,11 @@ void FDebugDepthRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportC
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
 
     Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-    Graphics.DeviceContext->CopyResource(Graphics.DepthCopyTexture, Graphics.DepthStencilBuffer);
+    Graphics.DeviceContext->CopyResource(Graphics.GetCurrentWindowData()->DepthCopyTexture, Graphics.GetCurrentWindowData()->DepthStencilBuffer);
     
     ID3D11SamplerState* Sampler = Renderer.GetSamplerState(ESamplerType::Point);
     Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
-    Graphics.DeviceContext->PSSetShaderResources(0, 1, &Graphics.DepthCopySRV);
+    Graphics.DeviceContext->PSSetShaderResources(0, 1, &Graphics.GetCurrentWindowData()->DepthCopySRV);
 
     const auto& CurRTV = Graphics.GetCurrentRenderTargetView();
     Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, nullptr);

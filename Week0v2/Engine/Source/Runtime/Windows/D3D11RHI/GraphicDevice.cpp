@@ -20,10 +20,10 @@ void FGraphicsDevice::AddWindow(HWND hWindow)
     CreateSwapChain(hWindow);
     CreateFrameBuffer(hWindow);
     CreateDepthStencilBuffer(hWindow);
-
+    CreateDepthCopyTexture(hWindow);
+    
     //CreateDepthStencilState();
     //CreateDepthStencilSRV();
-    //CreateDepthCopyTexture();
     //CreateRasterizerState();
     //CurrentRasterizer = RasterizerStateSOLID;
 }
@@ -31,6 +31,7 @@ void FGraphicsDevice::AddWindow(HWND hWindow)
 void FGraphicsDevice::RemoveWindow(HWND hWindow)
 {
     ReleaseFrameBuffer(hWindow);
+    ReleaseDepthStencilResources(hWindow);
     ReleaseSwapChain(hWindow);
     SwapChains.Remove(hWindow);
 }
@@ -147,11 +148,18 @@ void FGraphicsDevice::CreateSwapChain(HWND AppWnd)
 
 void FGraphicsDevice::CreateDepthStencilBuffer(HWND AppWnd)
 {
+    if (!SwapChains.Contains(AppWnd))
+    {
+        return;
+    }
+
+    FWindowData& WindowData = SwapChains[AppWnd];
+    
     // 깊이/스텐실 텍스처 생성
     D3D11_TEXTURE2D_DESC descDepth;
     ZeroMemory(&descDepth, sizeof(descDepth));
-    descDepth.Width = SwapChains[AppWnd].ScreenWidth; // 텍스처 너비 설정
-    descDepth.Height = SwapChains[AppWnd].ScreenHeight; // 텍스처 높이 설정
+    descDepth.Width = WindowData.ScreenWidth; // 텍스처 너비 설정
+    descDepth.Height = WindowData.ScreenHeight; // 텍스처 높이 설정
     descDepth.MipLevels = 1; // 미맵 레벨 수 (1로 설정하여 미맵 없음)
     descDepth.ArraySize = 1; // 텍스처 배열의 크기 (1로 단일 텍스처)
     descDepth.Format = DXGI_FORMAT_R24G8_TYPELESS; // 24비트 깊이와 8비트 스텐실을 위한 포맷, Typeless -> SRV와 DSV 모두 사용 가능
@@ -162,7 +170,7 @@ void FGraphicsDevice::CreateDepthStencilBuffer(HWND AppWnd)
     descDepth.CPUAccessFlags = 0; // CPU 접근 방식 설정
     descDepth.MiscFlags = 0; // 기타 플래그 설정
 
-    HRESULT hr = Device->CreateTexture2D(&descDepth, nullptr, &DepthStencilBuffer);
+    HRESULT hr = Device->CreateTexture2D(&descDepth, nullptr, &WindowData.DepthStencilBuffer);
 
     if (FAILED(hr))
     {
@@ -177,9 +185,9 @@ void FGraphicsDevice::CreateDepthStencilBuffer(HWND AppWnd)
     descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D; // 뷰 타입 설정 (2D 텍스처)
     descDSV.Texture2D.MipSlice = 0; // 사용할 미맵 슬라이스 설정
 
-    hr = Device->CreateDepthStencilView(DepthStencilBuffer, // Depth stencil texture
+    hr = Device->CreateDepthStencilView(WindowData.DepthStencilBuffer, // Depth stencil texture
         &descDSV, // Depth stencil desc
-        &DepthStencilView);  // [out] Depth stencil view
+        &WindowData.DepthStencilView);  // [out] Depth stencil view
 
     if (FAILED(hr))
     {
@@ -222,10 +230,17 @@ bool FGraphicsDevice::CreateBlendState(const D3D11_BLEND_DESC* pBlendState, ID3D
 
 void FGraphicsDevice::CreateDepthCopyTexture(HWND AppWnd)
 {
+    if (!SwapChains.Contains(AppWnd))
+    {
+        return;
+    }
+
+    FWindowData& WindowData = SwapChains[AppWnd];
+    
     D3D11_TEXTURE2D_DESC descDepth;
     ZeroMemory(&descDepth, sizeof(descDepth));
-    descDepth.Width = SwapChains[AppWnd].ScreenWidth; // 텍스처 너비 설정
-    descDepth.Height = SwapChains[AppWnd].ScreenHeight; // 텍스처 높이 설정
+    descDepth.Width = WindowData.ScreenWidth; // 텍스처 너비 설정
+    descDepth.Height = WindowData.ScreenHeight; // 텍스처 높이 설정
     descDepth.MipLevels = 1; // 미맵 레벨 수 (1로 설정하여 미맵 없음)
     descDepth.ArraySize = 1; // 텍스처 배열의 크기 (1로 단일 텍스처)
     descDepth.Format = DXGI_FORMAT_R24G8_TYPELESS; // 24비트 깊이와 8비트 스텐실을 위한 포맷, Typeless -> SRV와 DSV 모두 사용 가능
@@ -236,7 +251,7 @@ void FGraphicsDevice::CreateDepthCopyTexture(HWND AppWnd)
     descDepth.CPUAccessFlags = 0; // CPU 접근 방식 설정
     descDepth.MiscFlags = 0; // 기타 플래그 설정
 
-    HRESULT Result = Device->CreateTexture2D(&descDepth, nullptr, &DepthCopyTexture);
+    HRESULT Result = Device->CreateTexture2D(&descDepth, nullptr, &WindowData.DepthCopyTexture);
     if (FAILED(Result))
     {
         int i = 1;
@@ -247,7 +262,7 @@ void FGraphicsDevice::CreateDepthCopyTexture(HWND AppWnd)
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels = 1;
 
-    Result = Device->CreateShaderResourceView(DepthCopyTexture, &srvDesc, &DepthCopySRV);
+    Result = Device->CreateShaderResourceView(WindowData.DepthCopyTexture, &srvDesc, &WindowData.DepthCopySRV);
 	if (FAILED(Result))
 	{
 		int i = 1;
@@ -387,17 +402,19 @@ void FGraphicsDevice::ReleaseFrameBuffer(HWND AppWnd)
     }
 }
 
-void FGraphicsDevice::ReleaseDepthStencilResources()
+void FGraphicsDevice::ReleaseDepthStencilResources(HWND AppWnd)
 {
-    SAFE_RELEASE(DepthStencilView);
-    SAFE_RELEASE(DepthStencilBuffer);
+    FWindowData& WindowData = SwapChains[AppWnd];
+    SAFE_RELEASE(WindowData.DepthStencilView);
+    SAFE_RELEASE(WindowData.DepthStencilBuffer);
+    SAFE_RELEASE(WindowData.DepthCopyTexture);
+    SAFE_RELEASE(WindowData.DepthCopySRV);
 }
 
 void FGraphicsDevice::Release() 
 {
     DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 
-    ReleaseDepthStencilResources();
     ReleaseDevice();
 
     TMap<HWND, FWindowData> CopiedWindowData = SwapChains;
@@ -416,11 +433,18 @@ void FGraphicsDevice::Prepare(HWND AppWnd)
 {
     // 순서 바뀌면 위험함.  CurrentAppWnd에 따라 GetCurrentRenderTargetView 등의 함수 실행됨
     CurrentAppWnd = AppWnd;
+
+    if (!SwapChains.Contains(AppWnd))
+    {
+        return;
+    }
+
+    FWindowData& ChangedWindowData = SwapChains[AppWnd];
     
     const auto CurRTV = GetCurrentRenderTargetView();
-    DeviceContext->OMSetRenderTargets(1, &CurRTV, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
+    DeviceContext->OMSetRenderTargets(1, &CurRTV, ChangedWindowData.DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
     DeviceContext->ClearRenderTargetView(CurRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
-    DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0); // 깊이 버퍼 초기화 추가
+    DeviceContext->ClearDepthStencilView(ChangedWindowData.DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0); // 깊이 버퍼 초기화 추가
 
     DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
 
@@ -446,11 +470,8 @@ void FGraphicsDevice::OnResize(HWND AppWindow)
     FWindowData& ChangedWindowData = SwapChains[AppWindow];
     
     DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-    
-    SAFE_RELEASE(DepthCopySRV);
-    SAFE_RELEASE(DepthCopyTexture);
-    SAFE_RELEASE(DepthStencilView);
 
+    ReleaseDepthStencilResources(AppWindow);
     ReleaseFrameBuffer(AppWindow);
 
     if (ChangedWindowData.ScreenWidth == 0 || ChangedWindowData.ScreenHeight == 0)
@@ -507,18 +528,18 @@ void FGraphicsDevice::BindSamplers(uint32 StartSlot, uint32 NumSamplers, ID3D11S
     BindSampler(EShaderStage::PS, StartSlot, NumSamplers, ppSamplers);
 }
 
-ID3D11ShaderResourceView* FGraphicsDevice::GetCopiedShaderResourceView() const
-{
-    ID3D11Resource* DepthResource = nullptr;
-    DepthStencilView->GetResource(&DepthResource);
-
-    ID3D11ShaderResourceView* DepthSRV = nullptr;
-    Device->CreateShaderResourceView(DepthResource, nullptr, &DepthSRV);
-
-    DepthResource->Release();
-
-    return DepthSRV;
-}
+// ID3D11ShaderResourceView* FGraphicsDevice::GetCopiedShaderResourceView() const
+// {
+//     ID3D11Resource* DepthResource = nullptr;
+//     DepthStencilView->GetResource(&DepthResource);
+//
+//     ID3D11ShaderResourceView* DepthSRV = nullptr;
+//     Device->CreateShaderResourceView(DepthResource, nullptr, &DepthSRV);
+//
+//     DepthResource->Release();
+//
+//     return DepthSRV;
+// }
 
 bool FGraphicsDevice::CompileVertexShader(const std::filesystem::path& InFilePath, const D3D_SHADER_MACRO* pDefines, ID3DBlob** ppCode)
 {
