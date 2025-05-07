@@ -188,6 +188,15 @@ void USkeletalMesh::UpdateSkinnedVertices()
     if (SkeletalMeshRenderData.Vertices.Num() <= 0)
         return;
 
+
+    if (OriginalVertexPositions.Num() == SkeletalMeshRenderData.Vertices.Num())
+    {
+        for (int i = 0; i < SkeletalMeshRenderData.Vertices.Num(); i++)
+        {
+            SkeletalMeshRenderData.Vertices[i].Position = OriginalVertexPositions[i];
+        }
+    }
+
     // 스키닝 적용
     for (auto& Vertex : SkeletalMeshRenderData.Vertices)
     {

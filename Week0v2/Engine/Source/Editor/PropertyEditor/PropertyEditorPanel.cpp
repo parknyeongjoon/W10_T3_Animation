@@ -1099,7 +1099,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* Skeleta
             }
 
             // 모든 본에 회전 적용
-           // SkeletalMesh->GetSkeletalMesh()->ResetToOriginalPose();
+            SkeletalMesh->GetSkeletalMesh()->ResetToOriginalPose();
 
             // 저장된 모든 본 회전을 적용 (업데이트 없이)
             for (auto& Pair : BoneRotations)
