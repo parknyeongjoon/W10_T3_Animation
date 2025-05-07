@@ -133,6 +133,12 @@ void USkeletalMeshComponent::SetSkeletalMesh(USkeletalMesh* value)
     VBIBTopologyMappingName = SkeletalMesh->GetRenderData().Name;
 }
 
+void USkeletalMeshComponent::LoadSkeletalMesh(const FString& FilePath)
+{
+    USkeletalMesh* SkeletalMesh = TestFBXLoader::CreateSkeletalMesh(FilePath);
+    SetSkeletalMesh(SkeletalMesh);
+}
+
 void USkeletalMeshComponent::UpdateBoneHierarchy()
 {
     for (int i=0;i<SkeletalMesh->GetRenderData().Vertices.Num();i++)

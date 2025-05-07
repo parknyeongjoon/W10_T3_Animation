@@ -926,16 +926,38 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         ImGui::Text("Skeletal Mesh");
         ImGui::SameLine();
 
-        FString PreviewName = SkeletalMeshComp->GetSkeletalMesh()->GetRenderData().Name;
-        const TMap<FString, USkeletalMesh*> Meshes = TestFBXLoader::GetSkeletalMeshes();
-        if (ImGui::BeginCombo("##StaticMesh", GetData(PreviewName), ImGuiComboFlags_None))
+        std::vector<std::string> fbxFiles;
+        static const std::string folder = std::filesystem::current_path().string() + "/Contents/FBX";
+        for (auto& entry : std::filesystem::directory_iterator(folder))
         {
-            for (const auto Mesh : Meshes)
+            if (!entry.is_regular_file()) continue;
+            if (entry.path().extension() == ".fbx")
+                fbxFiles.push_back(entry.path().filename().string());
+        }
+
+        static int currentIndex = 0;
+        const char* preview = fbxFiles.empty() 
+            ? "No .fbx files" 
+            : fbxFiles[currentIndex].c_str();
+
+        FString PreviewName = SkeletalMeshComp->GetSkeletalMesh()->GetRenderData().Name;
+        std::filesystem::path P = PreviewName;
+        FString FileName = FString( P.filename().string() ); 
+        
+        const TMap<FString, USkeletalMesh*> Meshes = TestFBXLoader::GetSkeletalMeshes();
+        if (ImGui::BeginCombo("##StaticMesh", GetData(FileName), ImGuiComboFlags_None))
+        {
+            for (int i = 0; i < (int)fbxFiles.size(); ++i)
             {
-                if (ImGui::Selectable(GetData(Mesh.Value->GetRenderData().Name), false))
+                bool isSelected = (i == currentIndex);
+                if (ImGui::Selectable(fbxFiles[i].c_str(), isSelected))
                 {
-                    SkeletalMeshComp->SetSkeletalMesh(Mesh.Value);
+                    currentIndex = i;
+                    std::string fullPath = "FBX/" + fbxFiles[i];
+                    SkeletalMeshComp->LoadSkeletalMesh(fullPath);
                 }
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
             }
             ImGui::EndCombo();
         }
