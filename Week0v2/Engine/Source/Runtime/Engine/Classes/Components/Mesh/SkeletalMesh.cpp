@@ -207,3 +207,21 @@ void USkeletalMesh::UpdateVertexBuffer()
     SetData(SkeletalMeshRenderData, RefSkeletal);
 }
 
+void USkeletalMesh::ResetToOriginalPose()
+{
+    // 본 트랜스폼 복원
+    for (int i = 0; i < OriginalLocalTransforms.Num() && i < SkeletalMeshRenderData.Bones.Num(); i++)
+    {
+        // 로컬 트랜스폼 복원
+        SkeletalMeshRenderData.Bones[i].LocalTransform = OriginalLocalTransforms[i];
+                              
+        SkeletalMeshRenderData.Bones[i].GlobalTransform = OriginalGlobalMatrices[i];
+    }
+
+
+    // 로컬 트랜스폼으로부터 글로벌 트랜스폼과 스키닝 매트릭스 재계산
+    UpdateBoneHierarchy();
+
+    // 스키닝 적용
+    UpdateSkinnedVertices();
+}
