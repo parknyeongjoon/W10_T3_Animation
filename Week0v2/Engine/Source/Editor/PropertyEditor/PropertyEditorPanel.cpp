@@ -53,7 +53,7 @@ void PropertyEditorPanel::Render()
     }
     
     // TODO PickedComponent 패널에서 뺴기 우선 임시용으로 배치
-    if ((GetAsyncKeyState(VK_DELETE) & 0x8000))
+    if (GetAsyncKeyState(VK_DELETE) & 0x8000)
     {
         if (PickedComponent != nullptr)
         {
@@ -618,14 +618,18 @@ void PropertyEditorPanel::Render()
     }
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
-    if (PickedActor)
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UStaticMeshComponent>())
     {
         if (UStaticMeshComponent* StaticMeshComponent = PickedActor->GetComponentByClass<UStaticMeshComponent>())
         {
             RenderForStaticMesh(StaticMeshComponent);
             RenderForMaterial(StaticMeshComponent);
         }
-        else if (USkeletalMeshComponent* SkeletalMeshComponent = PickedActor->GetComponentByClass<USkeletalMeshComponent>())
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<USkeletalMeshComponent>())
+    {
+        if (USkeletalMeshComponent* SkeletalMeshComponent = PickedActor->GetComponentByClass<USkeletalMeshComponent>())
         {
             RenderForSkeletalMesh2(SkeletalMeshComponent);
             RenderForMaterial(SkeletalMeshComponent);

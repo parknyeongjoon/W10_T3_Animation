@@ -6,6 +6,8 @@
 #include "UObject/ObjectFactory.h"
 #include "UnrealEd/PrimitiveBatch.h"
 #include "Classes/Engine/FLoaderOBJ.h"
+#include "GameFramework/Actor.h"
+#include "StaticMeshComponents/StaticMeshComponent.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent(const USkeletalMeshComponent& Other)
     : UMeshComponent(Other)
@@ -128,6 +130,26 @@ void USkeletalMeshComponent::SetSkeletalMesh(USkeletalMesh* value)
     
     OverrideMaterials.SetNum(value->GetMaterials().Num());
     AABB = SkeletalMesh->GetRenderData().BoundingBox;
+
+    CreateBoneComponents();
+}
+
+void USkeletalMeshComponent::CreateBoneComponents()
+{
+    // 이미 할당된 component가 있다면 삭제
+    for (auto& BoneComp : BoneComponents)
+    {
+        BoneComp->DestroyComponent();
+    }
+
+    for (const auto& Bone : GetSkeletalMesh()->GetRenderData().Bones)
+    {
+        UStaticMeshComponent* BoneComp = GetOwner()->AddComponent<UStaticMeshComponent>(EComponentOrigin::Runtime);
+        BoneComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"helloBlender.obj"));
+        BoneComp->SetWorldLocation(Bone.GlobalTransform.GetTranslationVector());
+        BoneComp->SetFName(Bone.BoneName);
+        BoneComponents.Add(BoneComp);
+    }
 }
 
 USkeletalMesh* USkeletalMeshComponent::LoadSkeletalMesh(const FString& FilePath)

@@ -18,8 +18,8 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     static bool bInitialized = false;
     if (bInitialized == false)
     {
-        bInitialized = true;
         InitFBXManager();
+        bInitialized = true;
     }
     FbxImporter* Importer = FbxImporter::Create(FbxManager, "myImporter");
     FbxScene* Scene = FbxScene::Create(FbxManager, "myScene");
@@ -922,12 +922,16 @@ USkeletalMesh* TestFBXLoader::CreateSkeletalMesh(const FString& FilePath)
 
     USkeletalMesh* SkeletalMesh = GetSkeletalMesh(MeshData->Name);
     if (SkeletalMesh != nullptr)
-        return SkeletalMesh;
+    {
+        USkeletalMesh* NewSkeletalMesh = SkeletalMesh->Duplicate(nullptr);
+        NewSkeletalMesh->SetData(FilePath);
+        return NewSkeletalMesh;
+    }
     
     SkeletalMesh = FObjectFactory::ConstructObject<USkeletalMesh>(nullptr);
-    SkeletalMesh->SetData(MeshData->Name);
+    SkeletalMesh->SetData(FilePath);
     
-    SkeletalMeshMap.Add(MeshData->Name, SkeletalMesh);
+    SkeletalMeshMap.Add(FilePath, SkeletalMesh);
     return SkeletalMesh;
 }
 
