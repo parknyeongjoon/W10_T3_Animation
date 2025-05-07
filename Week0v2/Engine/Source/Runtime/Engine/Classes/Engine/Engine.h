@@ -1,5 +1,7 @@
 #pragma once
+#include "EngineBaseTypes.h"
 #include "EngineTypes.h"
+#include "World.h"
 #include "Container/Array.h"
 #include "UObject/ObjectMacros.h"
 
@@ -12,6 +14,8 @@ public:
 
     EWorldType::Type WorldType;
     // TArray<FWorldContext*> ExternalReferences;
+    ELevelTick LevelType;
+    
 
     UWorld* GetWorld() { return World; }
     void SetWorld(UWorld* InWorld) { World = InWorld; }
@@ -29,17 +33,14 @@ public:
     virtual ~UEngine() = default;
 
 public:
-    virtual void Init(HWND hWnd);
+    virtual void Init();
     virtual void Tick(float DeltaTime);
     virtual void Release() {}
-    UWorld* GetWorld() override;
 
     UAssetManager* AssetManager = nullptr;
-    
-    TArray<std::shared_ptr<FWorldContext>>& GetWorldContexts() { return WorldContexts; }
 
     static inline UINT GFrameCount = 0;
 
 protected:
-    TArray<std::shared_ptr<FWorldContext>> WorldContexts;
+    TMap<UWorld*, std::shared_ptr<FWorldContext>> WorldContexts;
 };

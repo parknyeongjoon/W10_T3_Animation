@@ -37,7 +37,7 @@ FLineBatchRenderPass::FLineBatchRenderPass(const FName& InShaderName) : FBaseRen
     VBIBTopologyMappingName = TEXT("LineBatch");
 }
 
-void FLineBatchRenderPass::AddRenderObjectsToRenderPass()
+void FLineBatchRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
     UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
     if (EditorEngine == nullptr)
@@ -48,13 +48,15 @@ void FLineBatchRenderPass::AddRenderObjectsToRenderPass()
     std::shared_ptr<FViewportClient> ViewportClient = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(ViewportClient);
     if (!(curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB)))
+    {
         return;
+    }
 
     UPrimitiveBatch& PrimitiveBatch = UPrimitiveBatch::GetInstance();
 
     for (UShapeComponent* ShapeComponent : TObjectRange<UShapeComponent>())
     {
-        if (ShapeComponent->GetWorld() != GEngine->GetWorld())
+        if (ShapeComponent->GetWorld() != World)
         {
             continue;
         }
@@ -197,9 +199,9 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
     
     const auto CurRTV = Graphics.GetCurrentRenderTargetView();
-    Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.DepthStencilView); // 렌더 타겟 설정
+    Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, Graphics.GetCurrentWindowData()->DepthStencilView); // 렌더 타겟 설정
 
-    for (AActor* actor : GEngine->GetWorld()->GetSelectedActors())
+    for (AActor* actor : InViewportClient->GetWorld()->GetSelectedActors())
     {
         ALight* Light = Cast<ALight>(actor);
         if (Light)

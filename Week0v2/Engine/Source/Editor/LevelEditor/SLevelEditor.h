@@ -2,59 +2,107 @@
 #include "Math/Vector.h"
 #include "Runtime/Engine/Classes/Engine/FEditorStateManager.h"
 
+class FViewportClient;
 class SSplitterH;
 class SSplitterV;
 class FEditorViewportClient;
+
+struct FWindowViewportClientData
+{
+public:
+    HWND Window;
+    
+    float EditorWidth;
+    float EditorHeight;
+
+    // Multi Viewport인 경우
+    bool bMultiViewportMode;
+    uint32 ActiveViewportIndex;
+
+    TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients;
+    
+    std::shared_ptr<SSplitterH> HSplitter = nullptr;
+    std::shared_ptr<SSplitterV> VSplitter = nullptr;
+
+public:
+    std::shared_ptr<FEditorViewportClient> GetActiveViewportClient()
+    {
+        return ViewportClients[ActiveViewportIndex];
+    }
+
+    FWindowViewportClientData()
+        : Window(nullptr)
+        , EditorWidth(0.0f)
+        , EditorHeight(0.0f)
+        , bMultiViewportMode(false)
+        , ActiveViewportIndex(0)
+    {
+    }
+};
 
 class SLevelEditor
 {
 public:
     SLevelEditor();
-    ~SLevelEditor();
-    void Initialize(uint32 InEditorWidth, uint32 InEditorHeight);
-    void Tick(ELevelTick tickType, double DeltaTime);
+    ~SLevelEditor() = default;
+    void Initialize(UWorld* World, HWND OwnerWindow);
+    void Tick(double DeltaTime);
     void Release();
     
-    void SelectViewport(FVector2D Point);
-    void OnResize();
-    void ResizeViewports();
-    void SetEnableMultiViewport(bool bIsEnable);
-    bool IsMultiViewport();
+    template <typename T>
+        requires std::derived_from<T, FViewportClient>
+    std::shared_ptr<T> AddViewportClient(HWND OwnerWindow, UWorld* World);
+
+    void RemoveViewportClient(HWND OwnerWindow, std::shared_ptr<FEditorViewportClient> ViewportClient);
+    void RemoveViewportClients(HWND HWnd);
+    
+    void SelectViewport(HWND AppWnd, FVector2D Point);
+    void ResizeWindow(HWND AppWnd, FVector2D ClientSize);
+    void ResizeViewports(HWND AppWnd);
+    void SetEnableMultiViewport(HWND AppWnd, bool bIsEnable);
+    bool IsMultiViewport(HWND AppWnd);
 private:
-    bool bInitialize;
-    SSplitterH* HSplitter;
-    SSplitterV* VSplitter;
-    UWorld* World;
-    TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients;
-    std::shared_ptr<FEditorViewportClient> ActiveViewportClient;
+    // TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients;
+
+    uint32 ActiveViewportClientIndex = 0;
+    HWND ActiveViewportWindow = nullptr;
+    
 
     /** 우클릭 시 캡처된 마우스 커서의 초기 위치 (스크린 좌표계) */
     FVector2D MousePinPosition;
-
     
-    bool bLButtonDown = false;
-    bool bRButtonDown = false;
-    
-    bool bMultiViewportMode;
-
-    float EditorWidth;
-    float EditorHeight;
-
     FEditorStateManager EditorStateManager;
+
 public:
-    TArray<std::shared_ptr<FEditorViewportClient>> GetViewports() { return ViewportClients; }
-    std::shared_ptr<FEditorViewportClient> GetViewport(uint32 Index) { return ViewportClients[Index]; }
+    TMap<HWND, FWindowViewportClientData> WindowViewportDataMap;
+public:
+
+    uint32 GetCurrentViewportClientIndex() const { return ActiveViewportClientIndex; }
+    HWND GetCurrentViewportWindow() const { return ActiveViewportWindow; }
+
+    TArray<std::shared_ptr<FEditorViewportClient>> GetViewportClients(HWND AppWnd) const
+    {
+        if (!WindowViewportDataMap.Contains(ActiveViewportWindow))
+        {
+            return TArray<std::shared_ptr<FEditorViewportClient>>();
+        }
+        
+        return WindowViewportDataMap[AppWnd].ViewportClients;
+    }
+    
     std::shared_ptr<FEditorViewportClient> GetActiveViewportClient() const
     {
-        return ActiveViewportClient;
+        if (!WindowViewportDataMap.Contains(ActiveViewportWindow))
+        {
+            return nullptr;
+        }
+        return WindowViewportDataMap[ActiveViewportWindow].ViewportClients[ActiveViewportClientIndex];
     }
-    void SetViewportClient(std::shared_ptr<FEditorViewportClient> viewportClient)
+    
+    void FocusViewportClient(HWND InAppWnd, uint32 InViewportClientIndex)
     {
-        ActiveViewportClient = viewportClient;
-    }
-    void SetViewportClient(int index)
-    {
-        ActiveViewportClient = ViewportClients[index];
+        ActiveViewportWindow = InAppWnd;
+        ActiveViewportClientIndex = InViewportClientIndex;
     }
 
     FEditorStateManager& GetEditorStateManager() { return EditorStateManager; }

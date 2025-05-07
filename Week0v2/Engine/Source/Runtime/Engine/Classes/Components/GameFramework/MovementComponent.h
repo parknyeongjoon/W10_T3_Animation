@@ -81,8 +81,8 @@ public:
 
     bool bInInitializeComponent;
 
-    virtual UObject* Duplicate() const override;
-    virtual void DuplicateSubObjects(const UObject* Source) override;
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
     virtual void PostDuplicate() override;
 
 public:

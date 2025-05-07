@@ -1,5 +1,7 @@
 #include "SWindow.h"
 
+#include "Math/Point.h"
+
 SWindow::SWindow()
 {
 }
@@ -17,17 +19,16 @@ void SWindow::Initialize(FRect initRect)
     Rect = initRect;
 }
 
-void SWindow::OnResize(float width, float height)
+void SWindow::Resize(float InWidth, float InHeight)
 {
-    Rect.width = width;
-    Rect.height = height;
+    Rect.Width = InWidth;
+    Rect.Height = InHeight;
 }
-
 
 bool SWindow::IsHover(FPoint coord) 
 {
-    return bIsHoverd = coord.x >= Rect.leftTopX && coord.x < Rect.leftTopX + Rect.width &&
-        coord.y >= Rect.leftTopY && coord.y < Rect.leftTopY + Rect.height;
+    bIsHovered = Rect.Contains(coord);
+    return bIsHovered;
 }
 
 bool SWindow::OnPressed(FPoint coord)

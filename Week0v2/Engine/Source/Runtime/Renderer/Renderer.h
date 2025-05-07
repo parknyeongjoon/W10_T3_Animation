@@ -71,8 +71,8 @@ public:
 public:
     //Render Pass Demo
     
-    void AddRenderObjectsToRenderPass() const;
-    void Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
+    void AddRenderObjectsToRenderPass(UWorld* World) const;
+    void Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewportClient);
     void EndRender() const;
     void ClearRenderObjects() const;
 

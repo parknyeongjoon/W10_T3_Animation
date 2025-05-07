@@ -5,7 +5,6 @@
 #include "Components/Mesh/StaticMesh.h"
 #include "Container/Map.h"
 #include "FBX/FBXDefine.h"
-#include "UObject/NameTypes.h"
 
 class TestFBXLoader
 {
@@ -41,8 +40,6 @@ public:
     static void AddVertexFromControlPoint(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int ControlPointIndex);
 
 private:
-    inline static bool bInitialized = false;
-    
     inline static FbxManager* FbxManager;
 
     inline static TMap<FName, FSkeletalMeshRenderData*> SkeletalMeshData;

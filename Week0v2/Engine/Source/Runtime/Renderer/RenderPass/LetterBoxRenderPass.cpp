@@ -21,11 +21,11 @@ FLetterBoxRenderPass::FLetterBoxRenderPass(const FName& InShaderName)
     LetterBoxConstantBuffer = RenderResourceManager->CreateConstantBuffer(sizeof(FLetterBoxConstants));
 }
 
-void FLetterBoxRenderPass::AddRenderObjectsToRenderPass()
+void FLetterBoxRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
     for (APlayerCameraManager* PlayerCameraManager : TObjectRange<APlayerCameraManager>())
     {
-        if (PlayerCameraManager->GetWorld() != GEngine->GetWorld())
+        if (PlayerCameraManager->GetWorld() != World)
         {
             continue;
         }

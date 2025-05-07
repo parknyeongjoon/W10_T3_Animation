@@ -1,11 +1,14 @@
 #include "EditorPlayer.h"
 
 #include "EditorViewportClient.h"
+#include "ImGuiManager.h"
 #include "ImGUI/imgui.h"
 
 #include "LaunchEngineLoop.h"
 #include "ShowFlags.h"
+#include "Viewport.h"
 #include "UnrealEd.h"
+#include "WindowsCursor.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "BaseGizmos/TransformGizmo.h"
 #include "Components/LightComponents/LightComponentBase.h"
@@ -16,6 +19,7 @@
 #include "GameFramework/Actor.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "PropertyEditor/PrimitiveDrawEditor.h"
+#include "SlateCore/Layout/SlateRect.h"
 #include "UObject/UObjectIterator.h"
 
 using namespace DirectX;
@@ -23,67 +27,113 @@ using namespace DirectX;
 void UEditorPlayer::Initialize()
 {
     FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
-    Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
-        if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
+        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+        if (EditorEngine == nullptr)
         {
             return;
         }
         
-        if (ImGui::GetIO().WantCaptureMouse) return;
+        FWindowViewportClientData& WindowViewportData = EditorEngine->GetLevelEditor()->WindowViewportDataMap[AppWnd];
+        std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
+
+        if (WindowViewportData.ViewportClients.Num() == 0)
+        {
+            return;
+        }
+
+        UWorld* World = WindowViewportData.ViewportClients[0]->GetWorld();
+        
+        if (World->WorldType != EWorldType::Editor && World->WorldType != EWorldType::EditorPreview)
+        {
+            return;
+        }
+        
+        if (ImGuiManager::Get().GetWantCaptureMouse(AppWnd))
+        {
+            return;
+        }
     
         if (InMouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
         {
             return;
         }
-        
-        POINT mousePos;
-        GetCursorPos(&mousePos);
+
+        // TODO - 해당 윈도우에만 작동하게 해야됨.
         GetCursorPos(&LastMousePosision);
         if (bLAltDown && bLCtrlDown)
         {
             MultiSelectingStart();
         }
-
-        ScreenToClient(GEngineLoop.AppWnd, &mousePos);
-    
-        FVector pickPosition;
-
-        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
-        if (EditorEngine)
+        
+        FVector2D ClientPos = FWindowsCursor::GetClientPosition(AppWnd);
+        FVector PickPosition;
+        std::shared_ptr<FEditorViewportClient> ActiveViewport = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
+        ScreenToViewSpace(ClientPos.X, ClientPos.Y, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix(), PickPosition);
+        
+        bool Result = PickGizmo(World, PickPosition);
+        if (Result == false)
         {
-            std::shared_ptr<FEditorViewportClient> ActiveViewport = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
-            ScreenToViewSpace(mousePos.x, mousePos.y, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix(), pickPosition);
-            bool Result = PickGizmo(pickPosition);
-            if (Result == false)
-            {
-                PickActor(pickPosition);
-            }
+            PickActor(World, PickPosition);
         }
     });
     
-    Handler->OnMouseMoveDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseMoveDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
-        if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
+        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+        if (EditorEngine == nullptr)
+        {
+            return;
+        }
+                
+        FWindowViewportClientData& WindowViewportData = EditorEngine->GetLevelEditor()->WindowViewportDataMap[AppWnd];
+        std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
+
+        if (WindowViewportData.ViewportClients.Num() == 0)
+        {
+            return;
+        }
+
+        UWorld* World = WindowViewportData.ViewportClients[0]->GetWorld();
+        
+        if (World->WorldType != EWorldType::Editor && World->WorldType != EWorldType::EditorPreview)
         {
             return;
         }
         
-        if (ImGui::GetIO().WantCaptureMouse)
+        if (ImGuiManager::Get().GetWantCaptureMouse(AppWnd))
         {
             return;
         }
-
+        
         if (bMultiSeleting)
         {
             MakeMulitRect();
         }
-        PickedObjControl();
+        
+        PickedObjControl(World);
     });
     
-    Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent)
+    Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
     {
-        if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
+        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+        if (EditorEngine == nullptr)
+        {
+            return;
+        }
+                
+        FWindowViewportClientData& WindowViewportData = EditorEngine->GetLevelEditor()->WindowViewportDataMap[AppWnd];
+        std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
+
+        if (WindowViewportData.ViewportClients.Num() == 0)
+        {
+            return;
+        }
+
+        UWorld* World = WindowViewportData.ViewportClients[0]->GetWorld();
+        
+        if (World->WorldType != EWorldType::Editor && World->WorldType != EWorldType::EditorPreview)
         {
             return;
         }
@@ -96,16 +146,31 @@ void UEditorPlayer::Initialize()
         bAlreadyDup = false;
         if (bMultiSeleting)
         {
-            MultiSelectingEnd();
+            MultiSelectingEnd(World);
         }
         else
         {
-            GetWorld()->SetPickingGizmo(nullptr);
+            World->SetPickingGizmo(nullptr);
         }
     });
 
-    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent)
+    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent, HWND AppWnd)
     {
+        if (InKeyEvent.GetKeyCode() == VK_LSHIFT)
+        {
+            bLShiftDown = true;
+        }
+
+        if (InKeyEvent.GetKeyCode() == VK_LCONTROL)
+        {
+            bLCtrlDown = true;
+        }
+        
+        if (InKeyEvent.GetKeyCode() == VK_LMENU)
+        {
+            bLAltDown = true;
+        }        
+        
         if (GetKeyState(VK_RBUTTON) & 0x8000)
         {
             return;
@@ -143,11 +208,24 @@ void UEditorPlayer::Initialize()
             break;
         }
     });
-}
 
-void UEditorPlayer::Tick()
-{
-    Input();
+    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent, HWND AppWnd)
+    {
+        if (InKeyEvent.GetKeyCode() == VK_LSHIFT)
+        {
+            bLShiftDown = false;
+        }
+
+        if (InKeyEvent.GetKeyCode() == VK_LCONTROL)
+        {
+            bLCtrlDown = false;
+        }
+
+        if (InKeyEvent.GetKeyCode() == VK_LMENU)
+        {
+            bLAltDown = false;
+        }
+    });
 }
 
 void UEditorPlayer::MultiSelectingStart()
@@ -156,7 +234,7 @@ void UEditorPlayer::MultiSelectingStart()
     bMultiSeleting = true;
 }
 
-void UEditorPlayer::MultiSelectingEnd()
+void UEditorPlayer::MultiSelectingEnd(UWorld* World)
 {
     POINT multiSelectingEndPos;
     GetCursorPos(&multiSelectingEndPos);
@@ -166,7 +244,7 @@ void UEditorPlayer::MultiSelectingEnd()
     long rightBottomX = std::max(multiSelectingStartPos.x, multiSelectingEndPos.x);
     long rightBottomY =  std::max(multiSelectingStartPos.y, multiSelectingEndPos.y);
 
-    GEngine->GetWorld()->ClearSelectedActors();
+    World->ClearSelectedActors();
 
     bMultiSeleting = false;
 }
@@ -189,54 +267,15 @@ void UEditorPlayer::MakeMulitRect()
     }
 }
 
-void UEditorPlayer::Input()
-{
-    ImGuiIO& io = ImGui::GetIO();
-    if (io.WantCaptureMouse) return;
-    if (GetAsyncKeyState(VK_LSHIFT) & 0x8000)
-    {
-        if (!bLShiftDown)
-        {
-            bLShiftDown = true;
-        }
-    }
-    else
-    {
-        bLShiftDown = false;
-    }
-    if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
-    {
-        if (!bLCtrlDown)
-        {
-            bLCtrlDown = true;
-        }
-    }
-    else
-    {
-        bLCtrlDown = false;
-    }
-    if (GetAsyncKeyState(VK_LMENU) & 0x8000)
-    {
-        if (!bLAltDown)
-        {
-            bLAltDown = true;
-        }
-    }
-    else
-    {
-        bLAltDown =false;
-    }
-    
-}
 
-bool UEditorPlayer::PickGizmo(FVector& pickPosition)
+bool UEditorPlayer::PickGizmo(UWorld* World, FVector& pickPosition)
 {
     bool isPickedGizmo = false;
-    if (!GetWorld()->GetSelectedActors().IsEmpty())
+    if (!World->GetSelectedActors().IsEmpty())
     {
         if (cMode == CM_TRANSLATION)
         {
-            for (auto Iter : GetWorld()->LocalGizmo->GetArrowArr())
+            for (auto Iter : World->LocalGizmo->GetArrowArr())
             {
                 int maxIntersect = 0;
                 float minDistance = FLT_MAX;
@@ -249,13 +288,13 @@ bool UEditorPlayer::PickGizmo(FVector& pickPosition)
                     {
                         minDistance = Distance;
                         maxIntersect = currentIntersectCount;
-                        GetWorld()->SetPickingGizmo(Iter);
+                        World->SetPickingGizmo(Iter);
                         isPickedGizmo = true;
                     }
                     else if (abs(Distance - minDistance) < FLT_EPSILON && currentIntersectCount > maxIntersect)
                     {
                         maxIntersect = currentIntersectCount;
-                        GetWorld()->SetPickingGizmo(Iter);
+                        World->SetPickingGizmo(Iter);
                         isPickedGizmo = true;
                     }
                 }
@@ -263,7 +302,7 @@ bool UEditorPlayer::PickGizmo(FVector& pickPosition)
         }
         else if (cMode == CM_ROTATION)
         {
-            for (auto iter : GetWorld()->LocalGizmo->GetDiscArr())
+            for (auto iter : World->LocalGizmo->GetDiscArr())
             {
                 int maxIntersect = 0;
                 float minDistance = FLT_MAX;
@@ -277,13 +316,13 @@ bool UEditorPlayer::PickGizmo(FVector& pickPosition)
                     {
                         minDistance = Distance;
                         maxIntersect = currentIntersectCount;
-                        GetWorld()->SetPickingGizmo(iter);
+                        World->SetPickingGizmo(iter);
                         isPickedGizmo = true;
                     }
                     else if (abs(Distance - minDistance) < FLT_EPSILON && currentIntersectCount > maxIntersect)
                     {
                         maxIntersect = currentIntersectCount;
-                        GetWorld()->SetPickingGizmo(iter);
+                        World->SetPickingGizmo(iter);
                         isPickedGizmo = true;
                     }
                 }
@@ -291,7 +330,7 @@ bool UEditorPlayer::PickGizmo(FVector& pickPosition)
         }
         else if (cMode == CM_SCALE)
         {
-            for (auto iter : GetWorld()->LocalGizmo->GetScaleArr())
+            for (auto iter : World->LocalGizmo->GetScaleArr())
             {
                 int maxIntersect = 0;
                 float minDistance = FLT_MAX;
@@ -304,13 +343,13 @@ bool UEditorPlayer::PickGizmo(FVector& pickPosition)
                     {
                         minDistance = Distance;
                         maxIntersect = currentIntersectCount;
-                        GetWorld()->SetPickingGizmo(iter);
+                        World->SetPickingGizmo(iter);
                         isPickedGizmo = true;
                     }
                     else if (abs(Distance - minDistance) < FLT_EPSILON && currentIntersectCount > maxIntersect)
                     {
                         maxIntersect = currentIntersectCount;
-                        GetWorld()->SetPickingGizmo(iter);
+                        World->SetPickingGizmo(iter);
                         isPickedGizmo = true;
                     }
                 }
@@ -320,7 +359,7 @@ bool UEditorPlayer::PickGizmo(FVector& pickPosition)
     return isPickedGizmo;
 }
 
-void UEditorPlayer::PickActor(const FVector& pickPosition)
+void UEditorPlayer::PickActor(UWorld* World, const FVector& pickPosition)
 {
     UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
     if (EditorEngine == nullptr)
@@ -337,7 +376,7 @@ void UEditorPlayer::PickActor(const FVector& pickPosition)
     
     if (!bLShiftDown)
     {
-        GetWorld()->ClearSelectedActors();
+        World->ClearSelectedActors();
     }
     
     const UActorComponent* Possible = nullptr;
@@ -345,6 +384,10 @@ void UEditorPlayer::PickActor(const FVector& pickPosition)
     float minDistance = FLT_MAX;
     for (const auto iter : TObjectRange<UPrimitiveComponent>())
     {
+        if (iter->GetWorld() != World)
+        {
+            continue;
+        }
         UPrimitiveComponent* pObj;
         if (iter->IsA<UPrimitiveComponent>() || iter->IsA<ULightComponentBase>())
         {
@@ -377,7 +420,7 @@ void UEditorPlayer::PickActor(const FVector& pickPosition)
     }
     if (Possible)
     {
-        GetWorld()->AddSelectedActor(Possible->GetOwner());
+        World->AddSelectedActor(Possible->GetOwner());
     }
 }
 
@@ -402,13 +445,13 @@ void UEditorPlayer::ScreenToViewSpace(int screenX, int screenY, const FMatrix& v
     auto ActiveViewport = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
 
     
-    D3D11_VIEWPORT viewport = ActiveViewport->GetD3DViewport();
+    FRect ViewportRect = ActiveViewport->GetViewport()->GetFSlateRect();
     
-    float viewportX = screenX - viewport.TopLeftX;
-    float viewportY = screenY - viewport.TopLeftY;
+    float viewportX = screenX - ViewportRect.LeftTopX;
+    float viewportY = screenY - ViewportRect.LeftTopY;
 
-    pickPosition.X = ((2.0f * viewportX / viewport.Width) - 1) / projectionMatrix[0][0];
-    pickPosition.Y = -((2.0f * viewportY / viewport.Height) - 1) / projectionMatrix[1][1];
+    pickPosition.X = ((2.0f * viewportX / ViewportRect.Width) - 1) / projectionMatrix[0][0];
+    pickPosition.Y = -((2.0f * viewportY / ViewportRect.Height) - 1) / projectionMatrix[1][1];
     if (ActiveViewport->IsOrtho())
     {
         pickPosition.Z = 0.0f;  // 오쏘 모드에서는 unproject 시 near plane 위치를 기준
@@ -483,34 +526,33 @@ int UEditorPlayer::RayIntersectsObject(const FVector& pickPosition, USceneCompon
     }
 }
 
-void UEditorPlayer::PickedObjControl()
+void UEditorPlayer::PickedObjControl(UWorld* World)
 {
-    
-    if (GetWorld()->GetPickingGizmo())
+    if (World->GetPickingGizmo())
     {
         POINT currentMousePos;
         GetCursorPos(&currentMousePos);
         int32 deltaX = currentMousePos.x - LastMousePosision.x;
         int32 deltaY = currentMousePos.y - LastMousePosision.y;
 
-        // USceneComponent* pObj = GetWorld()->GetPickingObj();
-        //AActor* PickedActor = GetWorld()->GetSelectedActors();
-        for (auto pickedActor : GetWorld()->GetSelectedActors())
+        // USceneComponent* pObj = World->GetPickingObj();
+        //AActor* PickedActor = World->GetSelectedActors();
+        for (auto pickedActor : World->GetSelectedActors())
         {
             if (pickedActor== nullptr)
                 continue;
-            UGizmoBaseComponent* Gizmo = static_cast<UGizmoBaseComponent*>(GetWorld()->GetPickingGizmo());
+            UGizmoBaseComponent* Gizmo = static_cast<UGizmoBaseComponent*>(World->GetPickingGizmo());
             switch (cMode)
             {
             case CM_TRANSLATION:
                 // SLevelEditor에 있음.
-                ControlTranslation(pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
+                ControlTranslation(World, pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
                 break;
             case CM_SCALE:
                 ControlScale(pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
                 break;
             case CM_ROTATION:
-                ControlRotation(pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
+                ControlRotation(World, pickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
                 break;
             default:
                 break;
@@ -521,7 +563,7 @@ void UEditorPlayer::PickedObjControl()
         
 }
 
-void UEditorPlayer::ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY)
+void UEditorPlayer::ControlRotation(UWorld* World, USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY)
 {
     UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
     if (EditorEngine == nullptr)
@@ -541,7 +583,7 @@ void UEditorPlayer::ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* 
 
     if (bLAltDown && !bAlreadyDup)
     {
-        GetWorld()->DuplicateSeletedActorsOnLocation();
+        World->DuplicateSelectedActorsOnLocation();
         bAlreadyDup = true;
     }
     if (Gizmo->GetGizmoType() == UGizmoBaseComponent::CircleX)
@@ -573,7 +615,7 @@ void UEditorPlayer::ControlRotation(USceneComponent* pObj, UGizmoBaseComponent* 
     }
 }
 
-void UEditorPlayer::ControlTranslation(USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY)
+void UEditorPlayer::ControlTranslation(UWorld* World, USceneComponent* pObj, UGizmoBaseComponent* Gizmo, int32 deltaX, int32 deltaY)
 {
     float DeltaX = static_cast<float>(deltaX);
     float DeltaY = static_cast<float>(deltaY);
@@ -593,7 +635,7 @@ void UEditorPlayer::ControlTranslation(USceneComponent* pObj, UGizmoBaseComponen
 
     if (bLAltDown && !bAlreadyDup)
     {
-        GetWorld()->DuplicateSeletedActorsOnLocation();
+        World->DuplicateSelectedActorsOnLocation();
         bAlreadyDup = true;
     }
     if (cdMode == CDM_LOCAL)
@@ -616,7 +658,7 @@ void UEditorPlayer::ControlTranslation(USceneComponent* pObj, UGizmoBaseComponen
     }
     else if (cdMode == CDM_WORLD)
     {
-        float Distance = (ActiveViewport->ViewTransformPerspective.GetLocation() - (*GEngine->GetWorld()->GetSelectedActors().begin())->GetActorLocation()).Magnitude();
+        float Distance = (ActiveViewport->ViewTransformPerspective.GetLocation() - (*World->GetSelectedActors().begin())->GetActorLocation()).Magnitude();
         Distance /= 100.0f;
         // 월드 좌표계에서 카메라 방향을 고려한 이동
         if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)

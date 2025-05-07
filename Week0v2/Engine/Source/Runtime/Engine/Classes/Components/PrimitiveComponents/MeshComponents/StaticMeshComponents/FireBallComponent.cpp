@@ -22,17 +22,17 @@ void UFireBallComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
 }
 
-UObject* UFireBallComponent::Duplicate() const
+UObject* UFireBallComponent::Duplicate(UObject* InOuter)
 {
-    UFireBallComponent* NewComponent = FObjectFactory::ConstructObjectFrom<UFireBallComponent>(this);
-    NewComponent->DuplicateSubObjects(this);
+    UFireBallComponent* NewComponent = FObjectFactory::ConstructObjectFrom<UFireBallComponent>(this, InOuter);
+    NewComponent->DuplicateSubObjects(this, InOuter);
     NewComponent->PostDuplicate();
     return NewComponent;
 }
 
-void UFireBallComponent::DuplicateSubObjects(const UObject* Source)
+void UFireBallComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    Super::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source, InOuter);
 }
 
 void UFireBallComponent::PostDuplicate()

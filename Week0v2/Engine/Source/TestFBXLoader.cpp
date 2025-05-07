@@ -1,24 +1,26 @@
 #include "TestFBXLoader.h"
+
 #include "Components/Material/Material.h"
 #include "Engine/FLoaderOBJ.h"
 
 bool TestFBXLoader::InitFBXManager()
 {
-    if (bInitialized)
-        return true;
-
     FbxManager = FbxManager::Create();
 
     FbxIOSettings* IOSetting = FbxIOSettings::Create(FbxManager, IOSROOT);
     FbxManager->SetIOSettings(IOSetting);
-
-    bInitialized = true;
 
     return true;
 }
 
 FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
 {
+    static bool bInitialized = false;
+    if (bInitialized == false)
+    {
+        bInitialized = true;
+        InitFBXManager();
+    }
     FbxImporter* Importer = FbxImporter::Create(FbxManager, "myImporter");
     FbxScene* Scene = FbxScene::Create(FbxManager, "myScene");
     
@@ -26,9 +28,16 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     if (!bResult)
         return nullptr;
 
+    FbxAxisSystem UnrealAxisSystem(
+    FbxAxisSystem::eZAxis,
+    FbxAxisSystem::eParityEven, // TODO Check
+    FbxAxisSystem::eLeftHanded);
+    
+    UnrealAxisSystem.ConvertScene(Scene);
+    
     Importer->Import(Scene);
     Importer->Destroy();
-    
+
     FSkeletalMeshRenderData* NewMeshData = new FSkeletalMeshRenderData();
     FRefSkeletal* RefSkeletal = new FRefSkeletal();
     
@@ -914,8 +923,8 @@ USkeletalMesh* TestFBXLoader::CreateSkeletalMesh(const FString& FilePath)
     USkeletalMesh* SkeletalMesh = GetSkeletalMesh(MeshData->Name);
     if (SkeletalMesh != nullptr)
         return SkeletalMesh;
-
-    SkeletalMesh = FObjectFactory::ConstructObject<USkeletalMesh>();
+    
+    SkeletalMesh = FObjectFactory::ConstructObject<USkeletalMesh>(nullptr);
     SkeletalMesh->SetData(MeshData->Name);
     
     SkeletalMeshMap.Add(MeshData->Name, SkeletalMesh);

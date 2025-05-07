@@ -87,18 +87,18 @@ void USpringArmComponent::DestroyComponent()
     Super::DestroyComponent();
 }
 
-UObject* USpringArmComponent::Duplicate() const
+UObject* USpringArmComponent::Duplicate(UObject* InOuter)
 {
-    Super::Duplicate();
-    USpringArmComponent* NewComp = FObjectFactory::ConstructObjectFrom<USpringArmComponent>(this);
-    NewComp->DuplicateSubObjects(this);
+    Super::Duplicate(InOuter);
+    USpringArmComponent* NewComp = FObjectFactory::ConstructObjectFrom<USpringArmComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;
 }
 
-void USpringArmComponent::DuplicateSubObjects(const UObject* Source)
+void USpringArmComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    Super::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source, InOuter);
 }
 
 void USpringArmComponent::PostDuplicate()

@@ -75,16 +75,16 @@ void UParticleSubUVComp::TickComponent(float DeltaTime)
 	finalIndexV = float(indexV) * normalHeightOffset;
 }
 
-UObject* UParticleSubUVComp::Duplicate() const
+UObject* UParticleSubUVComp::Duplicate(UObject* InOuter)
 {
-    UParticleSubUVComp* Cloned = FObjectFactory::ConstructObjectFrom(this);
-    Cloned->DuplicateSubObjects(this);
+    UParticleSubUVComp* Cloned = FObjectFactory::ConstructObjectFrom(this, InOuter);
+    Cloned->DuplicateSubObjects(this, InOuter);
     return Cloned;
 }
 
-void UParticleSubUVComp::DuplicateSubObjects(const UObject* Source)
+void UParticleSubUVComp::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    UBillboardComponent::DuplicateSubObjects(Source);
+    UBillboardComponent::DuplicateSubObjects(Source, InOuter);
 }
 
 void UParticleSubUVComp::SetRowColumnCount(int _cellsPerRow, int _cellsPerColumn)

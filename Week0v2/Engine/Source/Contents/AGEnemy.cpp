@@ -80,17 +80,17 @@ void AGEnemy::EndPlay(const EEndPlayReason::Type EndPlayReason)
     Super::EndPlay(EndPlayReason);
 }
 
-UObject* AGEnemy::Duplicate() const
+UObject* AGEnemy::Duplicate(UObject* InOuter)
 {
-    AGEnemy* NewActor = FObjectFactory::ConstructObjectFrom<AGEnemy>(this);
-    NewActor->DuplicateSubObjects(this);
+    AGEnemy* NewActor = FObjectFactory::ConstructObjectFrom<AGEnemy>(this, InOuter);
+    NewActor->DuplicateSubObjects(this, InOuter);
     return NewActor;
 }
 
-void AGEnemy::DuplicateSubObjects(const UObject* Source) // TODO: Duplicate 고치기
+void AGEnemy::DuplicateSubObjects(const UObject* Source, UObject* InOuter) // TODO: Duplicate 고치기
 {
     int heartIndex = 0;
-    Super::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source, InOuter);
     for (auto& Comp : GetComponents())
     {
         if (UStaticMeshComponent* SMComp = Cast<UStaticMeshComponent>(Comp))

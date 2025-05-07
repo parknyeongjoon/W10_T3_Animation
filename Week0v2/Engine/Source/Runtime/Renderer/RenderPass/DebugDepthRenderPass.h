@@ -10,7 +10,7 @@ public:
     {}
 
     virtual ~FDebugDepthRenderPass() {}
-	void AddRenderObjectsToRenderPass() override;
+	void AddRenderObjectsToRenderPass(UWorld* World) override;
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
 

@@ -3,7 +3,6 @@
 #include "Engine/ResourceManager.h"
 #include "LevelEditor/SlateAppMessageHandler.h"
 
-class ImGuiManager;
 class FRenderer;
 
 class FEngineLoop : IEngineLoop
@@ -20,26 +19,28 @@ public:
 
     void Exit();
     
+    HWND CreateEngineWindow(HINSTANCE hInstance, WCHAR WindowClass[], WCHAR Title[]);
+    void DestroyEngineWindow(HWND AppWnd, HINSTANCE hInstance, WCHAR WindowClass[]);
 private:
-    void WindowInit(HINSTANCE hInstance);
-    void UpdateUI() const;
+    void UpdateUI(HWND AppWnd) const;
     
     static LRESULT CALLBACK AppWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 
 public:
     FSlateAppMessageHandler* GetAppMessageHandler() const { return AppMessageHandler.get(); }
+    HWND GetDefaultWindow() const { return DefaultWindow; }
     
 public:
     static FGraphicsDevice GraphicDevice;
     static FRenderer Renderer;
     static FResourceManager ResourceManager;
-
-    HWND AppWnd;
+    
 
 private:
+    TArray<HWND> AppWindows;
+    HWND DefaultWindow;
     std::unique_ptr<FSlateAppMessageHandler> AppMessageHandler;
-    ImGuiManager* ImGuiUIManager;
     
     bool bIsExit = false;
     const uint32 TargetFPS = 1000;

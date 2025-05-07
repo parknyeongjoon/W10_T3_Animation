@@ -1,13 +1,19 @@
 #include "PropertyEditorPanel.h"
 
+#include <shellapi.h> // ShellExecute 관련 함수 정의 포함
+
+#include "ImGUI/imgui.h"
+
+#include "tinyfiledialogs/tinyfiledialogs.h"
+
 #include "Engine/World.h"
 #include "Engine/FLoaderOBJ.h"
 #include "UnrealEd/ImGuiWidget.h"
 
+#include "Math/JungleMath.h"
+
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Components/GameFramework/RotatingMovementComponent.h"
-#include <Math/JungleMath.h>
-
 #include "Components/LuaComponent.h"
 #include "Components/LightComponents/DirectionalLightComponent.h"
 #include "Components/LightComponents/PointLightComponent.h"
@@ -17,21 +23,26 @@
 #include "Components/PrimitiveComponents/UParticleSubUVComp.h"
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/CubeComp.h"
-#include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 #include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
 
 #include "LevelEditor/SLevelEditor.h"
-#include "tinyfiledialogs/tinyfiledialogs.h"
-#include <shellapi.h> // ShellExecute 관련 함수 정의 포함
 
 #include "LaunchEngineLoop.h"
+#include "PlayerCameraManager.h"
 #include "TestFBXLoader.h"
+#include "Actors/SkeletalMeshActor.h"
+#include "BaseGizmos/TransformGizmo.h"
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
+#include "Engine/StaticMeshActor.h"
 #include "Light/ShadowMapAtlas.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/FunctionRegistry.h"
 
-extern UEngine* GEngine;
+void PropertyEditorPanel::Initialize(float InWidth, float InHeight)
+{
+    Width = InWidth;
+    Height = InHeight;
+}
 
 void PropertyEditorPanel::Render()
 {
@@ -46,13 +57,8 @@ void PropertyEditorPanel::Render()
     {
         if (PickedComponent != nullptr)
         {
-            AActor* PickedActor = nullptr;
-            PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
-
-            //루트 컴포넌트면 삭제 불가
-            if (PickedComponent != PickedActor->GetRootComponent())
+            if (World->GetSelectedActors().IsEmpty() || !World->GetSelectedActors().Contains(PickedComponent->GetOwner()))
             {
-                PickedComponent->DestroyComponent();
                 PickedComponent = nullptr;
             }
         }
@@ -81,12 +87,12 @@ void PropertyEditorPanel::Render()
 
     /* Render Start */
     ImGui::Begin("Detail", nullptr, PanelFlags);
-
+    
     AActor* PickedActor = nullptr;
 
-    if (!GEngine->GetWorld()->GetSelectedActors().IsEmpty())
+    if (!World->GetSelectedActors().IsEmpty())
     {
-        PickedActor = *GEngine->GetWorld()->GetSelectedActors().begin();
+        PickedActor = *World->GetSelectedActors().begin();
     }
 
     ImVec2 imageSize = ImVec2(256, 256); // 이미지 출력 크기
@@ -253,7 +259,7 @@ void PropertyEditorPanel::Render()
 
     if (PickedActor) // Delegate Test
     {
-        RenderDelegate(GEngine->GetWorld()->GetLevel());
+        RenderDelegate(World->GetLevel());
     }
 
     if (PickedActor)
@@ -434,7 +440,7 @@ void PropertyEditorPanel::Render()
             }
             ImTextureID LightDepth = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()->GetSRV());
             ImGui::Text("Shadow Map");
-            ImGui::Image(LightDepth, imageSize);
+             (LightDepth, imageSize);
             ImTextureID LightDepth1 = reinterpret_cast<ImTextureID>(DirectionalLight->GetShadowResource()[1].GetSRV());
             ImGui::Text("Shadow Map");
             ImGui::Image(LightDepth1, imageSize);
@@ -619,10 +625,10 @@ void PropertyEditorPanel::Render()
             RenderForStaticMesh(StaticMeshComponent);
             RenderForMaterial(StaticMeshComponent);
         }
-        else if (USkeletalMeshComponent* SkeletalMeshComponet = PickedActor->GetComponentByClass<USkeletalMeshComponent>())
+        else if (USkeletalMeshComponent* SkeletalMeshComponent = PickedActor->GetComponentByClass<USkeletalMeshComponent>())
         {
-            RenderForSkeletalMesh2(SkeletalMeshComponet);
-            RenderForMaterial(SkeletalMeshComponet);
+            RenderForSkeletalMesh2(SkeletalMeshComponent);
+            RenderForMaterial(SkeletalMeshComponent);
         }
     }
 
@@ -946,7 +952,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         FString FileName = FString( P.filename().string() ); 
         
         const TMap<FString, USkeletalMesh*> Meshes = TestFBXLoader::GetSkeletalMeshes();
-        if (ImGui::BeginCombo("##StaticMesh", GetData(FileName), ImGuiComboFlags_None))
+        if (ImGui::BeginCombo("##SkeletalMesh", GetData(FileName), ImGuiComboFlags_None))
         {
             for (int i = 0; i < (int)fbxFiles.size(); ++i)
             {
@@ -986,121 +992,13 @@ void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* Skeleta
     {
         return;
     }
-
-
+    
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
     if (ImGui::TreeNodeEx("Skeletal Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::Text("Skeletal Mesh");
-
-        // 본 제어 섹션
-        if (ImGui::CollapsingHeader("Bone Controls", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            // 회전값 변경 여부를 추적
-            bool anyRotationChanged = false;
-
-            // 선택된 본이 있을 경우 회전 컨트롤 표시
-            if (SelectedBoneIndex!=-1)
-            {
-                ImGui::Separator();
-                ImGui::Text("Selected Bone: %s", GetData(SkeletalMesh->GetSkeletalMesh()->GetRenderData().Bones[SelectedBoneIndex].BoneName));
-
-                FBoneRotation* foundRotation = BoneRotations.Find(SelectedBoneIndex);
-                if (foundRotation)
-                {
-                    // 저장된 회전값이 있으면 사용
-                    XRotation = foundRotation->X;
-                    YRotation = foundRotation->Y;
-                    ZRotation = foundRotation->Z;
-                }
-                else
-                {
-                     XRotation = 0.f;
-                     YRotation = 0.f;
-                     ZRotation = 0.f;
-                }
-
-                // 회전 슬라이더
-                bool rotationChanged = false;
-                rotationChanged |= ImGui::SliderFloat("X Rotation", &XRotation, -180.0f, 180.0f, "%.1f°");
-                rotationChanged |= ImGui::SliderFloat("Y Rotation", &YRotation, -180.0f, 180.0f, "%.1f°");
-                rotationChanged |= ImGui::SliderFloat("Z Rotation", &ZRotation, -180.0f, 180.0f, "%.1f°");
-
-                // 슬라이더 값이 변경되면 맵에 저장
-                if (rotationChanged)
-                {
-                    BoneRotations[SelectedBoneIndex] = FBoneRotation(XRotation, YRotation, ZRotation);
-                    anyRotationChanged = true;
-                }
-
-                // 리셋 버튼
-                if (ImGui::Button("Reset Bone"))
-                {
-                    XRotation = 0.0f;
-                    YRotation = 0.0f;
-                    ZRotation = 0.0f;
-                    BoneRotations[SelectedBoneIndex] = FBoneRotation(0.0f, 0.0f, 0.0f);
-                    anyRotationChanged = true;
-                }
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("Reset All Bones"))
-                {
-                    // 모든 본의 회전값 초기화
-                    BoneRotations.Empty();
-                    XRotation = 0.0f;
-                    YRotation = 0.0f;
-                    ZRotation = 0.0f;
-                    anyRotationChanged = true;
-                }
-            }
-
-            // 회전값이 변경된 경우에만 적용
-            if (anyRotationChanged)
-            {
-                // 모든 본에 회전 적용
-                SkeletalMesh->GetSkeletalMesh()->ResetToOriginalPose();
-
-                // 저장된 모든 본 회전을 적용
-                for (auto& Pair : BoneRotations)
-                {
-                    const int& BoneName = Pair.Key;
-                    const FBoneRotation& Rotation = Pair.Value;
-
-                    int boneIndex = BoneName;
-                    if (boneIndex >= 0)
-                    {
-                        // 각 축별로 회전 적용 (로컬 변환만)
-                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.X, FVector(1.0f, 0.0f, 0.0f));
-                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.Y, FVector(0.0f, 1.0f, 0.0f));
-                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.Z, FVector(0.0f, 0.0f, 1.0f));
-                    }
-                }
-
-                // 모든 회전 적용 후 한 번만 업데이트
-                SkeletalMesh->GetSkeletalMesh()->UpdateBoneHierarchy();
-                SkeletalMesh->GetSkeletalMesh()->UpdateSkinnedVertices();
-            }
-        }
-
-        // 계층적 본 구조 표시
-        if (ImGui::CollapsingHeader("Bone Hierarchy", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            // RefSkeletal이 없는 경우 처리
-            if (SkeletalMesh->GetSkeletalMesh()->GetRefSkeletal() == nullptr)
-            {
-                ImGui::Text("No skeletal hierarchy available");
-            }
-            else
-            {
-                // 루트 본부터 계층 구조 표시
-                for (const auto& RootBoneIndex : SkeletalMesh->GetSkeletalMesh()->GetRefSkeletal()->RootBoneIndices)
-                {
-                    RenderBoneHierarchy(SkeletalMesh->GetSkeletalMesh(), RootBoneIndex);
-                }
-            }
-        }
+        
+        DrawSkeletalMeshPreviewButton(SkeletalMesh->GetSkeletalMesh());
 
         ImGui::TreePop();
     }
@@ -1843,6 +1741,47 @@ void PropertyEditorPanel::RenderDelegate(ULevel* level)
             }
             ImGui::EndCombo();
         }
+    }
+}
+
+void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(USkeletalMesh* SkeletalMesh)
+{
+    if (ImGui::Button("Preview##"))
+    {
+        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+        if (EditorEngine == nullptr)
+        {
+            return;
+        }
+        
+        UWorld* World = EditorEngine->CreatePreviewWindow();
+
+        const TArray<AActor*> CopiedActors = World->GetActors();
+        for (AActor* Actor : CopiedActors)
+        {
+            if (Actor->IsA<UTransformGizmo>() || Actor->IsA<APlayerCameraManager>())
+            {
+                continue;
+            }
+
+            Actor->Destroy();
+        }
+        World->ClearSelectedActors();
+        
+        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+        TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
+        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+        FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
+        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
+        MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetDiffuse(FVector::OneVector);
+        MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetEmissive(FVector::OneVector);
+        MeshComp->SetWorldRotation(FRotator(0.0f, 0.0f, 90.0f));
+        TempActor->SetActorScale(FVector(1.0f, 1.0f, 1.0f));
+
+        ASkeletalMeshActor* SkeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
+        SkeletalMeshActor->SetActorLabel("SkeletalMesh");
+        USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->GetComponentByClass<USkeletalMeshComponent>();
+        SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
     }
 }
 

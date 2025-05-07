@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Define.h"
+#include "SlateCore/Layout/SlateRect.h"
+
+struct FPoint;
 
 class SWindow
 {
@@ -10,24 +12,22 @@ public:
     virtual ~SWindow();
 
     virtual void Initialize(FRect initRect);
-    virtual void OnResize(float width, float height);
+    virtual void Resize(float InWidth, float InHeight);
 
-    FRect Rect;
-    void SetRect(FRect newRect) { Rect = newRect; }
-    bool IsHover(FPoint coord);
     virtual bool OnPressed(FPoint coord);
     virtual bool OnReleased();
     
-    bool IsPressing() { return bIsPressed; }
-
-    virtual bool IsSplitterPressed() const { return bIsSplitterPressed; }
-
-
+    void SetRect(FRect NewRect) { Rect = NewRect; }
+    const FRect& GetRect() const { return Rect; }
+    
+    bool IsPressed() const { return bIsPressed; }
+    bool IsHover(FPoint coord);
+    
     
 protected:
-    bool bIsHoverd = false;
+    bool bIsHovered = false;
     bool bIsPressed = false;
-    bool bIsSplitterPressed = false;
-
+    
+    FRect Rect;
 };
 

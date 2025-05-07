@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "FBX/FBXDefine.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
@@ -32,6 +32,7 @@ public:
     void ApplyRotationToBone(int BoneIndex, float AngleInDegrees, const FVector& RotationAxis);
     
 private:
+    
     FSkeletalMeshRenderData SkeletalMeshRenderData;
     FRefSkeletal* RefSkeletal = nullptr;
     TArray<FMaterialSlot*> MaterialSlots;

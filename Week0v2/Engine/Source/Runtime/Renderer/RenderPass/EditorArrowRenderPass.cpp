@@ -4,7 +4,7 @@ FEditorArrowRenderPass::~FEditorArrowRenderPass()
 {
 }
 
-void FEditorArrowRenderPass::AddRenderObjectsToRenderPass()
+void FEditorArrowRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
 }
 

@@ -1,6 +1,7 @@
 #include "EditorEngine.h"
 
 #include "LaunchEngineLoop.h"
+#include "WindowsCursor.h"
 #include "Engine/World.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/UnrealEd.h"
@@ -15,6 +16,7 @@
 #include "UnrealEd/EditorPlayer.h"
 #include "UObject/Casts.h"
 #include "Engine/AssetManager.h"
+#include "UnrealEd/SkeletalPreviewUI.h"
 
 class ULevel;
 
@@ -23,84 +25,70 @@ FCollisionManager UEditorEngine::CollisionManager;
 FCoroutineManager UEditorEngine::CoroutineManager;
 
 UEditorEngine::UEditorEngine()
-    : LevelEditor(nullptr)
+    : testBlurStrength(0)
     , UnrealEditor(nullptr)
-    , ActiveWorld(nullptr)
     , ContentsUI(nullptr)
+    , LevelEditor(nullptr)
 {
 }
 
-void UEditorEngine::Init(HWND hWnd)
+void UEditorEngine::Init()
 {
-    Super::Init(hWnd);
+    Super::Init();
     LevelEditor = new SLevelEditor();
     UnrealEditor = new UnrealEd();
     ContentsUI = new FContentsUI();
+    SkeletalPreviewUI = new FSkeletalPreviewUI();
 
-    RECT ClientRect = {};
-    GetClientRect(GEngineLoop.AppWnd, &ClientRect);
-    float ClientWidth = ClientRect.right - ClientRect.left;
-    float ClientHeight = ClientRect.bottom - ClientRect.top;
-
+    UWorld* EditorWorld = CreateWorld(EWorldType::Editor, LEVELTICK_ViewportsOnly);
+    
     /* must be initialized before window. */
-    LevelEditor->Initialize(ClientWidth, ClientHeight);
-    UnrealEditor->Initialize(LevelEditor);
+    LevelEditor->Initialize(EditorWorld, GEngineLoop.GetDefaultWindow());
+
+    UnrealEditor->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
+    SkeletalPreviewUI->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
     ContentsUI->Initialize();
-    CollisionManager.Initialize();
-    FLuaManager::Get().Initialize();
-    
-    UnrealEditor->OnResize(hWnd);
-    ContentsUI->OnResize(hWnd);
+    CollisionManager.Initialize();  
+    FLuaManager::Get().Initialize();    
 
-    std::shared_ptr<FWorldContext> EditorContext = CreateNewWorldContext(EWorldType::Editor);
-
-    EditorWorld = FObjectFactory::ConstructObject<UWorld>();
-    EditorWorld->WorldType = EWorldType::Editor;
-    
-    EditorContext->SetWorld(EditorWorld);
-    ActiveWorld = EditorWorld;
-    ActiveWorld->InitWorld(); // UISOO Check
-
-    EditorPlayer = FObjectFactory::ConstructObject<UEditorPlayer>();
+    EditorPlayer = FObjectFactory::ConstructObject<UEditorPlayer>(this);
     EditorPlayer->Initialize();
     
     RegisterWaitHelpers(FLuaManager::Get().GetLuaState());
 
     if (AssetManager == nullptr)
     {
-        AssetManager = FObjectFactory::ConstructObject<UAssetManager>();
+        AssetManager = FObjectFactory::ConstructObject<UAssetManager>(this);
         assert(AssetManager);
         AssetManager->InitAssetManager();
     }
 }
 
-void UEditorEngine::Tick(float deltaSeconds)
+void UEditorEngine::Tick(float DeltaTime)
 {
-    ActiveWorld->Tick(LevelType, deltaSeconds);
-    EditorPlayer->Tick();
+    for (const auto& [World, WorldContext] : WorldContexts)
+    {
+        WorldContext->GetWorld()->Tick(WorldContext->LevelType, DeltaTime);
+    }
     
-    CollisionManager.UpdateCollision(deltaSeconds);
+    CollisionManager.UpdateCollision(DeltaTime);
     
     Input();
     
-    LevelEditor->Tick(LevelType, deltaSeconds);
+    LevelEditor->Tick(DeltaTime);
 
-    if (LevelEditor->GetEditorStateManager().GetEditorState() != EEditorState::Playing || bForceEditorUI == true )
-    {
-        UnrealEditor->Render();
-    }
-    else
-    {
-        ContentsUI->Render();
-    }
-
-    CoroutineManager.Tick(deltaSeconds);
+    CoroutineManager.Tick(DeltaTime);
     CoroutineManager.CleanupCoroutines();
 }
 
 void UEditorEngine::Release()
 {
-    ActiveWorld->Release();
+    for (const auto& [World, WorldContext] : WorldContexts)
+    {
+        World->Release();
+    }
+    WorldContexts.Empty();
+    
     LevelEditor->Release();
     
     CollisionManager.Release();
@@ -109,6 +97,7 @@ void UEditorEngine::Release()
     
     delete LevelEditor;
     delete UnrealEditor;
+    delete SkeletalPreviewUI;
     delete ContentsUI;
 }
 
@@ -153,41 +142,30 @@ void UEditorEngine::Input()
     }
 }
 
-UWorld* UEditorEngine::GetWorld()
-{
-    return ActiveWorld;
-}
-
 void UEditorEngine::PreparePIE()
 {
-    std::shared_ptr<FWorldContext> PIEWorldContext = CreateNewWorldContext(EWorldType::PIE);
-    
-    PIEWorld = Cast<UWorld>(EditorWorld->Duplicate());
+    UWorld* PIEWorld = Cast<UWorld>(EditorWorldContext->GetWorld()->Duplicate(this));
     PIEWorld->WorldType = EWorldType::PIE;
-
-    PIEWorldContext->SetWorld(PIEWorld);
-    ActiveWorld = PIEWorld;
-    
-    LevelType = LEVELTICK_All;    
+    PIEWorld->InitWorld();
+    std::shared_ptr<FWorldContext> PIEWorldContext = CreateNewWorldContext(PIEWorld, EWorldType::PIE, LEVELTICK_All);
 }
 
 void UEditorEngine::StartPIE()
 {
     // 1. BeingPlay() 호출
-    ActiveWorld->BeginPlay();
-    LevelType = LEVELTICK_All;
+    PIEWorldContext->GetWorld()->BeginPlay();
     UE_LOG(LogLevel::Error, "Start PIE");
 }
 
 void UEditorEngine::PausedPIE()
 {
-    if (LevelType == LEVELTICK_All)
+    if (PIEWorldContext->LevelType == LEVELTICK_All)
     {
-        LevelType = LEVELTICK_PauseTick;
+        PIEWorldContext->LevelType = LEVELTICK_PauseTick;
     }
-    else if (LevelType == LEVELTICK_PauseTick)
+    else if (PIEWorldContext->LevelType == LEVELTICK_PauseTick)
     {
-        LevelType = LEVELTICK_All;
+        PIEWorldContext->LevelType = LEVELTICK_All;
     }
     UE_LOG(LogLevel::Error, "Pause PIE");
 }
@@ -199,34 +177,36 @@ void UEditorEngine::ResumingPIE()
 
 void UEditorEngine::StopPIE()
 {
-    if (PIEWorld == nullptr)
+    if (PIEWorldContext == nullptr)
     {
         MessageBox(nullptr, L"PIE WORLD is not exist", nullptr, MB_OK | MB_ICONERROR);
+        return;
     }
 
-    ActiveWorld->Release();
+    WorldContexts.Remove(PIEWorldContext->GetWorld());
     
-    PIEWorld = nullptr;
-    WorldContexts.Remove(WorldContexts[1]);
+    PIEWorldContext->GetWorld()->Release();
     
-    ActiveWorld = EditorWorld;
-    LevelType = LEVELTICK_ViewportsOnly;
+    
+    PIEWorldContext = nullptr;
 }
 
-void UEditorEngine::UpdateGizmos()
+void UEditorEngine::UpdateGizmos(UWorld* World)
 {
     for (UGizmoBaseComponent* GizmoComp : TObjectRange<UGizmoBaseComponent>())
     {
-        if (ActiveWorld != GizmoComp->GetWorld())
+        if (World != GizmoComp->GetWorld())
         {
             continue;
         }
         
-        if (!ActiveWorld->GetSelectedActors().IsEmpty())
+        if (!World->GetSelectedActors().IsEmpty())
         {
-            AActor* PickedActor = *ActiveWorld->GetSelectedActors().begin();
-            if (PickedActor == nullptr)
+            AActor* PickedActor = *World->GetSelectedActors().begin();
+            if (PickedActor == nullptr || PickedActor->GetRootComponent() == nullptr)
+            {
                 break;
+            }
             std::shared_ptr<FEditorViewportClient> activeViewport = GetLevelEditor()->GetActiveViewportClient();
             if (activeViewport->IsPerspective())
             {
@@ -245,11 +225,56 @@ void UEditorEngine::UpdateGizmos()
     }
 }
 
-std::shared_ptr<FWorldContext> UEditorEngine::CreateNewWorldContext(EWorldType::Type InWorldType)
+UWorld* UEditorEngine::CreateWorld(EWorldType::Type WorldType, ELevelTick LevelTick)
+{
+    UWorld* World = FObjectFactory::ConstructObject<UWorld>(this);
+    World->WorldType = WorldType;
+    World->InitWorld();
+    std::shared_ptr<FWorldContext> EditorContext = CreateNewWorldContext(World, WorldType, LevelTick);
+
+    return World;
+}
+
+void UEditorEngine::RemoveWorld(UWorld* World)
+{
+    if (World == PreviewWorld)
+    {
+        PreviewWorld = nullptr;
+    }
+    World->Release();    
+    WorldContexts.Remove(World);
+}
+
+UWorld* UEditorEngine::CreatePreviewWindow()
+{
+    if (PreviewWorld != nullptr)
+    {
+        return PreviewWorld;
+    }
+    
+    WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass";
+    WCHAR EnginePreviewTitle[] = L"Preview";
+
+    HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(GEngineLoop.GetDefaultWindow(), GWLP_HINSTANCE));
+    HWND AppWnd = GEngineLoop.CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
+        
+    PreviewWorld = CreateWorld(EWorldType::EditorPreview, LEVELTICK_ViewportsOnly);
+        
+    std::shared_ptr<FEditorViewportClient> EditorViewportClient = GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, PreviewWorld);
+    EditorViewportClient->SetViewMode(VMI_Unlit);
+
+    return PreviewWorld;
+}
+
+std::shared_ptr<FWorldContext> UEditorEngine::CreateNewWorldContext(UWorld* InWorld, EWorldType::Type InWorldType, ELevelTick LevelType)
 {
     std::shared_ptr<FWorldContext> NewWorldContext = std::make_shared<FWorldContext>();
     NewWorldContext->WorldType = InWorldType;
-    WorldContexts.Add(NewWorldContext);
+    WorldContexts.Add(InWorld, NewWorldContext);
+    
+
+    NewWorldContext->LevelType = LevelType;
+    NewWorldContext->SetWorld(InWorld);
     
 
     return NewWorldContext;

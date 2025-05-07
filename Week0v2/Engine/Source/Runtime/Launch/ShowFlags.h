@@ -16,5 +16,6 @@ namespace EEngineShowFlags
         SF_Shadow = 1ULL << 7,
         SF_Collision = 1ULL << 8,
         SF_CollisionSelectedOnly = 1ULL << 9,
+        SF_SkeletalMesh = 1ULL << 10,
     };
 }

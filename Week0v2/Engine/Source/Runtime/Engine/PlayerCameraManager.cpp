@@ -28,7 +28,7 @@ APlayerCameraManager::APlayerCameraManager(const APlayerCameraManager& Other)
     // PostProcessBlendCacheWeights(Other.PostProcessBlendCacheWeights),
     // PostProcessBlendCacheOrders(Other.PostProcessBlendCacheOrders)
 {
-    //GEngine->GetWorld()->SetPlayerCameraManager(this);
+    //GetWorld()->SetPlayerCameraManager(this);
 }
 
 void APlayerCameraManager::AddCameraModifier(UCameraModifier* Modifier)
@@ -39,10 +39,10 @@ void APlayerCameraManager::AddCameraModifier(UCameraModifier* Modifier)
     }
 }
 
-UObject* APlayerCameraManager::Duplicate() const
+UObject* APlayerCameraManager::Duplicate(UObject* InOuter)
 {
-    APlayerCameraManager* ClonedActor = FObjectFactory::ConstructObjectFrom<APlayerCameraManager>(this);
-    ClonedActor->DuplicateSubObjects(this);
+    APlayerCameraManager* ClonedActor = FObjectFactory::ConstructObjectFrom<APlayerCameraManager>(this, InOuter);
+    ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }
