@@ -278,10 +278,10 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
             PhongRenderPass->Execute(ActiveViewportClient);
         }
 
-        if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_SkeletalMesh))
+        if (ActiveViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_SkeletalMesh))
         {
-            SkeletalRenderPass->Prepare(ActiveViewport);
-            SkeletalRenderPass->Execute(ActiveViewport);
+            SkeletalRenderPass->Prepare(ActiveViewportClient);
+            SkeletalRenderPass->Execute(ActiveViewportClient);
         }
     }
 
