@@ -1,7 +1,10 @@
+﻿#pragma once
+
 #pragma once
 #include "Define.h"
 #include "UnrealEd/EditorPanel.h"
 
+struct FBoneRotation;
 class AActor;
 class USkeletalMeshComponent;
 class UActorComponent;
@@ -9,17 +12,7 @@ class UStaticMeshComponent;
 class USceneComponent;
 class ULevel;
 
-struct FBoneRotation
-{
-    float X;
-    float Y;
-    float Z;
-    
-    FBoneRotation() : X(0.0f), Y(0.0f), Z(0.0f) {}
-    FBoneRotation(float InX, float InY, float InZ) : X(InX), Y(InY), Z(InZ) {}
-};
-
-class PropertyEditorPanel : public UEditorPanel
+class SkeletalPreviewPropertyEditorPanel : public UEditorPanel
 {
 public:
     void Initialize(float InWidth, float InHeight);
@@ -34,7 +27,6 @@ private:
     void HSVToRGB(float h, float s, float v, float& r, float& g, float& b) const;
 
     /* Static Mesh Settings */
-    void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp);
     void RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp);
     void RenderForSkeletalMesh2(USkeletalMeshComponent* SkeletalMesh);
     void RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int BoneIndex);
@@ -49,8 +41,6 @@ private:
     void RenderForLua(class ULuaComponent* LuaComponent);
     void RenderShapeProperty(AActor* PickedActor);
     void RenderDelegate(ULevel* level);
-    
-    void DrawSkeletalMeshPreviewButton(USkeletalMesh* SkeletalMesh);
     
 private:
     float Width = 0, Height = 0;

@@ -26,6 +26,7 @@
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 #include "Components/USpringArmComponent.h"
+#include "Components/Mesh/StaticMesh.h"
 
 #include "Contents/AGBullet.h"
 #include "Contents/AGPlayer.h"
@@ -418,6 +419,8 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
+                    MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetDiffuse(FVector::OneVector);
+                    MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetEmissive(FVector::OneVector);
                     TempActor->SetActorRotation(FRotator(0.0f, 0.0f, 90.0f));
                     TempActor->SetActorScale(FVector(1.0f, 1.0f, 1.0f));
                     SpawnedActor = TempActor;

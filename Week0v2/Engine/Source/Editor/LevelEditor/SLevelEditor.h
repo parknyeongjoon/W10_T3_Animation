@@ -82,11 +82,20 @@ public:
 
     TArray<std::shared_ptr<FEditorViewportClient>> GetViewportClients(HWND AppWnd) const
     {
+        if (!WindowViewportDataMap.Contains(ActiveViewportWindow))
+        {
+            return TArray<std::shared_ptr<FEditorViewportClient>>();
+        }
+        
         return WindowViewportDataMap[AppWnd].ViewportClients;
     }
     
     std::shared_ptr<FEditorViewportClient> GetActiveViewportClient() const
     {
+        if (!WindowViewportDataMap.Contains(ActiveViewportWindow))
+        {
+            return nullptr;
+        }
         return WindowViewportDataMap[ActiveViewportWindow].ViewportClients[ActiveViewportClientIndex];
     }
     

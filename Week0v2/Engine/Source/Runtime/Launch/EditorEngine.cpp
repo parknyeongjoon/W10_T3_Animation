@@ -260,7 +260,8 @@ UWorld* UEditorEngine::CreatePreviewWindow()
         
     PreviewWorld = CreateWorld(EWorldType::EditorPreview, LEVELTICK_ViewportsOnly);
         
-    GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, PreviewWorld);
+    std::shared_ptr<FEditorViewportClient> EditorViewportClient = GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, PreviewWorld);
+    EditorViewportClient->SetViewMode(VMI_Unlit);
 
     return PreviewWorld;
 }

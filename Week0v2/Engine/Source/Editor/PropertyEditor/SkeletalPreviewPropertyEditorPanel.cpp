@@ -1,4 +1,4 @@
-#include "PropertyEditorPanel.h"
+﻿#include "SkeletalPreviewPropertyEditorPanel.h"
 
 #include <shellapi.h> // ShellExecute 관련 함수 정의 포함
 
@@ -30,21 +30,29 @@
 #include "LaunchEngineLoop.h"
 #include "PlayerCameraManager.h"
 #include "TestFBXLoader.h"
-#include "Actors/SkeletalMeshActor.h"
-#include "BaseGizmos/TransformGizmo.h"
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
-#include "Engine/StaticMeshActor.h"
 #include "Light/ShadowMapAtlas.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/FunctionRegistry.h"
 
-void PropertyEditorPanel::Initialize(float InWidth, float InHeight)
+
+struct FBoneRotation
+{
+    float X;
+    float Y;
+    float Z;
+    
+    FBoneRotation() : X(0.0f), Y(0.0f), Z(0.0f) {}
+    FBoneRotation(float InX, float InY, float InZ) : X(InX), Y(InY), Z(InZ) {}
+};
+
+void SkeletalPreviewPropertyEditorPanel::Initialize(float InWidth, float InHeight)
 {
     Width = InWidth;
     Height = InHeight;
 }
 
-void PropertyEditorPanel::Render()
+void SkeletalPreviewPropertyEditorPanel::Render()
 {
     UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
     if (EditorEngine == nullptr)
@@ -622,13 +630,12 @@ void PropertyEditorPanel::Render()
     {
         if (UStaticMeshComponent* StaticMeshComponent = PickedActor->GetComponentByClass<UStaticMeshComponent>())
         {
-            RenderForStaticMesh(StaticMeshComponent);
             RenderForMaterial(StaticMeshComponent);
         }
-        else if (USkeletalMeshComponent* SkeletalMeshComponent = PickedActor->GetComponentByClass<USkeletalMeshComponent>())
+        else if (USkeletalMeshComponent* SkeletalMeshComponet = PickedActor->GetComponentByClass<USkeletalMeshComponent>())
         {
-            RenderForSkeletalMesh2(SkeletalMeshComponent);
-            RenderForMaterial(SkeletalMeshComponent);
+            RenderForSkeletalMesh2(SkeletalMeshComponet);
+            RenderForMaterial(SkeletalMeshComponet);
         }
     }
 
@@ -783,7 +790,7 @@ void PropertyEditorPanel::Render()
     ImGui::End();
 }
 
-void PropertyEditorPanel::DrawSceneComponentTree(USceneComponent* Component, UActorComponent*& PickedComponent)
+void SkeletalPreviewPropertyEditorPanel::DrawSceneComponentTree(USceneComponent* Component, UActorComponent*& PickedComponent)
 {
     if (!Component) return;
 
@@ -814,7 +821,7 @@ void PropertyEditorPanel::DrawSceneComponentTree(USceneComponent* Component, UAc
     }
 }
 
-void PropertyEditorPanel::DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent)
+void SkeletalPreviewPropertyEditorPanel::DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent)
 {
     if (!Component) return;
 
@@ -831,7 +838,7 @@ void PropertyEditorPanel::DrawActorComponent(UActorComponent* Component, UActorC
     }
 }
 
-void PropertyEditorPanel::RGBToHSV(float r, float g, float b, float& h, float& s, float& v) const
+void SkeletalPreviewPropertyEditorPanel::RGBToHSV(float r, float g, float b, float& h, float& s, float& v) const
 {
     float mx = FMath::Max(r, FMath::Max(g, b));
     float mn = FMath::Min(r, FMath::Min(g, b));
@@ -868,7 +875,7 @@ void PropertyEditorPanel::RGBToHSV(float r, float g, float b, float& h, float& s
     }
 }
 
-void PropertyEditorPanel::HSVToRGB(float h, float s, float v, float& r, float& g, float& b) const
+void SkeletalPreviewPropertyEditorPanel::HSVToRGB(float h, float s, float v, float& r, float& g, float& b) const
 {
     // h: 0~360, s:0~1, v:0~1
     float c = v * s;
@@ -886,41 +893,7 @@ void PropertyEditorPanel::HSVToRGB(float h, float s, float v, float& r, float& g
     r += m;  g += m;  b += m;
 }
 
-void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp)
-{
-    if (StaticMeshComp->GetStaticMesh() == nullptr)
-    {
-        return;
-    }
-
-    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-    if (ImGui::TreeNodeEx("Static Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
-    {
-        ImGui::Text("StaticMesh");
-        ImGui::SameLine();
-
-        FString PreviewName = StaticMeshComp->GetStaticMesh()->GetRenderData()->DisplayName;
-        const TMap<FWString, UStaticMesh*> Meshes = FManagerOBJ::GetStaticMeshes();
-        if (ImGui::BeginCombo("##StaticMesh", GetData(PreviewName), ImGuiComboFlags_None))
-        {
-            for (const auto Mesh : Meshes)
-            {
-                if (ImGui::Selectable(GetData(Mesh.Value->GetRenderData()->DisplayName), false))
-                {
-                    StaticMeshComp->SetStaticMesh(Mesh.Value);
-                }
-            }
-
-            ImGui::EndCombo();
-        }
-
-        ImGui::TreePop();
-    }
-    ImGui::PopStyleColor();
-}
-
-
-void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp)
+void SkeletalPreviewPropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp)
 {
     if (SkeletalMeshComp->GetSkeletalMesh() == nullptr)
     {
@@ -931,7 +904,6 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
     if (ImGui::TreeNodeEx("Skeletal Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
         ImGui::Text("Skeletal Mesh");
-        ImGui::SameLine();
 
         std::vector<std::string> fbxFiles;
         static const std::string folder = std::filesystem::current_path().string() + "/Contents/FBX";
@@ -986,7 +958,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
     ImGui::PopStyleColor();
 }
 
-void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* SkeletalMesh)
+void SkeletalPreviewPropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* SkeletalMesh)
 {
     if (SkeletalMesh->GetSkeletalMesh() == nullptr)
     {
@@ -997,15 +969,123 @@ void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* Skeleta
     if (ImGui::TreeNodeEx("Skeletal Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::Text("Skeletal Mesh");
-        
-        DrawSkeletalMeshPreviewButton(SkeletalMesh->GetSkeletalMesh());
+        ImGui::SameLine();
+
+        // 본 제어 섹션
+        if (ImGui::CollapsingHeader("Bone Controls", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            // 회전값 변경 여부를 추적
+            bool anyRotationChanged = false;
+
+            // 선택된 본이 있을 경우 회전 컨트롤 표시
+            if (SelectedBoneIndex!=-1)
+            {
+                ImGui::Separator();
+                ImGui::Text("Selected Bone: %s", GetData(SkeletalMesh->GetSkeletalMesh()->GetRenderData().Bones[SelectedBoneIndex].BoneName));
+
+                FBoneRotation* foundRotation = BoneRotations.Find(SelectedBoneIndex);
+                if (foundRotation)
+                {
+                    // 저장된 회전값이 있으면 사용
+                    XRotation = foundRotation->X;
+                    YRotation = foundRotation->Y;
+                    ZRotation = foundRotation->Z;
+                }
+                else
+                {
+                     XRotation = 0.f;
+                     YRotation = 0.f;
+                     ZRotation = 0.f;
+                }
+
+                // 회전 슬라이더
+                bool rotationChanged = false;
+                rotationChanged |= ImGui::SliderFloat("X Rotation", &XRotation, -180.0f, 180.0f, "%.1f°");
+                rotationChanged |= ImGui::SliderFloat("Y Rotation", &YRotation, -180.0f, 180.0f, "%.1f°");
+                rotationChanged |= ImGui::SliderFloat("Z Rotation", &ZRotation, -180.0f, 180.0f, "%.1f°");
+
+                // 슬라이더 값이 변경되면 맵에 저장
+                if (rotationChanged)
+                {
+                    BoneRotations[SelectedBoneIndex] = FBoneRotation(XRotation, YRotation, ZRotation);
+                    anyRotationChanged = true;
+                }
+
+                // 리셋 버튼
+                if (ImGui::Button("Reset Bone"))
+                {
+                    XRotation = 0.0f;
+                    YRotation = 0.0f;
+                    ZRotation = 0.0f;
+                    BoneRotations[SelectedBoneIndex] = FBoneRotation(0.0f, 0.0f, 0.0f);
+                    anyRotationChanged = true;
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("Reset All Bones"))
+                {
+                    // 모든 본의 회전값 초기화
+                    BoneRotations.Empty();
+                    XRotation = 0.0f;
+                    YRotation = 0.0f;
+                    ZRotation = 0.0f;
+                    anyRotationChanged = true;
+                }
+            }
+
+            // 회전값이 변경된 경우에만 적용
+            if (anyRotationChanged)
+            {
+                // 모든 본에 회전 적용
+                SkeletalMesh->GetSkeletalMesh()->ResetToOriginalPose();
+
+                // 저장된 모든 본 회전을 적용
+                for (auto& Pair : BoneRotations)
+                {
+                    const int& BoneName = Pair.Key;
+                    const FBoneRotation& Rotation = Pair.Value;
+
+                    int boneIndex = BoneName;
+                    if (boneIndex >= 0)
+                    {
+                        // 각 축별로 회전 적용 (로컬 변환만)
+                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.X, FVector(1.0f, 0.0f, 0.0f));
+                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.Y, FVector(0.0f, 1.0f, 0.0f));
+                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.Z, FVector(0.0f, 0.0f, 1.0f));
+                    }
+                }
+
+                // 모든 회전 적용 후 한 번만 업데이트
+                SkeletalMesh->GetSkeletalMesh()->UpdateBoneHierarchy();
+                SkeletalMesh->GetSkeletalMesh()->UpdateSkinnedVertices();
+            }
+        }
+
+        // 계층적 본 구조 표시
+        if (ImGui::CollapsingHeader("Bone Hierarchy", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            // RefSkeletal이 없는 경우 처리
+            if (SkeletalMesh->GetSkeletalMesh()->GetRefSkeletal() == nullptr)
+            {
+                ImGui::Text("No skeletal hierarchy available");
+            }
+            else
+            {
+                // 루트 본부터 계층 구조 표시
+                for (const auto& RootBoneIndex : SkeletalMesh->GetSkeletalMesh()->GetRefSkeletal()->RootBoneIndices)
+                {
+                    RenderBoneHierarchy(SkeletalMesh->GetSkeletalMesh(), RootBoneIndex);
+                }
+            }
+        }
 
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();
 }
 
-void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32 BoneIndex)
+void SkeletalPreviewPropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32 BoneIndex)
 {
     // 범위 체크
     if (BoneIndex < 0 || BoneIndex >= SkeletalMesh->GetRenderData().Bones.Num())
@@ -1084,12 +1164,12 @@ void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32
 }
 
 // 뼈가 선택되었을 때 호출되는 함수
-void PropertyEditorPanel::OnBoneSelected(int BoneIndex)
+void SkeletalPreviewPropertyEditorPanel::OnBoneSelected(int BoneIndex)
 {
     SelectedBoneIndex = BoneIndex;
 }
 
-void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp)
+void SkeletalPreviewPropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp)
 {
     if (StaticMeshComp->GetStaticMesh() == nullptr)
     {
@@ -1155,7 +1235,7 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
     }
 }
 
-void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMeshComp)
+void SkeletalPreviewPropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMeshComp)
 {
     if (SkeletalMeshComp->GetSkeletalMesh() == nullptr)
     {
@@ -1221,7 +1301,7 @@ void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMesh
     }
 }
 
-void PropertyEditorPanel::RenderMaterialView(UMaterial* Material, bool IsStaticMesh)
+void SkeletalPreviewPropertyEditorPanel::RenderMaterialView(UMaterial* Material, bool IsStaticMesh)
 {
     ImGui::SetNextWindowSize(ImVec2(380, 400), ImGuiCond_Once);
     ImGui::Begin("Material Viewer", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav);
@@ -1334,7 +1414,7 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material, bool IsStaticM
     ImGui::End();
 }
 
-void PropertyEditorPanel::RenderCreateMaterialView()
+void SkeletalPreviewPropertyEditorPanel::RenderCreateMaterialView()
 {
     ImGui::SetNextWindowSize(ImVec2(300, 500), ImGuiCond_Once);
     ImGui::Begin("Create Material Viewer", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav);
@@ -1431,7 +1511,7 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     ImGui::End();
 }
 
-void PropertyEditorPanel::RenderForLua(ULuaComponent* LuaComponent)
+void SkeletalPreviewPropertyEditorPanel::RenderForLua(ULuaComponent* LuaComponent)
 {
      ULuaComponent* LuaComp = Cast<ULuaComponent>(PickedComponent); // Lua 컴포넌트로 캐스팅
 
@@ -1647,7 +1727,7 @@ void PropertyEditorPanel::RenderForLua(ULuaComponent* LuaComponent)
     ImGui::PopStyleColor(); // 스타일 복원
 }
 
-void PropertyEditorPanel::RenderShapeProperty(AActor* PickedActor)
+void SkeletalPreviewPropertyEditorPanel::RenderShapeProperty(AActor* PickedActor)
 {
     if (PickedActor && PickedComponent && PickedComponent->IsA<UBoxShapeComponent>())
     {
@@ -1709,7 +1789,7 @@ void PropertyEditorPanel::RenderShapeProperty(AActor* PickedActor)
 
 }
 
-void PropertyEditorPanel::RenderDelegate(ULevel* level)
+void SkeletalPreviewPropertyEditorPanel::RenderDelegate(ULevel* level)
 {
     static AActor* SelectedActor = nullptr;
     FString SelectedActorName;
@@ -1744,48 +1824,7 @@ void PropertyEditorPanel::RenderDelegate(ULevel* level)
     }
 }
 
-void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(USkeletalMesh* SkeletalMesh)
-{
-    if (ImGui::Button("Preview##"))
-    {
-        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
-        if (EditorEngine == nullptr)
-        {
-            return;
-        }
-        
-        UWorld* World = EditorEngine->CreatePreviewWindow();
-
-        const TArray<AActor*> CopiedActors = World->GetActors();
-        for (AActor* Actor : CopiedActors)
-        {
-            if (Actor->IsA<UTransformGizmo>() || Actor->IsA<APlayerCameraManager>())
-            {
-                continue;
-            }
-
-            Actor->Destroy();
-        }
-        World->ClearSelectedActors();
-        
-        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-        TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
-        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-        FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
-        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
-        MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetDiffuse(FVector::OneVector);
-        MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetEmissive(FVector::OneVector);
-        MeshComp->SetWorldRotation(FRotator(0.0f, 0.0f, 90.0f));
-        TempActor->SetActorScale(FVector(1.0f, 1.0f, 1.0f));
-
-        ASkeletalMeshActor* SkeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
-        SkeletalMeshActor->SetActorLabel("SkeletalMesh");
-        USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->GetComponentByClass<USkeletalMeshComponent>();
-        SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
-    }
-}
-
-void PropertyEditorPanel::OnResize(HWND hWnd)
+void SkeletalPreviewPropertyEditorPanel::OnResize(HWND hWnd)
 {
     RECT clientRect;
     GetClientRect(hWnd, &clientRect);

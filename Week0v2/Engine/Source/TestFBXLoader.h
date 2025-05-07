@@ -40,8 +40,6 @@ public:
     static void AddVertexFromControlPoint(FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, int ControlPointIndex);
 
 private:
-    inline static bool bInitialized = false;
-    
     inline static FbxManager* FbxManager;
 
     inline static TMap<FName, FSkeletalMeshRenderData*> SkeletalMeshData;

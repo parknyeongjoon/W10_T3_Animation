@@ -149,7 +149,7 @@ void FStaticMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InVie
         // {
         //     isSelected = 1;
         // }
-        // // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(staticMeshComp));
+        // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(StaticMeshComp));
         // UpdateContstantBufferActor(UUIDColor , isSelected);
 
         UpdateLightConstants();
