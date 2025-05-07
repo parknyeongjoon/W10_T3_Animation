@@ -1107,32 +1107,81 @@ void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* Skeleta
     ImGui::PopStyleColor();
 }
 
-void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int BoneIndex)
+void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32 BoneIndex)
 {
-    for (const auto& ChildBoneIndex : SkeletalMesh->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices)
+    // 범위 체크
+    if (BoneIndex < 0 || BoneIndex >= SkeletalMesh->GetRenderData().Bones.Num())
+        return;
+
+    // 본 이름 가져오기
+    const FString& boneName = SkeletalMesh->GetRenderData().Bones[BoneIndex].BoneName;
+
+    // 트리 노드 플래그 설정
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+
+    // 현재 선택된 본인지 확인
+    bool isSelected = (SelectedBoneIndex == BoneIndex);
+    if (isSelected)
     {
-        const FString& boneName = SkeletalMesh->GetRenderData().Bones[ChildBoneIndex].BoneName;
-        
-        // 고유 ID 생성 (뼈 인덱스를 사용)
-        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-        bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)ChildBoneIndex, flags, "%s", GetData(boneName));
-        
-        // 노드가 클릭되었는지 확인
-        if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+        flags |= ImGuiTreeNodeFlags_Selected;
+        // 선택된 본의 배경색 변경
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.3f, 0.6f, 0.9f, 1.0f));         // 파란색 배경
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.7f, 1.0f, 1.0f));  // 마우스 오버 시 밝은 파란색
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));   // 클릭 시 어두운 파란색
+    }
+
+    // 자식이 없는 본은 리프 노드로 표시
+    if (SkeletalMesh->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices.Num() == 0)
+    {
+        flags |= ImGuiTreeNodeFlags_Leaf;
+    }
+
+    // 회전 적용 여부에 따라 표시 이름 설정
+    bool isModified = false;
+    FBoneRotation* foundRotation = BoneRotations.Find(BoneIndex);
+    if (foundRotation &&
+        (foundRotation->X != 0.0f || foundRotation->Y != 0.0f || foundRotation->Z != 0.0f))
+    {
+        isModified = true;
+    }
+
+    // 트리 노드 표시
+    bool isOpen = false;
+    if (isModified)
+    {
+        // 수정된 본은 주황색 텍스트로 표시
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
+        isOpen = ImGui::TreeNodeEx((void*)(intptr_t)BoneIndex, flags, "%s [Modified]", GetData(boneName));
+        ImGui::PopStyleColor(); // Text 색상 복원
+    }
+    else
+    {
+        isOpen = ImGui::TreeNodeEx((void*)(intptr_t)BoneIndex, flags, "%s", GetData(boneName));
+    }
+
+    // 선택된 본의 스타일 색상 복원
+    if (isSelected)
+    {
+        ImGui::PopStyleColor(3); // 스타일 색상 3개 복원 (Header, HeaderHovered, HeaderActive)
+    }
+
+    // 노드가 클릭되었는지 확인
+    if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+    {
+        // 클릭 시 실행할 함수 호출
+        OnBoneSelected(SkeletalMesh, BoneIndex);
+    }
+
+    // 트리 노드가 열려있으면 자식 노드들을 재귀적으로 렌더링
+    if (isOpen)
+    {
+        // 모든 자식 본 표시
+        for (int32 ChildIndex : SkeletalMesh->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices)
         {
-            // 클릭 시 실행할 함수 호출
-            OnBoneSelected(SkeletalMesh, ChildBoneIndex);
+            RenderBoneHierarchy(SkeletalMesh, ChildIndex);
         }
-        
-        // 트리 노드가 열려있으면 자식 노드들을 재귀적으로 렌더링
-        if (isOpen)
-        {
-            // 재귀적으로 자식 뼈대 구조 렌더링
-            RenderBoneHierarchy(SkeletalMesh, ChildBoneIndex);
-            
-            // 트리 노드 종료
-            ImGui::TreePop();
-        }
+
+        ImGui::TreePop();
     }
 }
 
