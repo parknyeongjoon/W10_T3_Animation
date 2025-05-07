@@ -20,7 +20,6 @@ void FGraphicsDevice::AddWindow(HWND hWindow)
     CreateSwapChain(hWindow);
     CreateFrameBuffer(hWindow);
     CreateDepthStencilBuffer(hWindow);
-    CreateDepthCopyTexture(hWindow);
     
     //CreateDepthStencilState();
     //CreateDepthStencilSRV();
@@ -153,6 +152,8 @@ void FGraphicsDevice::CreateDepthStencilBuffer(HWND AppWnd)
         return;
     }
 
+    ReleaseDepthStencilResources(AppWnd);
+
     FWindowData& WindowData = SwapChains[AppWnd];
     
     // 깊이/스텐실 텍스처 생성
@@ -196,6 +197,38 @@ void FGraphicsDevice::CreateDepthStencilBuffer(HWND AppWnd)
         MessageBox(nullptr, errorMsg, L"Error", MB_ICONERROR | MB_OK);
         return;
     }
+
+
+    ZeroMemory(&descDepth, sizeof(descDepth));
+    descDepth.Width = WindowData.ScreenWidth; // 텍스처 너비 설정
+    descDepth.Height = WindowData.ScreenHeight; // 텍스처 높이 설정
+    descDepth.MipLevels = 1; // 미맵 레벨 수 (1로 설정하여 미맵 없음)
+    descDepth.ArraySize = 1; // 텍스처 배열의 크기 (1로 단일 텍스처)
+    descDepth.Format = DXGI_FORMAT_R24G8_TYPELESS; // 24비트 깊이와 8비트 스텐실을 위한 포맷, Typeless -> SRV와 DSV 모두 사용 가능
+    descDepth.SampleDesc.Count = 1; // 멀티샘플링 설정 (1로 단일 샘플)
+    descDepth.SampleDesc.Quality = 0; // 샘플 퀄리티 설정
+    descDepth.Usage = D3D11_USAGE_DEFAULT; // 텍스처 사용 방식
+    descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE; // 깊이 스텐실 뷰로 바인딩 설정
+    descDepth.CPUAccessFlags = 0; // CPU 접근 방식 설정
+    descDepth.MiscFlags = 0; // 기타 플래그 설정
+
+    HRESULT Result = Device->CreateTexture2D(&descDepth, nullptr, &WindowData.DepthCopyTexture);
+    if (FAILED(Result))
+    {
+        MessageBox(nullptr, L"Failed", L"Error", MB_ICONERROR | MB_OK);
+    }
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; // 깊이 데이터만 읽기 위한 포맷
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = 1;
+
+    Result = Device->CreateShaderResourceView(WindowData.DepthCopyTexture, &srvDesc, &WindowData.DepthCopySRV);
+    if (FAILED(Result))
+    {
+        MessageBox(nullptr, L"Failed", L"Error", MB_ICONERROR | MB_OK);
+    }
+    CreateDepthCopyTexture(AppWnd);
 }
 
 bool FGraphicsDevice::CreateDepthStencilState(const D3D11_DEPTH_STENCIL_DESC* pDepthStencilDesc, ID3D11DepthStencilState** ppDepthStencilState) const
@@ -237,36 +270,7 @@ void FGraphicsDevice::CreateDepthCopyTexture(HWND AppWnd)
 
     FWindowData& WindowData = SwapChains[AppWnd];
     
-    D3D11_TEXTURE2D_DESC descDepth;
-    ZeroMemory(&descDepth, sizeof(descDepth));
-    descDepth.Width = WindowData.ScreenWidth; // 텍스처 너비 설정
-    descDepth.Height = WindowData.ScreenHeight; // 텍스처 높이 설정
-    descDepth.MipLevels = 1; // 미맵 레벨 수 (1로 설정하여 미맵 없음)
-    descDepth.ArraySize = 1; // 텍스처 배열의 크기 (1로 단일 텍스처)
-    descDepth.Format = DXGI_FORMAT_R24G8_TYPELESS; // 24비트 깊이와 8비트 스텐실을 위한 포맷, Typeless -> SRV와 DSV 모두 사용 가능
-    descDepth.SampleDesc.Count = 1; // 멀티샘플링 설정 (1로 단일 샘플)
-    descDepth.SampleDesc.Quality = 0; // 샘플 퀄리티 설정
-    descDepth.Usage = D3D11_USAGE_DEFAULT; // 텍스처 사용 방식
-    descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE; // 깊이 스텐실 뷰로 바인딩 설정
-    descDepth.CPUAccessFlags = 0; // CPU 접근 방식 설정
-    descDepth.MiscFlags = 0; // 기타 플래그 설정
-
-    HRESULT Result = Device->CreateTexture2D(&descDepth, nullptr, &WindowData.DepthCopyTexture);
-    if (FAILED(Result))
-    {
-        int i = 1;
-    }
-
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; // 깊이 데이터만 읽기 위한 포맷
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MipLevels = 1;
-
-    Result = Device->CreateShaderResourceView(WindowData.DepthCopyTexture, &srvDesc, &WindowData.DepthCopySRV);
-	if (FAILED(Result))
-	{
-		int i = 1;
-	}
+    
 }
 
 void FGraphicsDevice::ReleaseDevice()
@@ -497,7 +501,6 @@ void FGraphicsDevice::OnResize(HWND AppWindow)
     CreateFrameBuffer(AppWindow);
     CreateDepthStencilBuffer(AppWindow);
     //CreateDepthStencilSRV();
-    CreateDepthCopyTexture(AppWindow);
 }
 
 void FGraphicsDevice::BindSampler(EShaderStage stage, uint32 StartSlot, uint32 NumSamplers, ID3D11SamplerState* const* ppSamplers) const

@@ -19,7 +19,7 @@ enum class EViewScreenLocation : uint8
 class FViewport
 {
 public:
-    FViewport() = default;
+    FViewport();
     virtual ~FViewport() = default;
 
 public:
@@ -35,5 +35,5 @@ public:
     EViewScreenLocation ViewScreenLocation = EViewScreenLocation::Default;
     
 private:
-    D3D11_VIEWPORT Viewport;
+    D3D11_VIEWPORT Viewport = {};
 };

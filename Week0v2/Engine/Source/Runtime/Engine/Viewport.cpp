@@ -2,6 +2,12 @@
 
 #include "SlateCore/Layout/SlateRect.h"
 
+FViewport::FViewport()
+{
+    Viewport.MaxDepth = 1.0f;
+    Viewport.MinDepth = 0.0f;
+}
+
 void FViewport::ResizeViewport(FRect Top, FRect Bottom, FRect Left, FRect Right)
 {
     switch (ViewScreenLocation)
