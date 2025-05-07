@@ -10,9 +10,7 @@ class FEditorViewportClient;
 
 struct FWindowViewportClientData
 {
-public:
-    HWND Window;
-    
+public:    
     float EditorWidth;
     float EditorHeight;
 
@@ -55,8 +53,7 @@ public:
     }
 
     FWindowViewportClientData()
-        : Window(nullptr)
-        , EditorWidth(0.0f)
+        : EditorWidth(0.0f)
         , EditorHeight(0.0f)
         , bMultiViewportMode(false)
         , ActiveViewportIndex(0)

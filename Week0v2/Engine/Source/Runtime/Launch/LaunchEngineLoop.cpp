@@ -290,6 +290,10 @@ LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, UINT message, WPARAM wParam,
             GEngineLoop.DestroyEngineWindow(hWnd, hInstance, ClassName);
             if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
             {
+                if (GEngineLoop.AppWindows.Num() == 0 || GEngineLoop.DefaultWindow == hWnd)
+                {
+                    EditorEngine->GetLevelEditor()->SaveConfig();
+                }
                 if (!EditorEngine->GetLevelEditor()->GetViewportClients(hWnd).IsEmpty())
                 {
                     EditorEngine->RemoveWorld(EditorEngine->GetLevelEditor()->GetViewportClients(hWnd)[0]->World);
