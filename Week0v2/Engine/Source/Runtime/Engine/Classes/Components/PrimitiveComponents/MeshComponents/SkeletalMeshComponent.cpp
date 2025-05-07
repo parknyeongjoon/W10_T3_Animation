@@ -1,4 +1,4 @@
-﻿#include "SkeletalMeshComponent.h"
+#include "SkeletalMeshComponent.h"
 
 #include "TestFBXLoader.h"
 #include "Engine/World.h"
@@ -72,7 +72,7 @@ void USkeletalMeshComponent::GetUsedMaterials(TArray<UMaterial*>& Out) const
 
 int USkeletalMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
 {
-    if (!AABB.IntersectRay(rayOrigin, rayDirection, pfNearHitDistance)) return 0;
+    //if (!AABB.IntersectRay(rayOrigin, rayDirection, pfNearHitDistance)) return 0;
     int nIntersections = 0;
     if (SkeletalMesh == nullptr) return 0;
 
@@ -102,7 +102,7 @@ int USkeletalMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& ra
         }
 
         // 각 삼각형의 버텍스 위치를 FVector로 불러옵니다.
-        uint32 stride = sizeof(FVertexSimple);
+        uint32 stride = sizeof(FSkeletalVertex);
         FVector v0 = *reinterpret_cast<FVector*>(pbPositions + idx0 * stride);
         FVector v1 = *reinterpret_cast<FVector*>(pbPositions + idx1 * stride);
         FVector v2 = *reinterpret_cast<FVector*>(pbPositions + idx2 * stride);
