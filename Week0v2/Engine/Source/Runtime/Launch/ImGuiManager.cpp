@@ -17,8 +17,7 @@ void ImGuiManager::AddWindow(HWND hWnd, ID3D11Device* Device, ID3D11DeviceContex
     {
         return;
     }
-
-
+    ImGuiContext* OriginalContext = ImGui::GetCurrentContext();
     // ImGui Context 생성
     ImGuiContext* Context = ImGui::CreateContext();
     ImGui::SetCurrentContext(Context);
@@ -29,6 +28,8 @@ void ImGuiManager::AddWindow(HWND hWnd, ID3D11Device* Device, ID3D11DeviceContex
     WindowContextMap.Add(hWnd, Context);
 
     InitializeWindow();
+
+    ImGui::SetCurrentContext(OriginalContext);
 }
 
 void ImGuiManager::RemoveWindow(HWND hWnd)

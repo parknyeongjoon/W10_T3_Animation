@@ -52,8 +52,9 @@ public:
     template <typename T>
         requires std::derived_from<T, FViewportClient>
     std::shared_ptr<T> AddViewportClient(HWND OwnerWindow, UWorld* World);
-    
+
     void RemoveViewportClient(HWND OwnerWindow, std::shared_ptr<FEditorViewportClient> ViewportClient);
+    void RemoveViewportClients(HWND HWnd);
     
     void SelectViewport(HWND AppWnd, FVector2D Point);
     void ResizeWindow(HWND AppWnd, FVector2D ClientSize);

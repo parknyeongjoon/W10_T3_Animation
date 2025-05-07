@@ -313,6 +313,10 @@ void SLevelEditor::RemoveViewportClient(HWND OwnerWindow, const std::shared_ptr<
     {
         return;
     }
+    
+    // ViewportClient 소멸자에서 해줌.
+    // ViewportClient->Release();
+    
     FWindowViewportClientData& WindowViewportData = WindowViewportDataMap[OwnerWindow];
     WindowViewportData.ViewportClients.Remove(ViewportClient);
     if (WindowViewportData.ViewportClients.Num() == 0)
@@ -326,6 +330,16 @@ void SLevelEditor::RemoveViewportClient(HWND OwnerWindow, const std::shared_ptr<
             WindowViewportDataMap[OwnerWindow].ViewportClients[i]->SetViewportIndex(i);
         }     
     }
+}
+
+void SLevelEditor::RemoveViewportClients(HWND HWnd)
+{
+    // ViewportClient 소멸자에서 해줌.
+    // for (auto& ViewportClient : WindowViewportDataMap[HWnd].ViewportClients)
+    // {
+    //     ViewportClient->Release();
+    // }
+    WindowViewportDataMap.Remove(HWnd);
 }
 
 void SLevelEditor::SelectViewport(HWND AppWnd, FVector2D Point)

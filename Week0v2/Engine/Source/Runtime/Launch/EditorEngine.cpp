@@ -25,7 +25,8 @@ FCollisionManager UEditorEngine::CollisionManager;
 FCoroutineManager UEditorEngine::CoroutineManager;
 
 UEditorEngine::UEditorEngine()
-    : UnrealEditor(nullptr)
+    : testBlurStrength(0)
+    , UnrealEditor(nullptr)
     , ContentsUI(nullptr)
     , LevelEditor(nullptr)
 {
@@ -65,7 +66,7 @@ void UEditorEngine::Init()
 
 void UEditorEngine::Tick(float DeltaTime)
 {
-    for (std::shared_ptr<FWorldContext> WorldContext : WorldContexts)
+    for (const auto& [World, WorldContext] : WorldContexts)
     {
         WorldContext->GetWorld()->Tick(WorldContext->LevelType, DeltaTime);
     }
@@ -82,9 +83,9 @@ void UEditorEngine::Tick(float DeltaTime)
 
 void UEditorEngine::Release()
 {
-    for (auto WorldContext : WorldContexts)
+    for (const auto& [World, WorldContext] : WorldContexts)
     {
-        WorldContext->GetWorld()->Release();
+        World->Release();
     }
     WorldContexts.Empty();
     
@@ -143,12 +144,10 @@ void UEditorEngine::Input()
 
 void UEditorEngine::PreparePIE()
 {
-    std::shared_ptr<FWorldContext> PIEWorldContext = CreateNewWorldContext(EWorldType::PIE, LEVELTICK_All);
-    
     UWorld* PIEWorld = Cast<UWorld>(EditorWorldContext->GetWorld()->Duplicate(this));
     PIEWorld->WorldType = EWorldType::PIE;
     PIEWorld->InitWorld();
-    PIEWorldContext->SetWorld(PIEWorld);
+    std::shared_ptr<FWorldContext> PIEWorldContext = CreateNewWorldContext(PIEWorld, EWorldType::PIE, LEVELTICK_All);
 }
 
 void UEditorEngine::StartPIE()
@@ -184,10 +183,12 @@ void UEditorEngine::StopPIE()
         return;
     }
 
+    WorldContexts.Remove(PIEWorldContext->GetWorld());
+    
     PIEWorldContext->GetWorld()->Release();
     
+    
     PIEWorldContext = nullptr;
-    WorldContexts.Remove(WorldContexts[1]);
 }
 
 void UEditorEngine::UpdateGizmos(UWorld* World)
@@ -202,8 +203,10 @@ void UEditorEngine::UpdateGizmos(UWorld* World)
         if (!World->GetSelectedActors().IsEmpty())
         {
             AActor* PickedActor = *World->GetSelectedActors().begin();
-            if (PickedActor == nullptr)
+            if (PickedActor == nullptr || PickedActor->GetRootComponent() == nullptr)
+            {
                 break;
+            }
             std::shared_ptr<FEditorViewportClient> activeViewport = GetLevelEditor()->GetActiveViewportClient();
             if (activeViewport->IsPerspective())
             {
@@ -224,23 +227,53 @@ void UEditorEngine::UpdateGizmos(UWorld* World)
 
 UWorld* UEditorEngine::CreateWorld(EWorldType::Type WorldType, ELevelTick LevelTick)
 {
-    std::shared_ptr<FWorldContext> EditorContext = CreateNewWorldContext(WorldType, LevelTick);
-
     UWorld* World = FObjectFactory::ConstructObject<UWorld>(this);
     World->WorldType = WorldType;
     World->InitWorld();
-    EditorContext->SetWorld(World);
+    std::shared_ptr<FWorldContext> EditorContext = CreateNewWorldContext(World, WorldType, LevelTick);
 
     return World;
 }
 
-std::shared_ptr<FWorldContext> UEditorEngine::CreateNewWorldContext(EWorldType::Type InWorldType, ELevelTick LevelType)
+void UEditorEngine::RemoveWorld(UWorld* World)
+{
+    if (World == PreviewWorld)
+    {
+        PreviewWorld = nullptr;
+    }
+    World->Release();    
+    WorldContexts.Remove(World);
+}
+
+UWorld* UEditorEngine::CreatePreviewWindow()
+{
+    if (PreviewWorld != nullptr)
+    {
+        return PreviewWorld;
+    }
+    
+    WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass";
+    WCHAR EnginePreviewTitle[] = L"Preview";
+
+    HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(GEngineLoop.GetDefaultWindow(), GWLP_HINSTANCE));
+    HWND AppWnd = GEngineLoop.CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
+        
+    PreviewWorld = CreateWorld(EWorldType::EditorPreview, LEVELTICK_ViewportsOnly);
+        
+    GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, PreviewWorld);
+
+    return PreviewWorld;
+}
+
+std::shared_ptr<FWorldContext> UEditorEngine::CreateNewWorldContext(UWorld* InWorld, EWorldType::Type InWorldType, ELevelTick LevelType)
 {
     std::shared_ptr<FWorldContext> NewWorldContext = std::make_shared<FWorldContext>();
     NewWorldContext->WorldType = InWorldType;
-    WorldContexts.Add(NewWorldContext);
+    WorldContexts.Add(InWorld, NewWorldContext);
+    
 
     NewWorldContext->LevelType = LevelType;
+    NewWorldContext->SetWorld(InWorld);
     
 
     return NewWorldContext;

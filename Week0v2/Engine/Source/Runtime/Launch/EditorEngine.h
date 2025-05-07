@@ -32,6 +32,9 @@ public:
     void UpdateGizmos(UWorld* World);
     UEditorPlayer* GetEditorPlayer() const { return EditorPlayer; }
     UWorld* CreateWorld(EWorldType::Type WorldType, ELevelTick LevelTick);
+    void RemoveWorld(UWorld* World);
+
+    UWorld* CreatePreviewWindow();
 
 public:
     static FCollisionManager CollisionManager;
@@ -50,7 +53,7 @@ public:
     float testBlurStrength;
 
 private:
-    std::shared_ptr<FWorldContext> CreateNewWorldContext(EWorldType::Type InWorldType, ELevelTick LevelType);
+    std::shared_ptr<FWorldContext> CreateNewWorldContext(UWorld* InWorld, EWorldType::Type InWorldType, ELevelTick LevelType);
 
     // TODO 임시 Public 바꿔잇
 public:
@@ -64,4 +67,5 @@ private:
     
     SLevelEditor* LevelEditor = nullptr;
     UEditorPlayer* EditorPlayer = nullptr;
+    UWorld* PreviewWorld = nullptr;
 };

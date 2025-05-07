@@ -36,6 +36,9 @@ private:
     void RenderForLua(class ULuaComponent* LuaComponent);
     void RenderShapeProperty(AActor* PickedActor);
     void RenderDelegate(ULevel* level);
+    
+    void DrawPreviewButton(const FString& FbxFilePath);
+    
 private:
     float Width = 0, Height = 0;
     

@@ -1,6 +1,7 @@
 #pragma once
 #include "EngineBaseTypes.h"
 #include "EngineTypes.h"
+#include "World.h"
 #include "Container/Array.h"
 #include "UObject/ObjectMacros.h"
 
@@ -37,11 +38,9 @@ public:
     virtual void Release() {}
 
     UAssetManager* AssetManager = nullptr;
-    
-    TArray<std::shared_ptr<FWorldContext>>& GetWorldContexts() { return WorldContexts; }
 
     static inline UINT GFrameCount = 0;
 
 protected:
-    TArray<std::shared_ptr<FWorldContext>> WorldContexts;
+    TMap<UWorld*, std::shared_ptr<FWorldContext>> WorldContexts;
 };

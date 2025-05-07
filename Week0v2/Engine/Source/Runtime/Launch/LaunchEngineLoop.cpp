@@ -46,17 +46,6 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     }
 
     GEngine->Init();
-    
-    if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
-    {
-        WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass";
-        WCHAR EnginePreviewTitle[] = L"Preview";
-        HWND AppWnd = CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
-        
-        UWorld* World = EditorEngine->CreateWorld(EWorldType::EditorPreview, LEVELTICK_ViewportsOnly);
-        
-        EditorEngine->GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, World);
-    }
 
     for (auto& AppWnd : AppWindows)
     {
@@ -127,7 +116,8 @@ void FEngineLoop::Render()
     
     uint32 OriginalIndex = LevelEditor->GetCurrentViewportClientIndex();
     HWND OriginalWindow = LevelEditor->GetCurrentViewportWindow();
-    for (auto& AppWindow : AppWindows)
+    TArray<HWND> CopiedAppWindows = AppWindows;
+    for (auto& AppWindow : CopiedAppWindows)
     {
         LevelEditor->FocusViewportClient(AppWindow, 0);
         TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients = LevelEditor->GetViewportClients(AppWindow);
@@ -155,9 +145,9 @@ void FEngineLoop::Render()
         }
 
         ImGuiManager::Get().BeginFrame(AppWindow);
-        // AppWindow의 World를 어떻게 알아내냐
         if (ViewportClients.Num() > 0)
         {
+            // TODO 다른 방법으로 World 구하기
             UWorld* TargetWorld = ViewportClients[0]->GetWorld();
             EditorEngine->GetUnrealEditor()->SetWorld(TargetWorld);
             EditorEngine->GetSkeletalPreviewUI()->SetWorld(TargetWorld);
@@ -296,6 +286,14 @@ LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, UINT message, WPARAM wParam,
             WCHAR ClassName[256];
             GetClassNameW(hWnd, ClassName, sizeof(ClassName) / sizeof(WCHAR));
             GEngineLoop.DestroyEngineWindow(hWnd, hInstance, ClassName);
+            if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+            {
+                if (!EditorEngine->GetLevelEditor()->GetViewportClients(hWnd).IsEmpty())
+                {
+                    EditorEngine->RemoveWorld(EditorEngine->GetLevelEditor()->GetViewportClients(hWnd)[0]->World);
+                }
+                EditorEngine->GetLevelEditor()->RemoveViewportClients(hWnd);
+            }
             if (!(GEngineLoop.AppWindows.Num() == 0 || GEngineLoop.DefaultWindow == hWnd))
             {
                 break;

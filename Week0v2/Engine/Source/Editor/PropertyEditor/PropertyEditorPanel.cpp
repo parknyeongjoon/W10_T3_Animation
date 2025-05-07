@@ -28,7 +28,11 @@
 #include "LevelEditor/SLevelEditor.h"
 
 #include "LaunchEngineLoop.h"
+#include "PlayerCameraManager.h"
+#include "TestFBXLoader.h"
+#include "BaseGizmos/TransformGizmo.h"
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
+#include "Engine/StaticMeshActor.h"
 #include "Light/ShadowMapAtlas.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/FunctionRegistry.h"
@@ -52,13 +56,8 @@ void PropertyEditorPanel::Render()
     {
         if (PickedComponent != nullptr)
         {
-            AActor* PickedActor = nullptr;
-            PickedActor = *World->GetSelectedActors().begin();
-
-            //루트 컴포넌트면 삭제 불가
-            if (PickedComponent != PickedActor->GetRootComponent())
+            if (World->GetSelectedActors().IsEmpty() || !World->GetSelectedActors().Contains(PickedComponent->GetOwner()))
             {
-                PickedComponent->DestroyComponent();
                 PickedComponent = nullptr;
             }
         }
@@ -88,6 +87,8 @@ void PropertyEditorPanel::Render()
     /* Render Start */
     ImGui::Begin("Detail", nullptr, PanelFlags);
 
+    DrawPreviewButton(FString("NyeongFBX.fbx"));
+    
     AActor* PickedActor = nullptr;
 
     if (!World->GetSelectedActors().IsEmpty())
@@ -1610,6 +1611,84 @@ void PropertyEditorPanel::RenderDelegate(ULevel* level)
     }
 }
 
+void PropertyEditorPanel::DrawPreviewButton(const FString& FbxFilePath)
+{
+    if (ImGui::Button("Preview##"))
+    {
+        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+        if (EditorEngine == nullptr)
+        {
+            return;
+        }
+        
+        UWorld* World = EditorEngine->CreatePreviewWindow();
+
+        const TArray<AActor*> CopiedActors = World->GetActors();
+        for (AActor* Actor : CopiedActors)
+        {
+            if (Actor->IsA<UTransformGizmo>() || Actor->IsA<APlayerCameraManager>())
+            {
+                continue;
+            }
+
+            Actor->Destroy();
+        }
+        World->ClearSelectedActors();
+        
+        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+        TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
+        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+        FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
+        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
+        MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetDiffuse(FVector::ZeroVector);
+        MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetEmissive(FVector::OneVector);
+        MeshComp->SetWorldRotation(FRotator(0.0f, 0.0f, 90.0f));
+        TempActor->SetActorScale(FVector(1.0f, 1.0f, 1.0f));
+        
+        TestFBXLoader TestFBXLoader;
+        TestFBXLoader.InitFBXManager();
+        TestFBXLoader.InitFBX(FbxFilePath);
+        AActor* SkeletalActor = World->SpawnActor<AActor>();
+        USkeletalMeshComponent* SkeletalMeshComp = SkeletalActor->AddComponent<USkeletalMeshComponent>(EComponentOrigin::Editor);
+        USkeletalMesh* SkeletalMesh = new USkeletalMesh();
+        SkeletalMesh->SetData(TestFBXLoader.GetSkeletalMesh(FbxFilePath));
+            
+        SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
+        //FMatrix testMatrix = FMatrix::CreateRotationMatrix(30,0,0) * SkeletalMesh->GetRenderData()->Bones[0].LocalTransform;
+        // SkeletalMesh->GetRenderData()->Bones[0].LocalTransform = testMatrix;
+            
+        SkeletalMeshComp->GetSkeletalMesh()->UpdateBoneHierarchy();
+            
+        for (auto& Vertex : SkeletalMesh->GetRenderData()->Vertices)
+        {
+            Vertex.TranslateVertexByBone(SkeletalMesh->GetRenderData()->Bones);
+        }
+            
+        SkeletalMesh->SetData(SkeletalMesh->GetRenderData());
+            
+        // const auto rscManager = GEngineLoop.Renderer.GetResourceManager();
+        // const auto VB = rscManager->GetVertexBuffer(SkeletalMesh->GetRenderData()->Name);
+        // rscManager->UpdateDynamicVertexBuffer(VB, &SkeletalMesh->GetRenderData()->Vertices, SkeletalMesh->GetRenderData()->Vertices.Num());
+            
+        for (const auto& Bone : SkeletalMesh->GetRenderData()->Bones)
+        {
+            AActor* BonePos = World->SpawnActor<AActor>();
+            BonePos->AddComponent<USceneComponent>(EComponentOrigin::Runtime);
+            auto temp = BonePos->AddComponent<UStaticMeshComponent>(EComponentOrigin::Runtime);
+            FManagerOBJ::CreateStaticMesh("Contents/helloBlender.obj");
+            temp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"helloBlender.obj"));
+            
+            FVector bonePosition= Bone.GlobalTransform.GetTranslationVector();
+            
+            
+            
+            BonePos->SetActorLocation(bonePosition);
+            
+            
+            BonePos->SetActorScale(FVector(0.1,0.1,0.1));
+        }
+    }
+}
 
 void PropertyEditorPanel::OnResize(HWND hWnd)
 {
