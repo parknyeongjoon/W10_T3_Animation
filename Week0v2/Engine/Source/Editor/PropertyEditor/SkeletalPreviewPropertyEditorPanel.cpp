@@ -1038,7 +1038,7 @@ void SkeletalPreviewPropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshCom
             if (anyRotationChanged)
             {
                 // 모든 본에 회전 적용
-                SkeletalMesh->GetSkeletalMesh()->ResetToOriginalPose();
+                // SkeletalMesh->GetSkeletalMesh()->ResetToOriginalPose();
 
                 // 저장된 모든 본 회전을 적용
                 for (auto& Pair : BoneRotations)

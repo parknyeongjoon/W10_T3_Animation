@@ -184,11 +184,11 @@ void USkeletalMesh::UpdateSkinnedVertices()
         return;
 
 
-    if (OriginalVertexPositions.Num() == SkeletalMeshRenderData.Vertices.Num())
+    if (GetRefSkeletal()->RawVertices.Num() == SkeletalMeshRenderData.Vertices.Num())
     {
         for (int i = 0; i < SkeletalMeshRenderData.Vertices.Num(); i++)
         {
-            SkeletalMeshRenderData.Vertices[i].Position = OriginalVertexPositions[i];
+            SkeletalMeshRenderData.Vertices[i].Position = GetRefSkeletal()->RawVertices[i].Position;
         }
     }
 
@@ -209,52 +209,4 @@ void USkeletalMesh::UpdateVertexBuffer()
 
     // 버텍스 버퍼 업데이트 - 이미 SetData에서 처리되므로 여기서는 간단히 호출
     SetData(SkeletalMeshRenderData, RefSkeletal);
-}
-
-void USkeletalMesh::StoreOriginalBoneData()
-{
-    if (SkeletalMeshRenderData.Bones.Num() <= 0)
-    {
-
-        return;
-    }
-
-    // 배열 초기화
-    OriginalLocalTransforms.Empty();
-    OriginalGlobalMatrices.Empty();
-    OriginalVertexPositions.Empty();
-    // 각 본의 초기 데이터 저장
-    for (int i = 0; i < SkeletalMeshRenderData.Bones.Num(); i++)
-    {
-        // 로컬 트랜스폼과 InverseBindPose 저장
-        OriginalLocalTransforms.Add(SkeletalMeshRenderData.Bones[i].LocalTransform);
-        OriginalGlobalMatrices.Add(SkeletalMeshRenderData.Bones[i].GlobalTransform);
-
-    }
-
-    for (const auto& Vertex : SkeletalMeshRenderData.Vertices)
-    {
-        OriginalVertexPositions.Add(Vertex.Position);
-    }
-
-}
-
-
-void USkeletalMesh::ResetToOriginalPose()
-{
-    // 본 트랜스폼 복원
-    for (int i = 0; i < OriginalLocalTransforms.Num() && i < SkeletalMeshRenderData.Bones.Num(); i++)
-    {
-        // 로컬 트랜스폼 복원
-        SkeletalMeshRenderData.Bones[i].LocalTransform = OriginalLocalTransforms[i];
-                              
-        SkeletalMeshRenderData.Bones[i].GlobalTransform = OriginalGlobalMatrices[i];
-    }
-
-
-    // 로컬 트랜스폼으로부터 글로벌 트랜스폼과 스키닝 매트릭스 재계산
-    UpdateBoneHierarchy();
-
-    // 스키닝 적용
-    UpdateSkinnedVertices();
 }

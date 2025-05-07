@@ -25,8 +25,6 @@ public:
 
     // 버텍스 버퍼를 업데이트하는 함수
     void UpdateVertexBuffer();
-    void StoreOriginalBoneData();
-    void ResetToOriginalPose();
     void RotateBoneByName(const FString& BoneName, float AngleInDegrees, const FVector& RotationAxis);
     int FindBoneIndexByName(const FString& BoneName) const;
     void ApplyRotationToBone(int BoneIndex, float AngleInDegrees, const FVector& RotationAxis);
@@ -37,10 +35,6 @@ private:
     FSkeletalMeshRenderData SkeletalMeshRenderData;
     FRefSkeletal* RefSkeletal = nullptr;
     TArray<FMaterialSlot*> MaterialSlots;
-
-    TArray<FMatrix> OriginalLocalTransforms;
-    TArray<FMatrix> OriginalGlobalMatrices;
-    TArray<FVector4> OriginalVertexPositions;
 
     void UpdateChildBones(int ParentIndex);
 };

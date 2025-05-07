@@ -142,6 +142,7 @@ void USkeletalMeshComponent::CreateBoneComponents()
         BoneComp->DestroyComponent();
     }
 
+    FManagerOBJ::CreateStaticMesh("Contents/helloBlender.obj");
     for (const auto& Bone : GetSkeletalMesh()->GetRenderData().Bones)
     {
         UStaticMeshComponent* BoneComp = GetOwner()->AddComponent<UStaticMeshComponent>(EComponentOrigin::Runtime);
