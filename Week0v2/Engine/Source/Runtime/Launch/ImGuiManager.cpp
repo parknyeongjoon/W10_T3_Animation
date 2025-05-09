@@ -182,15 +182,36 @@ bool ImGuiManager::GetWantCaptureMouse(HWND hWnd)
     {
        return false;
     }
+
+    bool bWantCaptureMouse;
+
     ImGuiContext* OriginalContext = ImGui::GetCurrentContext();
-
     ImGui::SetCurrentContext(WindowContextMap[hWnd]);
-    
-    bool Result = ImGui::GetIO().WantCaptureMouse;
-
+    {
+        bWantCaptureMouse = ImGui::GetIO().WantCaptureMouse;
+    }
     ImGui::SetCurrentContext(OriginalContext);
 
-    return Result;
+    return bWantCaptureMouse;
+}
+
+bool ImGuiManager::GetWantCaptureKeyboard(HWND hWnd)
+{
+    if (!WindowContextMap.Contains(hWnd))
+    {
+        return false;
+    }
+
+    bool bWantCaptureKeyboard;
+
+    ImGuiContext* OriginalContext = ImGui::GetCurrentContext();
+    ImGui::SetCurrentContext(WindowContextMap[hWnd]);
+    {
+        bWantCaptureKeyboard = ImGui::GetIO().WantCaptureKeyboard;
+    }
+    ImGui::SetCurrentContext(OriginalContext);
+
+    return bWantCaptureKeyboard;
 }
 
 ImGuiContext* ImGuiManager::GetImGuiContext(HWND hWnd)
@@ -199,6 +220,7 @@ ImGuiContext* ImGuiManager::GetImGuiContext(HWND hWnd)
     {
         return nullptr;
     }
+
     return WindowContextMap[hWnd];
 }
 
