@@ -103,6 +103,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>DirectXTK.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\Lua\$(Configuration)\dll\lua.dll" "$(OutDir)"
+xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Configuration)\libfbxsdk.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -124,6 +128,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>DirectXTK.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\Lua\$(Configuration)\dll\lua.dll" "$(OutDir)"
+xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Configuration)\libfbxsdk.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -143,7 +151,8 @@
       <AdditionalDependencies>DirectXTK.lib;libfbxsdk.lib;lua.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\Lua\$(Configuration)\dll" "$(OutDir)"</Command>
+      <Command>xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\Lua\$(Configuration)\dll\lua.dll" "$(OutDir)"
+xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Configuration)\libfbxsdk.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -171,7 +180,8 @@
       <ShaderModel>5.0</ShaderModel>
     </FxCompile>
     <PostBuildEvent>
-      <Command>xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\Lua\$(Configuration)\dll" "$(OutDir)"</Command>
+      <Command>xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\Lua\$(Configuration)\dll\lua.dll" "$(OutDir)"
+xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Configuration)\libfbxsdk.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
