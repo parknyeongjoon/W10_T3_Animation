@@ -25,9 +25,9 @@ public:
 
     // 버텍스 버퍼를 업데이트하는 함수
     void UpdateVertexBuffer();
-    void RotateBoneByName(const FString& BoneName, float AngleInDegrees, const FVector& RotationAxis);
+    void RotateBoneByName(const FString& BoneName, float DeltaAngleInDegrees, const FVector& RotationAxis);
+    void RotateBoneByIndex(int32 BoneIndex, float DeltaAngleInDegrees, const FVector& RotationAxis, bool bIsChildUpdate = true);
     int FindBoneIndexByName(const FString& BoneName) const;
-    void ApplyRotationToBone(int BoneIndex, float AngleInDegrees, const FVector& RotationAxis);
 
     USkeletalMesh* Duplicate(UObject* InOuter) override;
 private:
@@ -37,4 +37,5 @@ private:
     TArray<FMaterialSlot*> MaterialSlots;
 
     void UpdateChildBones(int ParentIndex);
+    void ApplyRotationToBone(int BoneIndex, float DeltaAngleInDegrees, const FVector& RotationAxis);
 };

@@ -131,7 +131,7 @@ void USkeletalMeshComponent::SetSkeletalMesh(USkeletalMesh* value)
     OverrideMaterials.SetNum(value->GetMaterials().Num());
     AABB = SkeletalMesh->GetRenderData().BoundingBox;
 
-    CreateBoneComponents();
+    // CreateBoneComponents();
 }
 
 void USkeletalMeshComponent::CreateBoneComponents()
@@ -165,8 +165,10 @@ void USkeletalMeshComponent::UpdateBoneHierarchy()
 {
     for (int i=0;i<SkeletalMesh->GetRenderData().Vertices.Num();i++)
     {
-         SkeletalMesh->GetRenderData().Vertices[i].Position = SkeletalMesh->GetRefSkeletal()->RawVertices[i].Position;
+         SkeletalMesh->GetRenderData().Vertices[i].Position
+        = SkeletalMesh->GetRefSkeletal()->RawVertices[i].Position;
     }
+    
     SkeletalMesh->UpdateBoneHierarchy();
     SkinningVertex();
 }
