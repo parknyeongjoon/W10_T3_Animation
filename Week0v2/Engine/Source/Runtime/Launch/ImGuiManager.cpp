@@ -17,13 +17,21 @@ void ImGuiManager::AddWindow(HWND hWnd, ID3D11Device* Device, ID3D11DeviceContex
     {
         return;
     }
+
     ImGuiContext* OriginalContext = ImGui::GetCurrentContext();
+
     // ImGui Context 생성
     ImGuiContext* Context = ImGui::CreateContext();
     ImGui::SetCurrentContext(Context);
-    
+
+    // Win32 백엔드 초기화 (핸들 마다)
     ImGui_ImplWin32_Init(hWnd);
-    ImGui_ImplDX11_Init(Device, DeviceContext);
+    // DX11 백엔드 초기화 (전역에 한 번만)
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.BackendRendererUserData == nullptr)
+    {
+        ImGui_ImplDX11_Init(Device, DeviceContext);
+    }
 
     WindowContextMap.Add(hWnd, Context);
 
