@@ -1004,6 +1004,19 @@ void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* Skeleta
 
         DrawSkeletalMeshPreviewButton(SkeletalMesh->GetSkeletalMesh()->GetRenderData().Name);
 
+        TArray<const char*> FBXNames;
+        int selected = 0, i = 0;
+        for (const auto& [key, mesh]: TestFBXLoader::GetSkeletalMeshes())
+        {
+            FBXNames.Add(GetData(key));
+            if (mesh == SkeletalMesh->GetSkeletalMesh())
+            {
+                selected = i;
+            }
+            ++i;
+        }
+        ImGui::Combo("SkeletalMeshes##", &selected, FBXNames.GetData(), FBXNames.Num());
+        
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();

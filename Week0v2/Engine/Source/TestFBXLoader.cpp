@@ -24,7 +24,7 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     FbxImporter* Importer = FbxImporter::Create(FbxManager, "myImporter");
     FbxScene* Scene = FbxScene::Create(FbxManager, "myScene");
     
-    bool bResult = Importer->Initialize(GetData("Contents\\" + FilePath), -1, FbxManager->GetIOSettings());
+    bool bResult = Importer->Initialize(GetData(FilePath), -1, FbxManager->GetIOSettings());
     if (!bResult)
         return nullptr;
 
@@ -923,17 +923,18 @@ FObjMaterialInfo TestFBXLoader::ConvertFbxToObjMaterialInfo(
 
 USkeletalMesh* TestFBXLoader::CreateSkeletalMesh(const FString& FilePath)
 {
-    FSkeletalMeshRenderData* MeshData = ParseFBX(FilePath);
-    if (MeshData == nullptr)
-        return nullptr;
-
-    USkeletalMesh* SkeletalMesh = GetSkeletalMesh(MeshData->Name);
+    // 있으면 return
+    USkeletalMesh* SkeletalMesh = GetSkeletalMesh(FilePath);
     if (SkeletalMesh != nullptr)
     {
         USkeletalMesh* NewSkeletalMesh = SkeletalMesh->Duplicate(nullptr);
         NewSkeletalMesh->SetData(FilePath);
         return NewSkeletalMesh;
     }
+    
+    FSkeletalMeshRenderData* MeshData = ParseFBX(FilePath);
+    if (MeshData == nullptr)
+        return nullptr;
     
     SkeletalMesh = FObjectFactory::ConstructObject<USkeletalMesh>(nullptr);
     SkeletalMesh->SetData(FilePath);

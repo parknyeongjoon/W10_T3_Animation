@@ -651,7 +651,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float2 pUV = uv + viewDir * ((height - 0.5) * scale);
     
     // Normal
-    float4 normalTex = ((NormalTexture.Sample(linearSampler, pUV)- 0.5) * 2);
+    float4 normalTex = ((NormalTexture.Sample(linearSampler, uv)- 0.5) * 2);
 
     float2 tileSize = float2(TILE_SIZE_X, TILE_SIZE_Y);
     
