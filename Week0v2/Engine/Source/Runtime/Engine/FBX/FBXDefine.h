@@ -42,6 +42,7 @@ struct FRefSkeletal
     // Tree structure for bones
     FString Name;
     TArray<FSkeletalVertex> RawVertices;
+    TArray<FBone> RawBones;
     TArray<FBoneNode> BoneTree;
     TArray<int> RootBoneIndices;  // Indices of root bones (no parents)
     TMap<FString, int> BoneNameToIndexMap;  // For quick lookups

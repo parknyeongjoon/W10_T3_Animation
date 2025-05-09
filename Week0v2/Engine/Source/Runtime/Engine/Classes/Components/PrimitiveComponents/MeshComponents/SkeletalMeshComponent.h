@@ -36,8 +36,9 @@ public:
 
 private:
     TArray<UStaticMeshComponent*> BoneComponents;
-    void SkinningVertex();
     
+    void SkinningVertex();
+
 protected:
     USkeletalMesh* SkeletalMesh = nullptr;
     int SelectedSubMeshIndex = -1;

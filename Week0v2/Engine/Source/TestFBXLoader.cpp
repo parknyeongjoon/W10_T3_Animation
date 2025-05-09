@@ -46,11 +46,18 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     
     ExtractFBXMeshData(Scene, NewMeshData, RefSkeletal);
 
-    for (int i=0;i<NewMeshData->Vertices.Num();i++)
+    for (const auto Vertex: NewMeshData->Vertices)
     {
-        FSkeletalVertex Vertex;
-        Vertex = NewMeshData->Vertices[i];
-        RefSkeletal->RawVertices.Add(Vertex);
+        FSkeletalVertex RawVertex;
+        RawVertex = Vertex;
+        RefSkeletal->RawVertices.Add(RawVertex);
+    }
+
+    for (const auto Bone : NewMeshData->Bones)
+    {
+        FBone RawBone;
+        RawBone = Bone;
+        RefSkeletal->RawBones.Add(RawBone);
     }
     
     SkeletalMeshData.Add(FilePath, NewMeshData);

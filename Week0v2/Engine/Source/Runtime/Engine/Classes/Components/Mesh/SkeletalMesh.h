@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "FBX/FBXDefine.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
@@ -38,4 +38,5 @@ private:
 
     void UpdateChildBones(int ParentIndex);
     void ApplyRotationToBone(int BoneIndex, float DeltaAngleInDegrees, const FVector& RotationAxis);
+    void ResetToOriginalPose();
 };

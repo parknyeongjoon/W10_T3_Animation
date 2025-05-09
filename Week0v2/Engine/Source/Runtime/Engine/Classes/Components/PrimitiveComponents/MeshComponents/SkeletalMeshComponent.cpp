@@ -232,3 +232,18 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     //Timer += DeltaTime * 0.005f;
     //SetLocation(GetWorldLocation()+ (FVector(1.0f,1.0f, 1.0f) * sin(Timer)));
 }
+
+void USkeletalMesh::ResetToOriginalPose()
+{
+    // 본 트랜스폼 복원
+    for (int i = 0; i < RefSkeletal->RawVertices.Num() && i < SkeletalMeshRenderData.Bones.Num(); i++)
+    {
+        // 로컬 트랜스폼 복원
+        SkeletalMeshRenderData.Bones[i].LocalTransform = RefSkeletal->RawBones[i].LocalTransform;
+        SkeletalMeshRenderData.Bones[i].GlobalTransform = RefSkeletal->RawBones[i].GlobalTransform;
+        SkeletalMeshRenderData.Bones[i].SkinningMatrix = RefSkeletal->RawBones[i].SkinningMatrix;
+    }
+
+    // 스키닝 적용
+    UpdateSkinnedVertices();
+}
