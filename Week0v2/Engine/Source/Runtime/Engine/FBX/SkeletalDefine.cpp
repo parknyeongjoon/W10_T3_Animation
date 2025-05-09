@@ -1,9 +1,9 @@
-﻿#include "FBXDefine.h"
+﻿#include "SkeletalDefine.h"
 
 FVector FSkeletalVertex::SkinVertexPosition(const TArray<FBone>& bones) const
 {
     FVector result = {0.0f, 0.0f, 0.0f};
-    
+
     for (int i = 0; i < 4; ++i) {
         int boneIndex = BoneIndices[i];
         float weight = BoneWeights[i];

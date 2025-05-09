@@ -1,5 +1,5 @@
 #pragma once
-#include "FBX/FBXDefine.h"
+#include "FBX/SkeletalDefine.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 

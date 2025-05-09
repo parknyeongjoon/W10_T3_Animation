@@ -1019,7 +1019,7 @@ void SkeletalPreviewPropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshCom
                     anyRotationChanged = true;
                 }
 
-                // // 리셋 버튼
+                // 리셋 버튼
                 // if (ImGui::Button("Reset Bone"))
                 // {
                 //     XRotation = 0.0f;
@@ -1047,9 +1047,6 @@ void SkeletalPreviewPropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshCom
             // 회전값이 변경된 경우에만 적용
             if (anyRotationChanged)
             {
-                // 모든 본에 회전 적용
-                // SkeletalMesh->GetSkeletalMesh()->ResetToOriginalPose();
-
                 // 저장된 모든 본 회전을 적용
                 for (uint32 i = 0; i < BoneRotations.Num(); i++)
                 {

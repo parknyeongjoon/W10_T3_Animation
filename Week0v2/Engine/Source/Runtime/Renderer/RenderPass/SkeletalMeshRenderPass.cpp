@@ -19,7 +19,7 @@
 #include "Components/Mesh/StaticMesh.h"
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/SkySphereComponent.h"
-#include "FBX/FBXDefine.h"
+#include "FBX/SkeletalDefine.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Renderer/ComputeShader/ComputeTileLightCulling.h"
 
