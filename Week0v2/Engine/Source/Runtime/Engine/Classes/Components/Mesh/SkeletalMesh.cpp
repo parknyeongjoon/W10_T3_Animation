@@ -100,7 +100,7 @@ void USkeletalMesh::UpdateChildBones(int ParentIndex)
 }
 
 // USkeletalMesh 클래스에 추가할 함수
-void USkeletalMesh::RotateBoneByName(const FString& BoneName, float AngleInDegrees, const FVector& RotationAxis)
+void USkeletalMesh::RotateBoneByName(const FString& BoneName, float DeltaAngleInDegrees, const FVector& RotationAxis)
 {
     // 이름으로 본 인덱스 찾기
     int targetBoneIndex = FindBoneIndexByName(BoneName);
@@ -109,14 +109,26 @@ void USkeletalMesh::RotateBoneByName(const FString& BoneName, float AngleInDegre
     if (targetBoneIndex < 0)
         return;
 
+    RotateBoneByIndex(targetBoneIndex, DeltaAngleInDegrees, RotationAxis);
+}
+
+void USkeletalMesh::RotateBoneByIndex(int32 BoneIndex, float DeltaAngleInDegrees, const FVector& RotationAxis, bool bIsChildUpdate)
+{
+    // 본을 찾지 못한 경우
+    if (BoneIndex < 0)
+        return;
+
     // 회전 행렬 생성 및 적용
-    ApplyRotationToBone(targetBoneIndex, AngleInDegrees, RotationAxis);
+    ApplyRotationToBone(BoneIndex, DeltaAngleInDegrees, RotationAxis);
 
-    // 계층 구조 업데이트
-    UpdateBoneHierarchy();
+    if (bIsChildUpdate)
+    {
+        // 계층 구조 업데이트
+        UpdateBoneHierarchy();
 
-    // 스키닝 적용 및 버퍼 업데이트
-    UpdateSkinnedVertices();
+        // 스키닝 적용 및 버퍼 업데이트
+        UpdateSkinnedVertices();
+    }
 }
 
 int USkeletalMesh::FindBoneIndexByName(const FString& BoneName) const
@@ -133,12 +145,12 @@ int USkeletalMesh::FindBoneIndexByName(const FString& BoneName) const
     return -1;
 }
 
-void USkeletalMesh::ApplyRotationToBone(int BoneIndex, float AngleInDegrees, const FVector& RotationAxis)
+void USkeletalMesh::ApplyRotationToBone(int BoneIndex, float DeltaAngleInDegrees, const FVector& RotationAxis)
 {
     if (BoneIndex < 0 || BoneIndex >= SkeletalMeshRenderData.Bones.Num())
         return;
 
-    float angleInRadians = AngleInDegrees * 3.14159f / 180.0f;
+    float angleInRadians = DeltaAngleInDegrees * 3.14159f / 180.0f;
     FMatrix rotationMatrix = FMatrix::Identity;
 
     // X축 회전

@@ -131,7 +131,7 @@ void USkeletalMeshComponent::SetSkeletalMesh(USkeletalMesh* value)
     OverrideMaterials.SetNum(value->GetMaterials().Num());
     AABB = SkeletalMesh->GetRenderData().BoundingBox;
 
-    CreateBoneComponents();
+    // CreateBoneComponents();
 }
 
 void USkeletalMeshComponent::CreateBoneComponents()
@@ -165,8 +165,10 @@ void USkeletalMeshComponent::UpdateBoneHierarchy()
 {
     for (int i=0;i<SkeletalMesh->GetRenderData().Vertices.Num();i++)
     {
-         SkeletalMesh->GetRenderData().Vertices[i].Position = SkeletalMesh->GetRefSkeletal()->RawVertices[i].Position;
+         SkeletalMesh->GetRenderData().Vertices[i].Position
+        = SkeletalMesh->GetRefSkeletal()->RawVertices[i].Position;
     }
+    
     SkeletalMesh->UpdateBoneHierarchy();
     SkinningVertex();
 }
@@ -234,17 +236,13 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 void USkeletalMesh::ResetToOriginalPose()
 {
     // 본 트랜스폼 복원
-    for (int i = 0; i < OriginalLocalTransforms.Num() && i < SkeletalMeshRenderData.Bones.Num(); i++)
+    for (int i = 0; i < RefSkeletal->RawVertices.Num() && i < SkeletalMeshRenderData.Bones.Num(); i++)
     {
         // 로컬 트랜스폼 복원
-        SkeletalMeshRenderData.Bones[i].LocalTransform = OriginalLocalTransforms[i];
-
-        SkeletalMeshRenderData.Bones[i].GlobalTransform = OriginalGlobalMatrices[i];
+        SkeletalMeshRenderData.Bones[i].LocalTransform = RefSkeletal->RawBones[i].LocalTransform;
+        SkeletalMeshRenderData.Bones[i].GlobalTransform = RefSkeletal->RawBones[i].GlobalTransform;
+        SkeletalMeshRenderData.Bones[i].SkinningMatrix = RefSkeletal->RawBones[i].SkinningMatrix;
     }
-
-
-    // 로컬 트랜스폼으로부터 글로벌 트랜스폼과 스키닝 매트릭스 재계산
-    UpdateBoneHierarchy();
 
     // 스키닝 적용
     UpdateSkinnedVertices();

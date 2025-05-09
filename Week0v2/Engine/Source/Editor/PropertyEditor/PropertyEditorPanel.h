@@ -38,6 +38,7 @@ private:
     void RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp);
     void RenderForSkeletalMesh2(USkeletalMeshComponent* SkeletalMesh);
     void RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int BoneIndex);
+    void RenderForSkeletalMesh3(USkeletalMeshComponent* SkeletalMesh);
     void OnBoneSelected(int BoneIndex);
 
     /* Materials Settings */

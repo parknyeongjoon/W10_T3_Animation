@@ -1007,31 +1007,41 @@ void SkeletalPreviewPropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshCom
                 // 슬라이더 값이 변경되면 맵에 저장
                 if (rotationChanged)
                 {
+                    if (BoneRotations.Contains(SelectedBoneIndex))
+                    {
+                        PrevBoneRotations[SelectedBoneIndex] = BoneRotations[SelectedBoneIndex];
+                    }
+                    else
+                    {
+                        PrevBoneRotations[SelectedBoneIndex] = FBoneRotation(0, 0, 0);
+                    }
                     BoneRotations[SelectedBoneIndex] = FBoneRotation(XRotation, YRotation, ZRotation);
                     anyRotationChanged = true;
                 }
 
-                // 리셋 버튼
-                if (ImGui::Button("Reset Bone"))
-                {
-                    XRotation = 0.0f;
-                    YRotation = 0.0f;
-                    ZRotation = 0.0f;
-                    BoneRotations[SelectedBoneIndex] = FBoneRotation(0.0f, 0.0f, 0.0f);
-                    anyRotationChanged = true;
-                }
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("Reset All Bones"))
-                {
-                    // 모든 본의 회전값 초기화
-                    BoneRotations.Empty();
-                    XRotation = 0.0f;
-                    YRotation = 0.0f;
-                    ZRotation = 0.0f;
-                    anyRotationChanged = true;
-                }
+                // // 리셋 버튼
+                // if (ImGui::Button("Reset Bone"))
+                // {
+                //     XRotation = 0.0f;
+                //     YRotation = 0.0f;
+                //     ZRotation = 0.0f;
+                //     PrevBoneRotations[SelectedBoneIndex] = BoneRotations[SelectedBoneIndex];
+                //     BoneRotations[SelectedBoneIndex] = FBoneRotation(0.0f, 0.0f, 0.0f);
+                //     anyRotationChanged = true;
+                // }
+                //
+                // ImGui::SameLine();
+                //
+                // if (ImGui::Button("Reset All Bones"))
+                // {
+                //     // 모든 본의 회전값 초기화
+                //     BoneRotations.Empty();
+                //     PrevBoneRotations.Empty();
+                //     XRotation = 0.0f;
+                //     YRotation = 0.0f;
+                //     ZRotation = 0.0f;
+                //     anyRotationChanged = true;
+                // }
             }
 
             // 회전값이 변경된 경우에만 적용
@@ -1041,18 +1051,25 @@ void SkeletalPreviewPropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshCom
                 // SkeletalMesh->GetSkeletalMesh()->ResetToOriginalPose();
 
                 // 저장된 모든 본 회전을 적용
-                for (auto& Pair : BoneRotations)
+                for (uint32 i = 0; i < BoneRotations.Num(); i++)
                 {
-                    const int& BoneName = Pair.Key;
-                    const FBoneRotation& Rotation = Pair.Value;
+                    const int& BoneName = i;
+                    const FBoneRotation Rotation = BoneRotations[i];
+                    const FBoneRotation PrevRotation = PrevBoneRotations[i];
+
+                    PrevBoneRotations[i] = BoneRotations[i];
+                    float X, Y, Z;
+                    X = Rotation.X - PrevRotation.X;
+                    Y = Rotation.Y - PrevRotation.Y;
+                    Z = Rotation.Z - PrevRotation.Z;
 
                     int boneIndex = BoneName;
                     if (boneIndex >= 0)
                     {
                         // 각 축별로 회전 적용 (로컬 변환만)
-                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.X, FVector(1.0f, 0.0f, 0.0f));
-                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.Y, FVector(0.0f, 1.0f, 0.0f));
-                        SkeletalMesh->GetSkeletalMesh()->ApplyRotationToBone(boneIndex, Rotation.Z, FVector(0.0f, 0.0f, 1.0f));
+                        SkeletalMesh->GetSkeletalMesh()->RotateBoneByIndex(boneIndex, X, FVector::ForwardVector, false);
+                        SkeletalMesh->GetSkeletalMesh()->RotateBoneByIndex(boneIndex, Y, FVector::RightVector, false);
+                        SkeletalMesh->GetSkeletalMesh()->RotateBoneByIndex(boneIndex, Z, FVector::UpVector, false);
                     }
                 }
 

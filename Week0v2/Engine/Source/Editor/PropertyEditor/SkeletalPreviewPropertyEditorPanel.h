@@ -66,4 +66,6 @@ private:
     float ZRotation = 0.0f;
     TMap<int, FBoneRotation> BoneRotations;
 
+    TMap<int, FBoneRotation> PrevBoneRotations;
+
 };
