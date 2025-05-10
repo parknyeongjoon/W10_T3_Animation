@@ -176,7 +176,6 @@ struct alignas(16)  FLetterBoxConstants // 레지스터 슬롯은 다른 버퍼�
     
 };
 
-
 struct alignas(16) FBlurConstants
 {
     // 블러 강도 (가우시안 함수의 표준 편차(sigma) 역할)
@@ -210,7 +209,7 @@ struct alignas(16) FConstatntBufferActor
     FVector padding; // offset: 20, size: 12
 };
 
-enum class EShaderConstantBuffer
+enum class EShaderConstantBuffer : std::uint8_t
 {
     FCameraConstant = 0,
     FConstants = 1,
@@ -225,6 +224,7 @@ enum class EShaderConstantBuffer
     FPrimitiveCounts = 10,
     FSubUVConstant = 11,
     FViewportInfo = 12,
+    
     EShaderConstantBuffer_MAX
 };
 

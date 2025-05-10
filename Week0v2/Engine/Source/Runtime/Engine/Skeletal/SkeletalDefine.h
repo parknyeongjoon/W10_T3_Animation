@@ -3,8 +3,10 @@
 #include "Container/Array.h"
 #include "Container/Map.h"
 #include "Math/Matrix.h"
+#include "Math/Quat.h"
 #include "Math/Vector.h"
 
+#pragma region Skeletal;
 struct FBone
 {
     FString BoneName;
@@ -60,3 +62,4 @@ struct FSkeletalMeshRenderData
     ID3D11Buffer* VB = nullptr;
     ID3D11Buffer* IB = nullptr;
 };
+#pragma endregion

@@ -463,26 +463,6 @@ void FStaticMeshRenderPass::UpdateLightConstants()
 //     renderResourceManager->UpdateConstantBuffer(TEXT("FConstatntBufferActor"), &ConstatntBufferActor);
 // }
 
-void FStaticMeshRenderPass::UpdateSkySphereTextureConstants(const USkySphereComponent* InSkySphereComponent)
-{
-    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
-    
-    FSubUVConstant UVBuffer;
-    
-    if (InSkySphereComponent != nullptr)
-    {
-        UVBuffer.indexU = InSkySphereComponent->UOffset;
-        UVBuffer.indexV = InSkySphereComponent->VOffset;
-    }
-    else
-    {
-        UVBuffer.indexU = 0;
-        UVBuffer.indexV = 0;
-    }
-    
-    renderResourceManager->UpdateConstantBuffer(TEXT("FSubUVConstant"), &UVBuffer);
-}
-
 void FStaticMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
 {
     FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;

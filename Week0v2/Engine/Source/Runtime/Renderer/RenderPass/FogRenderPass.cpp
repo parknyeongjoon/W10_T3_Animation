@@ -118,21 +118,6 @@ void FFogRenderPass::UpdateCameraConstant(const std::shared_ptr<FViewportClient>
     Graphics.DeviceContext->PSSetConstantBuffers(0, 1, &FogCameraConstantBuffer);
 }
 
-void FFogRenderPass::UpdateScreenConstant(std::shared_ptr<FViewportClient> InViewportClient)
-{
-    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
-    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
-    std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
-
-    FViewportInfo ScreenConstants;
-    float Width = Graphics.GetCurrentWindowData()->ScreenHeight;
-    float Height = Graphics.GetCurrentWindowData()->ScreenHeight;
-    ScreenConstants.ViewportSize = FVector2D { curEditorViewportClient->GetViewport()->GetFSlateRect().Width / Width, curEditorViewportClient->GetViewport()->GetFSlateRect().Height / Height };
-    ScreenConstants.ViewportOffset = FVector2D { curEditorViewportClient->GetViewport()->GetFSlateRect().LeftTopX / Width, curEditorViewportClient->GetViewport()->GetFSlateRect().LeftTopY / Height };
-
-    renderResourceManager->UpdateConstantBuffer(TEXT("FViewportInfo"), &ScreenConstants);
-}
-
 void FFogRenderPass::UpdateFogConstant(const std::shared_ptr<FViewportClient> InViewportClient) const
 {
     const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;

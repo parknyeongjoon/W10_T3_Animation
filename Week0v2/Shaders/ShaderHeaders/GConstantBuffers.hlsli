@@ -11,12 +11,10 @@ cbuffer FObjectConstant : register(b11)
     float3 ObjectPadding;
 };
 
-cbuffer FViewConstant : register(b12)
+cbuffer FViewportInfo : register(b12)
 {
-    row_major matrix ViewMatrix;
-    row_major matrix InvViewMatrix;
-    float3 ViewLocation;
-    float ViewPadding;
+    float2 ViewportSize;
+    float2 ViewportOffset;
 }
 
 cbuffer FProjectionConstant : register(b13)

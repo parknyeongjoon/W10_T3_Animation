@@ -1,3 +1,5 @@
+#include "ShaderHeaders/GConstantBuffers.hlsli"
+
 // C++ 에서 전달받을 레터박스 관련 상수 버퍼
 cbuffer FLetterBoxConstants : register(b0) // 레지스터 슬롯은 다른 버퍼와 겹치지 않게 선택 (b0가 Fade에 사용되었다면 b1 사용)
 {
@@ -23,14 +25,16 @@ struct VS_OUT
 
 float4 mainPS(VS_OUT input) : SV_TARGET
 {
+    float2 viewportUV = input.uv * ViewportSize + ViewportOffset;
+
     // 1. 레터박스 (상하 바) 영역 확인
-    bool isTopBar = input.uv.y < LetterboxSize;
-    bool isBottomBar = input.uv.y > (1.0f - LetterboxSize);
+    bool isTopBar = viewportUV.y < LetterboxSize;
+    bool isBottomBar = viewportUV.y > (1.0f - LetterboxSize);
 
     // 2. 필러박스 (좌우 바) 영역 확인
     // input.uv.x 값은 화면 좌측이 0.0, 우측이 1.0 입니다.
-    bool isLeftBar = input.uv.x < PillarboxSize;
-    bool isRightBar = input.uv.x > (1.0f - PillarboxSize);
+    bool isLeftBar = viewportUV.x < PillarboxSize;
+    bool isRightBar = viewportUV.x > (1.0f - PillarboxSize);
 
     // 3. 상단 또는 하단 바 영역에 해당하면 레터박스 색상 출력
     if (isTopBar || isBottomBar || isLeftBar || isRightBar)
@@ -39,7 +43,7 @@ float4 mainPS(VS_OUT input) : SV_TARGET
     }
     else // 4. 바 영역이 아니면 (즉, 보이는 영역이면) 원본 씬 색상 출력
     {
-        float4 sceneColor = SceneTexture.Sample(SamplerLinear, input.uv);
+        float4 sceneColor = SceneTexture.Sample(SamplerLinear, viewportUV);
         return float4(sceneColor.xyz, 1.0f);
     }
 }
