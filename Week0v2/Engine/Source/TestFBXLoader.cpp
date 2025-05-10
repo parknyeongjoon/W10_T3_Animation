@@ -287,7 +287,7 @@ FSkeletalVertex& TestFBXLoader::GetVertexFromControlPoint(
     // 기본값
     Vertex.Normal   = FVector(0.0f, 0.0f, 1.0f);
     Vertex.TexCoord = FVector2D(0.0f, 0.0f);
-    Vertex.Tangent  = FVector(1.0f, 0.0f, 0.0f);
+    Vertex.Tangent  = FVector4(1.0f, 0.0f, 0.0f, 1.0f);
 
     return Vertex;
 }
@@ -389,7 +389,6 @@ void TestFBXLoader::ExtractTangent(
     auto* TanElem = Mesh->GetElementTangent(0);
     if (!TanElem || TanElem->GetDirectArray().GetCount() == 0)
     {
-        return;
         Mesh->GenerateTangentsData(0, /*overwrite=*/ true);
         TanElem = Mesh->GetElementTangent(0);
         if (!TanElem) return;
@@ -425,7 +424,7 @@ void TestFBXLoader::ExtractTangent(
     Vertex.Tangent.X = Tan[0];
     Vertex.Tangent.Y = Tan[1];
     Vertex.Tangent.Z = Tan[2];
-
+    Vertex.Tangent.W = Tan[3];
 }
 
 void TestFBXLoader::ExtractSkinningData(
