@@ -44,6 +44,7 @@ public:
     static const TMap<FString, USkeletalMesh*>& GetSkeletalMeshes() { return SkeletalMeshMap;}
 
     static FSkeletalVertex& GetVertexFromControlPoint(FbxMesh* Mesh, int PolygonIndex, int VertexIndex);
+    static bool IsTriangulated(FbxMesh* Mesh);
 
 private:
     inline static FbxManager* FbxManager;

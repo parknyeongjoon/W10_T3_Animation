@@ -23,7 +23,6 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     }
     FbxScene* Scene = FbxScene::Create(FbxManager, "myScene");
     FbxImporter* Importer = FbxImporter::Create(FbxManager, "myImporter");
-    FbxGeometryConverter Converter(FbxManager);
     
     bool bResult = Importer->Initialize(GetData(FilePath), -1, FbxManager->GetIOSettings());
     if (!bResult)
@@ -38,8 +37,6 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     
     Importer->Import(Scene);
     Importer->Destroy();
-
-    Converter.Triangulate(Scene, true);
 
     FSkeletalMeshRenderData* NewMeshData = new FSkeletalMeshRenderData();
     FRefSkeletal* RefSkeletal = new FRefSkeletal();
@@ -182,6 +179,15 @@ void TestFBXLoader::ExtractBoneFromNode(FbxNode* Node, FSkeletalMeshRenderData* 
             }
         }
     }
+
+    // Find and Save Root bone nodes
+    for (int i = 0; i < MeshData->Bones.Num(); ++i)
+    {
+        if (MeshData->Bones[i].ParentIndex == -1)
+        {
+            RefSkeletal->RootBoneIndices.Add(i);
+        }
+    }
 }
 
 /* Extract할 때 FBX의 Mapping Mode와 Reference Mode에 따라 모두 다르게 파싱을 진행해야 함!! */
@@ -190,6 +196,13 @@ void TestFBXLoader::ExtractMeshFromNode(FbxNode* Node, FSkeletalMeshRenderData* 
     FbxMesh* Mesh = Node->GetMesh();
     if (Mesh)
     {
+        if (!IsTriangulated(Mesh))
+        {
+            FbxGeometryConverter Converter = FbxGeometryConverter(FbxManager);
+            Converter.Triangulate(Mesh, true);
+            Mesh = Node->GetMesh();
+        }
+        
         int BaseVertexIndex = MeshData->Vertices.Num();
         int BaseIndexOffset = MeshData->Indices.Num();
         
@@ -229,7 +242,8 @@ void TestFBXLoader::ExtractMeshFromNode(FbxNode* Node, FSkeletalMeshRenderData* 
 void TestFBXLoader::ExtractVertices(
     FbxMesh* Mesh,
     FSkeletalMeshRenderData* MeshData,
-    FRefSkeletal* RefSkeletal)
+    FRefSkeletal* RefSkeletal
+)
 {
     IndexMap.Empty();
     SkinWeightMap.Empty();
@@ -251,11 +265,31 @@ void TestFBXLoader::ExtractVertices(
             StoreVertex(vertex, MeshData);
         }
     }
+}
 
-    // 3) Attribute(법선, UV, 탄젠트, 스키닝) 채우기
-    // ExtractNormals       (Mesh, MeshData, BaseVertexIndex);
-    // ExtractUVs           (Mesh, MeshData, BaseVertexIndex);
-    // ExtractTangents      (Mesh, MeshData, BaseVertexIndex);
+FSkeletalVertex& TestFBXLoader::GetVertexFromControlPoint(
+    FbxMesh* Mesh,
+    int PolygonIndex,
+    int VertexIndex
+)
+{
+    auto* ControlPoints = Mesh->GetControlPoints();
+    FSkeletalVertex Vertex;
+
+    // 위치
+    // auto& CP = ControlPoints[ControlPointIndex];
+    int controlPointIndex = Mesh->GetPolygonVertex(PolygonIndex, VertexIndex);
+    Vertex.Position.X = static_cast<float>(ControlPoints[controlPointIndex][0]);
+    Vertex.Position.Y = static_cast<float>(ControlPoints[controlPointIndex][1]);
+    Vertex.Position.Z = static_cast<float>(ControlPoints[controlPointIndex][2]);
+    Vertex.Position.W = 1.0f;
+    
+    // 기본값
+    Vertex.Normal   = FVector(0.0f, 0.0f, 1.0f);
+    Vertex.TexCoord = FVector2D(0.0f, 0.0f);
+    Vertex.Tangent  = FVector(1.0f, 0.0f, 0.0f);
+
+    return Vertex;
 }
 
 void TestFBXLoader::ExtractNormal(
@@ -265,7 +299,7 @@ void TestFBXLoader::ExtractNormal(
     int VertexIndex
 )
 {
-    auto* NormalElem = Mesh->GetElementNormal();
+    FbxLayerElementNormal* NormalElem = Mesh->GetElementNormal();
     if (!NormalElem) return;
 
     // 매핑·레퍼런스 모드
@@ -309,7 +343,7 @@ void TestFBXLoader::ExtractUV(
     int VertexIndex
 )
 {
-    auto* UVElem = Mesh->GetElementUV(0);
+    FbxLayerElementUV* UVElem = Mesh->GetElementUV(0);
     if (!UVElem) return;
 
     // 매핑·레퍼런스 모드
@@ -352,11 +386,10 @@ void TestFBXLoader::ExtractTangent(
     int VertexIndex
 )
 {
-    // Tangent 없으면 생성
     auto* TanElem = Mesh->GetElementTangent(0);
     if (!TanElem || TanElem->GetDirectArray().GetCount() == 0)
     {
-        printf("FBX Tangent Empty!");
+        return;
         Mesh->GenerateTangentsData(0, /*overwrite=*/ true);
         TanElem = Mesh->GetElementTangent(0);
         if (!TanElem) return;
@@ -389,9 +422,9 @@ void TestFBXLoader::ExtractTangent(
         index = TanElem->GetIndexArray().GetAt(index);
     
     auto Tan = TanElem->GetDirectArray().GetAt(index);
-    Vertex.Tangent.X = (float)Tan[0];
-    Vertex.Tangent.Y = (float)Tan[1];
-    Vertex.Tangent.Z = (float)Tan[2];
+    Vertex.Tangent.X = Tan[0];
+    Vertex.Tangent.Y = Tan[1];
+    Vertex.Tangent.Z = Tan[2];
 
 }
 
@@ -899,27 +932,12 @@ FRefSkeletal* TestFBXLoader::GetRefSkeletal(FString FilePath)
     return nullptr;
 }
 
-FSkeletalVertex& TestFBXLoader::GetVertexFromControlPoint(
-    FbxMesh* Mesh,
-    int PolygonIndex,
-    int VertexIndex
-)
+bool TestFBXLoader::IsTriangulated(FbxMesh* Mesh)
 {
-    auto* ControlPoints = Mesh->GetControlPoints();
-    FSkeletalVertex Vertex;
-
-    // 위치
-    // auto& CP = ControlPoints[ControlPointIndex];
-    int controlPointIndex = Mesh->GetPolygonVertex(PolygonIndex, VertexIndex);
-    Vertex.Position.X = static_cast<float>(ControlPoints[controlPointIndex][0]);
-    Vertex.Position.Y = static_cast<float>(ControlPoints[controlPointIndex][1]);
-    Vertex.Position.Z = static_cast<float>(ControlPoints[controlPointIndex][2]);
-    Vertex.Position.W = 1.0f;
-    
-    // 기본값
-    Vertex.Normal   = FVector(0.0f, 0.0f, 1.0f);
-    Vertex.TexCoord = FVector2D(0.0f, 0.0f);
-    Vertex.Tangent  = FVector(1.0f, 0.0f, 0.0f);
-
-    return Vertex;
+    for (int i = 0; i < Mesh->GetPolygonCount(); ++i)
+    {
+        if (Mesh->GetPolygonSize(i) != 3)
+            return false;
+    }
+    return true;
 }
