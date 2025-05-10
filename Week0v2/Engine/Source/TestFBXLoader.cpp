@@ -21,8 +21,9 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
         InitFBXManager();
         bInitialized = true;
     }
-    FbxImporter* Importer = FbxImporter::Create(FbxManager, "myImporter");
     FbxScene* Scene = FbxScene::Create(FbxManager, "myScene");
+    FbxImporter* Importer = FbxImporter::Create(FbxManager, "myImporter");
+    FbxGeometryConverter Converter(FbxManager);
     
     bool bResult = Importer->Initialize(GetData(FilePath), -1, FbxManager->GetIOSettings());
     if (!bResult)
@@ -37,6 +38,8 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     
     Importer->Import(Scene);
     Importer->Destroy();
+
+    Converter.Triangulate(Scene, true);
 
     FSkeletalMeshRenderData* NewMeshData = new FSkeletalMeshRenderData();
     FRefSkeletal* RefSkeletal = new FRefSkeletal();
@@ -85,6 +88,7 @@ void TestFBXLoader::ExtractBoneFromNode(FbxNode* Node, FSkeletalMeshRenderData* 
     RefSkeletal->RootBoneIndices.Empty();
     RefSkeletal->BoneNameToIndexMap.Empty();
 
+    // Before - collect all bone nodes 
     TArray<FbxNode*> BoneNodes;
     std::function<void(FbxNode*)> FindBones = [&BoneNodes, &FindBones](FbxNode* node)
     {
@@ -92,12 +96,13 @@ void TestFBXLoader::ExtractBoneFromNode(FbxNode* Node, FSkeletalMeshRenderData* 
             return;
 
         FbxNodeAttribute* attr = node->GetNodeAttribute();
-        if (attr && attr->GetAttributeType() != FbxNodeAttribute::eSkeleton)
+        if (attr && attr->GetAttributeType() == FbxNodeAttribute::eSkeleton)
             BoneNodes.Add(node);
 
         for (int i = 0; i < node->GetChildCount(); ++i)
             FindBones(node->GetChild(i));
     };
+    FindBones(Node);
     
     // First pass - collect all bone nodes from clusters and add to flat bone array
     for (int i = 0; i < BoneNodes.Num(); ++i)
@@ -203,8 +208,9 @@ void TestFBXLoader::ExtractMeshFromNode(FbxNode* Node, FSkeletalMeshRenderData* 
         // 버텍스 데이터 추출
         ExtractVertices(Mesh, MeshData, RefSkeletal);
         
-        // 인덱스 데이터 추출, 
-        ExtractIndices(Mesh, MeshData, BaseVertexIndex);
+        // 인덱스 데이터 추출.
+        // 250510) ExtractVertices에서 같이 추출하도록 수정.
+        // ExtractIndices(Mesh, MeshData, BaseVertexIndex);
         
         // 머테리얼 데이터 추출
         ExtractMaterials(Node, Mesh, MeshData, RefSkeletal, BaseIndexOffset);
@@ -225,57 +231,39 @@ void TestFBXLoader::ExtractVertices(
     FSkeletalMeshRenderData* MeshData,
     FRefSkeletal* RefSkeletal)
 {
+    IndexMap.Empty();
+    SkinWeightMap.Empty();
+    ExtractSkinningData(Mesh, RefSkeletal);
 
-    // 1) Normal Element의 매핑 모드로 분기
-    auto* NormalElem = Mesh->GetElementNormal();
-    auto  mapMode    = NormalElem
-                      ? NormalElem->GetMappingMode()
-                      : FbxGeometryElement::eByControlPoint;
 
-    int BaseVertexIndex = MeshData->Vertices.Num();
-
-    // 2) 모드별로 정점 생성
-    if (mapMode == FbxGeometryElement::eByControlPoint)
+    int polyCnt = Mesh->GetPolygonCount();
+    for (int p = 0; p < polyCnt; ++p)
     {
-        // ControlPoint 기준 1:1
-        int CPCount = Mesh->GetControlPointsCount();
-        MeshData->Vertices.Reserve(BaseVertexIndex + CPCount);
-
-        for (int cpIdx = 0; cpIdx < CPCount; ++cpIdx)
-            AddVertexFromControlPoint(Mesh, MeshData, cpIdx);
-    }
-    if (mapMode == FbxGeometryElement::eByPolygonVertex)
-    {
-        // 폴리곤×버텍스 수만큼 복제
-        int totalPV = 0;
-        int polyCnt = Mesh->GetPolygonCount();
-        for (int p = 0; p < polyCnt; ++p)
-            totalPV += Mesh->GetPolygonSize(p);
-
-        MeshData->Vertices.Reserve(BaseVertexIndex + totalPV);
-
-        for (int p = 0; p < polyCnt; ++p)
+        int polySize = Mesh->GetPolygonSize(p);
+        for (int v = 0; v < polySize; ++v)
         {
-            int polySize = Mesh->GetPolygonSize(p);
-            for (int v = 0; v < polySize; ++v)
-            {
-                int cpIdx = Mesh->GetPolygonVertex(p, v);
-                AddVertexFromControlPoint(Mesh, MeshData, cpIdx);
-            }
+            // int cpIdx = Mesh->GetPolygonVertex(p, v);
+            FSkeletalVertex vertex = GetVertexFromControlPoint(Mesh, p, v);
+            ExtractNormal(Mesh, vertex, p, v);
+            ExtractUV(Mesh, vertex, p, v);
+            ExtractTangent(Mesh, vertex, p, v);
+            StoreWeights(Mesh, vertex, p, v);
+            StoreVertex(vertex, MeshData);
         }
     }
 
     // 3) Attribute(법선, UV, 탄젠트, 스키닝) 채우기
-    ExtractNormals       (Mesh, MeshData, BaseVertexIndex);
-    ExtractUVs           (Mesh, MeshData, BaseVertexIndex);
-    ExtractTangents      (Mesh, MeshData, BaseVertexIndex);
-    ExtractSkinningData  (Mesh, MeshData, RefSkeletal, BaseVertexIndex);
+    // ExtractNormals       (Mesh, MeshData, BaseVertexIndex);
+    // ExtractUVs           (Mesh, MeshData, BaseVertexIndex);
+    // ExtractTangents      (Mesh, MeshData, BaseVertexIndex);
 }
 
-void TestFBXLoader::ExtractNormals(
+void TestFBXLoader::ExtractNormal(
     FbxMesh* Mesh,
-    FSkeletalMeshRenderData* RenderData,
-    int BaseVertexIndex)
+    FSkeletalVertex& Vertex,
+    int PolygonIndex,
+    int VertexIndex
+)
 {
     auto* NormalElem = Mesh->GetElementNormal();
     if (!NormalElem) return;
@@ -283,110 +271,86 @@ void TestFBXLoader::ExtractNormals(
     // 매핑·레퍼런스 모드
     auto mapMode = NormalElem->GetMappingMode();
     auto refMode = NormalElem->GetReferenceMode();
+    int index = -1;
 
-    // 순회 인덱스
-    int polyVertCounter   = 0;
-    int vertexBufferIndex = BaseVertexIndex;
-
-    // 인덱스 계산 람다
-    std::function<int(int,int)> getIdx;
-    if (mapMode == FbxGeometryElement::eByControlPoint) {
-        if (refMode == FbxGeometryElement::eDirect)
-            getIdx = [&](int cp, int pv){ return cp; };
-        else
-            getIdx = [&](int cp, int pv){ return NormalElem->GetIndexArray().GetAt(cp); };
-    }
-    else if (mapMode == FbxGeometryElement::eByPolygonVertex) {
-        if (refMode == FbxGeometryElement::eDirect)
-            getIdx = [&](int cp, int pv){ return pv; };
-        else
-            getIdx = [&](int cp, int pv){ return NormalElem->GetIndexArray().GetAt(pv); };
-    }
-    else {
-        // eByPolygon, eAllSame 등 추가 지원 필요 시 여기
-        return;
-    }
-
-
-
-    // 폴리곤-버텍스 순회
-    int polyCount = Mesh->GetPolygonCount();
-
-    for (int p = 0; p < polyCount; ++p)
+    switch (mapMode)
     {
-        int polySize = Mesh->GetPolygonSize(p);
-        for (int v = 0; v < polySize; ++v)
-        {
-            int ctrlIdx = Mesh->GetPolygonVertex(p, v);
-            int idx     = getIdx(ctrlIdx, polyVertCounter);
-
-            auto Nor = NormalElem->GetDirectArray().GetAt(idx);
-            auto& V   = RenderData->Vertices[vertexBufferIndex];
-            V.Normal.X = (float)Nor[0];
-            V.Normal.Y = (float)Nor[1];
-            V.Normal.Z = (float)Nor[2];
-
-            ++polyVertCounter;
-            ++vertexBufferIndex;
-        }
+    case FbxLayerElement::eNone:
+        break;
+    case FbxLayerElement::eByControlPoint:
+        index = Mesh->GetPolygonVertex(PolygonIndex, VertexIndex);
+        break;
+    case FbxLayerElement::eByPolygonVertex:
+        index = PolygonIndex * 3 + VertexIndex;
+        break;
+    case FbxLayerElement::eByPolygon:
+        index = PolygonIndex;
+        break;
+    case FbxLayerElement::eByEdge:
+        break;
+    case FbxLayerElement::eAllSame:
+        break;
     }
+
+    if (refMode != FbxLayerElement::eDirect)
+        index = NormalElem->GetIndexArray().GetAt(index);
+    
+    auto Normal = NormalElem->GetDirectArray().GetAt(index);
+    Vertex.Normal.X = Normal[0];
+    Vertex.Normal.Y = Normal[1];
+    Vertex.Normal.Z = Normal[2];
+
 }
 
-void TestFBXLoader::ExtractUVs(
+void TestFBXLoader::ExtractUV(
     FbxMesh* Mesh,
-    FSkeletalMeshRenderData* MeshData,
-    int BaseVertexIndex)
+    FSkeletalVertex& Vertex,
+    int PolygonIndex,
+    int VertexIndex
+)
 {
     auto* UVElem = Mesh->GetElementUV(0);
     if (!UVElem) return;
 
+    // 매핑·레퍼런스 모드
     auto mapMode = UVElem->GetMappingMode();
     auto refMode = UVElem->GetReferenceMode();
+    int index = -1;
 
-    int polyVertCounter   = 0;
-    int vertexBufferIndex = BaseVertexIndex;
-
-    std::function<int(int,int)> getIdx;
-    if (mapMode == FbxGeometryElement::eByControlPoint) {
-        if (refMode == FbxGeometryElement::eDirect)
-            getIdx = [&](int cp, int pv){ return cp; };
-        else
-            getIdx = [&](int cp, int pv){ return UVElem->GetIndexArray().GetAt(cp); };
-    }
-    else if (mapMode == FbxGeometryElement::eByPolygonVertex) {
-        if (refMode == FbxGeometryElement::eDirect)
-            getIdx = [&](int cp, int pv){ return pv; };
-        else
-            getIdx = [&](int cp, int pv){ return UVElem->GetIndexArray().GetAt(pv); };
-    }
-    else {
-        return;
-    }
-
-    int polyCount = Mesh->GetPolygonCount();
-    for (int p = 0; p < polyCount; ++p)
+    switch (mapMode)
     {
-        int polySize = Mesh->GetPolygonSize(p);
-        for (int v = 0; v < polySize; ++v)
-        {
-            int ctrlIdx = Mesh->GetPolygonVertex(p, v);
-            int idx     = getIdx(ctrlIdx, polyVertCounter);
-
-            auto UV = UVElem->GetDirectArray().GetAt(idx);
-            auto& V = MeshData->Vertices[vertexBufferIndex];
-            V.TexCoord.X = (float)UV[0];
-            V.TexCoord.Y = 1.0f - (float)UV[1];  // DirectX 좌표계 보정
-
-            ++polyVertCounter;
-            ++vertexBufferIndex;
-        }
+    case FbxLayerElement::eNone:
+        break;
+    case FbxLayerElement::eByControlPoint:
+        index = Mesh->GetPolygonVertex(PolygonIndex, VertexIndex);
+        break;
+    case FbxLayerElement::eByPolygonVertex:
+        index = PolygonIndex * 3 + VertexIndex;
+        break;
+    case FbxLayerElement::eByPolygon:
+        index = PolygonIndex;
+        break;
+    case FbxLayerElement::eByEdge:
+        break;
+    case FbxLayerElement::eAllSame:
+        break;
     }
+
+    if (refMode != FbxLayerElement::eDirect)
+        index = UVElem->GetIndexArray().GetAt(index);
+
+    auto UV = UVElem->GetDirectArray().GetAt(index);
+    Vertex.TexCoord.X = UV[0];
+    Vertex.TexCoord.Y = 1.0f - UV[1];  // DirectX 좌표계 보정
+
 }
 
-void TestFBXLoader::ExtractTangents(
+void TestFBXLoader::ExtractTangent(
     FbxMesh* Mesh,
-    FSkeletalMeshRenderData* MeshData,
-    int BaseVertexIndex)
+    FSkeletalVertex& Vertex,
+    int PolygonIndex,
+    int VertexIndex
+)
 {
     // Tangent 없으면 생성
     auto* TanElem = Mesh->GetElementTangent(0);
@@ -400,170 +364,110 @@ void TestFBXLoader::ExtractTangents(
 
     auto mapMode = TanElem->GetMappingMode();
     auto refMode = TanElem->GetReferenceMode();
+    int index = -1;
 
-    int polyVertCounter   = 0;
-    int vertexBufferIndex = BaseVertexIndex;
-
-    std::function<int(int,int)> getIdx;
-    if (mapMode == FbxGeometryElement::eByControlPoint) {
-        if (refMode == FbxGeometryElement::eDirect)
-            getIdx = [&](int cp, int pv){ return cp; };
-        else
-            getIdx = [&](int cp, int pv){ return TanElem->GetIndexArray().GetAt(cp); };
-    }
-    else if (mapMode == FbxGeometryElement::eByPolygonVertex) {
-        if (refMode == FbxGeometryElement::eDirect)
-            getIdx = [&](int cp, int pv){ return pv; };
-        else
-            getIdx = [&](int cp, int pv){ return TanElem->GetIndexArray().GetAt(pv); };
-    }
-    else {
-        return;
-    }
-
-    int polyCount = Mesh->GetPolygonCount();
-    for (int p = 0; p < polyCount; ++p)
+    switch (mapMode)
     {
-        int polySize = Mesh->GetPolygonSize(p);
-        for (int v = 0; v < polySize; ++v)
-        {
-            int ctrlIdx = Mesh->GetPolygonVertex(p, v);
-            int idx     = getIdx(ctrlIdx, polyVertCounter);
-
-            auto Tan = TanElem->GetDirectArray().GetAt(idx);
-            auto& V   = MeshData->Vertices[vertexBufferIndex];
-            V.Tangent.X = (float)Tan[0];
-            V.Tangent.Y = (float)Tan[1];
-            V.Tangent.Z = (float)Tan[2];
-
-            ++polyVertCounter;
-            ++vertexBufferIndex;
-        }
+    case FbxLayerElement::eNone:
+        break;
+    case FbxLayerElement::eByControlPoint:
+        index = Mesh->GetPolygonVertex(PolygonIndex, VertexIndex);
+        break;
+    case FbxLayerElement::eByPolygonVertex:
+        index = PolygonIndex * 3 + VertexIndex;
+        break;
+    case FbxLayerElement::eByPolygon:
+        index = PolygonIndex;
+        break;
+    case FbxLayerElement::eByEdge:
+        break;
+    case FbxLayerElement::eAllSame:
+        break;
     }
+
+    if (refMode != FbxLayerElement::eDirect)
+        index = TanElem->GetIndexArray().GetAt(index);
+    
+    auto Tan = TanElem->GetDirectArray().GetAt(index);
+    Vertex.Tangent.X = (float)Tan[0];
+    Vertex.Tangent.Y = (float)Tan[1];
+    Vertex.Tangent.Z = (float)Tan[2];
+
 }
 
 void TestFBXLoader::ExtractSkinningData(
     FbxMesh* Mesh,
-    FSkeletalMeshRenderData* MeshData,
-    FRefSkeletal* RefSkeletal,
-    int BaseVertexIndex)
+    FRefSkeletal* RefSkeletal
+)
 {
-    // 1) 매핑 모드 재확인
-    auto* NormalElem = Mesh->GetElementNormal();
-    auto  mapMode    = NormalElem
-                      ? NormalElem->GetMappingMode()
-                      : FbxGeometryElement::eByControlPoint;
-
-    // 2) ControlPoint별로 최대 4개 본/웨이트 수집
-    int cpCount = Mesh->GetControlPointsCount();
-    struct BW { int Indices[4]; float Weights[4]; };
-    std::vector<BW> cpWeights(cpCount);
-    // 초기화
-    for (int i = 0; i < cpCount; ++i)
-        for (int j = 0; j < 4; ++j)
-            cpWeights[i].Indices[j] = 0,
-            cpWeights[i].Weights[j] = 0.f;
-
-    // 스킨(Deformer) 순회
+    if (!Mesh) return;
+    
     int skinCount = Mesh->GetDeformerCount(FbxDeformer::eSkin);
     for (int s = 0; s < skinCount; ++s)
     {
-        auto* skin = static_cast<FbxSkin*>(Mesh->GetDeformer(s, FbxDeformer::eSkin));
-        if (!skin) continue;
-
-        // 클러스터(본) 순회
-        int clusterCount = skin->GetClusterCount();
-        for (int c = 0; c < clusterCount; ++c)
+        FbxSkin* skin = static_cast<FbxSkin*>(Mesh->GetDeformer(s, FbxDeformer::eSkin));
+        int clustureCount = skin->GetClusterCount();
+        for (int c = 0; c < clustureCount; ++c)
         {
-            auto* clus = skin->GetCluster(c);
-            FbxNode* linkNode = clus->GetLink();
-            if (!linkNode) continue;
+            FbxCluster* cluster = skin->GetCluster(c);
+            FbxNode* linkedBone = cluster->GetLink();
+            if (!linkedBone)
+                continue;
 
-            // ★ 하드코딩: Map에서 본 이름으로 인덱스 꺼내기
-            FString boneName(linkNode->GetName());
-            int*   pBoneIdx = RefSkeletal->BoneNameToIndexMap.Find(boneName);
-            if (!pBoneIdx)
-                continue;   // 레퍼런스 스켈레톤에 본이 없으면 스킵
-            int boneIdx = *pBoneIdx;
+            FString boneName = linkedBone->GetName();
+            int boneIndex = RefSkeletal->BoneNameToIndexMap[boneName];
 
-            // ControlPoint 웨이트 애셋
-            int*    cpIdxArr = clus->GetControlPointIndices();
-            double* cpWArr   = clus->GetControlPointWeights();
-            int     cnt      = clus->GetControlPointIndicesCount();
-
-            for (int k = 0; k < cnt; ++k)
+            int* indices = cluster->GetControlPointIndices();
+            double* weights = cluster->GetControlPointWeights();
+            int count = cluster->GetControlPointIndicesCount();
+            for (int i = 0; i < count; ++i)
             {
-                int   cpId = cpIdxArr[k];
-                float w    = static_cast<float>(cpWArr[k]);
-                auto& B    = cpWeights[cpId];
-
-                // 가장 작은 슬롯 교체
-                int minSlot = 0;
-                for (int m = 1; m < 4; ++m)
-                    if (B.Weights[m] < B.Weights[minSlot])
-                        minSlot = m;
-                if (w > B.Weights[minSlot])
-                {
-                    B.Indices[minSlot] = boneIdx;
-                    B.Weights[minSlot] = w;
-                }
+                int ctrlIdx = indices[i];
+                float weight = static_cast<float>(weights[i]);
+                if (!SkinWeightMap.Contains(ctrlIdx))
+                    SkinWeightMap.Add(ctrlIdx, TArray<FBoneWeightInfo>());
+                SkinWeightMap[ctrlIdx].Add({boneIndex, weight});
             }
+            
         }
-    }
+    } 
+}
 
-    // 3) ControlPoint별 정규화
-    for (auto& B : cpWeights)
+void TestFBXLoader::StoreWeights(
+    FbxMesh* Mesh,
+    FSkeletalVertex& Vertex,
+    int PolygonIndex,
+    int VertexIndex
+)
+{
+    int ControlPointIndex = Mesh->GetPolygonVertex(PolygonIndex, VertexIndex);
+    for (int i = 0; i < std::min(SkinWeightMap[ControlPointIndex].Num(), 4); ++i)
     {
-        float sum = B.Weights[0] + B.Weights[1] + B.Weights[2] + B.Weights[3];
-        if (sum > 0.f)
-            for (int j = 0; j < 4; ++j)
-                B.Weights[j] /= sum;
-        else
-            B.Indices[0] = 0, B.Weights[0] = 1.f;
-    }
-
-    // 4) 매핑 모드별로 복제된 Vertices에 웨이트 복사
-    if (mapMode == FbxGeometryElement::eByControlPoint)
-    {
-        // ControlPoint 기준 1:1
-        for (int cpIdx = 0; cpIdx < cpCount; ++cpIdx)
-        {
-            auto& Bsrc = cpWeights[cpIdx];
-            auto& V    = MeshData->Vertices[BaseVertexIndex + cpIdx];
-            for (int j = 0; j < 4; ++j)
-            {
-                V.BoneIndices[j] = Bsrc.Indices[j];
-                V.BoneWeights[j] = Bsrc.Weights[j];
-            }
-        }
-    }
-    else // eByPolygonVertex
-    {
-        int polyVertCounter   = 0;
-        int vertexBufferIndex = BaseVertexIndex;
-        int polyCount         = Mesh->GetPolygonCount();
-
-        for (int p = 0; p < polyCount; ++p)
-        {
-            int sz = Mesh->GetPolygonSize(p);
-            for (int v = 0; v < sz; ++v)
-            {
-                int cpIdx = Mesh->GetPolygonVertex(p, v);
-                auto& Bsrc = cpWeights[cpIdx];
-                auto& V    = MeshData->Vertices[vertexBufferIndex];
-                for (int j = 0; j < 4; ++j)
-                {
-                    V.BoneIndices[j] = Bsrc.Indices[j];
-                    V.BoneWeights[j] = Bsrc.Weights[j];
-                }
-
-                ++polyVertCounter;
-                ++vertexBufferIndex;
-            }
-        }
+        const FBoneWeightInfo& info = SkinWeightMap[ControlPointIndex][i];
+        Vertex.BoneIndices[i] = info.BoneIndex;
+        Vertex.BoneWeights[i] = info.BoneWeight;
     }
 }
 
+void TestFBXLoader::StoreVertex(FSkeletalVertex& vertex, FSkeletalMeshRenderData* MeshData)
+{
+    std::stringstream ss;
+    ss << vertex.Position.X << "," << vertex.Position.Y << "," << vertex.Position.Z << ",";
+    ss << vertex.Normal.X << "," << vertex.Normal.Y << "," << vertex.Normal.Z << ",";
+    ss << vertex.TexCoord.X << "," << vertex.TexCoord.Y;
+    FString key = ss.str();
+    uint32 index;
+    if (!IndexMap.Contains(key))
+    {
+        index = MeshData->Vertices.Num();
+        MeshData->Vertices.Add(vertex);
+        IndexMap[key] = index;
+    } else
+    {
+        index = IndexMap[key];
+    }
+    MeshData->Indices.Add(index);
+}
 
 void TestFBXLoader::ProcessSkinning(FbxSkin* Skin, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal, int BaseVertexIndex)
 {
@@ -995,25 +899,27 @@ FRefSkeletal* TestFBXLoader::GetRefSkeletal(FString FilePath)
     return nullptr;
 }
 
-void TestFBXLoader::AddVertexFromControlPoint(
+FSkeletalVertex& TestFBXLoader::GetVertexFromControlPoint(
     FbxMesh* Mesh,
-    FSkeletalMeshRenderData* MeshData,
-    int ControlPointIndex)
+    int PolygonIndex,
+    int VertexIndex
+)
 {
     auto* ControlPoints = Mesh->GetControlPoints();
     FSkeletalVertex Vertex;
 
     // 위치
-    auto& CP = ControlPoints[ControlPointIndex];
-    Vertex.Position.X = static_cast<float>(CP[0]);
-    Vertex.Position.Y = static_cast<float>(CP[1]);
-    Vertex.Position.Z = static_cast<float>(CP[2]);
+    // auto& CP = ControlPoints[ControlPointIndex];
+    int controlPointIndex = Mesh->GetPolygonVertex(PolygonIndex, VertexIndex);
+    Vertex.Position.X = static_cast<float>(ControlPoints[controlPointIndex][0]);
+    Vertex.Position.Y = static_cast<float>(ControlPoints[controlPointIndex][1]);
+    Vertex.Position.Z = static_cast<float>(ControlPoints[controlPointIndex][2]);
     Vertex.Position.W = 1.0f;
-
+    
     // 기본값
     Vertex.Normal   = FVector(0.0f, 0.0f, 1.0f);
     Vertex.TexCoord = FVector2D(0.0f, 0.0f);
     Vertex.Tangent  = FVector(1.0f, 0.0f, 0.0f);
 
-    MeshData->Vertices.Add(Vertex);
+    return Vertex;
 }
