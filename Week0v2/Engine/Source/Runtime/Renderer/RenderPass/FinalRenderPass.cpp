@@ -11,9 +11,10 @@ FFinalRenderPass::FFinalRenderPass(const FName& InShaderName) : FBaseRenderPass(
 
 void FFinalRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
 {
+    
 }
 
-void FFinalRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
+void FFinalRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     bRender = true;    
     if (bRender)
@@ -43,6 +44,8 @@ void FFinalRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient
 
     if (bRender)
     {
+        UpdateScreenConstant(InViewportClient);
+        
         Graphics.DeviceContext->Draw(6, 0);
 
         bRender = false;

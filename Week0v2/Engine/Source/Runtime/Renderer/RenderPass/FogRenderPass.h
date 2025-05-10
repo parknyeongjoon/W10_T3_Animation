@@ -17,11 +17,10 @@ public:
     void ClearRenderObjects() override;
     void Prepare(std::shared_ptr<FViewportClient> InViewportClient) override;
     void Execute(std::shared_ptr<FViewportClient> InViewportClient) override;
-    bool ShouldRender() { return bRender; }
+    bool ShouldRender() const { return bRender; }
 
 private:
     void UpdateCameraConstant(const std::shared_ptr<FViewportClient> InViewportClient) const;
-    void UpdateScreenConstant(std::shared_ptr<FViewportClient> InViewportClient);
     void UpdateFogConstant(const std::shared_ptr<FViewportClient> InViewportClient) const;
 
 private:

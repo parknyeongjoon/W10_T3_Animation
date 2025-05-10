@@ -167,6 +167,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>MaxSpeed</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -759,9 +760,6 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week0v2.natvis" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Shaders\ShaderHeaders\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli">

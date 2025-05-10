@@ -1,3 +1,5 @@
+#include "ShaderHeaders/GConstantBuffers.hlsli"
+
 cbuffer BlurConstants : register(b0) // 다른 상수 버퍼와 겹치지 않는 슬롯 사용
 {
     // 블러 강도 (가우시안 함수의 표준 편차(sigma) 역할)
@@ -32,6 +34,7 @@ float GaussianWeight(float offset, float sigma)
 static const int KERNEL_RADIUS = 11; // 7x7 커널 예시 (49 샘플)
 float4 mainPS(VS_OUT input) : SV_TARGET
 {
+    float2 viewportUV = input.uv * ViewportSize + ViewportOffset;
     float4 totalColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
     float totalWeight = 0.0f;
     float sigma = BlurStrength; // 가우시안 표준 편차
@@ -43,7 +46,7 @@ float4 mainPS(VS_OUT input) : SV_TARGET
         for (int i = -KERNEL_RADIUS; i <= KERNEL_RADIUS; ++i)
         {
             // 현재 샘플링할 픽셀의 UV 오프셋 계산
-            float2 offsetUV = input.uv + float2(TexelSize.x * i, TexelSize.y * j);
+            float2 offsetUV = viewportUV + float2(TexelSize.x * i, TexelSize.y * j);
             // 2D 가우시안 가중치 계산 (1D 가중치의 곱으로 계산 가능 - 분리성 활용)
             // 또는 거리 기반으로 계산: float distSq = i*i + j*j; weight = exp(-distSq / (2*sigmaSq));
             float weightX = GaussianWeight(float(i), sigma);
@@ -62,6 +65,6 @@ float4 mainPS(VS_OUT input) : SV_TARGET
     else // 블러 강도가 0에 가까워 가중치 합이 0이 되는 경우 등
     {
         // 중앙 픽셀 색상 반환 (블러 없음)
-        return InputTexture.Sample(SamplerLinear, input.uv);
+        return InputTexture.Sample(SamplerLinear, viewportUV);
     }
 }

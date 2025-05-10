@@ -253,10 +253,6 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     SetViewMode(ActiveViewportClient->GetViewMode());
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewportClient->GetD3DViewport());
     
-    //값을 써줄때 
-    
-    //ComputeTileLightCulling->Dispatch(ActiveViewport);
-    
     if (ActiveViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
     {
         ShadowRenderPass->Prepare(ActiveViewportClient);

@@ -62,6 +62,8 @@ void FLetterBoxRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportCl
     if (bRender)
     {
         UpdateLetterConstant();
+        UpdateScreenConstant(InViewportClient);
+        
         FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
         
         Graphics.DeviceContext->Draw(6, 0);
