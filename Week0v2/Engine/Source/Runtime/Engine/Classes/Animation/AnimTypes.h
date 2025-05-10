@@ -5,7 +5,7 @@
 class FVector;
 class FQuat;
 
-enum class EAnimInterpMode : std::uint8_t
+enum class EAnimInterpolationType : std::uint8_t
 {
     None,
     Linear,
@@ -50,7 +50,7 @@ enum class ETangentWeightMode : std::uint8_t
 *FbxAnimStack
  */
 
-struct FCurveKey
+struct FCurve
 {
     float Time;// 키프레임의 시간
     float Value;// 키프레임의 값
@@ -62,15 +62,17 @@ struct FCurveKey
     float TangentWeightArrive;
     float TangentWeightLeave;
     
-    EAnimInterpMode InterpMode;    // 이 키프레임에 사용되는 보간 모드
+    EAnimInterpolationType InterpMode;    // 이 키프레임에 사용되는 보간 모드
     ETangentMode TangentMode;
     ETangentWeightMode TangentWeightMode;
+
+    float Evaluate(float CurrentTime) const;
 };
 
-struct FAnimCurve
+struct FAnimationCurveData
 {
     FName CurveName;
-    TArray<FCurveKey> KeyFrameInfo;
+    TArray<FCurve> Curves;
 };
 
 struct FAnimNotifyEvent
@@ -88,18 +90,18 @@ struct FRawAnimSequenceTrack
     
     TArray<float> KeyTimes;         // 각 키프레임의 시간값
 
-    EAnimInterpMode InterpMode;     // 전체 트랙의 보간 모드
+    EAnimInterpolationType InterpMode;     // 전체 트랙의 보간 모드
 };
 
 struct FBoneAnimationTrack
 {
-    FName Name;                             // Bone 이름
-    FRawAnimSequenceTrack InternalTrack;    // 실제 애니메이션 데이터
+    FName Name = "Empty";                       // Bone 이름
+    FRawAnimSequenceTrack InternalTrackData;    // 실제 애니메이션 데이터
 };
 
 struct FSkeletalAnimation
 {
     TArray<FBoneAnimationTrack> BoneAnimTracks;
-    TArray<FAnimCurve> AttributeCurves;
+    TArray<FAnimationCurveData> AttributeCurves;
     TArray<FAnimNotifyEvent> Notifies;
 };
