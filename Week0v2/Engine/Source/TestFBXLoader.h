@@ -4,7 +4,7 @@
 #include "Components/Mesh/SkeletalMesh.h"
 #include "Components/Mesh/StaticMesh.h"
 #include "Container/Map.h"
-#include "FBX/SkeletalDefine.h"
+#include "Skeletal/SkeletalDefine.h"
 
 class TestFBXLoader
 {
