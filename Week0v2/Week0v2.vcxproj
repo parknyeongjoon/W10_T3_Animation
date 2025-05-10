@@ -185,6 +185,9 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimInstance.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequenceBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimationAsset.cpp" />
     <ClCompile Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\PreviewControlEditorPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\SkeletalPreviewPropertyEditorPanel.cpp" />
@@ -389,6 +392,9 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimSequenceBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimationAsset.h" />
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SlateAppMessageHandler.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\PreviewControlEditorPanel.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\SkeletalPreviewPropertyEditorPanel.h" />
@@ -402,6 +408,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraFadeInOut.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraLetterBox.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\SkeletalMeshActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Mesh\SkeletalMesh.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\MeshComponents\SkeletalMeshComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.h" />
