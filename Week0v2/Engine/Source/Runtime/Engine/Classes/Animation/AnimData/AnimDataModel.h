@@ -5,11 +5,13 @@
 #include "UObject/ObjectMacros.h"
 #include "Misc/Frame/FrameRate.h"
 
-class UAnimDataModel : public UObject, IAnimationDataModel
+class UAnimDataModel : public UObject, public IAnimationDataModel
 {
     DECLARE_CLASS(UAnimDataModel, UObject)
 public:
     UAnimDataModel() = default;
+    UAnimDataModel(const TArray<FBoneAnimationTrack>& InAnimation);
+    UAnimDataModel(const FName& FilePath);
     
     TArray<FBoneAnimationTrack> BoneAnimationTracks;
     float PlayLength;

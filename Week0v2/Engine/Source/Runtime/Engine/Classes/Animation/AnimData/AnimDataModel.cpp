@@ -1,6 +1,17 @@
 #include "AnimDataModel.h"
 #include "Math/Transform.h"
 
+UAnimDataModel::UAnimDataModel(const FName& FilePath)
+{
+    
+}
+
+UAnimDataModel::UAnimDataModel(const TArray<FBoneAnimationTrack>& InAnimation)
+{
+    BoneAnimationTracks = InAnimation;
+}
+
+
 void UAnimDataModel::GetBoneTrackNames(TArray<FName>& OutNames) const
 {
     TArray<FName> TrackNames;
@@ -37,7 +48,22 @@ const FBoneAnimationTrack& UAnimDataModel::GetBoneTrackByName(FName TrackName) c
 
 FTransform UAnimDataModel::EvaluateBoneTrackTransform(FName TrackName, const FFrameTime& FrameTime, const EAnimInterpolationType& Interpolation) const
 {
-    return {};
+    const float Alpha = Interpolation == EAnimInterpolationType::Step ? FMath::RoundToFloat(FrameTime.GetSubFrame()) : FrameTime.GetSubFrame();
+
+    if (FMath::IsNearlyEqual(Alpha, 1.0f))
+    {
+        return GetBoneTrackTransform(TrackName, FrameTime.CeilToFrame());
+    }
+    else if (FMath::IsNearlyZero(Alpha))
+    {
+        return GetBoneTrackTransform(TrackName, FrameTime.FloorToFrame());
+    }
+	
+    const FTransform From = GetBoneTrackTransform(TrackName, FrameTime.FloorToFrame());
+    const FTransform To = GetBoneTrackTransform(TrackName, FrameTime.CeilToFrame());
+
+    FTransform Blend = FTransform::Blend(From, To, Alpha);
+    return Blend;
 }
 
 FTransform UAnimDataModel::GetBoneTrackTransform(FName TrackName, const int32& FrameNumber) const
