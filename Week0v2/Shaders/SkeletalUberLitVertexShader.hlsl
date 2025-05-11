@@ -16,7 +16,7 @@ struct VS_INPUT
 {
     float4 position : POSITION; // 버텍스 위치
     float3 normal : NORMAL; // 버텍스 노멀
-    float3 tangent : TANGENT;
+    float4 tangent : TANGENT;
     float2 texcoord : TEXCOORD;
     int4 boneIndices : BORN_INDICES;
     float4 boneWeights : BONE_WEIGHTS;
@@ -261,13 +261,13 @@ PS_INPUT mainVS(VS_INPUT input)
         
     return output;
 #endif
-    float3 tangent = normalize(mul(input.tangent, Model));
+    float3 tangent = normalize(mul(input.tangent.xyz, Model));
 
     // 탄젠트-노멀 직교화 (Gram-Schmidt 과정) 해야 안전함
     tangent = normalize(tangent - normal * dot(tangent, normal));
 
     // 바이탄젠트 계산 (안전한 교차곱)
-    float3 biTangent = cross(normal, tangent);
+    float3 biTangent = cross(normal, tangent) * -input.tangent.w;
 
     // 최종 TBN 행렬 구성 (T, B, N는 각각 한 열 또는 행이 될 수 있음, 아래 예제는 행 벡터로 구성)
     // row_major float4x4 TBN = float4x4(T, B, N, float4(0,0,0,1));

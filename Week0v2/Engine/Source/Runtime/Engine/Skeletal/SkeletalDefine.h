@@ -28,7 +28,7 @@ struct FSkeletalVertex
 {
     FVector4 Position;
     FVector Normal;
-    FVector Tangent;
+    FVector4 Tangent;
     FVector2D TexCoord;
     int32 BoneIndices[4];
     float BoneWeights[4];

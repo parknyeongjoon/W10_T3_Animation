@@ -1005,18 +1005,33 @@ void PropertyEditorPanel::RenderForSkeletalMesh2(USkeletalMeshComponent* Skeleta
 
         DrawSkeletalMeshPreviewButton(SkeletalMesh->GetSkeletalMesh()->GetRenderData().Name);
 
-        TArray<const char*> FBXNames;
-        int selected = 0, i = 0;
-        for (const auto& [key, mesh]: TestFBXLoader::GetSkeletalMeshes())
+        // TArray<const char*> FBXNames;
+        // int selected = 0, i = 0;
+        // for (const auto& [key, mesh]: TestFBXLoader::GetSkeletalMeshes())
+        // {
+        //     FBXNames.Add(GetData(key));
+        //     if (mesh == SkeletalMesh->GetSkeletalMesh())
+        //     {
+        //         selected = i;
+        //     }
+        //     ++i;
+        // }
+        // ImGui::Combo("SkeletalMeshes##", &selected, FBXNames.GetData(), FBXNames.Num());
+        FString PreviewName = SkeletalMesh->GetSkeletalMesh()->GetRenderData().Name;
+        if (ImGui::BeginCombo("SkeletalMesh##", GetData(PreviewName), ImGuiComboFlags_None))
         {
-            FBXNames.Add(GetData(key));
-            if (mesh == SkeletalMesh->GetSkeletalMesh())
+            for (const auto& [key, mesh]: TestFBXLoader::GetSkeletalMeshes())
             {
-                selected = i;
+                bool isSelected = (key == PreviewName);
+                if (ImGui::Selectable(GetData(key), isSelected))
+                {
+                    SkeletalMesh->LoadSkeletalMesh(key);
+                }
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus(); 
             }
-            ++i;
+            ImGui::EndCombo();
         }
-        ImGui::Combo("SkeletalMeshes##", &selected, FBXNames.GetData(), FBXNames.Num());
         
         ImGui::TreePop();
     }
