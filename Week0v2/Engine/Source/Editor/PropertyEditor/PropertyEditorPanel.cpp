@@ -31,6 +31,7 @@
 #include "PlayerCameraManager.h"
 #include "TestFBXLoader.h"
 #include "Actors/SkeletalMeshActor.h"
+#include "Animation/Skeleton.h"
 #include "BaseGizmos/TransformGizmo.h"
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "Engine/StaticMeshActor.h"
@@ -975,9 +976,9 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
 
         ImGui::Separator();
 
-        for (const auto& Bone : SkeletalMeshComp->GetSkeletalMesh()->GetRefSkeletal()->BoneTree)
+        for (const auto& Bone : SkeletalMeshComp->GetSkeletalMesh()->GetSkeleton()->GetRefSkeletal()->BoneTree)
         {
-            for (const auto& RootBoneIndex : SkeletalMeshComp->GetSkeletalMesh()->GetRefSkeletal()->RootBoneIndices)
+            for (const auto& RootBoneIndex : SkeletalMeshComp->GetSkeletalMesh()->GetSkeleton()->GetRefSkeletal()->RootBoneIndices)
             {
                 if (Bone.BoneIndex == RootBoneIndex)
                 {
@@ -1061,7 +1062,7 @@ void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32
     }
 
     // 자식이 없는 본은 리프 노드로 표시
-    if (SkeletalMesh->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices.Num() == 0)
+    if (SkeletalMesh->GetSkeleton()->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices.Num() == 0)
     {
         flags |= ImGuiTreeNodeFlags_Leaf;
     }
@@ -1106,7 +1107,7 @@ void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32
     if (isOpen)
     {
         // 모든 자식 본 표시
-        for (int32 ChildIndex : SkeletalMesh->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices)
+        for (int32 ChildIndex : SkeletalMesh->GetSkeleton()->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices)
         {
             RenderBoneHierarchy(SkeletalMesh, ChildIndex);
         }
@@ -1223,14 +1224,14 @@ void PropertyEditorPanel::RenderForSkeletalMesh3(USkeletalMeshComponent* Skeleta
         if (ImGui::CollapsingHeader("Bone Hierarchy", ImGuiTreeNodeFlags_DefaultOpen))
         {
             // RefSkeletal이 없는 경우 처리
-            if (SkeletalMesh->GetSkeletalMesh()->GetRefSkeletal() == nullptr)
+            if (SkeletalMesh->GetSkeletalMesh()->GetSkeleton() == nullptr)
             {
                 ImGui::Text("No skeletal hierarchy available");
             }
             else
             {
                 // 루트 본부터 계층 구조 표시
-                for (const auto& RootBoneIndex : SkeletalMesh->GetSkeletalMesh()->GetRefSkeletal()->RootBoneIndices)
+                for (const auto& RootBoneIndex : SkeletalMesh->GetSkeletalMesh()->GetSkeleton()->GetRefSkeletal()->RootBoneIndices)
                 {
                     RenderBoneHierarchy(SkeletalMesh->GetSkeletalMesh(), RootBoneIndex);
                 }
@@ -1346,7 +1347,7 @@ void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMesh
 
     if (ImGui::TreeNodeEx("SubMeshes", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
-        auto subsets = SkeletalMeshComp->GetSkeletalMesh()->GetRefSkeletal()->MaterialSubsets;
+        auto subsets = SkeletalMeshComp->GetSkeletalMesh()->GetSkeleton()->GetRefSkeletal()->MaterialSubsets;
         for (uint32 i = 0; i < subsets.Num(); ++i)
         {
             std::string temp = "subset " + std::to_string(i);

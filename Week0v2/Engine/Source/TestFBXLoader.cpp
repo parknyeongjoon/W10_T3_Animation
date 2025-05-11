@@ -736,7 +736,7 @@ void TestFBXLoader::ExtractMaterials(
     }
 }
 
-void TestFBXLoader::UpdateBoundingBox(FSkeletalMeshRenderData MeshData)
+void TestFBXLoader::UpdateBoundingBox(FSkeletalMeshRenderData& MeshData)
 {
     if (MeshData.Vertices.Num() == 0)
         return;
