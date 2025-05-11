@@ -72,7 +72,7 @@ struct FCurve
 struct FAnimationCurveData
 {
     FName CurveName;
-    TArray<FCurve> Curves;
+    TArray<FCurve> CurveWeights;
 };
 
 struct FAnimNotifyEvent
@@ -80,6 +80,11 @@ struct FAnimNotifyEvent
     float TriggerTime;
     float Duration;
     FName NotifyName;
+
+    // < 연산자 오버로딩
+    bool operator<(const FAnimNotifyEvent& other) const {
+        return TriggerTime < other.TriggerTime;
+    }
 };
 
 struct FRawAnimSequenceTrack

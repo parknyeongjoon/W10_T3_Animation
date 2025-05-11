@@ -3,6 +3,8 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 
+class USkeleton;
+
 class USkeletalMesh : public UObject
 {
     DECLARE_CLASS(USkeletalMesh, UObject)
@@ -11,13 +13,13 @@ public:
     virtual ~USkeletalMesh() override = default;
 
     FSkeletalMeshRenderData& GetRenderData() { return SkeletalMeshRenderData; }
-    FRefSkeletal* GetRefSkeletal() const { return RefSkeletal;}
+    USkeleton* GetSkeleton() const { return Skeleton;}
     const TArray<FMaterialSlot*>& GetMaterials() const { return MaterialSlots; }
     uint32 GetMaterialIndex(FName MaterialSlotName) const;
     void GetUsedMaterials(TArray<UMaterial*>& Out) const;
+    
     void SetData(const FString& FilePath);
-
-    void SetData(const FSkeletalMeshRenderData& InRenderData, FRefSkeletal* InRefSkeletal);
+    void SetData(const FSkeletalMeshRenderData& InRenderData, USkeleton* InSkeleton);
     
     void UpdateBoneHierarchy();
     // 정점 스키닝을 업데이트하는 함수
@@ -33,7 +35,7 @@ public:
 private:
     
     FSkeletalMeshRenderData SkeletalMeshRenderData;
-    FRefSkeletal* RefSkeletal = nullptr;
+    USkeleton* Skeleton;
     TArray<FMaterialSlot*> MaterialSlots;
 
     void UpdateChildBones(int ParentIndex);

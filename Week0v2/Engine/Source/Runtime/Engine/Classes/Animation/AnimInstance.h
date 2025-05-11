@@ -1,8 +1,13 @@
 #pragma once
 #include "UObject/Object.h"
-class UAnimInstance :
-    public UObject
+#include "UObject/ObjectMacros.h"
+
+class UAnimInstance : public UObject
 {
+    DECLARE_CLASS(UAnimInstance, UObject)
+public:
+    UAnimInstance() = default;
+    
     void TriggerAnimNotifies(float DeltaSeconds);
 };
 

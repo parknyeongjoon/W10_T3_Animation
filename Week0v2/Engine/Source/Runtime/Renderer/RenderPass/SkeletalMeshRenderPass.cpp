@@ -3,6 +3,7 @@
 #include "EditorEngine.h"
 #include "LaunchEngineLoop.h"
 #include "ShowFlags.h"
+#include "Animation/Skeleton.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "D3D11RHI/CBStructDefine.h"
 #include "Engine/World.h"
@@ -143,7 +144,7 @@ void FSkeletalMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InV
 
         if (!SkeletalMeshComponent->GetSkeletalMesh()) continue;
         
-        const FRefSkeletal* RefSkeletal = SkeletalMeshComponent->GetSkeletalMesh()->GetRefSkeletal();
+        const FRefSkeletal* RefSkeletal = SkeletalMeshComponent->GetSkeletalMesh()->GetSkeleton()->GetRefSkeletal();
         if (RefSkeletal == nullptr) continue;
 
         FGraphicsDevice GraphicDevice = GEngineLoop.GraphicDevice;

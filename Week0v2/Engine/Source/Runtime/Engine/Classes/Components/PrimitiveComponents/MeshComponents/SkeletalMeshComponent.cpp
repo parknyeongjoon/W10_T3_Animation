@@ -1,6 +1,7 @@
 #include "SkeletalMeshComponent.h"
 
 #include "TestFBXLoader.h"
+#include "Animation/Skeleton.h"
 #include "Engine/World.h"
 #include "Launch/EditorEngine.h"
 #include "UObject/ObjectFactory.h"
@@ -166,7 +167,7 @@ void USkeletalMeshComponent::UpdateBoneHierarchy()
     for (int i=0;i<SkeletalMesh->GetRenderData().Vertices.Num();i++)
     {
          SkeletalMesh->GetRenderData().Vertices[i].Position
-        = SkeletalMesh->GetRefSkeletal()->RawVertices[i].Position;
+        = SkeletalMesh->GetSkeleton()->GetRefSkeletal()->RawVertices[i].Position;
     }
     
     SkeletalMesh->UpdateBoneHierarchy();
@@ -183,7 +184,7 @@ void USkeletalMeshComponent::SkinningVertex()
     TestFBXLoader::UpdateBoundingBox(SkeletalMesh->GetRenderData());
     AABB = SkeletalMesh->GetRenderData().BoundingBox;
 
-    SkeletalMesh->SetData(SkeletalMesh->GetRenderData(), SkeletalMesh->GetRefSkeletal()); // TODO: Dynamic VertexBuffer Update하게 바꾸기
+    SkeletalMesh->SetData(SkeletalMesh->GetRenderData(), SkeletalMesh->GetSkeleton()); // TODO: Dynamic VertexBuffer Update하게 바꾸기
 }
 
 // std::unique_ptr<FActorComponentInfo> USkeletalMeshComponent::GetComponentInfo()
@@ -236,12 +237,12 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 void USkeletalMesh::ResetToOriginalPose()
 {
     // 본 트랜스폼 복원
-    for (int i = 0; i < RefSkeletal->RawVertices.Num() && i < SkeletalMeshRenderData.Bones.Num(); i++)
+    for (int i = 0; i < Skeleton->GetRefSkeletal()->RawVertices.Num() && i < SkeletalMeshRenderData.Bones.Num(); i++)
     {
         // 로컬 트랜스폼 복원
-        SkeletalMeshRenderData.Bones[i].LocalTransform = RefSkeletal->RawBones[i].LocalTransform;
-        SkeletalMeshRenderData.Bones[i].GlobalTransform = RefSkeletal->RawBones[i].GlobalTransform;
-        SkeletalMeshRenderData.Bones[i].SkinningMatrix = RefSkeletal->RawBones[i].SkinningMatrix;
+        SkeletalMeshRenderData.Bones[i].LocalTransform = Skeleton->GetRefSkeletal()->RawBones[i].LocalTransform;
+        SkeletalMeshRenderData.Bones[i].GlobalTransform = Skeleton->GetRefSkeletal()->RawBones[i].GlobalTransform;
+        SkeletalMeshRenderData.Bones[i].SkinningMatrix = Skeleton->GetRefSkeletal()->RawBones[i].SkinningMatrix;
     }
 
     // 스키닝 적용

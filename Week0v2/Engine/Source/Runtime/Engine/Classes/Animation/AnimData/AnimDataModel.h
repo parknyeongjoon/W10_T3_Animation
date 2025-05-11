@@ -23,7 +23,7 @@ public:
     int32 GetNumberOfFrames() const override { return NumberOfFrames; } // Total number of frames of animation data stored
     int32 GetNumberOfKeys() const override { return NumberOfKeys; } // Total number of animation data keys stored
     int32 GetNumBoneTracks() const override { return BoneAnimationTracks.Num(); }
-    int32 GetNumberOfCurves() const override { return CurveData.Curves.Num(); }
+    int32 GetNumberOfCurves() const override { return CurveData.CurveWeights.Num(); }
     FFrameRate GetFrameRate() const override { return FrameRate; } // Frame rate at which the animation data is key-ed
     
     const TArray<FBoneAnimationTrack>& GetBoneAnimationTracks() const override { return BoneAnimationTracks; }
