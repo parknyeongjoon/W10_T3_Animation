@@ -3,26 +3,61 @@
 #include "Container/Array.h"
 #include "Container/Map.h"
 
-class UAnimationStateMachine :
-    public UObject
+template <typename TState>
+class UAnimationStateMachine : public UObject
 {
+    DECLARE_CLASS(UAnimationStateMachine, UObject)
 public:
-    void AddState(const FString& StateName, std::function<void(float)> OnUpdate);
+    UAnimationStateMachine() = default;
+    //UAnimationStateMachine(const UAnimationStateMachine& Other);
 
-    // 상태 전환 정의
-    void AddTransition(const FString& FromState, const FString& ToState, std::function<bool()> Condition);
+    void AddState(TState StateName, std::function<void(float)> OnUpdate)
+    {
+        States.Emplace(StateName, OnUpdate);
+    }
 
-    // 현재 상태를 변경
-    void SetState(const FString& NewState);
+    void AddTransition(TState FromState, TState ToState, std::function<bool()> Condition)
+    {
+        TPair<TState, TState> Key(FromState, ToState);
+        Transitions.Emplace(Key, Condition);
+    }
 
-    // 매 프레임 업데이트
-    void Update(float DeltaTime);
+    void SetState(TState NewState)
+    {
+        if (States.Contains(NewState))
+        {
+            CurrentState = NewState;
+            std::cout << "State Changed to: " << static_cast<int>(NewState) << std::endl;
+        }
+    }
 
-    // 현재 상태 확인
-    FString GetCurrentState() const;
+    void Update(float DeltaTime)
+    {
+        if (States.Contains(CurrentState))
+        {
+            States[CurrentState](DeltaTime);
+        }
+
+        for (auto& Transition : Transitions)
+        {
+            const TPair<TState, TState>& Key = Transition.Key;
+            const std::function<bool()>& Condition = Transition.Value;
+
+            if (Key.Key == CurrentState && Condition())
+            {
+                SetState(Key.Value);
+                break;
+            }
+        }
+    }
+
+    TState GetCurrentState() const
+    {
+        return CurrentState;
+    }
+
 private:
-    FString CurrentState;
-    TMap<FString, std::function<void(float)>> States;
-    TMap<TPair<FString, FString>, std::function<bool()>> Transitions;
+    TState CurrentState;
+    TMap<TState, std::function<void(float)>> States;
+    TMap<TPair<TState, TState>, std::function<bool()>> Transitions;
 };
-

@@ -4,31 +4,31 @@
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 UTestAnimInstance::UTestAnimInstance()
 {
-    AnimStateMachine = FObjectFactory::ConstructObject<UAnimationStateMachine>(this);
+    AnimStateMachine = FObjectFactory::ConstructObject<UAnimationStateMachine<ETestState>>(this);
 
     //**State 추가**
-    AnimStateMachine->AddState(TEXT("Idle"), [](float DeltaTime) {
+    AnimStateMachine->AddState(ETestState::Idle, [](float DeltaTime) {
         std::cout << "Idle Animation Playing..." << std::endl;
         });
 
-    AnimStateMachine->AddState(TEXT("Walking"), [](float DeltaTime) {
+    AnimStateMachine->AddState(ETestState::Walking, [](float DeltaTime) {
         std::cout << "Walking Animation Playing..." << std::endl;
         });
 
-    AnimStateMachine->AddState(TEXT("Running"), [](float DeltaTime) {
+    AnimStateMachine->AddState(ETestState::Running, [](float DeltaTime) {
         std::cout << "Running Animation Playing..." << std::endl;
         });
 
     // **Transition Rule 정의**
-    AnimStateMachine->AddTransition(TEXT("Idle"), TEXT("Walking"), [&]() { return Speed > 0 && Speed <= 300.0f; });
-    AnimStateMachine->AddTransition(TEXT("Walking"), TEXT("Running"), [&]() { return Speed > 300.0f; });
-    AnimStateMachine->AddTransition(TEXT("Running"), TEXT("Idle"), [&]() { return Speed == 0; });
+    AnimStateMachine->AddTransition(ETestState::Idle, ETestState::Walking, [&]() { return Speed > 0 && Speed <= 300.0f; });
+    AnimStateMachine->AddTransition(ETestState::Walking, ETestState::Running, [&]() { return Speed > 300.0f; });
+    AnimStateMachine->AddTransition(ETestState::Running, ETestState::Idle, [&]() { return Speed == 0; });
 
 
 
 
     // 초기 상태 설정
-    AnimStateMachine->SetState(TEXT("Idle"));
+    AnimStateMachine->SetState(ETestState::Idle);
 
     //IdleSequence = CreateAnimation("Idle.fbx");
     //WalkSequence = CreateAnimation("Walk.fbx");
