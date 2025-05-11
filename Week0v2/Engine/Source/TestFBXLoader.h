@@ -1,6 +1,7 @@
 #pragma once
 #include <fbxsdk.h>
 
+#include "Animation/AnimTypes.h"
 #include "Components/Mesh/SkeletalMesh.h"
 #include "Components/Mesh/StaticMesh.h"
 #include "Container/Map.h"
@@ -27,6 +28,10 @@ public:
     static void ExtractMaterials(FbxNode* Node, FbxMesh* Mesh, FSkeletalMeshRenderData* MeshData, FRefSkeletal* RefSkeletal, int BaseIndexOffset);
     static void UpdateBoundingBox(FSkeletalMeshRenderData* MeshData);
 
+    static void ExtractFBXAnimData(const FbxScene* scene, TArray<FSkeletalAnimation>& AnimData);
+    static void ExtractAnimClip(FbxAnimStack* AnimStack, FSkeletalAnimation& AnimClip, const TArray<FbxNode*>& BoneNodes);
+    static void ExtractAnimTrack(FbxAnimLayer* AnimLayer, FbxNode* BoneNode, FRawAnimSequenceTrack& AnimTrack);
+
     static FSkeletalMeshRenderData* GetSkeletalRenderData(FString FilePath);
     static FSkeletalMeshRenderData GetCopiedSkeletalRenderData(FString FilePath);
     
@@ -52,7 +57,9 @@ private:
     inline static TMap<FName, FSkeletalMeshRenderData*> SkeletalMeshData;
     inline static TMap<FString, USkeletalMesh*> SkeletalMeshMap;
     inline static TMap<FName, FRefSkeletal*> RefSkeletalData;
-    
+    inline static TMap<FName, TArray<FSkeletalAnimation>> AnimationMap;
+
+    // data structure for parsing
     inline static TMap<FString, uint32> IndexMap;
     struct FBoneWeightInfo
     {

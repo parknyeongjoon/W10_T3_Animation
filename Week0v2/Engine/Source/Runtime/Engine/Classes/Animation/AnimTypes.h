@@ -101,6 +101,7 @@ struct FBoneAnimationTrack
 
 struct FSkeletalAnimation
 {
+    FName Name = "Empty";
     TArray<FBoneAnimationTrack> BoneAnimTracks;
     TArray<FAnimationCurveData> AttributeCurves;
     TArray<FAnimNotifyEvent> Notifies;

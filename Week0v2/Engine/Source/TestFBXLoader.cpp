@@ -2,6 +2,7 @@
 
 #include "Components/Material/Material.h"
 #include "Engine/FLoaderOBJ.h"
+#include "Math/Rotator.h"
 
 bool TestFBXLoader::InitFBXManager()
 {
@@ -27,24 +28,31 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     bool bResult = Importer->Initialize(GetData(FilePath), -1, FbxManager->GetIOSettings());
     if (!bResult)
         return nullptr;
+    
+    Importer->Import(Scene);
+    Importer->Destroy();
 
     FbxAxisSystem UnrealAxisSystem(
     FbxAxisSystem::eZAxis,
     FbxAxisSystem::eParityEven, // TODO Check
     FbxAxisSystem::eLeftHanded);
-    
     UnrealAxisSystem.ConvertScene(Scene);
     
-    Importer->Import(Scene);
-    Importer->Destroy();
-
+    FbxSystemUnit SceneSystemUnit = Scene->GetGlobalSettings().GetSystemUnit();
+    if( SceneSystemUnit.GetScaleFactor() != 1.0 )
+    {
+        FbxSystemUnit::cm.ConvertScene(Scene);
+    }
+    
     FSkeletalMeshRenderData* NewMeshData = new FSkeletalMeshRenderData();
     FRefSkeletal* RefSkeletal = new FRefSkeletal();
+    TArray<FSkeletalAnimation> Animations;
     
     NewMeshData->Name = FilePath;
     RefSkeletal->Name = FilePath;
     
     ExtractFBXMeshData(Scene, NewMeshData, RefSkeletal);
+    ExtractFBXAnimData(Scene, Animations);
 
     for (const auto Vertex: NewMeshData->Vertices)
     {
@@ -62,6 +70,7 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     
     SkeletalMeshData.Add(FilePath, NewMeshData);
     RefSkeletalData.Add(FilePath, RefSkeletal);
+    AnimationMap.Add(FilePath, Animations);
 
     Scene->Destroy();
     
@@ -754,6 +763,135 @@ void TestFBXLoader::UpdateBoundingBox(FSkeletalMeshRenderData MeshData)
     // 바운딩 박스 설정
     MeshData.BoundingBox.min = Min;
     MeshData.BoundingBox.max = Max;
+}
+
+void TestFBXLoader::ExtractFBXAnimData(const FbxScene* scene, TArray<FSkeletalAnimation>& AnimData)
+{
+    int AnimStackCount = scene->GetSrcObjectCount<FbxAnimStack>();
+
+    // Before - collect all bone nodes 
+    TArray<FbxNode*> BoneNodes;
+    std::function<void(FbxNode*)> FindBones = [&BoneNodes, &FindBones](FbxNode* node)
+    {
+        if (!node)
+            return;
+
+        FbxNodeAttribute* attr = node->GetNodeAttribute();
+        if (attr && attr->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+            BoneNodes.Add(node);
+
+        for (int i = 0; i < node->GetChildCount(); ++i)
+            FindBones(node->GetChild(i));
+    };
+    FindBones(scene->GetRootNode());
+
+    // parse AnimClips (AnimLayers)
+    for (int i = 0; i < AnimStackCount; ++i)
+    {
+        FbxAnimStack* AnimStack = scene->GetSrcObject<FbxAnimStack>(i);
+        if (!AnimStack)
+            continue;
+
+        FSkeletalAnimation AnimClip;
+        ExtractAnimClip(AnimStack, AnimClip, BoneNodes);
+        AnimData.Add(AnimClip);
+    }
+}
+
+void TestFBXLoader::ExtractAnimClip(FbxAnimStack* AnimStack, FSkeletalAnimation& AnimClip, const TArray<FbxNode*>& BoneNodes)
+{
+    AnimClip.Name = AnimStack->GetName();
+    int layerCount = AnimStack->GetMemberCount<FbxAnimLayer>();
+    
+    for (int i = 0; i < BoneNodes.Num(); ++i)
+    {
+        FbxNode* BoneNode = BoneNodes[i];
+        if (!BoneNode)
+            continue;
+        FBoneAnimationTrack AnimTrack;
+        AnimTrack.Name = BoneNode->GetName();
+        
+        FRawAnimSequenceTrack AnimTrackData;
+        for (int j = 0; j < layerCount; ++j)
+        {
+            FbxAnimLayer* AnimLayer = AnimStack->GetMember<FbxAnimLayer>(j);
+            if (!AnimLayer)
+                continue;
+
+            ExtractAnimTrack(AnimLayer, BoneNode, AnimTrackData);
+        }
+        AnimTrack.InternalTrackData = AnimTrackData;
+
+        AnimClip.BoneAnimTracks.Add(AnimTrack);
+    }
+}
+
+void TestFBXLoader::ExtractAnimTrack(FbxAnimLayer* AnimLayer, FbxNode* BoneNode, FRawAnimSequenceTrack& AnimTrack)
+{
+    FbxAnimCurve* tx = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+    FbxAnimCurve* ty = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+    FbxAnimCurve* tz = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+    FbxAnimCurve* rx = BoneNode->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+    FbxAnimCurve* ry = BoneNode->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+    FbxAnimCurve* rz = BoneNode->LclRotation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+    FbxAnimCurve* sx = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+    FbxAnimCurve* sy = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+    FbxAnimCurve* sz = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+
+    TArray<FbxTime> keyTimes;
+    if (tx && ty && tz)
+    {
+        int keyCount = tx->KeyGetCount();
+        for (int i = 0; i < keyCount; ++i)
+            keyTimes.Add(tx->KeyGetTime(i));
+    }
+    if (rx && ry && rz)
+    {
+        int keyCount = rx->KeyGetCount();
+        for (int i = 0; i < keyCount; ++i)
+            keyTimes.Add(rx->KeyGetTime(i));
+    }
+    if (sx && sy && sz)
+    {
+        int keyCount = sx->KeyGetCount();
+        for (int i = 0; i < keyCount; ++i)
+            keyTimes.Add(sx->KeyGetTime(i));
+    }
+    std::sort(keyTimes.begin(), keyTimes.end(), [](const FbxTime& a, const FbxTime& b)->bool { return a.GetSecondDouble() < b.GetSecondDouble(); });
+
+    for (const FbxTime& time : keyTimes)
+    {
+        float t = time.GetSecondDouble();
+        AnimTrack.KeyTimes.Add(t);
+        if (tx && ty && tz)
+        {
+            AnimTrack.PosKeys.Add( FVector(
+                tx->Evaluate(time),    
+                ty->Evaluate(time),    
+                tz->Evaluate(time)    
+            ));
+        }
+        if (rx && ry && rz)
+        {
+            AnimTrack.RotKeys.Add( FRotator(
+                rx->Evaluate(time),
+                ry->Evaluate(time),
+                rz->Evaluate(time)
+            ).ToQuaternion());
+        }
+        if (sx && sy && sz)
+        {
+            AnimTrack.ScaleKeys.Add( FVector(
+                sx->Evaluate(time),    
+                sy->Evaluate(time),    
+                sz->Evaluate(time)    
+            ));
+        }
+    }
+
+    // 원래는 key마다 보간 모드가 개별로 있는데
+    // 현재 자료구조상 하드코딩으로 설정
+    AnimTrack.InterpMode = EAnimInterpolationType::Cubic;
 }
 
 FSkeletalMeshRenderData* TestFBXLoader::GetSkeletalRenderData(FString FilePath)
