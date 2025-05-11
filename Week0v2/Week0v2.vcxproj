@@ -186,6 +186,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify\AnimNotify.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Transform.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Misc\Frame\FrameRate.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Misc\Frame\FrameTime.cpp" />
@@ -400,8 +401,10 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\CustomAnimInstance\TestAnimInstance.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify\AnimNotify.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Transform.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Misc\Frame\FrameRate.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Misc\Frame\FrameTime.h" />
@@ -626,6 +629,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\GunRecoilShake.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\RollCameraShake.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraShake\HitCameraShake.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\CustomAnimInstance\TestAnimInstance.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\DebugDepthPixelShader.hlsl">

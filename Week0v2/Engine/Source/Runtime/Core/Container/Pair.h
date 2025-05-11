@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 #include <type_traits>
 #include <utility>
-
+#include "String.h"
 
 template<typename FirstType, typename SecondType>
 struct TPair
