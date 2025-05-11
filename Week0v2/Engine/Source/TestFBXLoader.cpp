@@ -820,6 +820,8 @@ void TestFBXLoader::ExtractAnimClip(FbxAnimStack* AnimStack, const TArray<FbxNod
     }
 
     AnimData->PlayLength = static_cast<float>(AnimStack->GetLocalTimeSpan().GetDuration().GetSecondDouble());
+    AnimData->NumberOfFrames = FMath::Floor( AnimData->PlayLength / AnimData->FrameRate.AsInterval() + 0.5f );
+    AnimData->NumberOfKeys = AnimData->NumberOfFrames + 1;
     
     int layerCount = AnimStack->GetMemberCount<FbxAnimLayer>();
     for (int i = 0; i < BoneNodes.Num(); ++i)
