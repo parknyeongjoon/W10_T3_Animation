@@ -800,6 +800,27 @@ void TestFBXLoader::ExtractAnimClip(FbxAnimStack* AnimStack, const TArray<FbxNod
     UAnimDataModel* AnimData = FObjectFactory::ConstructObject<UAnimDataModel>(nullptr);
     AnimData->Name = AnimStack->GetName();
     
+    FbxTime::EMode timeMode = AnimStack->GetScene()->GetGlobalSettings().GetTimeMode();
+    switch (timeMode)
+    {
+    case FbxTime::eFrames120:
+        AnimData->FrameRate = FFrameRate(120, 1); break;
+    case FbxTime::eFrames100:
+        AnimData->FrameRate = FFrameRate(100, 1); break;
+    case FbxTime::eFrames60:
+        AnimData->FrameRate = FFrameRate(60, 1); break;
+    case FbxTime::eFrames50:
+        AnimData->FrameRate = FFrameRate(50, 1); break;
+    case FbxTime::eFrames48:
+        AnimData->FrameRate = FFrameRate(48, 1); break;
+    case FbxTime::eFrames30:
+        AnimData->FrameRate = FFrameRate(30, 1); break;
+    case FbxTime::eFrames24:
+        AnimData->FrameRate = FFrameRate(24, 1); break;
+    }
+
+    AnimData->PlayLength = static_cast<float>(AnimStack->GetLocalTimeSpan().GetDuration().GetSecondDouble());
+    
     int layerCount = AnimStack->GetMemberCount<FbxAnimLayer>();
     for (int i = 0; i < BoneNodes.Num(); ++i)
     {
@@ -815,7 +836,7 @@ void TestFBXLoader::ExtractAnimClip(FbxAnimStack* AnimStack, const TArray<FbxNod
             FbxAnimLayer* AnimLayer = AnimStack->GetMember<FbxAnimLayer>(j);
             if (!AnimLayer)
                 continue;
-
+            
             ExtractAnimTrack(AnimLayer, BoneNode, AnimTrackData);
         }
         AnimTrack.InternalTrackData = AnimTrackData;
