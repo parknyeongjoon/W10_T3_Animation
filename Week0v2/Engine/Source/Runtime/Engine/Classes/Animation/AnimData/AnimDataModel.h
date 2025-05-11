@@ -10,7 +10,8 @@ class UAnimDataModel : public UObject, IAnimationDataModel
     DECLARE_CLASS(UAnimDataModel, UObject)
 public:
     UAnimDataModel() = default;
-    
+
+    FString Name;
     TArray<FBoneAnimationTrack> BoneAnimationTracks;
     float PlayLength;
     FFrameRate FrameRate;

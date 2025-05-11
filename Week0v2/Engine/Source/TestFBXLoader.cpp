@@ -1,5 +1,5 @@
 #include "TestFBXLoader.h"
-
+#include "Animation/AnimData/AnimDataModel.h"
 #include "Components/Material/Material.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Math/Rotator.h"
@@ -47,13 +47,12 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     
     FSkeletalMeshRenderData* NewMeshData = new FSkeletalMeshRenderData();
     FRefSkeletal* RefSkeletal = new FRefSkeletal();
-    TArray<FSkeletalAnimation> Animations;
     
     NewMeshData->Name = FilePath;
     RefSkeletal->Name = FilePath;
     
     ExtractFBXMeshData(Scene, NewMeshData, RefSkeletal);
-    ExtractFBXAnimData(Scene, Animations);
+    ExtractFBXAnimData(Scene, FilePath);
 
     for (const auto Vertex: NewMeshData->Vertices)
     {
@@ -71,7 +70,6 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     
     SkeletalMeshData.Add(FilePath, NewMeshData);
     RefSkeletalData.Add(FilePath, RefSkeletal);
-    AnimationMap.Add(FilePath, Animations);
 
     Scene->Destroy();
     
@@ -766,7 +764,7 @@ void TestFBXLoader::UpdateBoundingBox(FSkeletalMeshRenderData& MeshData)
     MeshData.BoundingBox.max = Max;
 }
 
-void TestFBXLoader::ExtractFBXAnimData(const FbxScene* scene, TArray<FSkeletalAnimation>& AnimData)
+void TestFBXLoader::ExtractFBXAnimData(const FbxScene* scene, const FString& FilePath)
 {
     int AnimStackCount = scene->GetSrcObjectCount<FbxAnimStack>();
 
@@ -793,17 +791,16 @@ void TestFBXLoader::ExtractFBXAnimData(const FbxScene* scene, TArray<FSkeletalAn
         if (!AnimStack)
             continue;
 
-        FSkeletalAnimation AnimClip;
-        ExtractAnimClip(AnimStack, AnimClip, BoneNodes);
-        AnimData.Add(AnimClip);
+        ExtractAnimClip(AnimStack, BoneNodes, FilePath);
     }
 }
 
-void TestFBXLoader::ExtractAnimClip(FbxAnimStack* AnimStack, FSkeletalAnimation& AnimClip, const TArray<FbxNode*>& BoneNodes)
+void TestFBXLoader::ExtractAnimClip(FbxAnimStack* AnimStack, const TArray<FbxNode*>& BoneNodes, const FString& FilePath)
 {
-    AnimClip.Name = AnimStack->GetName();
-    int layerCount = AnimStack->GetMemberCount<FbxAnimLayer>();
+    UAnimDataModel* AnimData = FObjectFactory::ConstructObject<UAnimDataModel>(nullptr);
+    AnimData->Name = AnimStack->GetName();
     
+    int layerCount = AnimStack->GetMemberCount<FbxAnimLayer>();
     for (int i = 0; i < BoneNodes.Num(); ++i)
     {
         FbxNode* BoneNode = BoneNodes[i];
@@ -823,8 +820,10 @@ void TestFBXLoader::ExtractAnimClip(FbxAnimStack* AnimStack, FSkeletalAnimation&
         }
         AnimTrack.InternalTrackData = AnimTrackData;
 
-        AnimClip.BoneAnimTracks.Add(AnimTrack);
+        AnimData->BoneAnimationTracks.Add(AnimTrack);
     }
+    
+    AnimDataMap.Add(FilePath + "\\" + AnimData->Name, AnimData);
 }
 
 void TestFBXLoader::ExtractAnimTrack(FbxAnimLayer* AnimLayer, FbxNode* BoneNode, FRawAnimSequenceTrack& AnimTrack)

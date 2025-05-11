@@ -7,6 +7,8 @@
 #include "Container/Map.h"
 #include "Skeletal/SkeletalDefine.h"
 
+class UAnimDataModel;
+
 class TestFBXLoader
 {
 public:
@@ -47,8 +49,8 @@ private:
 
     
     // Anim
-    static void ExtractFBXAnimData(const FbxScene* scene, TArray<FSkeletalAnimation>& AnimData);
-    static void ExtractAnimClip(FbxAnimStack* AnimStack, FSkeletalAnimation& AnimClip, const TArray<FbxNode*>& BoneNodes);
+    static void ExtractFBXAnimData(const FbxScene* scene, const FString& FilePath);
+    static void ExtractAnimClip(FbxAnimStack* AnimStack, const TArray<FbxNode*>& BoneNodes, const FString& FilePath);
     static void ExtractAnimTrack(FbxAnimLayer* AnimLayer, FbxNode* BoneNode, FRawAnimSequenceTrack& AnimTrack);
 
 private:
@@ -57,7 +59,7 @@ private:
     inline static TMap<FName, FSkeletalMeshRenderData*> SkeletalMeshData;
     inline static TMap<FString, USkeletalMesh*> SkeletalMeshMap;
     inline static TMap<FName, FRefSkeletal*> RefSkeletalData;
-    inline static TMap<FName, TArray<FSkeletalAnimation>> AnimationMap;
+    inline static TMap<FName, UAnimDataModel*> AnimDataMap;
 
     // data structure for parsing
     inline static TMap<FString, uint32> IndexMap;
