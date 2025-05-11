@@ -82,7 +82,7 @@ public:
 
 private:
     const FString defaultMapName = "Default";
-    ULevel* Level;
+    ULevel* Level = nullptr;
     /** World에서 관리되는 모든 Actor의 목록 */
     /** Actor가 Spawn되었고, 아직 BeginPlay가 호출되지 않은 Actor들 */
     TSet<AActor*> SelectedActors;

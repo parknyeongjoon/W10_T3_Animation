@@ -14,6 +14,7 @@ public:
     void Initialize(SLevelEditor* LevelEditor, float Width, float Height);
     
     void Render() const;
+    void RenderInPIE() const;
     void OnResize(HWND hWnd) const;
     void SetWorld(UWorld* InWorld);
     

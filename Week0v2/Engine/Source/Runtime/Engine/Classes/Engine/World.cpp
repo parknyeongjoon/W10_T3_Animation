@@ -36,7 +36,8 @@ UWorld::UWorld(const UWorld& Other): UObject(Other)
 void UWorld::InitWorld()
 {
     // TODO: Load Scene
-    Level = FObjectFactory::ConstructObject<ULevel>(this);
+    if (Level == nullptr)
+        Level = FObjectFactory::ConstructObject<ULevel>(this);
     PreLoadResources();
     if (WorldType == EWorldType::Editor)
     {
@@ -132,7 +133,7 @@ void UWorld::Release()
 	pickingGizmo = nullptr;
 	ReleaseBaseObject();
 
-    GUObjectArray.ProcessPendingDestroyObjects();
+    
 }
 
 void UWorld::ClearScene()
@@ -164,8 +165,8 @@ UObject* UWorld::Duplicate(UObject* InOuter)
 void UWorld::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
 {
     UObject::DuplicateSubObjects(SourceObj, InOuter);
-    Level = Cast<ULevel>(Level->Duplicate(InOuter));
-    LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(InOuter);
+    Level = Cast<ULevel>(Level->Duplicate(this));
+    LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(this);
 }
 
 void UWorld::PostDuplicate()
@@ -310,7 +311,7 @@ bool UWorld::IsPIEWorld() const
 
 void UWorld::BeginPlay()
 {
-    FGameManager::Get().BeginPlay();
+    // FGameManager::Get().BeginPlay();
 
     for (auto Actor :GetActors())
     {

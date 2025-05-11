@@ -88,6 +88,8 @@ void FEngineLoop::Tick()
         GEngine->Tick(DeltaTime);
 
         Render();
+
+        GUObjectArray.ProcessPendingDestroyObjects();
         
         do
         {
@@ -168,12 +170,13 @@ void FEngineLoop::Render()
             }
             else if (TargetWorld->WorldType == EWorldType::PIE)
             {
+                // EditorEngine->ContentsUI->Render();
+                EditorEngine->GetUnrealEditor()->RenderInPIE();
                 if (LevelEditor->GetEditorStateManager().GetEditorState() != EEditorState::Playing || EditorEngine->bForceEditorUI == true)
                 {
                 }
                 else
                 {
-                    EditorEngine->ContentsUI->Render();
                 }
             }
             else if (TargetWorld->WorldType == EWorldType::EditorPreview)
