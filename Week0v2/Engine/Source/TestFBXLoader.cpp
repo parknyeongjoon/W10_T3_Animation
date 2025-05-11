@@ -840,23 +840,45 @@ void TestFBXLoader::ExtractAnimTrack(FbxAnimLayer* AnimLayer, FbxNode* BoneNode,
     FbxAnimCurve* sz = BoneNode->LclScaling.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 
     TArray<FbxTime> keyTimes;
+    auto HasKeyTimes = [&keyTimes](FbxTime t) -> bool
+    {
+        for (const FbxTime& k : keyTimes)
+        {
+            if (k.GetSecondDouble() == t.GetSecondDouble())
+                return true;
+        }
+        return false;
+    };
+    
     if (tx && ty && tz)
     {
         int keyCount = tx->KeyGetCount();
         for (int i = 0; i < keyCount; ++i)
-            keyTimes.Add(tx->KeyGetTime(i));
+        {
+            FbxTime t = tx->KeyGetTime(i);
+            if (!HasKeyTimes(t))
+                keyTimes.Add(t);
+        }
     }
     if (rx && ry && rz)
     {
         int keyCount = rx->KeyGetCount();
         for (int i = 0; i < keyCount; ++i)
-            keyTimes.Add(rx->KeyGetTime(i));
+        {
+            FbxTime t = rx->KeyGetTime(i);
+            if (!HasKeyTimes(t))
+                keyTimes.Add(t);
+        }
     }
     if (sx && sy && sz)
     {
         int keyCount = sx->KeyGetCount();
         for (int i = 0; i < keyCount; ++i)
-            keyTimes.Add(sx->KeyGetTime(i));
+        {
+            FbxTime t = sx->KeyGetTime(i);
+            if (!HasKeyTimes(t))
+                keyTimes.Add(t);
+        }
     }
     std::sort(keyTimes.begin(), keyTimes.end(), [](const FbxTime& a, const FbxTime& b)->bool { return a.GetSecondDouble() < b.GetSecondDouble(); });
 
