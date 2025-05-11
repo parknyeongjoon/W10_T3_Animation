@@ -1,5 +1,12 @@
 #include "AnimSequenceBase.h"
 
+#include "AnimData/AnimDataModel.h"
+
+void UAnimSequenceBase::SetData(const FString& FilePath)
+{
+    SetData(TestFBXLoader::GetAnimData(FilePath));
+}
+
 void UAnimSequenceBase::SortNotifies()
 {
     Notifies.Sort();

@@ -68,6 +68,7 @@ FTransform UAnimDataModel::EvaluateBoneTrackTransform(FName TrackName, const FFr
 
 FTransform UAnimDataModel::GetBoneTrackTransform(FName TrackName, const int32& FrameNumber) const
 {
+    FTransform Result;
     
     const FBoneAnimationTrack* Track = nullptr;
     if (IsValidBoneTrackName(TrackName))
@@ -78,19 +79,21 @@ FTransform UAnimDataModel::GetBoneTrackTransform(FName TrackName, const int32& F
     if (Track)
     {
         const int32 KeyIndex = FrameNumber;
-        if (Track->InternalTrackData.PosKeys.IsValidIndex(KeyIndex) &&
-            Track->InternalTrackData.RotKeys.IsValidIndex(KeyIndex) &&
-            Track->InternalTrackData.ScaleKeys.IsValidIndex(KeyIndex))
+        if (Track->InternalTrackData.RotKeys.IsValidIndex(KeyIndex))
         {
-            return {
-                FQuat(Track->InternalTrackData.RotKeys[KeyIndex]),
-                FVector(Track->InternalTrackData.PosKeys[KeyIndex]),
-                FVector(Track->InternalTrackData.ScaleKeys[KeyIndex])
-            };
+            Result.SetRotation(Track->InternalTrackData.RotKeys[KeyIndex]);
+        }
+        if (Track->InternalTrackData.PosKeys.IsValidIndex(KeyIndex))
+        {
+            Result.SetLocation(Track->InternalTrackData.PosKeys[KeyIndex]);
+        }
+        if (Track->InternalTrackData.ScaleKeys.IsValidIndex(KeyIndex))
+        {
+            Result.SetScale(Track->InternalTrackData.ScaleKeys[KeyIndex]);
         }
     }
 
-    return FTransform::Identity;
+    return Result;
 }
 
 void UAnimDataModel::GetBoneTrackTransforms(FName TrackName, const TArray<int32>& FrameNumbers, TArray<FTransform>& OutTransforms) const

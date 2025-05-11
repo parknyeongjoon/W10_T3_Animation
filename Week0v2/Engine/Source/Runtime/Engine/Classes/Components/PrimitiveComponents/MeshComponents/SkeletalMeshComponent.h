@@ -18,7 +18,7 @@ public:
     virtual void PostDuplicate() override;
     virtual void TickComponent(float DeltaTime) override;
 
-    void SetData(FString FilePath);
+    void SetData(const FString& FilePath);
 
     PROPERTY(int, SelectedSubMeshIndex);
 

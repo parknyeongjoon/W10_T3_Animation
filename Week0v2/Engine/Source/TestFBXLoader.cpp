@@ -937,12 +937,22 @@ void TestFBXLoader::ExtractAnimTrack(FbxAnimLayer* AnimLayer, FbxNode* BoneNode,
     AnimTrack.InterpMode = EAnimInterpolationType::Cubic;
 }
 
-FSkeletalMeshRenderData* TestFBXLoader::GetSkeletalRenderData(FString FilePath)
+FSkeletalMeshRenderData* TestFBXLoader::GetSkeletalRenderData(const FString& FilePath)
 {
     // TODO: 폴더에서 가져올 수 있으면 가져오기
     if (SkeletalMeshData.Contains(FilePath))
     {
         return SkeletalMeshData[FilePath];
+    }
+    
+    return nullptr;
+}
+
+UAnimDataModel* TestFBXLoader::GetAnimData(const FString& FilePath)
+{
+    if (AnimDataMap.Contains(FilePath))
+    {
+        return AnimDataMap[FilePath];
     }
     
     return nullptr;
@@ -1089,7 +1099,7 @@ USkeletalMesh* TestFBXLoader::GetSkeletalMesh(const FString& FilePath)
     return nullptr;
 }
 
-FSkeletalMeshRenderData TestFBXLoader::GetCopiedSkeletalRenderData(FString FilePath)
+FSkeletalMeshRenderData TestFBXLoader::GetCopiedSkeletalRenderData(const FString& FilePath)
 {
     // 있으면 가져오고
     FSkeletalMeshRenderData* OriginRenderData = SkeletalMeshData[FilePath];
