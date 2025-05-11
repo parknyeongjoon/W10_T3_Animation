@@ -476,6 +476,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\Skeleton.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Skeletal\SkeletalDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\CustomAnimInstance\TestAnimInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify\AnimNotify.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -700,6 +701,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\Skeleton.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Skeletal\SkeletalDefine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\CustomAnimInstance\TestAnimInstance.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify\AnimNotify.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

@@ -80,7 +80,7 @@ struct FAnimNotifyEvent
     float TriggerTime;
     float Duration;
     FName NotifyName;
-
+    class UAnimNotify* Notify;
     // < 연산자 오버로딩
     bool operator<(const FAnimNotifyEvent& other) const {
         return TriggerTime < other.TriggerTime;

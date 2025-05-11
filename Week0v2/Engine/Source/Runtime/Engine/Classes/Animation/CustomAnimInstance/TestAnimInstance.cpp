@@ -2,6 +2,8 @@
 #include "Animation/AnimationStateMachine.h"
 #include "GameFramework/Actor.h"
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
+#include "Animation/AnimSequence.h"
+#include "Animation/AnimNotify/AnimNotify.h"
 UTestAnimInstance::UTestAnimInstance()
 {
     AnimStateMachine = FObjectFactory::ConstructObject<UAnimationStateMachine<ETestState>>(this);
@@ -40,6 +42,20 @@ UTestAnimInstance::~UTestAnimInstance()
 }
 void UTestAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
 {
+    if (CurrentSequence)
+    {
+        for (const FAnimNotifyEvent& Notify : CurrentSequence->Notifies)
+        {
+            // 시간 조건에 맞으면 Notify 실행
+            if (Notify.TriggerTime <= CurrentTime && CurrentTime < Notify.TriggerTime + Notify.Duration)
+            {
+                if (Notify.Notify)
+                {
+                    Notify.Notify->Notify(GetSkelMeshComponent(), CurrentSequence);
+                }
+            }
+        }
+    }
 }
 
 void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -49,4 +65,5 @@ void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
     if (AnimStateMachine) AnimStateMachine->Update(DeltaSeconds);
 
+    TriggerAnimNotifies(DeltaSeconds);
 }

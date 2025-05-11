@@ -1,7 +1,7 @@
 #pragma once
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
-
+#include "AnimTypes.h"
 class USkeletalMeshComponent;
 
 class UAnimInstance : public UObject

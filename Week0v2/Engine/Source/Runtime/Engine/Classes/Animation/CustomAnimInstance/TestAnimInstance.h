@@ -55,6 +55,7 @@ private:
     UAnimSequence* WalkSequence = nullptr;
     UAnimSequence* RunSequence = nullptr;
 
+    float CurrentTime;
     float Speed;
 };
 
