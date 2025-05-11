@@ -1,5 +1,4 @@
-[pragma once
-#include "Skeleton.h"
+#pragma once
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 

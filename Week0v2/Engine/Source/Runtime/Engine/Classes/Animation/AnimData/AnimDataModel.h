@@ -13,6 +13,7 @@ public:
     UAnimDataModel(const TArray<FBoneAnimationTrack>& InAnimation);
     UAnimDataModel(const FName& FilePath);
     
+    FString Name;
     TArray<FBoneAnimationTrack> BoneAnimationTracks;
     float PlayLength;
     FFrameRate FrameRate;
