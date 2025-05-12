@@ -16,6 +16,7 @@ public:
     virtual UObject* Duplicate(UObject* InOuter) override;
     virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
     virtual void PostDuplicate() override;
+    virtual void BeginPlay() override;
     virtual void TickComponent(float DeltaTime) override;
 
     void SetData(const FString& FilePath);
@@ -51,4 +52,5 @@ protected:
     UAnimInstance* AnimInstance = nullptr;
     
     int SelectedSubMeshIndex = -1;
+    float animTime = 0.f;
 };

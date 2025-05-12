@@ -233,20 +233,27 @@ void USkeletalMeshComponent::DuplicateSubObjects(const UObject* Source, UObject*
 
 void USkeletalMeshComponent::PostDuplicate() {}
 
+void USkeletalMeshComponent::BeginPlay()
+{
+    UMeshComponent::BeginPlay();
+    animTime = 0.f;
+}
+
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
 {
-    static float Time = 0.0f;
-    Time += DeltaTime * 5;
+    animTime += DeltaTime * 5;
     const UAnimDataModel* DataModel = AnimInstance->AnimA->GetDataModel();
     TArray<FName> BoneNames;
     DataModel->GetBoneTrackNames(BoneNames);
     
     for (const auto& Name : BoneNames)
     {
-        FTransform Transform = DataModel->GetBoneTrackTransform(Name, Time);
-        FMatrix TransformMatrix = Transform.ToMatrixWithScale();
+        FTransform Transform = DataModel->GetBoneTrackTransform(Name, animTime);
+        // FMatrix TransformMatrix = FMatrix::Transpose(Transform.ToMatrixWithScale());
+        FMatrix TransformMatrix = JungleMath::CreateModelMatrix(Transform.GetLocation(), Transform.GetRotation(), Transform.GetScale());
         int BoneIndex = SkeletalMesh->GetSkeleton()->GetRefSkeletal()->BoneNameToIndexMap[Name.ToString()];
-        SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform =  SkeletalMesh->GetSkeleton()->GetRefSkeletal()->RawBones[BoneIndex].LocalTransform * TransformMatrix;
+        // SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform = SkeletalMesh->GetSkeleton()->GetRefSkeletal()->RawBones[BoneIndex].LocalTransform * TransformMatrix;
+        SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform = TransformMatrix;
     }
     
     SkeletalMesh->UpdateBoneHierarchy();
