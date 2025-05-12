@@ -14,28 +14,34 @@ AActor::AActor(const AActor& Other)
       ActorLabel(Other.ActorLabel)
 {
 }
+
 void AActor::BeginPlay()
 {
 
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
     const auto CopyComponents = OwnedComponents;
-    for (UActorComponent* Comp : CopyComponents)
+    for (UActorComponent* Component : CopyComponents)
     {
-        Comp->BeginPlay();
+        Component->BeginPlay();
     }
 }
 
-void AActor::Tick(float DeltaTime)
+void AActor::Tick(const float DeltaTime)
 {
 
-    if (!RootComponent) return;
+    if (!RootComponent)
+    {
+        return;
+    }
     // TODO: 임시로 Actor에서 Tick 돌리기
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
     const auto CopyComponents = OwnedComponents;
-    for (UActorComponent* Comp : CopyComponents)
+    for (UActorComponent* Component : CopyComponents)
     {
-        if (Comp && Comp->IsComponentTickEnabled())
-            Comp->TickComponent(DeltaTime);
+        if (Component && Component->IsComponentTickEnabled())
+        {
+            Component->TickComponent(DeltaTime);
+        }
     }
     // SetActorLocation(GetActorLocation() + FVector(1.0f, 0.0f, 0.0f));
 }
@@ -80,41 +86,41 @@ void AActor::RemoveOwnedComponent(UActorComponent* Component)
     OwnedComponents.Remove(Component);
 }
 
-void AActor::InitializeComponents()
+void AActor::InitializeComponents() const
 {
     TArray<UActorComponent*> Components = GetComponents();
-    for (UActorComponent* ActorComp : Components)
+    for (UActorComponent* ActorComponent : Components)
     {
         // 먼저 컴포넌트를 등록 처리
-        if (!ActorComp->IsRegistered())
+        if (!ActorComponent->IsRegistered())
         {
-            ActorComp->RegisterComponent();
+            ActorComponent->RegisterComponent();
         }
 
-        if (ActorComp->bAutoActive && !ActorComp->IsActive())
+        if (ActorComponent->bAutoActive && !ActorComponent->IsActive())
         {
-            ActorComp->Activate();
+            ActorComponent->Activate();
         }
 
-        if (!ActorComp->HasBeenInitialized())
+        if (!ActorComponent->HasBeenInitialized())
         {
-            ActorComp->InitializeComponent();
+            ActorComponent->InitializeComponent();
         }
     }
 }
 
-void AActor::UninitializeComponents()
+void AActor::UninitializeComponents() const
 {
     TArray<UActorComponent*> Components = GetComponents();
-    for (UActorComponent* ActorComp : Components)
+    for (UActorComponent* ActorComponent : Components)
     {
-        if (ActorComp->HasBeenInitialized())
+        if (ActorComponent->HasBeenInitialized())
         {
-            ActorComp->UninitializeComponent();
+            ActorComponent->UninitializeComponent();
         }
-        if (ActorComp->IsRegistered())
+        if (ActorComponent->IsRegistered())
         {
-            ActorComp->UnregisterComponent();
+            ActorComponent->UnregisterComponent();
         }
     }
 }
@@ -138,7 +144,7 @@ bool AActor::SetRootComponent(USceneComponent* NewRootComponent)
     return false;
 }
 
-bool AActor::SetActorLocation(const FVector& NewLocation)
+bool AActor::SetActorLocation(const FVector& NewLocation) const
 {
     if (RootComponent)
     {
@@ -158,7 +164,7 @@ bool AActor::SetActorRotation(const FRotator& NewRotation) const
     return false;
 }
 
-bool AActor::SetActorScale(const FVector& NewScale)
+bool AActor::SetActorScale(const FVector& NewScale) const
 {
     if (RootComponent)
     {
@@ -170,34 +176,38 @@ bool AActor::SetActorScale(const FVector& NewScale)
 UActorComponent* AActor::AddComponentByClass(UClass* ComponentClass, EComponentOrigin Origin)
 {
     if (ComponentClass == nullptr)
+    {
         return nullptr;
+    }
 
-    UActorComponent* Component = ComponentClass->CreateObject<UActorComponent>(this);
-    if (Component == nullptr)
+    UActorComponent* NewComponent = ComponentClass->CreateObject<UActorComponent>(this);
+    if (NewComponent == nullptr)
+    {
         return nullptr;
+    }
 
-    OwnedComponents.Add(Component);
-    Component->Owner = this;
+    OwnedComponents.Add(NewComponent);
+    NewComponent->Owner = this;
 
-    if (USceneComponent* NewSceneComp = Cast<USceneComponent>(Component))
+    if (USceneComponent* NewSceneComponent = Cast<USceneComponent>(NewComponent))
     {
         if (RootComponent == nullptr)
         {
-            RootComponent = NewSceneComp;
+            RootComponent = NewSceneComponent;
         }
         else
         {
-            NewSceneComp->SetupAttachment(RootComponent);
+            NewSceneComponent->SetupAttachment(RootComponent);
         }
     }
 
-    Component->ComponentOrigin = Origin;
-    Component->InitializeComponent();
+    NewComponent->ComponentOrigin = Origin;
+    NewComponent->InitializeComponent();
 
-    return Component;
+    return NewComponent;
 }
 
-UActorComponent* AActor::AddComponentByName(FString ComponentName, EComponentOrigin Origin)
+UActorComponent* AActor::AddComponentByName(const FString& ComponentName, const EComponentOrigin Origin)
 {
     UClass* ComponentClass = UClassRegistry::Get().FindClassByName(ComponentName);
     return AddComponentByClass(ComponentClass, Origin);
@@ -209,15 +219,15 @@ void AActor::AddComponent(UActorComponent* Component)
     OwnedComponents.Add(Component);
     Component->Owner = this;
 
-    if (USceneComponent* SceneComp = Cast<USceneComponent>(Component))
+    if (USceneComponent* SceneComponent = Cast<USceneComponent>(Component))
     {
         if (RootComponent == nullptr)
         {
-            RootComponent = SceneComp;
+            RootComponent = SceneComponent;
         }
         else
         {
-            SceneComp->SetupAttachment(RootComponent);
+            SceneComponent->SetupAttachment(RootComponent);
         }
     }
 
@@ -230,34 +240,39 @@ UObject* AActor::Duplicate(UObject* InOuter)
     AActor* ClonedActor = FObjectFactory::ConstructObjectFrom<AActor>(this, InOuter);
     ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
+
     return ClonedActor;
 }
-void AActor::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
-{
-    UObject::DuplicateSubObjects(SourceObj, InOuter);
 
-    const AActor* Source = Cast<AActor>(SourceObj);
-    if (!Source) return;
+void AActor::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
+{
+    UObject::DuplicateSubObjects(Source, InOuter);
+
+    const AActor* Actor = Cast<AActor>(Source);
+    if (!Actor)
+    {
+        return;
+    }
 
     TMap<const USceneComponent*, USceneComponent*> SceneCloneMap;
     
-    for (UActorComponent* Component : Source->OwnedComponents)
+    for (UActorComponent* Component : Actor->OwnedComponents)
     {
-        UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate(this));
-        dupComponent->Owner = this;
-        OwnedComponents.Add(dupComponent);
-        GetWorld()->GetLevel()->GetDuplicatedObjects().Add(Component, dupComponent);
+        auto DuplicatedComponent = static_cast<UActorComponent*>(Component->Duplicate(this));
+        DuplicatedComponent->Owner = this;
+        OwnedComponents.Add(DuplicatedComponent);
+        GetWorld()->GetLevel()->GetDuplicatedObjects().Add(Component, DuplicatedComponent);
 
         /** Todo. UActorComponent를 상속 받는 컴포넌트는 오류가 발생 코드 로직 수정 필요
          *   임시로 IsA 검사 후 Root 설정
          */
-        if (dupComponent->IsA(USceneComponent::StaticClass())) 
+        if (DuplicatedComponent->IsA(USceneComponent::StaticClass())) 
         {
-            RootComponent = Cast<USceneComponent>(dupComponent);
+            RootComponent = Cast<USceneComponent>(DuplicatedComponent);
         }
         if (const USceneComponent* OldScene = Cast<USceneComponent>(Component))
         {
-            if (USceneComponent* NewScene = Cast<USceneComponent>(dupComponent))
+            if (USceneComponent* NewScene = Cast<USceneComponent>(DuplicatedComponent))
             {
                 SceneCloneMap.Add(OldScene, NewScene);
             }
@@ -279,18 +294,18 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
         }
     }
 
-    if (Source->RootComponent)
+    if (Actor->RootComponent)
     {
-        if (USceneComponent** Found = SceneCloneMap.Find(Source->RootComponent))
+        if (USceneComponent** Found = SceneCloneMap.Find(Actor->RootComponent))
         {
             SetRootComponent(*Found);
         }
     }
 
     // 컴포넌트 initialize
-    for (auto Comp : OwnedComponents)
+    for (const auto Component : OwnedComponents)
     {
-        Comp->InitializeComponent();
+        Component->InitializeComponent();
     }
 }
 
@@ -309,12 +324,13 @@ void AActor::LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>
         // 생성자에서 자동으로 생성되는 컴포넌트는 무시한다
         if (Info->Origin == EComponentOrigin::Constructor) continue;
 
-        UClass* ComponentClass = UClassRegistry::Get().FindClassByName(Info->ComponentClass);
-        if (ComponentClass)
+        if (UClass* ComponentClass = UClassRegistry::Get().FindClassByName(Info->ComponentClass))
         {
-            UActorComponent* NewComp = AddComponentByClass(ComponentClass, EComponentOrigin::Serialized);
+            UActorComponent* NewComponent = AddComponentByClass(ComponentClass, EComponentOrigin::Serialized);
             if (Info->bIsRoot)
-                RootComponent = Cast<USceneComponent>(NewComp);
+            {
+                RootComponent = Cast<USceneComponent>(NewComponent);
+            }
         }
     }
     if (InfoArray.Num() != OwnedComponents.Num())

@@ -18,10 +18,12 @@ FSlateAppMessageHandler::FSlateAppMessageHandler()
         KeyState = false;
     }
 
-    RawInputHandler = std::make_unique<FRawInput>([this](const HWND AppWnd, const RAWINPUT& RawInput)
-    {
-        HandleRawInput(AppWnd, RawInput);
-    });
+    RawInputHandler = std::make_unique<FRawInput>(
+        [this](const HWND AppWnd, const RAWINPUT& RawInput)
+        {
+            HandleRawInput(AppWnd, RawInput);
+        }
+    );
 }
 
 void FSlateAppMessageHandler::HandleRawInput(const HWND AppWnd, const RAWINPUT& RawInput)
@@ -40,13 +42,13 @@ void FSlateAppMessageHandler::ProcessMessage(const HWND AppWnd, const uint32 Msg
 {
     switch (Msg)
     {
-    // 입력 장치에 변경이 생겼을 때
-    case WM_INPUT_DEVICE_CHANGE:
+        // 입력 장치에 변경이 생겼을 때
+        case WM_INPUT_DEVICE_CHANGE:
         {
             //RawInputHandler->ReRegisterDevices();
             return;
         }
-    case WM_CHAR:
+        case WM_CHAR:
         {
             // WPARAM으로부터 문자 가져오기
             const TCHAR Character = static_cast<TCHAR>(wParam);
@@ -56,9 +58,9 @@ void FSlateAppMessageHandler::ProcessMessage(const HWND AppWnd, const uint32 Msg
             OnKeyChar(AppWnd, Character, bIsRepeat);
             return;
         }
-    // 키보드 키가 눌렸을 때 발생하는 메시지
-    case WM_SYSKEYDOWN:
-    case WM_KEYDOWN:
+        // 키보드 키가 눌렸을 때 발생하는 메시지
+        case WM_SYSKEYDOWN:
+        case WM_KEYDOWN:
         {
             const int32 Win32Key = static_cast<int32>(wParam);
             int32 ActualKey = Win32Key;
@@ -67,80 +69,92 @@ void FSlateAppMessageHandler::ProcessMessage(const HWND AppWnd, const uint32 Msg
 
             switch (Win32Key)
             {
-            case VK_MENU:
-                // Differentiate between left and right alt
-                if ((lParam & 0x1000000) == 0)
+                case VK_MENU:
                 {
-                    ActualKey = VK_LMENU;
-                    bIsRepeat = ModifierKeyState[EModifierKey::LeftAlt];
-                    ModifierKeyState[EModifierKey::LeftAlt] = true;
+                    // Differentiate between left and right alt
+                    if ((lParam & 0x1000000) == 0)
+                    {
+                        ActualKey = VK_LMENU;
+                        bIsRepeat = ModifierKeyState[EModifierKey::LeftAlt];
+                        ModifierKeyState[EModifierKey::LeftAlt] = true;
+                    }
+                    else
+                    {
+                        ActualKey = VK_RMENU;
+                        bIsRepeat = ModifierKeyState[EModifierKey::RightAlt];
+                        ModifierKeyState[EModifierKey::RightAlt] = true;
+                    }
+                    break;
                 }
-                else
+                case VK_CONTROL:
                 {
-                    ActualKey = VK_RMENU;
-                    bIsRepeat = ModifierKeyState[EModifierKey::RightAlt];
-                    ModifierKeyState[EModifierKey::RightAlt] = true;
+                    // Differentiate between left and right control
+                    if ((lParam & 0x1000000) == 0)
+                    {
+                        ActualKey = VK_LCONTROL;
+                        bIsRepeat = ModifierKeyState[EModifierKey::LeftControl];
+                        ModifierKeyState[EModifierKey::LeftControl] = true;
+                    }
+                    else
+                    {
+                        ActualKey = VK_RCONTROL;
+                        bIsRepeat = ModifierKeyState[EModifierKey::RightControl];
+                        ModifierKeyState[EModifierKey::RightControl] = true;
+                    }
+                    break;
                 }
-                break;
-            case VK_CONTROL:
-                // Differentiate between left and right control
-                if ((lParam & 0x1000000) == 0)
+                case VK_SHIFT:
                 {
-                    ActualKey = VK_LCONTROL;
-                    bIsRepeat = ModifierKeyState[EModifierKey::LeftControl];
-                    ModifierKeyState[EModifierKey::LeftControl] = true;
+                    // Differentiate between left and right shift
+                    ActualKey = MapVirtualKey((lParam & 0x00ff0000) >> 16, MAPVK_VSC_TO_VK_EX);
+                    if (ActualKey == VK_LSHIFT)
+                    {
+                        bIsRepeat = ModifierKeyState[EModifierKey::LeftShift];
+                        ModifierKeyState[EModifierKey::LeftShift] = true;
+                    }
+                    else
+                    {
+                        bIsRepeat = ModifierKeyState[EModifierKey::RightShift];
+                        ModifierKeyState[EModifierKey::RightShift] = true;
+                    }
+                    break;
                 }
-                else
+                case VK_LWIN:
+                case VK_RWIN:
                 {
-                    ActualKey = VK_RCONTROL;
-                    bIsRepeat = ModifierKeyState[EModifierKey::RightControl];
-                    ModifierKeyState[EModifierKey::RightControl] = true;
+                    // Differentiate between left and right window key
+                    if ((lParam & 0x1000000) == 0)
+                    {
+                        ActualKey = VK_LWIN;
+                        bIsRepeat = ModifierKeyState[EModifierKey::LeftWin];
+                        ModifierKeyState[EModifierKey::LeftWin] = true;
+                    }
+                    else
+                    {
+                        ActualKey = VK_RWIN;
+                        bIsRepeat = ModifierKeyState[EModifierKey::RightWin];
+                        ModifierKeyState[EModifierKey::RightWin] = true;
+                    }
+                    break;
                 }
-                break;
-            case VK_SHIFT:
-                // Differentiate between left and right shift
-                ActualKey = MapVirtualKey((lParam & 0x00ff0000) >> 16, MAPVK_VSC_TO_VK_EX);
-                if (ActualKey == VK_LSHIFT)
+                case VK_CAPITAL:
                 {
-                    bIsRepeat = ModifierKeyState[EModifierKey::LeftShift];
-                    ModifierKeyState[EModifierKey::LeftShift] = true;
+                    ModifierKeyState[EModifierKey::CapsLock] = (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
+                    break;
                 }
-                else
+                default:
                 {
-                    bIsRepeat = ModifierKeyState[EModifierKey::RightShift];
-                    ModifierKeyState[EModifierKey::RightShift] = true;
+                    // No translation needed
+                    break;
                 }
-                break;
-            case VK_LWIN:
-            case VK_RWIN:
-                // Differentiate between left and right window key
-                if ((lParam & 0x1000000) == 0)
-                {
-                    ActualKey = VK_LWIN;
-                    bIsRepeat = ModifierKeyState[EModifierKey::LeftWin];
-                    ModifierKeyState[EModifierKey::LeftWin] = true;
-                }
-                else
-                {
-                    ActualKey = VK_RWIN;
-                    bIsRepeat = ModifierKeyState[EModifierKey::RightWin];
-                    ModifierKeyState[EModifierKey::RightWin] = true;
-                }
-                break;
-            case VK_CAPITAL:
-                ModifierKeyState[EModifierKey::CapsLock] = (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
-                break;
-            default:
-                // No translation needed
-                break;
             }
 
             const uint32 CharCode = ::MapVirtualKey(Win32Key, MAPVK_VK_TO_CHAR);
             OnKeyDown(AppWnd, ActualKey, CharCode, bIsRepeat);
             return;
         }
-    case WM_SYSKEYUP: // 시스템 키(Alt, F10 등)가 눌렸다가 떼어질 때 발생하는 메시지
-    case WM_KEYUP:    // 키보드 키가 떼어졌을 때 발생하는 메시지
+        case WM_SYSKEYUP: // 시스템 키(Alt, F10 등)가 눌렸다가 떼어질 때 발생하는 메시지
+        case WM_KEYUP:    // 키보드 키가 떼어졌을 때 발생하는 메시지
         {
             // Character code is stored in WPARAM
             const int32 Win32Key = static_cast<int32>(wParam);
@@ -148,64 +162,76 @@ void FSlateAppMessageHandler::ProcessMessage(const HWND AppWnd, const uint32 Msg
 
             switch (Win32Key)
             {
-            case VK_MENU:
-                // Differentiate between left and right alt
-                if ((lParam & 0x1000000) == 0)
+                case VK_MENU:
                 {
-                    ActualKey = VK_LMENU;
-                    ModifierKeyState[EModifierKey::LeftAlt] = false;
+                    // Differentiate between left and right alt
+                    if ((lParam & 0x1000000) == 0)
+                    {
+                        ActualKey = VK_LMENU;
+                        ModifierKeyState[EModifierKey::LeftAlt] = false;
+                    }
+                    else
+                    {
+                        ActualKey = VK_RMENU;
+                        ModifierKeyState[EModifierKey::RightAlt] = false;
+                    }
+                    break;
                 }
-                else
+                case VK_CONTROL:
                 {
-                    ActualKey = VK_RMENU;
-                    ModifierKeyState[EModifierKey::RightAlt] = false;
+                    // Differentiate between left and right control
+                    if ((lParam & 0x1000000) == 0)
+                    {
+                        ActualKey = VK_LCONTROL;
+                        ModifierKeyState[EModifierKey::LeftControl] = false;
+                    }
+                    else
+                    {
+                        ActualKey = VK_RCONTROL;
+                        ModifierKeyState[EModifierKey::RightControl] = false;
+                    }
+                    break;
                 }
-                break;
-            case VK_CONTROL:
-                // Differentiate between left and right control
-                if ((lParam & 0x1000000) == 0)
+                case VK_SHIFT:
                 {
-                    ActualKey = VK_LCONTROL;
-                    ModifierKeyState[EModifierKey::LeftControl] = false;
+                    // Differentiate between left and right shift
+                    ActualKey = MapVirtualKey((lParam & 0x00ff0000) >> 16, MAPVK_VSC_TO_VK_EX);
+                    if (ActualKey == VK_LSHIFT)
+                    {
+                        ModifierKeyState[EModifierKey::LeftShift] = false;
+                    }
+                    else
+                    {
+                        ModifierKeyState[EModifierKey::RightShift] = false;
+                    }
+                    break;
                 }
-                else
+                case VK_LWIN:
+                case VK_RWIN:
                 {
-                    ActualKey = VK_RCONTROL;
-                    ModifierKeyState[EModifierKey::RightControl] = false;
+                    // Differentiate between left and right window key
+                    if ((lParam & 0x1000000) == 0)
+                    {
+                        ActualKey = VK_LWIN;
+                        ModifierKeyState[EModifierKey::LeftWin] = false;
+                    }
+                    else
+                    {
+                        ActualKey = VK_RWIN;
+                        ModifierKeyState[EModifierKey::RightWin] = false;
+                    }
+                    break;
                 }
-                break;
-            case VK_SHIFT:
-                // Differentiate between left and right shift
-                ActualKey = MapVirtualKey((lParam & 0x00ff0000) >> 16, MAPVK_VSC_TO_VK_EX);
-                if (ActualKey == VK_LSHIFT)
+                case VK_CAPITAL:
                 {
-                    ModifierKeyState[EModifierKey::LeftShift] = false;
+                    ModifierKeyState[EModifierKey::CapsLock] = (::GetKeyState(VK_CAPITAL) & 0x0001) != 0;
+                    break;
                 }
-                else
+                default:
                 {
-                    ModifierKeyState[EModifierKey::RightShift] = false;
+                    // No translation needed
+                    break;
                 }
-                break;
-            case VK_LWIN:
-            case VK_RWIN:
-                // Differentiate between left and right window key
-                if ((lParam & 0x1000000) == 0)
-                {
-                    ActualKey = VK_LWIN;
-                    ModifierKeyState[EModifierKey::LeftWin] = false;
-                }
-                else
-                {
-                    ActualKey = VK_RWIN;
-                    ModifierKeyState[EModifierKey::RightWin] = false;
-                }
-                break;
-            case VK_CAPITAL:
-                ModifierKeyState[EModifierKey::CapsLock] = (::GetKeyState(VK_CAPITAL) & 0x0001) != 0;
-                break;
-            default:
-                // No translation needed
-                break;
             }
 
             // Get the character code from the virtual key pressed.  If 0, no translation from virtual key to character exists
@@ -216,19 +242,19 @@ void FSlateAppMessageHandler::ProcessMessage(const HWND AppWnd, const uint32 Msg
             OnKeyUp(AppWnd, ActualKey, CharCode, bIsRepeat);
             return;
         }
-    // Mouse Button Down
-    case WM_LBUTTONDBLCLK: // 마우스 왼쪽 버튼이 더블 클릭되었을 때 발생하는 메시지
-    case WM_LBUTTONDOWN:   // 마우스 왼쪽 버튼이 눌렸을 때 발생하는 메시지
-    case WM_MBUTTONDBLCLK: // 마우스 가운데 버튼이 더블 클릭되었을 때 발생하는 메시지
-    case WM_MBUTTONDOWN:   // 마우스 가운데 버튼이 눌렸을 때 발생하는 메시지
-    case WM_RBUTTONDBLCLK: // 마우스 오른쪽 버튼이 더블 클릭되었을 때 발생하는 메시지
-    case WM_RBUTTONDOWN:   // 마우스 오른쪽 버튼이 눌렸을 때 발생하는 메시지
-    case WM_XBUTTONDBLCLK: // 마우스 추가 버튼(X1, X2)이 더블 클릭되었을 때 발생하는 메시지
-    case WM_XBUTTONDOWN:   // 마우스 추가 버튼(X1, X2)이 눌렸을 때 발생하는 메시지
-    case WM_XBUTTONUP:     // 마우스 추가 버튼(X1, X2)이 떼어졌을 때 발생하는 메시지
-    case WM_LBUTTONUP:     // 마우스 왼쪽 버튼이 떼어졌을 때 발생하는 메시지
-    case WM_MBUTTONUP:     // 마우스 가운데 버튼이 떼어졌을 때 발생하는 메시지
-    case WM_RBUTTONUP:     // 마우스 오른쪽 버튼이 떼어졌을 때 발생하는 메시지
+        // Mouse Button Down
+        case WM_LBUTTONDBLCLK: // 마우스 왼쪽 버튼이 더블 클릭되었을 때 발생하는 메시지
+        case WM_LBUTTONDOWN:   // 마우스 왼쪽 버튼이 눌렸을 때 발생하는 메시지
+        case WM_MBUTTONDBLCLK: // 마우스 가운데 버튼이 더블 클릭되었을 때 발생하는 메시지
+        case WM_MBUTTONDOWN:   // 마우스 가운데 버튼이 눌렸을 때 발생하는 메시지
+        case WM_RBUTTONDBLCLK: // 마우스 오른쪽 버튼이 더블 클릭되었을 때 발생하는 메시지
+        case WM_RBUTTONDOWN:   // 마우스 오른쪽 버튼이 눌렸을 때 발생하는 메시지
+        case WM_XBUTTONDBLCLK: // 마우스 추가 버튼(X1, X2)이 더블 클릭되었을 때 발생하는 메시지
+        case WM_XBUTTONDOWN:   // 마우스 추가 버튼(X1, X2)이 눌렸을 때 발생하는 메시지
+        case WM_XBUTTONUP:     // 마우스 추가 버튼(X1, X2)이 떼어졌을 때 발생하는 메시지
+        case WM_LBUTTONUP:     // 마우스 왼쪽 버튼이 떼어졌을 때 발생하는 메시지
+        case WM_MBUTTONUP:     // 마우스 가운데 버튼이 떼어졌을 때 발생하는 메시지
+        case WM_RBUTTONUP:     // 마우스 오른쪽 버튼이 떼어졌을 때 발생하는 메시지
         {
             POINT CursorPoint;
             CursorPoint.x = GET_X_LPARAM(lParam);
@@ -236,62 +262,85 @@ void FSlateAppMessageHandler::ProcessMessage(const HWND AppWnd, const uint32 Msg
 
             ClientToScreen(AppWnd, &CursorPoint);
 
-            const FVector2D CursorPos{
-                static_cast<float>(CursorPoint.x),
-                static_cast<float>(CursorPoint.y)
-            };
+            const FVector2D CursorPos { static_cast<float>(CursorPoint.x), static_cast<float>(CursorPoint.y) };
 
             EMouseButtons::Type MouseButton = EMouseButtons::Invalid;
             bool bDoubleClick = false;
             bool bMouseUp = false;
             switch (Msg)
             {
-            case WM_LBUTTONDBLCLK:
-                bDoubleClick = true;
-                MouseButton = EMouseButtons::Left;
-                break;
-            case WM_LBUTTONUP:
-                bMouseUp = true;
-                MouseButton = EMouseButtons::Left;
-                break;
-            case WM_LBUTTONDOWN:
-                MouseButton = EMouseButtons::Left;
-                break;
-            case WM_MBUTTONDBLCLK:
-                bDoubleClick = true;
-                MouseButton = EMouseButtons::Middle;
-                break;
-            case WM_MBUTTONUP:
-                bMouseUp = true;
-                MouseButton = EMouseButtons::Middle;
-                break;
-            case WM_MBUTTONDOWN:
-                MouseButton = EMouseButtons::Middle;
-                break;
-            case WM_RBUTTONDBLCLK:
-                bDoubleClick = true;
-                MouseButton = EMouseButtons::Right;
-                break;
-            case WM_RBUTTONUP:
-                bMouseUp = true;
-                MouseButton = EMouseButtons::Right;
-                break;
-            case WM_RBUTTONDOWN:
-                MouseButton = EMouseButtons::Right;
-                break;
-            case WM_XBUTTONDBLCLK:
-                bDoubleClick = true;
-                MouseButton = (HIWORD(wParam) & XBUTTON1) ? EMouseButtons::Thumb01 : EMouseButtons::Thumb02;
-                break;
-            case WM_XBUTTONUP:
-                bMouseUp = true;
-                MouseButton = (HIWORD(wParam) & XBUTTON1) ? EMouseButtons::Thumb01 : EMouseButtons::Thumb02;
-                break;
-            case WM_XBUTTONDOWN:
-                MouseButton = (HIWORD(wParam) & XBUTTON1) ? EMouseButtons::Thumb01 : EMouseButtons::Thumb02;
-                break;
-            default:
-                assert(0);
+                case WM_LBUTTONDBLCLK:
+                {
+                    bDoubleClick = true;
+                    MouseButton = EMouseButtons::Left;
+                    break;
+                }
+                case WM_LBUTTONUP:
+                {
+                    bMouseUp = true;
+                    MouseButton = EMouseButtons::Left;
+                    break;
+                }
+                case WM_LBUTTONDOWN:
+                {
+                    MouseButton = EMouseButtons::Left;
+                    break;
+                }
+                case WM_MBUTTONDBLCLK:
+                {
+                    bDoubleClick = true;
+                    MouseButton = EMouseButtons::Middle;
+                    break;
+                }
+                case WM_MBUTTONUP:
+                {
+                    bMouseUp = true;
+                    MouseButton = EMouseButtons::Middle;
+                    break;
+                }
+                case WM_MBUTTONDOWN:
+                {
+                    MouseButton = EMouseButtons::Middle;
+                    break;
+                }
+                case WM_RBUTTONDBLCLK:
+                {
+                    bDoubleClick = true;
+                    MouseButton = EMouseButtons::Right;
+                    break;
+                }
+                case WM_RBUTTONUP:
+                {
+                    bMouseUp = true;
+                    MouseButton = EMouseButtons::Right;
+                    break;
+                }
+                case WM_RBUTTONDOWN:
+                {
+                    MouseButton = EMouseButtons::Right;
+                    break;
+                }
+                case WM_XBUTTONDBLCLK:
+                {
+                    bDoubleClick = true;
+                    MouseButton = (HIWORD(wParam) & XBUTTON1) ? EMouseButtons::Thumb01 : EMouseButtons::Thumb02;
+                    break;
+                }
+                case WM_XBUTTONUP:
+                {
+                    bMouseUp = true;
+                    MouseButton = (HIWORD(wParam) & XBUTTON1) ? EMouseButtons::Thumb01 : EMouseButtons::Thumb02;
+                    break;
+                }
+                case WM_XBUTTONDOWN:
+                {
+                    MouseButton = (HIWORD(wParam) & XBUTTON1) ? EMouseButtons::Thumb01 : EMouseButtons::Thumb02;
+                    break;
+                }
+                default:
+                {
+                    assert(0);
+                }
             }
 
             if (bMouseUp)
@@ -308,15 +357,15 @@ void FSlateAppMessageHandler::ProcessMessage(const HWND AppWnd, const uint32 Msg
             }
             return;
         }
-    // Mouse Movement
-    case WM_NCMOUSEMOVE: // 비클라이언트 영역(창 제목 표시줄 등)에서 마우스가 움직였을 때 발생하는 메시지
-    case WM_MOUSEMOVE:   // 클라이언트 영역에서 마우스가 움직였을 때 발생하는 메시지
+        // Mouse Movement
+        case WM_NCMOUSEMOVE: // 비클라이언트 영역(창 제목 표시줄 등)에서 마우스가 움직였을 때 발생하는 메시지
+        case WM_MOUSEMOVE:   // 클라이언트 영역에서 마우스가 움직였을 때 발생하는 메시지
         {
             UpdateCursorPosition(FWindowsCursor::GetPosition());
             OnMouseMove(AppWnd); // TODO: UE [WindowsApplication.cpp:2286]
             return;
         }
-    case WM_MOUSEWHEEL: // 마우스 휠이 움직였을 때 발생하는 메시지 (올리면 +120, 내리면 -120)
+        case WM_MOUSEWHEEL: // 마우스 휠이 움직였을 때 발생하는 메시지 (올리면 +120, 내리면 -120)
         {
             constexpr float SpinFactor = 1 / 120.0f;
             const SHORT WheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
@@ -325,21 +374,18 @@ void FSlateAppMessageHandler::ProcessMessage(const HWND AppWnd, const uint32 Msg
             CursorPoint.x = GET_X_LPARAM(lParam);
             CursorPoint.y = GET_Y_LPARAM(lParam);
 
-            const FVector2D CursorPos{
-                static_cast<float>(CursorPoint.x),
-                static_cast<float>(CursorPoint.y)
-            };
+            const FVector2D CursorPos { static_cast<float>(CursorPoint.x), static_cast<float>(CursorPoint.y) };
             OnMouseWheel(AppWnd, static_cast<float>(WheelDelta) * SpinFactor, CursorPos);
             return;
         }
-    case WM_INPUT:  // RawInput을 처리하는 부분
+        case WM_INPUT:  // RawInput을 처리하는 부분
         {
             RawInputHandler->ProcessRawInput(AppWnd, lParam);
             return;
         }
-    // 추후에 추가 Message가 필요하면 다음 파일을 참조
-    // UnrealEngine [WindowsApplication.cpp:1990]
-    default:
+        // 추후에 추가 Message가 필요하면 다음 파일을 참조
+        // UnrealEngine [WindowsApplication.cpp:1990]
+        default:
             return;
     }
 }
@@ -360,13 +406,17 @@ void FSlateAppMessageHandler::OnKeyDown(const HWND AppWnd, const uint32 KeyCode,
         ActualKeyEnum = FInputKeyManager::Get().GetKeyFromChar(static_cast<TCHAR>(CharacterCode));
     }
     
-    OnKeyDownDelegate.Broadcast(FKeyEvent{
-        ActualKeyEnum,
-        GetModifierKeys(),
-        IsRepeat ? IE_Repeat : IE_Pressed,
-        CharacterCode,
-        KeyCode,
-    }, AppWnd);
+    OnKeyDownDelegate.Broadcast(
+        FKeyEvent
+        {
+            ActualKeyEnum,
+            GetModifierKeys(),
+            IsRepeat ? IE_Repeat : IE_Pressed,
+            CharacterCode,
+            KeyCode,
+        },
+        AppWnd
+    );
 }
 
 void FSlateAppMessageHandler::OnKeyUp(const HWND AppWnd, const uint32 KeyCode, const uint32 CharacterCode, const bool IsRepeat)
@@ -382,13 +432,17 @@ void FSlateAppMessageHandler::OnKeyUp(const HWND AppWnd, const uint32 KeyCode, c
         ActualKeyEnum = FInputKeyManager::Get().GetKeyFromChar(static_cast<TCHAR>(CharacterCode));
     }
     
-    OnKeyUpDelegate.Broadcast(FKeyEvent{
-        ActualKeyEnum,
-        GetModifierKeys(),
-        IE_Released,
-        CharacterCode,
-        KeyCode,
-    }, AppWnd);
+    OnKeyUpDelegate.Broadcast(
+        FKeyEvent
+        {
+            ActualKeyEnum,
+            GetModifierKeys(),
+            IE_Released,
+            CharacterCode,
+            KeyCode,
+        },
+        AppWnd
+    );
 }
 
 void FSlateAppMessageHandler::OnMouseDown(const HWND AppWnd, const EMouseButtons::Type Button, const FVector2D CursorPos)
@@ -396,36 +450,52 @@ void FSlateAppMessageHandler::OnMouseDown(const HWND AppWnd, const EMouseButtons
     EKeys::Type EffectingButton = EKeys::Invalid;
     switch (Button)
     {
-    case EMouseButtons::Left:
-        EffectingButton = EKeys::LeftMouseButton;
-        break;
-    case EMouseButtons::Middle:
-        EffectingButton = EKeys::MiddleMouseButton;
-        break;
-    case EMouseButtons::Right:
-        EffectingButton = EKeys::RightMouseButton;
-        break;
-    case EMouseButtons::Thumb01:
-        EffectingButton = EKeys::ThumbMouseButton;
-        break;
-    case EMouseButtons::Thumb02:
-        EffectingButton = EKeys::ThumbMouseButton2;
-        break;
-    case EMouseButtons::Invalid:
-        EffectingButton = EKeys::Invalid;
-        break;
+        case EMouseButtons::Left:
+        {
+            EffectingButton = EKeys::LeftMouseButton;
+            break;
+        }
+        case EMouseButtons::Middle:
+        {
+            EffectingButton = EKeys::MiddleMouseButton;
+            break;
+        }
+        case EMouseButtons::Right:
+        {
+            EffectingButton = EKeys::RightMouseButton;
+            break;
+        }
+        case EMouseButtons::Thumb01:
+        {
+            EffectingButton = EKeys::ThumbMouseButton;
+            break;
+        }
+        case EMouseButtons::Thumb02:
+        {
+            EffectingButton = EKeys::ThumbMouseButton2;
+            break;
+        }
+        case EMouseButtons::Invalid:
+        {
+            EffectingButton = EKeys::Invalid;
+            break;
+        }
     }
 
     PressedMouseButtons.Add(EffectingButton);
-    OnMouseDownDelegate.Broadcast(FPointerEvent{
-        CursorPos,
-        GetLastCursorPos(),
-        0.0f,
-        EffectingButton,
-        PressedMouseButtons,
-        GetModifierKeys(),
-        IE_Pressed,
-    }, AppWnd);
+    OnMouseDownDelegate.Broadcast(
+        FPointerEvent
+        {
+            CursorPos,
+            GetLastCursorPos(),
+            0.0f,
+            EffectingButton,
+            PressedMouseButtons,
+            GetModifierKeys(),
+            IE_Pressed,
+        },
+        AppWnd
+    );
 }
 
 void FSlateAppMessageHandler::OnMouseUp(const HWND AppWnd, const EMouseButtons::Type Button, const FVector2D CursorPos)
@@ -433,36 +503,52 @@ void FSlateAppMessageHandler::OnMouseUp(const HWND AppWnd, const EMouseButtons::
     EKeys::Type EffectingButton = EKeys::Invalid;
     switch (Button)
     {
-    case EMouseButtons::Left:
-        EffectingButton = EKeys::LeftMouseButton;
-        break;
-    case EMouseButtons::Middle:
-        EffectingButton = EKeys::MiddleMouseButton;
-        break;
-    case EMouseButtons::Right:
-        EffectingButton = EKeys::RightMouseButton;
-        break;
-    case EMouseButtons::Thumb01:
-        EffectingButton = EKeys::ThumbMouseButton;
-        break;
-    case EMouseButtons::Thumb02:
-        EffectingButton = EKeys::ThumbMouseButton2;
-        break;
-    case EMouseButtons::Invalid:
-        EffectingButton = EKeys::Invalid;
-        break;
+        case EMouseButtons::Left:
+        {
+            EffectingButton = EKeys::LeftMouseButton;
+            break;
+        }
+        case EMouseButtons::Middle:
+        {
+            EffectingButton = EKeys::MiddleMouseButton;
+            break;
+        }
+        case EMouseButtons::Right:
+        {
+            EffectingButton = EKeys::RightMouseButton;
+            break;
+        }
+        case EMouseButtons::Thumb01:
+        {
+            EffectingButton = EKeys::ThumbMouseButton;
+            break;
+        }
+        case EMouseButtons::Thumb02:
+        {
+            EffectingButton = EKeys::ThumbMouseButton2;
+            break;
+        }
+        case EMouseButtons::Invalid:
+        {
+            EffectingButton = EKeys::Invalid;
+            break;
+        }
     }
 
     PressedMouseButtons.Remove(EffectingButton);
-    OnMouseUpDelegate.Broadcast(FPointerEvent{
-        CursorPos,
-        GetLastCursorPos(),
-        0.0f,
-        EffectingButton,
-        PressedMouseButtons,
-        GetModifierKeys(),
-        IE_Released,
-    }, AppWnd);
+    OnMouseUpDelegate.Broadcast(
+        FPointerEvent
+        {
+            CursorPos,
+            GetLastCursorPos(),
+            0.0f,
+            EffectingButton,
+            PressedMouseButtons,
+            GetModifierKeys(),
+            IE_Released,
+        },
+        AppWnd
+    );
 }
 
 void FSlateAppMessageHandler::OnMouseDoubleClick(const HWND AppWnd, const EMouseButtons::Type Button, const FVector2D CursorPos)
@@ -470,62 +556,86 @@ void FSlateAppMessageHandler::OnMouseDoubleClick(const HWND AppWnd, const EMouse
     EKeys::Type EffectingButton = EKeys::Invalid;
     switch (Button)
     {
-    case EMouseButtons::Left:
-        EffectingButton = EKeys::LeftMouseButton;
-        break;
-    case EMouseButtons::Middle:
-        EffectingButton = EKeys::MiddleMouseButton;
-        break;
-    case EMouseButtons::Right:
-        EffectingButton = EKeys::RightMouseButton;
-        break;
-    case EMouseButtons::Thumb01:
-        EffectingButton = EKeys::ThumbMouseButton;
-        break;
-    case EMouseButtons::Thumb02:
-        EffectingButton = EKeys::ThumbMouseButton2;
-        break;
-    case EMouseButtons::Invalid:
-        EffectingButton = EKeys::Invalid;
-        break;
+        case EMouseButtons::Left:
+        {
+            EffectingButton = EKeys::LeftMouseButton;
+            break;
+        }
+        case EMouseButtons::Middle:
+        {
+            EffectingButton = EKeys::MiddleMouseButton;
+            break;
+        }
+        case EMouseButtons::Right:
+        {
+            EffectingButton = EKeys::RightMouseButton;
+            break;
+        }
+        case EMouseButtons::Thumb01:
+        {
+            EffectingButton = EKeys::ThumbMouseButton;
+            break;
+        }
+        case EMouseButtons::Thumb02:
+        {
+            EffectingButton = EKeys::ThumbMouseButton2;
+            break;
+        }
+        case EMouseButtons::Invalid:
+        {
+            EffectingButton = EKeys::Invalid;
+            break;
+        }
     }
 
     PressedMouseButtons.Add(EffectingButton);
-    OnMouseDoubleClickDelegate.Broadcast(FPointerEvent{
-        CursorPos,
-        GetLastCursorPos(),
-        0.0f,
-        EffectingButton,
-        PressedMouseButtons,
-        GetModifierKeys(),
-        IE_DoubleClick,
-    }, AppWnd);
+    OnMouseDoubleClickDelegate.Broadcast(
+        FPointerEvent
+        {
+            CursorPos,
+            GetLastCursorPos(),
+            0.0f,
+            EffectingButton,
+            PressedMouseButtons,
+            GetModifierKeys(),
+            IE_DoubleClick,
+        },
+        AppWnd
+    );
 }
 
 void FSlateAppMessageHandler::OnMouseWheel(const HWND AppWnd, const float Delta, const FVector2D CursorPos)
 {
-    OnMouseWheelDelegate.Broadcast(FPointerEvent{
-        CursorPos,
-        GetLastCursorPos(),
-        Delta,
-        EKeys::MouseWheelAxis,
-        PressedMouseButtons,
-        GetModifierKeys(),
-        IE_Axis,
-    }, AppWnd);
+    OnMouseWheelDelegate.Broadcast(
+        FPointerEvent
+        {
+            CursorPos,
+            GetLastCursorPos(),
+            Delta,
+            EKeys::MouseWheelAxis,
+            PressedMouseButtons,
+            GetModifierKeys(),
+            IE_Axis,
+        },
+        AppWnd
+    );
 }
 
 void FSlateAppMessageHandler::OnMouseMove(const HWND AppWnd)
 {
-    OnMouseMoveDelegate.Broadcast(FPointerEvent{
-        GetCursorPos(),
-        GetLastCursorPos(),
-        0.0f,
-        EKeys::Invalid,
-        PressedMouseButtons,
-        GetModifierKeys(),
-        IE_Axis,
-    }, AppWnd);
+    OnMouseMoveDelegate.Broadcast(
+        FPointerEvent
+        {
+            GetCursorPos(),
+            GetLastCursorPos(),
+            0.0f,
+            EKeys::Invalid,
+            PressedMouseButtons,
+            GetModifierKeys(),
+            IE_Axis,
+        },
+        AppWnd
+    );
 }
 
 void FSlateAppMessageHandler::OnRawMouseInput(const HWND AppWnd, const RAWMOUSE& RawMouseInput)
@@ -632,16 +742,20 @@ void FSlateAppMessageHandler::OnRawMouseInput(const HWND AppWnd, const RAWMOUSE&
             // TODO: 추후에 수평 휠 처리 (RI_MOUSE_HWHEEL) 가 필요하면 추가
         }
 
-        OnRawMouseInputDelegate.Broadcast(FPointerEvent{
-            GetCursorPos(),
-            GetLastCursorPos(),
-            FVector2D::ZeroVector,
-            WheelDelta,
-            EffectingButton,
-            PressedMouseButtons,
-            GetModifierKeys(),
-            InputEventType,
-        }, AppWnd);
+        OnRawMouseInputDelegate.Broadcast(
+            FPointerEvent
+            {
+                GetCursorPos(),
+                GetLastCursorPos(),
+                FVector2D::ZeroVector,
+                WheelDelta,
+                EffectingButton,
+                PressedMouseButtons,
+                GetModifierKeys(),
+                InputEventType,
+            },
+            AppWnd
+        );
     }
 
     // 버튼과 관련없는 이벤트
@@ -660,19 +774,20 @@ void FSlateAppMessageHandler::OnRawMouseInput(const HWND AppWnd, const RAWMOUSE&
             UE_LOG(LogLevel::Warning, "Absolute mouse movement detected (currently not fully supported).");
         }
 
-        OnRawMouseInputDelegate.Broadcast(FPointerEvent{
-            GetCursorPos(),
-            GetLastCursorPos(),
-            FVector2D{
-                static_cast<float>(RawMouseInput.lLastX),
-                static_cast<float>(RawMouseInput.lLastY)
+        OnRawMouseInputDelegate.Broadcast(
+            FPointerEvent
+            {
+                GetCursorPos(),
+                GetLastCursorPos(),
+                FVector2D{ static_cast<float>(RawMouseInput.lLastX), static_cast<float>(RawMouseInput.lLastY) },
+                WheelDelta,
+                EffectingButton,
+                PressedMouseButtons,
+                GetModifierKeys(),
+                InputEventType,
             },
-            WheelDelta,
-            EffectingButton,
-            PressedMouseButtons,
-            GetModifierKeys(),
-            InputEventType,
-        }, AppWnd);
+            AppWnd
+        );
     }
 }
 
@@ -683,15 +798,19 @@ void FSlateAppMessageHandler::OnRawKeyboardInput(const HWND AppWnd, const RAWKEY
     
     // VKey(Win32 가상키)를 EKeys::Type으로 변환
     // 참고: RawInput에서는 CharacterCode를 얻기 어렵기 때문에 GetKeyFromVirtual만 사용
-    EKeys::Type ActualKeyEnum = FInputKeyManager::Get().GetKeyFromVirtual(RawKeyboardInput.VKey);
+    const EKeys::Type ActualKeyEnum = FInputKeyManager::Get().GetKeyFromVirtual(RawKeyboardInput.VKey);
 
-    OnRawKeyboardInputDelegate.Broadcast(FKeyEvent{
-        ActualKeyEnum,
-        GetModifierKeys(),
-        InputEventType,
-        0, // RawInput에서 Char를 얻기 어렵기 때문에
-        RawKeyboardInput.VKey
-    }, AppWnd);
+    OnRawKeyboardInputDelegate.Broadcast(
+        FKeyEvent
+        {
+            ActualKeyEnum,
+            GetModifierKeys(),
+            InputEventType,
+            0, // RawInput에서 Char를 얻기 어렵기 때문에
+            RawKeyboardInput.VKey
+        },
+        AppWnd
+    );
 }
 
 void FSlateAppMessageHandler::OnPIEModeStart()
@@ -722,7 +841,7 @@ FVector2D FSlateAppMessageHandler::GetLastCursorPos() const
 
 FModifierKeysState FSlateAppMessageHandler::GetModifierKeys() const
 {
-    return FModifierKeysState{
+    return FModifierKeysState {
         ModifierKeyState[EModifierKey::LeftShift],
         ModifierKeyState[EModifierKey::RightShift],
         ModifierKeyState[EModifierKey::LeftControl],

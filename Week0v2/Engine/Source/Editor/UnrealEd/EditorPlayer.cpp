@@ -75,7 +75,7 @@ void UEditorPlayer::MakeMulitRect() const
 }
 
 
-auto UEditorPlayer::PickGizmo(const ControlMode ControlMode, UWorld* World, const FVector& PickPosition) -> bool
+auto UEditorPlayer::PickGizmo(const EControlMode ControlMode, UWorld* World, const FVector& PickPosition) -> bool
 {
     bool bIsGizmoPicked = false;
 
@@ -280,7 +280,7 @@ auto UEditorPlayer::RayIntersectsObject(const FVector& PickPosition, USceneCompo
     return IntersectCount;
 }
 
-void UEditorPlayer::PickedObjControl(const ControlMode ControlMode, const CoordiMode CoordiMode, UWorld* World)
+void UEditorPlayer::PickedObjControl(const EControlMode ControlMode, const ECoordiMode CoordiMode, UWorld* World)
 {
     if (World->GetPickingGizmo() != nullptr)
     {
@@ -320,7 +320,7 @@ void UEditorPlayer::PickedObjControl(const ControlMode ControlMode, const Coordi
     }
 }
 
-void UEditorPlayer::ControlRotation(const CoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo,
+void UEditorPlayer::ControlRotation(const ECoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo,
                                     const int32 DeltaX, const int32 DeltaY)
 {
     const auto FDeltaX = static_cast<float>(DeltaX);
@@ -377,7 +377,7 @@ void UEditorPlayer::ControlRotation(const CoordiMode CoordiMode, UWorld* World, 
     }
 }
 
-void UEditorPlayer::ControlTranslation(const CoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo,
+void UEditorPlayer::ControlTranslation(const ECoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo,
                                        const int32 DeltaX, const int32 DeltaY)
 {
     const auto FDeltaX = static_cast<float>(DeltaX);

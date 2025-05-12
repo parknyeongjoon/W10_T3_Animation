@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 struct FPoint;
 struct FVector2D;
@@ -8,7 +8,7 @@ class FRect
 {
 public:
     FRect() : LeftTopX(0), LeftTopY(0), Width(0), Height(0) {}
-    explicit FRect(float x, float y, float w, float h) : LeftTopX(x), LeftTopY(y), Width(w), Height(h) {}
+    explicit FRect(const float X, const float Y, const float W, const float H) : LeftTopX(X), LeftTopY(Y), Width(W), Height(H) {}
     float LeftTopX, LeftTopY, Width, Height;
 
     bool Contains(FVector2D Point) const;

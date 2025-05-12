@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <functional>
 #include <type_traits>
 #include <typeindex>
@@ -73,7 +73,7 @@ public:
 };
 
 // 델리게이트 타입 정의
-enum class EDelegateType
+enum class EDelegateType : uint8
 {
     None,
     MemberFunction,
@@ -225,6 +225,8 @@ public:
             // 정적 함수와 람다는 그대로 복사
             Result.Func = Func;
             Result.Type = Type;
+            break;
+        default: 
             break;
         }
         
@@ -506,6 +508,8 @@ public:
                     FDelegateHandle NewHandle = FDelegateHandle::CreateHandle();
                     Result.DelegateHandles.Add(NewHandle, Info);
                 }
+                break;
+            default: 
                 break;
             }
         }

@@ -272,7 +272,7 @@ void SLevelEditor::SaveConfig()
     WriteIniFile(IniFilePath, config);
 }
 
-TMap<FString, FString> SLevelEditor::ReadIniFile(const FString& FilePath)
+TMap<FString, FString> SLevelEditor::ReadIniFile(const FString& FilePath) const
 {
     TMap<FString, FString> Config;
     std::ifstream File(*FilePath);
@@ -295,7 +295,7 @@ TMap<FString, FString> SLevelEditor::ReadIniFile(const FString& FilePath)
     return Config;
 }
 
-void SLevelEditor::WriteIniFile(const FString& FilePath, const TMap<FString, FString>& Config)
+void SLevelEditor::WriteIniFile(const FString& FilePath, const TMap<FString, FString>& Config) const
 {
     std::ofstream File(*FilePath);
     for (const auto& Pair : Config)

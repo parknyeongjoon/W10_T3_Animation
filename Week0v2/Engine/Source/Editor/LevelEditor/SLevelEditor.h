@@ -17,19 +17,19 @@ struct FWindowViewportClientData
     bool bMultiViewportMode;
     uint32 ActiveViewportIndex;
 
-    ControlMode ViewportControlMode;
-    CoordiMode ViewportCoordiMode;
+    EControlMode ViewportControlMode;
+    ECoordiMode ViewportCoordiMode;
 
     TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients;
     
     std::shared_ptr<SSplitterH> HSplitter;
     std::shared_ptr<SSplitterV> VSplitter;
 
-    void SetMode(const ControlMode InViewportControlMode) { ViewportControlMode = InViewportControlMode; }
-    ControlMode GetControlMode() const { return ViewportControlMode; }
-    CoordiMode GetCoordiMode() const { return ViewportCoordiMode; }
-    void AddControlMode() { ViewportControlMode = static_cast<ControlMode>((ViewportControlMode + 1) % CM_END); }
-    void AddCoordiMode() { ViewportCoordiMode = static_cast<CoordiMode>((ViewportCoordiMode + 1) % CDM_END); }
+    void SetMode(const EControlMode InViewportControlMode) { ViewportControlMode = InViewportControlMode; }
+    EControlMode GetControlMode() const { return ViewportControlMode; }
+    ECoordiMode GetCoordiMode() const { return ViewportCoordiMode; }
+    void AddControlMode() { ViewportControlMode = static_cast<EControlMode>((ViewportControlMode + 1) % CM_END); }
+    void AddCoordiMode() { ViewportCoordiMode = static_cast<ECoordiMode>((ViewportCoordiMode + 1) % CDM_END); }
     
     std::shared_ptr<FEditorViewportClient> GetActiveViewportClient() { return ViewportClients[ActiveViewportIndex]; }
 
@@ -133,8 +133,8 @@ public:
     void SaveConfig();
 
 private:
-    TMap<FString, FString> ReadIniFile(const FString& FilePath);
-    void WriteIniFile(const FString& FilePath, const TMap<FString, FString>& Config);
+    TMap<FString, FString> ReadIniFile(const FString& FilePath) const;
+    void WriteIniFile(const FString& FilePath, const TMap<FString, FString>& Config) const;
 
     template <typename T>
     T GetValueFromConfig(const TMap<FString, FString>& Config, const FString& Key, T DefaultValue) {

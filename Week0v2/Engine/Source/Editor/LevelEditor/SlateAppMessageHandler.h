@@ -11,17 +11,17 @@ namespace EMouseButtons
 enum Type : uint8;
 }
 
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnKeyCharDelegate, const TCHAR /*Character*/, const bool /*IsRepeat*/, const HWND /*AppWnd*/);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnKeyDownDelegate, const FKeyEvent& /*InKeyEvent*/, const HWND /*AppWnd*/);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnKeyUpDelegate, const FKeyEvent& /*InKeyEvent*/, const HWND /*AppWnd*/);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseDownDelegate, const FPointerEvent& /*InMouseEvent*/, const HWND /*AppWnd*/);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseUpDelegate, const FPointerEvent& /*InMouseEvent*/, const HWND /*AppWnd*/);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseDoubleClickDelegate, const FPointerEvent& /*InMouseEvent*/, const HWND /*AppWnd*/);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseWheelDelegate, const FPointerEvent& /*InMouseEvent*/, const HWND /*AppWnd*/);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseMoveDelegate, const FPointerEvent& /*InMouseEvent*/, const HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnKeyCharDelegate, TCHAR /*Character*/, bool /*IsRepeat*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnKeyDownDelegate, const FKeyEvent& /*InKeyEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnKeyUpDelegate, const FKeyEvent& /*InKeyEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseDownDelegate, const FPointerEvent& /*InMouseEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseUpDelegate, const FPointerEvent& /*InMouseEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseDoubleClickDelegate, const FPointerEvent& /*InMouseEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseWheelDelegate, const FPointerEvent& /*InMouseEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseMoveDelegate, const FPointerEvent& /*InMouseEvent*/, HWND /*AppWnd*/);
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnRawMouseInputDelegate, const FPointerEvent& /*InRawMouseEvent*/, const HWND /*AppWnd*/);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnRawKeyboardInputDelegate, const FKeyEvent& /*InRawKeyboardEvent*/, const HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnRawMouseInputDelegate, const FPointerEvent& /*InRawMouseEvent*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnRawKeyboardInputDelegate, const FKeyEvent& /*InRawKeyboardEvent*/, HWND /*AppWnd*/);
 
 DECLARE_MULTICAST_DELEGATE(FOnPIEModeStart);
 DECLARE_MULTICAST_DELEGATE(FOnPIEModeEnd);

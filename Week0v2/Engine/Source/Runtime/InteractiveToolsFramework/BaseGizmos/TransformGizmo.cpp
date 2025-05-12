@@ -103,13 +103,13 @@ void UTransformGizmo::Tick(const float DeltaTime)
 
         if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
         {
-            ControlMode ControlMode = EditorEngine->GetLevelEditor()->GetActiveViewportClientData().GetControlMode();
-            if (ControlMode == CoordiMode::CDM_LOCAL)
+            EControlMode ControlMode = EditorEngine->GetLevelEditor()->GetActiveViewportClientData().GetControlMode();
+            if (ControlMode == ECoordiMode::CDM_LOCAL)
             {
                 // TODO: 임시로 RootComponent의 정보로 사용
                 SetActorRotation(PickedActor->GetActorRotation());
             }
-            else if (ControlMode == CoordiMode::CDM_WORLD)
+            else if (ControlMode == ECoordiMode::CDM_WORLD)
             {
                 SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
             }

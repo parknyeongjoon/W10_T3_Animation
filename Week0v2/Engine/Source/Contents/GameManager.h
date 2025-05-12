@@ -1,9 +1,11 @@
 #pragma once
 #include <memory>
 
+#include "HAL/PlatformType.h"
+
 class APlayerCameraManager;
 
-enum class EGameState
+enum class EGameState : uint8
 {
     None,
     PrepareRestart,

@@ -21,9 +21,9 @@ class USceneComponent;
 struct FViewportCameraTransform
 {
 public:
-    FVector GetForwardVector();
-    FVector GetRightVector();
-    FVector GetUpVector();
+    FVector GetForwardVector() const;
+    FVector GetRightVector() const;
+    FVector GetUpVector() const;
 
 public:
     FViewportCameraTransform();
@@ -88,9 +88,14 @@ public:
     FEditorViewportClient();
     ~FEditorViewportClient() override;
 
-    virtual void        Draw(FViewport* Viewport) override;
-    UWorld*             GetWorld() const override;
-    virtual void        Initialize(HWND InOwnerWindow, uint32 InViewportIndex, UWorld* World) override;
+    FEditorViewportClient(const FEditorViewportClient&) = delete;
+    FEditorViewportClient(FEditorViewportClient&&) = delete;
+    FEditorViewportClient& operator=(const FEditorViewportClient&) = delete;
+    FEditorViewportClient& operator=(FEditorViewportClient&&) = delete;
+
+    virtual void Draw(FViewport* Viewport) override;
+    UWorld* GetWorld() const override;
+    virtual void Initialize(HWND InOwnerWindow, uint32 InViewportIndex, UWorld* World) override;
     
     void Tick(float DeltaTime);
     void Release() const;
@@ -104,7 +109,7 @@ public:
     void ResizeViewport(FRect Top, FRect Bottom, FRect Left, FRect Right);
     void ResizeViewport(FRect InRect);
 
-    bool IsSelected(FVector2D Point);
+    bool IsSelected(FVector2D Point) const;
 
 protected:
     /** Camera speed setting */
@@ -118,10 +123,10 @@ public:
 public: 
     FViewport* GetViewport() const { return Viewport; }
 
-    const D3D11_VIEWPORT& GetD3DViewport();
+    const D3D11_VIEWPORT& GetD3DViewport() const;
     
     uint32 GetViewportIndex() const { return ViewportIndex; }
-    void SetViewportIndex(uint32 InIndex) { ViewportIndex = InIndex; }
+    void SetViewportIndex(const uint32 InIndex) { ViewportIndex = InIndex; }
     
 private:
     FViewport* Viewport;
@@ -139,8 +144,8 @@ public:
     /** Viewport's stored horizontal field of view (saved in ini files). */
     float FOVAngle = 60.0f;
     float AspectRatio;
-    float nearPlane = 0.1f;
-    float farPlane = 1000.0f;
+    float NearPlane = 0.1f;
+    float FarPlane = 1000.0f;
 
     static FVector Pivot;
     static float OrthoSize;
@@ -154,8 +159,8 @@ public:
 
     // Cascade Shadow Map
 private:
-    float cascadeSplits[CASCADE_COUNT]; // 카스케이드 경계 저장
-    FVector cascadeCorners[CASCADE_COUNT][8];
+    float CascadeSplits[CASCADE_COUNT]; // 카스케이드 경계 저장
+    FVector CascadeCorners[CASCADE_COUNT][8];
 
     
     void CalculateCascadeSplits(float NearClip, float FarClip);
@@ -167,29 +172,29 @@ private:
     TArray<AActor*> DebugCube;
 
 public: //Camera Movement
-    FVector* GetCascadeCorner(UINT CascadeIndex) { return cascadeCorners[CascadeIndex]; }
-    float GetCascadeSplit(UINT CascadeIndex) const { return cascadeSplits[CascadeIndex]; }
+    FVector* GetCascadeCorner(const UINT CascadeIndex) { return CascadeCorners[CascadeIndex]; }
+    float GetCascadeSplit(const UINT CascadeIndex) const { return CascadeSplits[CascadeIndex]; }
     void UpdateCascadeShadowArea();
-    void CameraMoveForward(float _Value);
-    void CameraMoveRight(float _Value);
-    void CameraMoveUp(float _Value);
-    void CameraRotateYaw(float _Value);
-    void CameraRotatePitch(float _Value);
-    void PivotMoveRight(float _Value);
-    void PivotMoveUp(float _Value);
+    void CameraMoveForward(float Value);
+    void CameraMoveRight(float Value);
+    void CameraMoveUp(float Value);
+    void CameraRotateYaw(float Value);
+    void CameraRotatePitch(float Value);
+    void PivotMoveRight(float Value);
+    void PivotMoveUp(float Value);
 
     FMatrix& GetViewMatrix() { return  View; }
     FMatrix& GetProjectionMatrix() { return Projection; }
     void UpdateViewMatrix();
     void UpdateProjectionMatrix();
 
-    void SetViewFOV(float viewFOV) {ViewFOV = viewFOV;}
-    float GetViewFOV() {return ViewFOV;}
-    void SetNearClip(float newNearClip) { nearPlane = newNearClip; }
-    float GetNearClip() {return nearPlane;}
-    void SetFarClip(float newFarClip) {farPlane = newFarClip;}
-    float GetFarClip() {return farPlane;}
-    float GetAspectRatio() { return AspectRatio; }
+    void SetViewFOV(const float ViewFov) {ViewFOV = ViewFov;}
+    float GetViewFOV() const { return ViewFOV; }
+    void SetNearClip(const float NewNearClip) { NearPlane = NewNearClip; }
+    float GetNearClip() const { return NearPlane; }
+    void SetFarClip(const float NewFarClip) {FarPlane = NewFarClip;}
+    float GetFarClip() const { return FarPlane; }
+    float GetAspectRatio() const { return AspectRatio; }
     
     bool IsOrtho() const;
     bool IsPerspective() const;
@@ -197,23 +202,23 @@ public: //Camera Movement
     void SetViewportType(ELevelViewportType InViewportType);
     void UpdateOrthoCameraLoc();
     EViewModeIndex GetViewMode() const { return ViewMode; }
-    void SetViewMode(const EViewModeIndex newMode) { ViewMode = newMode; }
-    uint64 GetShowFlag() { return ShowFlag; }
-    void SetShowFlag(uint64 newMode) { ShowFlag = newMode; }
+    void SetViewMode(const EViewModeIndex NewMode) { ViewMode = NewMode; }
+    uint64 GetShowFlag() const { return ShowFlag; }
+    void SetShowFlag(const uint64 NewMode) { ShowFlag = NewMode; }
 
     // 마우스 우클릭 상태 제어 메소드
     void SetRightMouseDown(const bool bIsDown) { bRightMouseDown = bIsDown; }
     bool GetRightMouseDown() const { return bRightMouseDown; }
 
     //camera overriding
-    USceneComponent* GetOverrideComponent() { return OverrideComponent; }
-    void SetOverrideComponent(USceneComponent* newComp) { OverrideComponent = newComp; }
+    USceneComponent* GetOverrideComponent() const { return OverrideComponent; }
+    void SetOverrideComponent(USceneComponent* NewComp) { OverrideComponent = NewComp; }
 
     static float GetOrthoSize() { return OrthoSize; }
     static void SetOrthoSize(float InValue);
 
 private: // Input
-    POINT LastMousePos_;
+    POINT LastMousePos;
     bool bRightMouseDown = false;
     bool bLCtrlDown = false;
 
@@ -223,29 +228,29 @@ private: // Input
     TSet<EKeys::Type> PressedKeys;
     
 public:
-    void LoadConfig(const TMap<FString, FString>& config);
-    void SaveConfig(TMap<FString, FString>& config);
+    void LoadConfig(const TMap<FString, FString>& Config);
+    void SaveConfig(TMap<FString, FString>& Config) const;
 private:
-    TMap<FString, FString> ReadIniFile(const FString& filePath);
-    void WriteIniFile(const FString& filePath, const TMap<FString, FString>& config);
+    TMap<FString, FString> ReadIniFile(const FString& FilePath) const;
+    void WriteIniFile(const FString& FilePath, const TMap<FString, FString>& Config) const;
 	
 public:
     float GetCameraSpeedScalar() const { return CameraSpeedScalar; };
-    void SetCameraSpeed(float value);
+    void SetCameraSpeed(float Value);
 
 private:
     template <typename T>
-    T GetValueFromConfig(const TMap<FString, FString>& config, const FString& key, T defaultValue) {
-        if (const FString* Value = config.Find(key))
+    T GetValueFromConfig(const TMap<FString, FString>& Config, const FString& Key, T DefaultValue) {
+        if (const FString* Value = Config.Find(Key))
         {
             std::istringstream iss(**Value);
-            T value;
-            if (iss >> value)
+            T NewValue;
+            if (iss >> NewValue)
             {
-                return value;
+                return NewValue;
             }
         }
-        return defaultValue;
+        return DefaultValue;
     }
 };
 

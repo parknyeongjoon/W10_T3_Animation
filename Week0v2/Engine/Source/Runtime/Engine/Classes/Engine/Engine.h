@@ -10,13 +10,18 @@ class UAssetManager;
 struct FWorldContext
 {
 public:
-    FWorldContext() : WorldType(EWorldType::None), World(nullptr){}
+    FWorldContext()
+        : WorldType(EWorldType::None)
+        , LevelType(LEVELTICK_All)
+        , World(nullptr)
+    {
+    }
 
     EWorldType::Type WorldType;
     // TArray<FWorldContext*> ExternalReferences;
     ELevelTick LevelType;
 
-    UWorld* GetWorld() { return World; }
+    UWorld* GetWorld() const { return World; }
     void SetWorld(UWorld* InWorld) { World = InWorld; }
     
 private:
@@ -29,7 +34,7 @@ class UEngine : public UObject
 
 public:
     UEngine() = default;
-    virtual ~UEngine() = default;
+    ~UEngine() override = default;
 
 public:
     virtual void Init();
@@ -40,7 +45,8 @@ public:
 
     static inline UINT GFrameCount = 0;
 
-    std::shared_ptr<FWorldContext> GetWorldContextByKey(FName key);
+    std::shared_ptr<FWorldContext> GetWorldContextByKey(FName Key);
+
 protected:
     TMap<uint32, std::shared_ptr<FWorldContext>> WorldContexts;
 };
