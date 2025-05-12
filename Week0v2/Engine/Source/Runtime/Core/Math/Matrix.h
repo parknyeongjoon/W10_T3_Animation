@@ -1,6 +1,7 @@
 #pragma once
 #include "MathUtility.h"
 
+class FArchive;
 struct FVector4;
 struct FVector;
 struct FRotator;
@@ -51,4 +52,7 @@ public:
     FMatrix GetMatrixWithoutScale(float Tolerance = SMALL_NUMBER) const;
 
     void RemoveScaling(float Tolerance = SMALL_NUMBER);
+
+    void Serialize(FArchive& Ar) const;
+    void Deserialize(FArchive& Ar);
 };

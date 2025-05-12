@@ -127,7 +127,7 @@ public:
 	{
 		size_t Size;
 		// 1. 크기를 바이너리로 읽기
-		Stream.read(reinterpret_cast<char*>(&Size), sizeof(size_t));
+		std::ios::iostate res = Stream.read(reinterpret_cast<char*>(&Size), sizeof(size_t)).rdstate();
 		// 3. 문자열 데이터 읽기
 		Value.resize(Size);
 		Stream.read(&Value[0], Size);  // C++11 이상: &Value[0] 대신 Value.data()도 가능

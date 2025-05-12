@@ -1,5 +1,6 @@
 #include "AnimDataModel.h"
 #include "Math/Transform.h"
+#include "Serialization/Archive.h"
 
 UAnimDataModel::UAnimDataModel(const FName& FilePath)
 {
@@ -141,4 +142,14 @@ void UAnimDataModel::GetBoneTracksTransform(const TArray<FName>& TrackNames, con
     {
         OutTransforms[EntryIndex] = GetBoneTrackTransform(TrackNames[EntryIndex], FrameNumber);
     }
+}
+
+void UAnimDataModel::Serialize(FArchive& Ar) const
+{
+    Ar << Name << BoneAnimationTracks << PlayLength << FrameRate << NumberOfFrames << NumberOfKeys << CurveData;
+}
+
+void UAnimDataModel::Deserialize(FArchive& Ar)
+{
+    Ar >> Name >> BoneAnimationTracks >> PlayLength >> FrameRate >> NumberOfFrames >> NumberOfKeys >> CurveData;
 }
