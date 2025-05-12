@@ -3,6 +3,7 @@
 #include "Camera/UCameraModifier.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
 
 void APlayerCameraManager::Tick(float DeltaTime)
 {
@@ -31,6 +32,11 @@ APlayerCameraManager::APlayerCameraManager(const APlayerCameraManager& Other)
     //GetWorld()->SetPlayerCameraManager(this);
 }
 
+void APlayerCameraManager::SetViewTarget(AActor* NewViewTarget)
+{
+    ViewTarget.Target = NewViewTarget;
+}
+
 void APlayerCameraManager::AddCameraModifier(UCameraModifier* Modifier)
 {
     {
@@ -45,6 +51,19 @@ UObject* APlayerCameraManager::Duplicate(UObject* InOuter)
     ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;
+}
+
+void APlayerCameraManager::Initialize(APlayerController* PC)
+{
+    Owner = PC;
+    SetViewTarget(Owner);
+
+    UpdateCamera(0.0f);
+}
+
+void APlayerCameraManager::UpdateCamera(float DeltaTime)
+{
+    ApplyCameraModifiers(DeltaTime, ViewTarget.ViewInfo);
 }
 
 void APlayerCameraManager::ApplyCameraModifiers(float DeltaTime, FSimpleViewInfo& ViewInfo)

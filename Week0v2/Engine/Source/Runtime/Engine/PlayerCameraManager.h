@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "Camera/CameraShake/CameraShakeBase.h"
 
+class APlayerController;
 class UCameraModifier;
 
 enum EViewTargetBlendOrder : int
@@ -23,9 +24,12 @@ public:
     virtual ~APlayerCameraManager() override {};
 
     UObject* Duplicate(UObject* InOuter) override;
+
+    void Initialize(APlayerController* PC);
     
     AActor* GetViewTarget() const { return ViewTarget.Target; }
     FSimpleViewInfo& GetViewInfo() { return ViewTarget.ViewInfo; }
+    void SetViewTarget(AActor* NewViewTarget);
     void AssignViewTarget(const FTViewTarget& InViewTarget)
     {
         ViewTarget = InViewTarget;
@@ -39,6 +43,8 @@ public:
         CameraModifiers.Remove(Modifier);
     }
     void CleanCameraModifiers() { CameraModifiers.Empty(); }
+    
+    void UpdateCamera(float DeltaTime);
     void ApplyCameraModifiers(float DeltaTime, FSimpleViewInfo& ViewInfo);
 
     /** Adds a postprocess effect at the given weight. */
@@ -59,6 +65,7 @@ public:
     void StartCameraShake(UCameraShakeBase* Shake);
 private:
     TArray<FActiveCameraShakeInfo> ActiveShakes;
+    APlayerController* Owner;
 
     void UpdateViewTarget();           // ViewTarget.Target → ViewInfo 갱신
     void ApplyCameraShakes(float DeltaTime, FSimpleViewInfo& ViewInfo);         // ActiveShake 계산
