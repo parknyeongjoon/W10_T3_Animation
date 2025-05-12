@@ -10,27 +10,60 @@ UTestAnimInstance::UTestAnimInstance()
     WalkSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
     DanceSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
 
-    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Idle.fbx");
-    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Walking.fbx");
+    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Ninja_Idle.fbx");
+    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Sneak_Walk.fbx");
     TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Rumba_Dancing.fbx");
 
-    IdleSequence->SetData("Contents/FBX/Idle.fbx\\mixamo.com");
-    WalkSequence->SetData("Contents/FBX/Walking.fbx\\mixamo.com");
+    IdleSequence->SetData("Contents/FBX/Ninja_Idle.fbx\\mixamo.com");
+    WalkSequence->SetData("Contents/FBX/Sneak_Walk.fbx\\mixamo.com");
     DanceSequence->SetData("Contents/FBX/Rumba_Dancing.fbx\\mixamo.com");
 
     AnimStateMachine = FObjectFactory::ConstructObject<UAnimationStateMachine<ETestState>>(this);
 
     //**State 추가**
     AnimStateMachine->AddState(ETestState::Idle, [this](float DeltaTime) {
-        UpdateAnimation(IdleSequence, DeltaTime);
+        if (PreviousSequence != IdleSequence) {
+            bIsBlending = true;
+            BlendTime = 0.0f;
+            PreviousSequence = CurrentSequence;
+            CurrentSequence = IdleSequence;
+        }
+        if (bIsBlending) {
+            BlendAnimations(PreviousSequence, CurrentSequence, DeltaTime);
+        }
+        else {
+            UpdateAnimation(IdleSequence, DeltaTime);
+        }
         });
 
     AnimStateMachine->AddState(ETestState::Walking, [this](float DeltaTime) {
-        UpdateAnimation(WalkSequence, DeltaTime);
+        if (PreviousSequence != WalkSequence) {
+            bIsBlending = true;
+            BlendTime = 0.0f;
+            PreviousSequence = CurrentSequence;
+            CurrentSequence = WalkSequence;
+        }
+        if (bIsBlending) {
+            BlendAnimations(PreviousSequence, CurrentSequence, DeltaTime);
+        }
+        else {
+            UpdateAnimation(WalkSequence, DeltaTime);
+        }
         });
 
     AnimStateMachine->AddState(ETestState::Dancing, [this](float DeltaTime) {
-        UpdateAnimation(DanceSequence, DeltaTime);
+        if (PreviousSequence != DanceSequence) {
+            bIsBlending = true;
+            BlendTime = 0.0f;
+            PreviousSequence = CurrentSequence;
+            CurrentSequence = DanceSequence;
+        }
+        if (bIsBlending) {
+            BlendAnimations(PreviousSequence, CurrentSequence, DeltaTime);
+        }
+        else {
+            UpdateAnimation(DanceSequence, DeltaTime);
+        }
         });
 
     // **Transition Rule 정의**
@@ -51,7 +84,8 @@ UTestAnimInstance::UTestAnimInstance()
 
     // 초기 상태 설정
     AnimStateMachine->SetState(ETestState::Idle);
-
+    CurrentSequence = IdleSequence;
+    PreviousSequence = IdleSequence;
 
 
 
@@ -81,8 +115,9 @@ UObject* UTestAnimInstance::Duplicate(UObject* InOuter)
 void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
-    //USkeletalMeshComponent* SkeletalMesh = GetOwningComponent();
-    //AActor* OwnerPawn = SkeletalMesh->GetOwner();
+
+    USkeletalMeshComponent* SkeletalMesh = GetOwningComponent();
+    AActor* OwnerPawn = SkeletalMesh->GetOwner();
 
     if (AnimStateMachine) AnimStateMachine->Update(DeltaSeconds);
 

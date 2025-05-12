@@ -7,7 +7,7 @@
 #include "Math/JungleMath.h"
 #include "Components/Mesh/SkeletalMesh.h"
 #include "Animation/Skeleton.h"
-
+#include "Animation/AnimationRuntime.h"
 UAnimInstance::UAnimInstance(const UAnimInstance& Other) 
     :UObject(Other)
 
@@ -89,6 +89,49 @@ void UAnimInstance::UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime
     if (CurrentTime > DataModel->GetPlayLength())
     {
         CurrentTime = 0.0f;
+    }
+}
+
+void UAnimInstance::BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* ToSequence, float DeltaTime)
+{
+    if (!FromSequence || !ToSequence)
+        return;
+
+    BlendTime += DeltaTime;
+    float BlendAlpha = FMath::Clamp(BlendTime / BlendDuration, 0.0f, 1.0f);
+    
+    FPoseContext FromPose;
+    FPoseContext ToPose;
+    FPoseContext OutPose;
+
+    FAnimExtractContext FromContext(CurrentTime, true, false);
+    FAnimExtractContext ToContext(CurrentTime, true, false);
+
+
+    FromSequence->GetAnimationPose(FromPose, FromContext); 
+    ToSequence->GetAnimationPose(ToPose, ToContext); 
+
+    FAnimationRuntime::BlendTwoPosesTogether(FromPose.Pose, ToPose.Pose, 
+        FromPose.Curve,ToPose.Curve, BlendAlpha,OutPose.Pose,OutPose.Curve);
+
+
+    USkeletalMeshComponent* SkeletalMeshComp = GetOwningComponent();
+    USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMesh();
+
+    for (int32 i = 0; i < SkeletalMesh->GetRenderData().Bones.Num(); ++i)
+    {
+        const FTransform& BoneTransform = OutPose.Pose.BoneTransforms[i];
+        FMatrix TransformMatrix = JungleMath::CreateModelMatrix(
+            BoneTransform.GetLocation(),
+            BoneTransform.GetRotation(),
+            BoneTransform.GetScale()
+        );
+        SkeletalMesh->GetRenderData().Bones[i].LocalTransform = TransformMatrix;
+    }
+
+    if (BlendAlpha >= 1.0f)
+    {
+        bIsBlending = false;
     }
 }
 

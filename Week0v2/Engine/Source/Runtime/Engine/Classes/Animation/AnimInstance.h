@@ -41,13 +41,20 @@ public:
 
     virtual void NativeUpdateAnimation(float DeltaSeconds) const;
     void UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime);
+    void BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* ToSequence,float DeltaTime);
 protected:
+    UAnimSequence* CurrentSequence = nullptr;
+    UAnimSequence* PreviousSequence = nullptr;  
+
+
+    float BlendTime = 0;
+    float BlendDuration = 5.0f;
+    bool bIsBlending = false;
 
 private:
     USkeleton* Skeleton;
     FBlendedCurve BlendedCurve;
-    UAnimSequence* CurrentSequence = nullptr;
-
     float CurrentTime = 0;
+
 };
 
