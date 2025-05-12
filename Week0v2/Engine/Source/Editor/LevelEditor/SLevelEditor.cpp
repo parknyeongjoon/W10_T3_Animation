@@ -362,6 +362,11 @@ void SLevelEditor::RegisterEditorInputDelegates()
 
         InputDelegatesHandles.Add(Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
             {
+                if (ImGuiManager::Get().GetWantCaptureMouse(AppWnd))
+                {
+                    return;
+                }
+                
                 if (!WindowViewportDataMap.Contains(AppWnd))
                 {
                     return;
