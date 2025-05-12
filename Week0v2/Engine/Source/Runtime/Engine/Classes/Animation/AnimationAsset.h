@@ -11,3 +11,8 @@ public:
 
 };
 
+struct FAnimExtractContext
+{
+
+    double CurrentTime;
+};

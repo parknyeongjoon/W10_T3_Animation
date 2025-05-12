@@ -40,30 +40,14 @@ UTestAnimInstance::UTestAnimInstance()
 UTestAnimInstance::~UTestAnimInstance()
 {
 }
-void UTestAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
-{
-    if (CurrentSequence)
-    {
-        for (const FAnimNotifyEvent& Notify : CurrentSequence->Notifies)
-        {
-            // 시간 조건에 맞으면 Notify 실행
-            if (Notify.TriggerTime <= CurrentTime && CurrentTime < Notify.TriggerTime + Notify.Duration)
-            {
-                if (Notify.Notify)
-                {
-                    Notify.Notify->Notify(GetSkelMeshComponent(), CurrentSequence);
-                }
-            }
-        }
-    }
-}
+
 
 void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
+    Super::NativeUpdateAnimation(DeltaSeconds);
     USkeletalMeshComponent* SkeletalMesh = GetSkelMeshComponent();
     AActor* OwnerPawn = SkeletalMesh->GetOwner();
 
     if (AnimStateMachine) AnimStateMachine->Update(DeltaSeconds);
 
-    TriggerAnimNotifies(DeltaSeconds);
 }

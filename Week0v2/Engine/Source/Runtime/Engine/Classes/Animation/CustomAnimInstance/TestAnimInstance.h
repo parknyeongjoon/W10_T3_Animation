@@ -45,17 +45,15 @@ public:
     UTestAnimInstance();
     ~UTestAnimInstance();
 
-    virtual void TriggerAnimNotifies(float DeltaSeconds) override;
+    //virtual void TriggerAnimNotifies(float DeltaSeconds) override;
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 private:
     UAnimationStateMachine<ETestState>* AnimStateMachine = nullptr;
 
-    UAnimSequence* CurrentSequence = nullptr;
     UAnimSequence* IdleSequence = nullptr;
     UAnimSequence* WalkSequence = nullptr;
     UAnimSequence* RunSequence = nullptr;
 
-    float CurrentTime;
     float Speed;
 };
 
