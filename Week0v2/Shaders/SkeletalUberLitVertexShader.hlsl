@@ -18,8 +18,8 @@ struct VS_INPUT
     float3 normal : NORMAL; // 버텍스 노멀
     float4 tangent : TANGENT;
     float2 texcoord : TEXCOORD;
-    float boneIndices[4] : BORN_INDICES;
-    float boneWeights[4] : BONE_WEIGHTS;
+    int4 boneIndices : BORN_INDICES;
+    float4 boneWeights : BONE_WEIGHTS;
 };
 
 struct PS_INPUT
@@ -129,7 +129,7 @@ cbuffer FMaterialConstants : register(b4)
 
 cbuffer FBoneConstant : register(b5)
 {
-    float4x4 BoneSkinningMatrices[128];
+    row_major float4x4 BoneSkinningMatrices[128];
 }
 
 float3 CalculateDirectionalLight(
@@ -235,8 +235,28 @@ PS_INPUT mainVS(VS_INPUT input)
     {
         if (input.boneWeights[i] > 0.0)
         {
-            weightedPos += mul(BoneSkinningMatrices[input.boneIndices[i]], input.position) * input.boneWeights[i];
+            weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices[i]]) * input.boneWeights[i];
         }
+    }
+
+    if (input.boneWeights.x > 0.0)
+    {
+        weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices.x]) * input.boneWeights.x;
+    }
+
+    if (input.boneWeights.y > 0.0)
+    {
+        weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices.y]) * input.boneWeights.y;
+    }
+
+    if (input.boneWeights.z > 0.0)
+    {
+        weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices.z]) * input.boneWeights.z;
+    }
+
+    if (input.boneWeights.w > 0.0)
+    {
+        weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices.w]) * input.boneWeights.w;
     }
     
     float4 worldPos = mul(weightedPos, Model);
