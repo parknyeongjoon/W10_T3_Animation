@@ -182,7 +182,7 @@ struct FVector
         return ((*this - other).Magnitude());
     }
 
-    float Distance(const FVector& V1, const FVector& V2)
+    static float Distance(const FVector& V1, const FVector& V2)
     {
         return FMath::Sqrt(
             FMath::Square(V2.X - V1.X)
