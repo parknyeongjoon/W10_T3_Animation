@@ -19,9 +19,14 @@
 FVector FEditorViewportClient::Pivot = FVector(0.0f, 0.0f, 0.0f);
 float FEditorViewportClient::OrthoSize = 10.0f;
 
-FEditorViewportClient::FEditorViewportClient() : Viewport(nullptr), ViewportType(LVT_Perspective), ShowFlag(31 | (1ULL << 10)), ViewMode(VMI_Lit_Phong)
+FEditorViewportClient::FEditorViewportClient()
+    : GridSize(10)
+    , Viewport(nullptr)
+    , ViewportIndex(0)
+    , ViewportType(LVT_Perspective)
+    , ShowFlag(31 | (1ULL << 10))
+    , ViewMode(VMI_Lit_Phong)
 {
-
 }
 
 FEditorViewportClient::~FEditorViewportClient()
@@ -38,7 +43,7 @@ UWorld* FEditorViewportClient::GetWorld() const
     return World;
 }
 
-void FEditorViewportClient::Initialize(HWND InOwnerWindow, uint32 InViewportIndex, UWorld* World)
+void FEditorViewportClient::Initialize(const HWND InOwnerWindow, const uint32 InViewportIndex, UWorld* World)
 {
     SetOwner(InOwnerWindow);
     SetWorld(World);
@@ -47,11 +52,11 @@ void FEditorViewportClient::Initialize(HWND InOwnerWindow, uint32 InViewportInde
     ViewTransformPerspective.SetLocation(FVector(8.0f, 8.0f, 8.f));
     ViewTransformPerspective.SetRotation(FVector(0.0f, 45.0f, -135.0f));
     Viewport = new FViewport();
-    FWindowData& WindowData = GEngineLoop.GraphicDevice.SwapChains[InOwnerWindow];
+    const FWindowData& WindowData = FEngineLoop::GraphicDevice.SwapChains[InOwnerWindow];
     ResizeViewport(FRect(0, 0, WindowData.ScreenWidth, WindowData.ScreenHeight));
 }
 
-void FEditorViewportClient::Tick(float DeltaTime)
+void FEditorViewportClient::Tick(const float DeltaTime)
 {
     if (GetWorld()->WorldType == EWorldType::Editor || GetWorld()->WorldType == EWorldType::EditorPreview)
     {
@@ -63,7 +68,7 @@ void FEditorViewportClient::Tick(float DeltaTime)
     UpdateCascadeShadowArea();
 }
 
-void FEditorViewportClient::Release()
+void FEditorViewportClient::Release() const
 {
     delete Viewport;
 }
@@ -101,7 +106,7 @@ void FEditorViewportClient::UpdateEditorCameraMovement(const float DeltaTime)
     }
 }
 
-void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
+void FEditorViewportClient::InputKey(const HWND AppWnd, const FKeyEvent& InKeyEvent)
 {
     // TODO: 나중에 PIEViewportClient에서 처리하는걸로 수정하기
     // if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
@@ -125,80 +130,20 @@ void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
         {
             switch (InKeyEvent.GetCharacter())
             {
-            case 'A':
-            {
-                if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                case 'W':
+                case 'A':
+                case 'S':
+                case 'D':
+                case 'Q':
+                case 'E':
                 {
-                    CameraInputPressedKeys.Add(EKeys::A);
+                    UpdateCameraInputKeyState(InKeyEvent);
+                    break;
                 }
-                else if (InKeyEvent.GetInputEvent() == IE_Released)
+                default:
                 {
-                    CameraInputPressedKeys.Remove(EKeys::A);
+                    break;
                 }
-                break;
-            }
-            case 'D':
-            {
-                if (InKeyEvent.GetInputEvent() == IE_Pressed)
-                {
-                    CameraInputPressedKeys.Add(EKeys::D);
-                }
-                else if (InKeyEvent.GetInputEvent() == IE_Released)
-                {
-                    CameraInputPressedKeys.Remove(EKeys::D);
-                }
-                break;
-            }
-            case 'W':
-            {
-                if (InKeyEvent.GetInputEvent() == IE_Pressed)
-                {
-                    CameraInputPressedKeys.Add(EKeys::W);
-                }
-                else if (InKeyEvent.GetInputEvent() == IE_Released)
-                {
-                    CameraInputPressedKeys.Remove(EKeys::W);
-                }
-                break;
-            }
-            case 'S':
-            {
-                if (InKeyEvent.GetInputEvent() == IE_Pressed)
-                {
-                    CameraInputPressedKeys.Add(EKeys::S);
-                }
-                else if (InKeyEvent.GetInputEvent() == IE_Released)
-                {
-                    CameraInputPressedKeys.Remove(EKeys::S);
-                }
-                break;
-            }
-            case 'E':
-            {
-                if (InKeyEvent.GetInputEvent() == IE_Pressed)
-                {
-                    CameraInputPressedKeys.Add(EKeys::E);
-                }
-                else if (InKeyEvent.GetInputEvent() == IE_Released)
-                {
-                    CameraInputPressedKeys.Remove(EKeys::E);
-                }
-                break;
-            }
-            case 'Q':
-            {
-                if (InKeyEvent.GetInputEvent() == IE_Pressed)
-                {
-                    CameraInputPressedKeys.Add(EKeys::Q);
-                }
-                else if (InKeyEvent.GetInputEvent() == IE_Released)
-                {
-                    CameraInputPressedKeys.Remove(EKeys::Q);
-                }
-                break;
-            }
-            default:
-                break;
             }
         }
         else
@@ -323,6 +268,28 @@ void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
             default:
                 break;
             }
+        }
+    }
+}
+
+void FEditorViewportClient::UpdateCameraInputKeyState(const FKeyEvent& InKeyEvent)
+{
+    const EKeys::Type& Key = InKeyEvent.GetKey();
+    switch (InKeyEvent.GetInputEvent())
+    {
+        case IE_Pressed:
+        {
+            CameraInputPressedKeys.Add(Key);
+            break;
+        }
+        case IE_Released:
+        {
+            CameraInputPressedKeys.Remove(Key);
+            break;
+        }
+        default:
+        {
+            break;
         }
     }
 }
