@@ -444,7 +444,7 @@ void SLevelEditor::RegisterEditorInputDelegates()
 
                     if (ActiveViewportClient)
                     {
-                        ActiveViewportClient->SetRightMouseDown(true);
+                        ActiveViewportClient->SetRightMouseDown(false);
                     }
 
                     // @todo ImGui로 피킹된 액터의 옵션 메뉴 표기

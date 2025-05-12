@@ -351,9 +351,17 @@ void FSlateAppMessageHandler::OnKeyChar(const HWND AppWnd, const TCHAR Character
 
 void FSlateAppMessageHandler::OnKeyDown(const HWND AppWnd, const uint32 KeyCode, const uint32 CharacterCode, const bool IsRepeat)
 {
-    FInputKeyManager::Get();
+    // KeyCode(Win32 가상키)를 EKeys::Type으로 변환
+    EKeys::Type ActualKeyEnum = FInputKeyManager::Get().GetKeyFromVirtual(KeyCode);
+    
+    // 가상키로 매핑되지 않았고 CharacterCode가 있다면 문자 코드로 변환 시도
+    if (ActualKeyEnum == EKeys::Invalid && CharacterCode != 0)
+    {
+        ActualKeyEnum = FInputKeyManager::Get().GetKeyFromChar(static_cast<TCHAR>(CharacterCode));
+    }
+    
     OnKeyDownDelegate.Broadcast(FKeyEvent{
-        EKeys::Invalid, // TODO: 나중에 FInputKeyManager구현되면 바꾸기
+        ActualKeyEnum,
         GetModifierKeys(),
         IsRepeat ? IE_Repeat : IE_Pressed,
         CharacterCode,
@@ -365,8 +373,17 @@ void FSlateAppMessageHandler::OnKeyUp(const HWND AppWnd, const uint32 KeyCode, c
 {
     assert(!IsRepeat);  // KeyUp 이벤트에서 IsRepeat가 true일수가 없기 때문에
 
+    // KeyCode(Win32 가상키)를 EKeys::Type으로 변환
+    EKeys::Type ActualKeyEnum = FInputKeyManager::Get().GetKeyFromVirtual(KeyCode);
+    
+    // 가상키로 매핑되지 않았고 CharacterCode가 있다면 문자 코드로 변환 시도
+    if (ActualKeyEnum == EKeys::Invalid && CharacterCode != 0)
+    {
+        ActualKeyEnum = FInputKeyManager::Get().GetKeyFromChar(static_cast<TCHAR>(CharacterCode));
+    }
+    
     OnKeyUpDelegate.Broadcast(FKeyEvent{
-        EKeys::Invalid, // TODO: 나중에 FInputKeyManager구현되면 바꾸기
+        ActualKeyEnum,
         GetModifierKeys(),
         IE_Released,
         CharacterCode,
@@ -663,9 +680,13 @@ void FSlateAppMessageHandler::OnRawKeyboardInput(const HWND AppWnd, const RAWKEY
 {
     // 입력 이벤트 타입 설정
     const EInputEvent InputEventType = (RawKeyboardInput.Flags & RI_KEY_BREAK) ? IE_Released : IE_Pressed;
+    
+    // VKey(Win32 가상키)를 EKeys::Type으로 변환
+    // 참고: RawInput에서는 CharacterCode를 얻기 어렵기 때문에 GetKeyFromVirtual만 사용
+    EKeys::Type ActualKeyEnum = FInputKeyManager::Get().GetKeyFromVirtual(RawKeyboardInput.VKey);
 
     OnRawKeyboardInputDelegate.Broadcast(FKeyEvent{
-        EKeys::Invalid,  // TODO: 나중에 FInputKeyManager구현되면 바꾸기
+        ActualKeyEnum,
         GetModifierKeys(),
         InputEventType,
         0, // RawInput에서 Char를 얻기 어렵기 때문에
