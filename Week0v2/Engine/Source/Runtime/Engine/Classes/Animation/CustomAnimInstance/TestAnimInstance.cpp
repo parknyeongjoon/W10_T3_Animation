@@ -22,7 +22,7 @@ UTestAnimInstance::UTestAnimInstance()
 
     //**State 추가**
     AnimStateMachine->AddState(ETestState::Idle, [this](float DeltaTime) {
-        if (PreviousSequence != IdleSequence) {
+        if (CurrentSequence != IdleSequence) {
             bIsBlending = true;
             BlendTime = 0.0f;
             PreviousSequence = CurrentSequence;
@@ -37,7 +37,7 @@ UTestAnimInstance::UTestAnimInstance()
         });
 
     AnimStateMachine->AddState(ETestState::Walking, [this](float DeltaTime) {
-        if (PreviousSequence != WalkSequence) {
+        if (CurrentSequence != WalkSequence) {
             bIsBlending = true;
             BlendTime = 0.0f;
             PreviousSequence = CurrentSequence;
@@ -52,7 +52,7 @@ UTestAnimInstance::UTestAnimInstance()
         });
 
     AnimStateMachine->AddState(ETestState::Dancing, [this](float DeltaTime) {
-        if (PreviousSequence != DanceSequence) {
+        if (CurrentSequence != DanceSequence) {
             bIsBlending = true;
             BlendTime = 0.0f;
             PreviousSequence = CurrentSequence;

@@ -102,7 +102,6 @@ void UAnimInstance::UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime
     }
 
 
-    std::cout << "CurrentTime : " << CurrentTime << std::endl;
     CurrentTime += DeltaTime;
     if (CurrentTime > DataModel->GetPlayLength())
     {
@@ -123,7 +122,7 @@ void UAnimInstance::BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* 
     FPoseContext OutPose;
 
     FAnimExtractContext FromContext(CurrentTime, true, false);
-    FAnimExtractContext ToContext(CurrentTime, true, false);
+    FAnimExtractContext ToContext(0, true, false);
 
 
     FromSequence->GetAnimationPose(FromPose, FromContext); 
@@ -150,6 +149,7 @@ void UAnimInstance::BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* 
     if (BlendAlpha >= 1.0f)
     {
         bIsBlending = false;
+        CurrentTime = 0.0f;
     }
 }
 
