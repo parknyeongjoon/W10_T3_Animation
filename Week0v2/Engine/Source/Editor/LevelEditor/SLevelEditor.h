@@ -49,7 +49,7 @@ public:
 class SLevelEditor
 {
 public:
-    SLevelEditor();
+    SLevelEditor() = default;
     ~SLevelEditor() = default;
 
     void Initialize(UWorld* World, HWND OwnerWindow);
@@ -60,8 +60,8 @@ public:
         requires std::derived_from<T, FViewportClient>
     std::shared_ptr<T> AddViewportClient(HWND OwnerWindow, UWorld* World);
 
-    void RemoveViewportClient(HWND OwnerWindow, std::shared_ptr<FEditorViewportClient> ViewportClient);
-    void RemoveViewportClients(HWND HWnd);
+    void RemoveViewportClient(HWND OwnerWindow, const std::shared_ptr<FEditorViewportClient>& ViewportClient);
+    void RemoveViewportClients(HWND OwnerWindow);
 
     void ResizeWindow(HWND AppWnd, FVector2D ClientSize);
     void ResizeViewports(HWND AppWnd);
@@ -147,8 +147,8 @@ public:
     void LoadConfig();
     void SaveConfig();
 private:
-    TMap<FString, FString> ReadIniFile(const FString& filePath);
-    void WriteIniFile(const FString& filePath, const TMap<FString, FString>& config);
+    TMap<FString, FString> ReadIniFile(const FString& FilePath);
+    void WriteIniFile(const FString& FilePath, const TMap<FString, FString>& Config);
 
     template <typename T>
     T GetValueFromConfig(const TMap<FString, FString>& config, const FString& key, T defaultValue) {
