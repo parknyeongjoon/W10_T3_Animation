@@ -230,7 +230,9 @@ UWorld* UEditorEngine::CreateWorld(EWorldType::Type WorldType, ELevelTick LevelT
     UWorld* World = FObjectFactory::ConstructObject<UWorld>(this);
     World->WorldType = WorldType;
     World->InitWorld();
-    EditorWorldContext = CreateNewWorldContext(World, WorldType, LevelTick);
+    std::shared_ptr<FWorldContext> WorldContext = CreateNewWorldContext(World, WorldType, LevelTick);
+    if (WorldType == EWorldType::Editor)
+        EditorWorldContext = WorldContext;
     // std::shared_ptr<FWorldContext> EditorContext = CreateNewWorldContext(World, WorldType, LevelTick);
 
     return World;
