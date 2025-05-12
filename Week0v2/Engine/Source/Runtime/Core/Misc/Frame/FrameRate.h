@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "FrameTime.h"
 #include "HAL/PlatformType.h"
+#include "Runtime/Serialization/Archive.h"
 
 struct FFrameRate
 {
@@ -41,6 +42,16 @@ struct FFrameRate
     * @return The number of seconds that the specified frame number represents
     */
     double AsSeconds(FFrameTime FrameTime) const;
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << Numerator << Denominator;
+    }
+
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> Numerator >> Denominator;
+    }
 };
 
 inline double FFrameRate::AsInterval() const

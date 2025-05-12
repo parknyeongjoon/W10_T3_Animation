@@ -5,6 +5,8 @@
 #include "UObject/ObjectMacros.h"
 #include "Misc/Frame/FrameRate.h"
 
+class FArchive;
+
 class UAnimDataModel : public UObject, public IAnimationDataModel
 {
     DECLARE_CLASS(UAnimDataModel, UObject)
@@ -41,4 +43,7 @@ public:
     void GetBoneTracksTransform(const TArray<FName>& TrackNames, const int32& FrameNumber, TArray<FTransform>& OutTransforms) const override;
 
     FAnimationCurveData GetCurve() const override { return CurveData; }
+
+    virtual void Serialize(FArchive& Ar) const;
+    virtual void Deserialize(FArchive& Ar);
 };

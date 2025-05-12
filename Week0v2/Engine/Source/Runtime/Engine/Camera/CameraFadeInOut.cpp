@@ -52,5 +52,4 @@ void UCameraFadeInOut::ModifyPostProcess(float DeltaTime, float& PostProcessBlen
     PostProcessSettings.FadeColor = FadeColor;
     PostProcessSettings.FadeAlpha = Alpha; // Alpha가 직접 강도를 조절
     PostProcessBlendWeight = 1.0f; // 이 경우 모디파이어 자체의 블렌드는 1로 고정하고, 내부 OverlayIntensity로 조절
-
 }
