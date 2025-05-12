@@ -77,21 +77,12 @@ UObject* UTestAnimInstance::Duplicate(UObject* InOuter)
     return NewComp;
 }
 
-void UTestAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
-{
-    Super::DuplicateSubObjects(Source, InOuter);
-}
-
-void UTestAnimInstance::PostDuplicate()
-{
-}
-
 
 void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
-    USkeletalMeshComponent* SkeletalMesh = GetOwningComponent();
-    AActor* OwnerPawn = SkeletalMesh->GetOwner();
+    //USkeletalMeshComponent* SkeletalMesh = GetOwningComponent();
+    //AActor* OwnerPawn = SkeletalMesh->GetOwner();
 
     if (AnimStateMachine) AnimStateMachine->Update(DeltaSeconds);
 
