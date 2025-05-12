@@ -1,10 +1,9 @@
 #include "SkeletalMeshActor.h"
-#include "TestFBXLoader.h"
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 
 ASkeletalMeshActor::ASkeletalMeshActor()
 {
     USkeletalMeshComponent* SkeletalMeshComp = AddComponent<USkeletalMeshComponent>(EComponentOrigin::Constructor);
     RootComponent = SkeletalMeshComp;
-    SkeletalMeshComp->LoadSkeletalMesh(TEXT("Contents\\FBX/Zombie.fbx"));
+    SkeletalMeshComp->SetData("Contents/FBX/Rumba_Dancing.fbx");
 }

@@ -11,6 +11,7 @@ enum class EAnimInterpolationType : std::uint8_t
     Linear,
     Cubic,
     Constant,
+    Step,
     Max
 };
 

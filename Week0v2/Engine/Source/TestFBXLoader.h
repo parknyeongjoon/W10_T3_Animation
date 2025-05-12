@@ -19,12 +19,15 @@ public:
     static USkeletalMesh* GetSkeletalMesh(const FString& FilePath);
     static const TMap<FString, USkeletalMesh*>& GetSkeletalMeshes() { return SkeletalMeshMap;}
     
-    static FSkeletalMeshRenderData* GetSkeletalRenderData(FString FilePath);
-    static FSkeletalMeshRenderData GetCopiedSkeletalRenderData(FString FilePath);
+    static FSkeletalMeshRenderData* GetSkeletalRenderData(const FString& FilePath);
+    static FSkeletalMeshRenderData GetCopiedSkeletalRenderData(const FString& FilePath);
     static TMap<FName, FSkeletalMeshRenderData*> GetAllSkeletalMeshData() { return SkeletalMeshData; }
     
     static FRefSkeletal* GetRefSkeletal(FString FilePath);
     static TMap<FName, FRefSkeletal*> GetAllRefSkeletal() { return RefSkeletalData; }
+
+    static TMap<FName, UAnimDataModel*> GetAllAnimData() { return AnimDataMap; }
+    static UAnimDataModel* GetAnimData(const FString& FilePath);
     
     static void UpdateBoundingBox(FSkeletalMeshRenderData& MeshData);
 private:
