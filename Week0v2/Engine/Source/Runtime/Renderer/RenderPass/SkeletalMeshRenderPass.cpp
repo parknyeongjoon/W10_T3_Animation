@@ -125,8 +125,8 @@ void FSkeletalMeshRenderPass::Execute(const std::shared_ptr<FViewportClient> InV
         const FMatrix Model = SkeletalMeshComponent->GetWorldMatrix();
         UpdateMatrixConstants(SkeletalMeshComponent, View, Proj);
 
+        UpdateBoneConstant(SkeletalMeshComponent);
         UpdateLightConstants();
-
         UpdateFlagConstant();
         
         if (curEditorViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::Type::SF_AABB))
@@ -360,6 +360,19 @@ void FSkeletalMeshRenderPass::UpdateLightConstants()
     renderResourceManager->UpdateConstantBuffer(LightConstantBuffer, &LightConstant);
     Graphics.DeviceContext->VSSetConstantBuffers(1, 1, &LightConstantBuffer);
     Graphics.DeviceContext->PSSetConstantBuffers(2, 1, &LightConstantBuffer);
+}
+
+void FSkeletalMeshRenderPass::UpdateBoneConstant(USkeletalMeshComponent* SkeletalMeshComponent)
+{
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
+
+    FBoneConstant BoneConstant;
+    for (int i=0;i<SkeletalMeshComponent->GetSkeletalMesh()->GetRenderData().Bones.Num();i++)
+    {
+        BoneConstant.BoneSkinningMatrices[i] = SkeletalMeshComponent->GetSkeletalMesh()->GetRenderData().Bones[i].SkinningMatrix;
+    }
+
+    renderResourceManager->UpdateConstantBuffer(renderResourceManager->GetConstantBuffer(TEXT("FBoneConstant")), &BoneConstant);
 }
 
 void FSkeletalMeshRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)

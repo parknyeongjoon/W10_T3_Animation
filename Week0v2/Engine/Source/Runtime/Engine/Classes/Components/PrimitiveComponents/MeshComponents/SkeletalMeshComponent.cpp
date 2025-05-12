@@ -241,7 +241,9 @@ void USkeletalMeshComponent::BeginPlay()
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
 {
-    animTime += DeltaTime * 5;
+    if (animTime > AnimInstance->AnimA->GetDataModel()->NumberOfFrames)
+        animTime = 0;
+    animTime += DeltaTime * 10;
     const UAnimDataModel* DataModel = AnimInstance->AnimA->GetDataModel();
     TArray<FName> BoneNames;
     DataModel->GetBoneTrackNames(BoneNames);
@@ -252,12 +254,11 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
         // FMatrix TransformMatrix = FMatrix::Transpose(Transform.ToMatrixWithScale());
         FMatrix TransformMatrix = JungleMath::CreateModelMatrix(Transform.GetLocation(), Transform.GetRotation(), Transform.GetScale());
         int BoneIndex = SkeletalMesh->GetSkeleton()->GetRefSkeletal()->BoneNameToIndexMap[Name.ToString()];
-        // SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform = SkeletalMesh->GetSkeleton()->GetRefSkeletal()->RawBones[BoneIndex].LocalTransform * TransformMatrix;
         SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform = TransformMatrix;
     }
     
     SkeletalMesh->UpdateBoneHierarchy();
-    SkeletalMesh->UpdateSkinnedVertices();
+    // SkeletalMesh->UpdateSkinnedVertices();
 }
 
 void USkeletalMeshComponent::SetData(const FString& FilePath)
