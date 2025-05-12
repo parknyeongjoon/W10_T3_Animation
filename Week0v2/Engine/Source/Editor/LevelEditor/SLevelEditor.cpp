@@ -403,6 +403,18 @@ void SLevelEditor::RegisterEditorInputDelegates()
                     return;
                 }
 
+
+                UEditorPlayer* EditorPlayer = nullptr;
+                if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+                {
+                    EditorPlayer = EditorEngine->GetEditorPlayer();
+                }
+
+                if (!EditorPlayer)
+                {
+                    return;
+                }
+
                 FWindowViewportClientData& WindowViewportData = WindowViewportDataMap[AppWnd];
 
                 switch (InMouseEvent.GetEffectingButton())  // NOLINT(clang-diagnostic-switch-enum)
@@ -428,6 +440,16 @@ void SLevelEditor::RegisterEditorInputDelegates()
                     {
                         WindowViewportData.HSplitter->OnReleased();
                     }
+
+                    EditorPlayer->SetAlreadyDup(false);
+                    if (EditorPlayer->GetMultiSelecting())
+                    {
+                        EditorPlayer->MultiSelectingEnd(WindowViewportData.GetActiveViewportClient()->GetWorld());
+                    }
+                    else
+                    {
+                        WindowViewportData.GetActiveViewportClient()->GetWorld()->SetPickingGizmo(nullptr);
+                    }
                     return;
                 }
                 default:
@@ -443,6 +465,17 @@ void SLevelEditor::RegisterEditorInputDelegates()
                 }
 
                 if (!WindowViewportDataMap.Contains(AppWnd))
+                {
+                    return;
+                }
+
+                UEditorPlayer* EditorPlayer = nullptr;
+                if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+                {
+                    EditorPlayer = EditorEngine->GetEditorPlayer();
+                }
+
+                if (!EditorPlayer)
                 {
                     return;
                 }
@@ -499,6 +532,13 @@ void SLevelEditor::RegisterEditorInputDelegates()
 
                     FWindowsCursor::SetMouseCursor(CursorType);
                 }
+
+                if (EditorPlayer->GetMultiSelecting())
+                {
+                    EditorPlayer->MakeMulitRect();
+                }
+
+                EditorPlayer->PickedObjControl(WindowViewportData.GetControlMode(), WindowViewportData.GetCoordiMode(), WindowViewportData.GetActiveViewportClient()->GetWorld());
             }));
 
         InputDelegatesHandles.Add(Handler->OnMouseWheelDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)

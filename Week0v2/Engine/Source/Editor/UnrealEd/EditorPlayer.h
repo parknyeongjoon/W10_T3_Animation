@@ -22,12 +22,15 @@ class UEditorPlayer : public UObject
 
     void MultiSelectingStart();
     void MultiSelectingEnd(UWorld* World);
+    void MakeMulitRect() const;
 
     static void ScreenToViewSpace(int ScreenX, int ScreenY, const FMatrix& viewMatrix, const FMatrix& ProjectionMatrix, FVector& RayOrigin);
+
+    void PickedObjControl(ControlMode ControlMode, CoordiMode CoordiMode, UWorld* World);
+    bool GetMultiSelecting() const { return bMultiSeleting; }
+    void SetAlreadyDup(const bool InbAlreadyDup) { bAlreadyDup = InbAlreadyDup; }
 private:
     static int RayIntersectsObject(const FVector& PickPosition, USceneComponent* Component, float& HitDistance, int& IntersectCount);
-    void PickedObjControl(ControlMode ControlMode, CoordiMode CoordiMode, UWorld* World);
-    void MakeMulitRect() const;
 
     void ControlRotation(CoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo, int32 DeltaX, int32 DeltaY);
     void ControlTranslation(CoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo, int32 DeltaX, int32 DeltaY);
