@@ -44,7 +44,8 @@ void OutlinerEditorPanel::Render()
     
     /* Render Start */
     ImGui::Begin("Outliner", nullptr, PanelFlags);
-    
+
+    /*
     if (ImGui::TreeNode("Actors")) // 트리 노드 생성
     {
         for (AActor* Actor : World->GetActors())
@@ -59,6 +60,24 @@ void OutlinerEditorPanel::Render()
         }
         ImGui::TreePop(); // 트리 닫기
     }
+    */
+    FString WorldName = World->GetName();
+    ImGuiTreeNodeFlags WorldTreeNodeFlags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+    if (ImGui::TreeNodeEx(*WorldName, WorldTreeNodeFlags)) // 트리 노드 생성
+    {
+        for (AActor* Actor : World->GetActors())
+        {
+            TSet<AActor*> Actros = World->GetSelectedActors();
+            bool bSelected = !Actros.IsEmpty() && *Actros.begin() == Actor;
+            if (ImGui::Selectable(*Actor->GetActorLabel(), bSelected))
+            {
+                World->SetSelectedActor(Actor);
+                break;
+            }
+        }
+        ImGui::TreePop(); // 트리 닫기
+    }
+
     ImGui::End();
     ImGui::PopID();
 }

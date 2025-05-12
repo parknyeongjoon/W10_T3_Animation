@@ -268,15 +268,12 @@ void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
                 break;
             }
             */
-        }
 
-
-        // 일반적인 단일 키 이벤트
-        if (InKeyEvent.GetInputEvent() == IE_Pressed)
-        {
-            switch (InKeyEvent.GetCharacter())
+            if (InKeyEvent.GetInputEvent() == IE_Pressed)
             {
-            case 'F':
+                switch (InKeyEvent.GetCharacter())
+                {
+                case 'F':
                 {
                     TSet<AActor*> SelectedActors = GetWorld()->GetSelectedActors();
                     if (!SelectedActors.IsEmpty())
@@ -292,7 +289,7 @@ void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
                     }
                     break;
                 }
-            case 'M':
+                case 'M':
                 {
                     if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
                     {
@@ -302,17 +299,22 @@ void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
                     }
                     break;
                 }
-            case 'D':
+                case 'D':
                 {
                     if (PressedKeys.Contains(EKeys::LeftControl))
                     {
                         GetWorld()->DuplicateSelectedActors();
                     }
                 }
-            default:
-                break;
+                default:
+                    break;
+                }
             }
+        }
 
+        // 일반적인 단일 키 이벤트
+        if (InKeyEvent.GetInputEvent() == IE_Pressed)
+        {
             // Virtual Key
             UEditorEngine* EditorEngine = CastChecked<UEditorEngine>(GEngine);
             switch (InKeyEvent.GetKeyCode())

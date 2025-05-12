@@ -838,8 +838,9 @@ void TestFBXLoader::ExtractAnimClip(FbxAnimStack* AnimStack, const TArray<FbxNod
             FbxAnimLayer* AnimLayer = AnimStack->GetMember<FbxAnimLayer>(j);
             if (!AnimLayer)
                 continue;
-            
-            ExtractAnimTrack(AnimLayer, BoneNode, AnimTrackData);
+
+            ExtractAnimTrack(BoneNode, AnimTrackData, AnimData);
+            // ExtractAnimCurve(AnimLayer, BoneNode, AnimTrackData);
         }
         AnimTrack.InternalTrackData = AnimTrackData;
 
@@ -849,7 +850,40 @@ void TestFBXLoader::ExtractAnimClip(FbxAnimStack* AnimStack, const TArray<FbxNod
     AnimDataMap.Add(FilePath + "\\" + AnimData->Name, AnimData);
 }
 
-void TestFBXLoader::ExtractAnimTrack(FbxAnimLayer* AnimLayer, FbxNode* BoneNode, FRawAnimSequenceTrack& AnimTrack)
+void TestFBXLoader::ExtractAnimTrack(FbxNode* BoneNode, FRawAnimSequenceTrack& AnimTrack, const UAnimDataModel* AnimData)
+{
+    for (int i = 0; i < AnimData->NumberOfKeys; ++i)
+    {
+        FbxTime t;
+        t.SetTime(0, 0, 0, i);
+        FbxAMatrix tf = BoneNode->EvaluateLocalTransform(t);
+        FbxVector4 translation = tf.GetT();
+        FbxQuaternion rotation = tf.GetQ();
+        FbxVector4 scaling = tf.GetS();
+        
+        AnimTrack.PosKeys.Add(FVector(
+            translation[0],
+            translation[1],
+            translation[2]
+        ));
+
+        // quaternion 순서 맞추기 (xyzw -> wxyz)
+        AnimTrack.RotKeys.Add(FQuat(
+            rotation[3],
+            rotation[0],
+            rotation[1],
+            rotation[2]
+        ));
+
+        AnimTrack.ScaleKeys.Add(FVector(
+            scaling[0],
+            scaling[1],
+            scaling[2]
+        ));
+    }
+}
+
+void TestFBXLoader::ExtractAnimCurve(FbxAnimLayer* AnimLayer, FbxNode* BoneNode, FRawAnimSequenceTrack& AnimTrack)
 {
     FbxAnimCurve* tx = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
     FbxAnimCurve* ty = BoneNode->LclTranslation.GetCurve(AnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);

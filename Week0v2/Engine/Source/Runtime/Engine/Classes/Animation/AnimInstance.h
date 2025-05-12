@@ -4,6 +4,7 @@
 #include "AnimTypes.h"
 #include "AnimNodeBase.h"
 #include "Animation/AnimSequence.h"
+#include "AnimTypes.h"
 
 class USkeleton;
 class UAnimSequenceBase;
