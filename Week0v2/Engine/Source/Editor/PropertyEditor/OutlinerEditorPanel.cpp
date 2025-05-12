@@ -3,6 +3,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "ImGUI/imgui.h"
+#include "ImGuiNeoSequencer/imgui_neo_sequencer.h"
 
 extern UEngine* GEngine;
 
@@ -80,6 +81,48 @@ void OutlinerEditorPanel::Render()
 
     ImGui::End();
     ImGui::PopID();
+
+    int32_t currentFrame = 0;
+    int32_t startFrame = 0;
+    int32_t endFrame = 64;
+    static bool transformOpen = false;
+    std::vector<ImGui::FrameIndexType> keys = { 0, 10, 24 };
+    bool doDelete = false;
+
+    if (ImGui::BeginNeoSequencer("Sequencer", &currentFrame, &startFrame, &endFrame, { 0, 0 },
+        ImGuiNeoSequencerFlags_EnableSelection |
+        ImGuiNeoSequencerFlags_Selection_EnableDragging |
+        ImGuiNeoSequencerFlags_Selection_EnableDeletion))
+    {
+        if (ImGui::BeginNeoGroup("Transform", &transformOpen))
+        {
+
+            if (ImGui::BeginNeoTimelineEx("Position"))
+            {
+                for (auto&& v : keys)
+                {
+                    ImGui::NeoKeyframe(&v);
+                    // Per keyframe code here
+                }
+
+
+                if (doDelete)
+                {
+                    uint32_t count = ImGui::GetNeoKeyframeSelectionSize();
+
+                    ImGui::FrameIndexType* toRemove = new ImGui::FrameIndexType[count];
+
+                    ImGui::GetNeoKeyframeSelection(toRemove);
+
+                    //Delete keyframes from your structure
+                }
+                ImGui::EndNeoTimeLine();
+            }
+            ImGui::EndNeoGroup();
+        }
+
+        ImGui::EndNeoSequencer();
+    }
 }
     
 void OutlinerEditorPanel::OnResize(HWND hWnd)
