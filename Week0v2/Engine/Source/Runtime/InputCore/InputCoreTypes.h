@@ -393,10 +393,16 @@ struct FInputKeyManager // ue FInputKeyManager.cpp, 1530
 {
 public:
     static FInputKeyManager& Get();
+    
+    // Win32 가상키를 EKeys::Type으로 변환
+    EKeys::Type GetKeyFromVirtual(uint32 VirtualKey) const;
+    
+    // 문자 코드를 EKeys::Type으로 변환
+    EKeys::Type GetKeyFromChar(TCHAR CharCode) const;
 
 private:
-    FInputKeyManager() = default;
+    FInputKeyManager();
 
     TMap<uint32, EKeys::Type> KeyMapVirtualToEnum;
-    TMap<uint32, EKeys::Type> KeyMapCharToEnum;
+    TMap<TCHAR, EKeys::Type> KeyMapCharToEnum;
 };

@@ -13,24 +13,27 @@ class UEditorPlayer : public UObject
     DECLARE_CLASS(UEditorPlayer, UObject)
 
     UEditorPlayer() = default;
-    ~UEditorPlayer() = default;
+    ~UEditorPlayer() override = default;
 
     static void Initialize();
 
-    static bool PickGizmo(ControlMode ControlMode, UWorld* World, const FVector& PickPosition);
+    static bool PickGizmo(EControlMode ControlMode, UWorld* World, const FVector& PickPosition);
     void PickActor(UWorld* World, const FVector& PickPosition) const;
 
     void MultiSelectingStart();
     void MultiSelectingEnd(UWorld* World);
-
-    static void ScreenToViewSpace(int ScreenX, int ScreenY, const FMatrix& viewMatrix, const FMatrix& ProjectionMatrix, FVector& RayOrigin);
-private:
-    static int RayIntersectsObject(const FVector& PickPosition, USceneComponent* Component, float& HitDistance, int& IntersectCount);
-    void PickedObjControl(ControlMode ControlMode, CoordiMode CoordiMode, UWorld* World);
     void MakeMulitRect() const;
 
-    void ControlRotation(CoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo, int32 DeltaX, int32 DeltaY);
-    void ControlTranslation(CoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo, int32 DeltaX, int32 DeltaY);
+    static void ScreenToViewSpace(int ScreenX, int ScreenY, const FMatrix& viewMatrix, const FMatrix& ProjectionMatrix, FVector& RayOrigin);
+
+    void PickedObjControl(EControlMode ControlMode, ECoordiMode CoordiMode, UWorld* World);
+    bool GetMultiSelecting() const { return bMultiSeleting; }
+    void SetAlreadyDup(const bool InbAlreadyDup) { bAlreadyDup = InbAlreadyDup; }
+private:
+    static int RayIntersectsObject(const FVector& PickPosition, USceneComponent* Component, float& HitDistance, int& IntersectCount);
+
+    void ControlRotation(ECoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo, int32 DeltaX, int32 DeltaY);
+    void ControlTranslation(ECoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo, int32 DeltaX, int32 DeltaY);
     static void ControlScale(USceneComponent* pObj, const UGizmoBaseComponent* Gizmo, int32 DeltaX, int32 DeltaY);
     bool bLeftMouseDown = false;
     bool bRightMouseDown = false;

@@ -84,34 +84,34 @@ inline WCHAR* ConvertAnsiToWchar(const ANSICHAR* ansiStr)
     return wstr;
 }
 #else
-inline ANSICHAR* ConvertWcharToAnsi(const WCHAR* wideStr)
+inline ANSICHAR* ConvertWcharToAnsi(const WCHAR* WideStr)
 {
-    if (wideStr == nullptr)
+    if (WideStr == nullptr)
     {
         return nullptr;
     }
     
     // 첫 번째 호출: 변환 후 필요한 버퍼 길이(널 종료 문자를 포함)를 계산합니다.
-    int bufferSize = WideCharToMultiByte(CP_ACP, 0, wideStr, -1, nullptr, 0, nullptr, nullptr);
-    if (bufferSize == 0)
+    const int BufferSize = WideCharToMultiByte(CP_ACP, 0, WideStr, -1, nullptr, 0, nullptr, nullptr);
+    if (BufferSize == 0)
     {
         // 변환 실패 시
         return nullptr;
     }
     
     // ANSICHAR* 버퍼 동적 할당
-    ANSICHAR* ansiStr = new ANSICHAR[bufferSize];
+    const auto AnsiStr = new ANSICHAR[BufferSize];
     
     // 실제 변환 수행
-    int result = WideCharToMultiByte(CP_ACP, 0, wideStr, -1, ansiStr, bufferSize, nullptr, nullptr);
-    if (result == 0)
+    const int Result = WideCharToMultiByte(CP_ACP, 0, WideStr, -1, AnsiStr, BufferSize, nullptr, nullptr);
+    if (Result == 0)
     {
         // 변환 실패 시, 할당한 메모리 해제 후 nullptr 반환
-        delete[] ansiStr;
+        delete[] AnsiStr;
         return nullptr;
     }
     
-    return ansiStr;
+    return AnsiStr;
 }
 
 #endif

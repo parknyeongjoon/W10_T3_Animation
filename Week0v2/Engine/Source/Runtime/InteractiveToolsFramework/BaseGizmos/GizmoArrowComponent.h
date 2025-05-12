@@ -13,9 +13,9 @@ public:
     virtual void TickComponent(float DeltaTime) override;
 
 private:
-    ARROW_DIR Dir;
+    EArrowDirection Dir;
 
 public:
-    ARROW_DIR GetDir() const { return Dir; }
-    void SetDir(ARROW_DIR _Dir) { Dir = _Dir; }
+    EArrowDirection GetDir() const { return Dir; }
+    void SetDir(const EArrowDirection InDir) { Dir = InDir; }
 };

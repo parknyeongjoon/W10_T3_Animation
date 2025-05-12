@@ -26,12 +26,12 @@ public:
     void Input();
     
     void PreparePIE();
-    void StartPIE();
-    void PausedPIE();
-    void ResumingPIE();
+    void StartPIE() const;
+    void PausedPIE() const;
+    void ResumingPIE() const;
     void StopPIE();
 
-    void UpdateGizmos(UWorld* World);
+    void UpdateGizmos(UWorld* World) const;
     UEditorPlayer* GetEditorPlayer() const { return EditorPlayer; }
     UWorld* CreateWorld(EWorldType::Type WorldType, ELevelTick LevelTick);
     void RemoveWorld(UWorld* World);

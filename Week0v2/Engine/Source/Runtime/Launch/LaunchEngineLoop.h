@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "UnrealEngine.h"
 #include "Engine/ResourceManager.h"
 #include "LevelEditor/SlateAppMessageHandler.h"
@@ -8,16 +8,16 @@ class FRenderer;
 class FEngineLoop : IEngineLoop
 {
 public:
-    FEngineLoop();
+    FEngineLoop() = default;
     virtual ~FEngineLoop() = default;
 
 public:
     int32 Init(HINSTANCE hInstance) override;
     void Tick() override;
-    void Render();
+    void Render() const;
     void ClearPendingCleanupObjects() override;
 
-    void Exit();
+    void Exit() const;
     
     HWND CreateEngineWindow(HINSTANCE hInstance, WCHAR WindowClass[], WCHAR Title[]);
     void DestroyEngineWindow(HWND AppWnd, HINSTANCE hInstance, WCHAR WindowClass[]);

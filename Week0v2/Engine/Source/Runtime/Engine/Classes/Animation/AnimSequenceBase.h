@@ -5,12 +5,17 @@
 #include "UObject/ObjectMacros.h"
 
 class UAnimDataModel;
+
 class UAnimSequenceBase : public UAnimationAsset
 {
     DECLARE_CLASS(UAnimSequenceBase, UAnimationAsset)
 public:
     UAnimSequenceBase() = default;
+    UAnimSequenceBase(const UAnimSequenceBase& Other);
 
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
+    virtual void PostDuplicate() override;
     PROPERTY(float, RateScale)
     
     UAnimDataModel* GetDataModel() const { return DataModel; }
@@ -26,6 +31,9 @@ public:
     void RemoveNotifies();
     /** Renames all named notifies with InOldName to InNewName */
     void RenameNotifies(FName InOldName, FName InNewName);
+
+    void GetAnimationPose(struct FPoseContext& OutPose, const FAnimExtractContext& ExtractionContext) const;
+    virtual void EvaluateCurveData(struct FBlendedCurve& OutCurve, const FAnimExtractContext& ExtractionContext) const;
 
     TArray<FAnimNotifyEvent> Notifies;
 protected:

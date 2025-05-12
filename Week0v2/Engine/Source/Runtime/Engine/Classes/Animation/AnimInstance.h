@@ -1,6 +1,8 @@
 #pragma once
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
+#include "AnimTypes.h"
+#include "AnimNodeBase.h"
 #include "Animation/AnimSequence.h"
 #include "AnimTypes.h"
 
@@ -10,21 +12,22 @@ class USkeletalMeshComponent;
 class AActor;
 class FName;
 
+class USkeletalMeshComponent;
+class UAnimSequence;
 class UAnimInstance : public UObject
 {
     DECLARE_CLASS(UAnimInstance, UObject)
 public:
     UAnimInstance() = default;
-    UAnimInstance(const UAnimInstance&) = default;
+    UAnimInstance(const UAnimInstance& Other);
 
-    UObject* Duplicate(UObject* InOuter) override;
-
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
+    virtual void PostDuplicate() override;
     // APawn* TryGetPawnOwner() const;
     AActor* GetOwningActor() const;
     USkeletalMeshComponent* GetOwningComponent() const;
 
-    USkeletalMeshComponent* GetSkelMeshComponent() const;
-    
     bool IsPlayingSlotAnimation(const UAnimSequenceBase* Asset, FName SlotNodeName) const;
     void StopSlotAnimation(float InBlendOutTime = 0.25f, FName SlotNodeName = "Empty") const;
 
@@ -32,15 +35,26 @@ public:
     // int32 GetStateMachineIndex(FName MachineName) const;
     /** Gets the runtime instance of the specified state machine */
     // const FAnimNode_StateMachine* GetStateMachineInstance(int32 MachineIndex) const;
+    
+    void TriggerAnimNotifies(float DeltaSeconds) const;
+    void UpdateCurveValues(float DeltaSeconds) const ;
 
-    // 테스트 코드
-    UAnimSequence* AnimA = FObjectFactory::ConstructObject<UAnimSequence>(nullptr);
-    UAnimSequence* AnimB = FObjectFactory::ConstructObject<UAnimSequence>(nullptr);
-protected:
-    virtual void TriggerAnimNotifies(float DeltaSeconsds) const;
     virtual void NativeUpdateAnimation(float DeltaSeconds) const;
+    void UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime);
+    void BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* ToSequence,float DeltaTime);
+protected:
+    UAnimSequence* CurrentSequence = nullptr;
+    UAnimSequence* PreviousSequence = nullptr;  
+
+
+    float BlendTime = 0;
+    float BlendDuration = 5.0f;
+    bool bIsBlending = false;
 
 private:
     USkeleton* Skeleton;
+    FBlendedCurve BlendedCurve;
+    float CurrentTime = 0;
+
 };
 

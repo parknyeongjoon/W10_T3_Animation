@@ -33,170 +33,6 @@ using namespace DirectX;
 
 void UEditorPlayer::Initialize()
 {
-    /*
-    FSlateAppMessageHandler* Handler = GEngineLoop.GetAppMessageHandler();
-    Handler->OnMouseDownDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
-    {
-        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
-        if (EditorEngine == nullptr)
-        {
-            return;
-        }
-        
-        FWindowViewportClientData& WindowViewportData = EditorEngine->GetLevelEditor()->WindowViewportDataMap[AppWnd];
-        std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
-
-        if (WindowViewportData.ViewportClients.Num() == 0)
-        {
-            return;
-        }
-
-        UWorld* World = WindowViewportData.ViewportClients[0]->GetWorld();
-        
-        if (World->WorldType != EWorldType::Editor && World->WorldType != EWorldType::EditorPreview)
-        {
-            return;
-        }
-        
-        if (ImGuiManager::Get().GetWantCaptureMouse(AppWnd))
-        {
-            return;
-        }
-    
-        if (InMouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
-        {
-            return;
-        }
-
-        // TODO - 해당 윈도우에만 작동하게 해야됨.
-        GetCursorPos(&LastMousePosision);
-        if (bLAltDown && bLCtrlDown)
-        {
-            MultiSelectingStart();
-        }
-        
-        FVector2D ClientPos = FWindowsCursor::GetClientPosition(AppWnd);
-        FVector PickPosition;
-        ScreenToViewSpace(ClientPos.X, ClientPos.Y, ActiveViewportClient->GetViewMatrix(), ActiveViewportClient->GetProjectionMatrix(), PickPosition);
-        
-        bool Result = PickGizmo(WindowViewportData.GetControlMode(), World, PickPosition);
-        if (Result == false)
-        {
-            PickActor(World, PickPosition);
-        }
-    });
-    
-    Handler->OnMouseMoveDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
-    {
-        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
-        if (EditorEngine == nullptr)
-        {
-            return;
-        }
-                
-        FWindowViewportClientData& WindowViewportData = EditorEngine->GetLevelEditor()->WindowViewportDataMap[AppWnd];
-        std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
-
-        if (WindowViewportData.ViewportClients.Num() == 0)
-        {
-            return;
-        }
-
-        UWorld* World = WindowViewportData.ViewportClients[0]->GetWorld();
-        
-        if (World->WorldType != EWorldType::Editor && World->WorldType != EWorldType::EditorPreview)
-        {
-            return;
-        }
-        
-        if (ImGuiManager::Get().GetWantCaptureMouse(AppWnd))
-        {
-            return;
-        }
-        
-        if (bMultiSeleting)
-        {
-            MakeMulitRect();
-        }
-        
-        PickedObjControl(WindowViewportData.GetControlMode(), WindowViewportData.GetCoordiMode(), World);
-    });
-    
-    Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
-    {
-        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
-        if (EditorEngine == nullptr)
-        {
-            return;
-        }
-                
-        FWindowViewportClientData& WindowViewportData = EditorEngine->GetLevelEditor()->WindowViewportDataMap[AppWnd];
-        std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
-
-        if (WindowViewportData.ViewportClients.Num() == 0)
-        {
-            return;
-        }
-
-        UWorld* World = WindowViewportData.ViewportClients[0]->GetWorld();
-        
-        if (World->WorldType != EWorldType::Editor && World->WorldType != EWorldType::EditorPreview)
-        {
-            return;
-        }
-        
-        if (InMouseEvent.GetEffectingButton() != EKeys::LeftMouseButton)
-        {
-            return;
-        }
-        
-        bAlreadyDup = false;
-        if (bMultiSeleting)
-        {
-            MultiSelectingEnd(World);
-        }
-        else
-        {
-            World->SetPickingGizmo(nullptr);
-        }
-    });
-
-    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent, HWND AppWnd)
-    {
-        if (InKeyEvent.GetKeyCode() == VK_LSHIFT)
-        {
-            bLShiftDown = true;
-        }
-
-        if (InKeyEvent.GetKeyCode() == VK_LCONTROL)
-        {
-            bLCtrlDown = true;
-        }
-        
-        if (InKeyEvent.GetKeyCode() == VK_LMENU)
-        {
-            bLAltDown = true;
-        }
-    });
-
-    Handler->OnKeyDownDelegate.AddLambda([this](const FKeyEvent& InKeyEvent, HWND AppWnd)
-    {
-        if (InKeyEvent.GetKeyCode() == VK_LSHIFT)
-        {
-            bLShiftDown = false;
-        }
-
-        if (InKeyEvent.GetKeyCode() == VK_LCONTROL)
-        {
-            bLCtrlDown = false;
-        }
-
-        if (InKeyEvent.GetKeyCode() == VK_LMENU)
-        {
-            bLAltDown = false;
-        }
-    });
-    */
 }
 
 void UEditorPlayer::MultiSelectingStart()
@@ -239,7 +75,7 @@ void UEditorPlayer::MakeMulitRect() const
 }
 
 
-auto UEditorPlayer::PickGizmo(const ControlMode ControlMode, UWorld* World, const FVector& PickPosition) -> bool
+auto UEditorPlayer::PickGizmo(const EControlMode ControlMode, UWorld* World, const FVector& PickPosition) -> bool
 {
     bool bIsGizmoPicked = false;
 
@@ -444,7 +280,7 @@ auto UEditorPlayer::RayIntersectsObject(const FVector& PickPosition, USceneCompo
     return IntersectCount;
 }
 
-void UEditorPlayer::PickedObjControl(const ControlMode ControlMode, const CoordiMode CoordiMode, UWorld* World)
+void UEditorPlayer::PickedObjControl(const EControlMode ControlMode, const ECoordiMode CoordiMode, UWorld* World)
 {
     if (World->GetPickingGizmo() != nullptr)
     {
@@ -484,7 +320,7 @@ void UEditorPlayer::PickedObjControl(const ControlMode ControlMode, const Coordi
     }
 }
 
-void UEditorPlayer::ControlRotation(const CoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo,
+void UEditorPlayer::ControlRotation(const ECoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo,
                                     const int32 DeltaX, const int32 DeltaY)
 {
     const auto FDeltaX = static_cast<float>(DeltaX);
@@ -541,7 +377,7 @@ void UEditorPlayer::ControlRotation(const CoordiMode CoordiMode, UWorld* World, 
     }
 }
 
-void UEditorPlayer::ControlTranslation(const CoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo,
+void UEditorPlayer::ControlTranslation(const ECoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo,
                                        const int32 DeltaX, const int32 DeltaY)
 {
     const auto FDeltaX = static_cast<float>(DeltaX);

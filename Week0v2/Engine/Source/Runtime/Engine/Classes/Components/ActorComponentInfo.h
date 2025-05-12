@@ -30,8 +30,8 @@ struct FActorComponentInfo
 
     
     FActorComponentInfo()
-        : InfoType(TEXT("FActorComponentInfo")), ComponentClass(TEXT("")), Origin(EComponentOrigin::None), bIsRoot(false),
-    bTickEnabled(true), bIsActive(false), bAutoActive(false), ComponentID() 
+        : InfoType(TEXT("FActorComponentInfo")), Origin(EComponentOrigin::None), ComponentID(), ComponentClass(TEXT("")),
+    bTickEnabled(true), bIsActive(false), bAutoActive(false), bIsRoot(false) 
     {}
     
     virtual ~FActorComponentInfo() = default;

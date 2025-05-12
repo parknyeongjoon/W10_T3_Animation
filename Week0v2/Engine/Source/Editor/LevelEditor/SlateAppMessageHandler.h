@@ -11,7 +11,7 @@ namespace EMouseButtons
 enum Type : uint8;
 }
 
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnKeyCharDelegate, const TCHAR /*Character*/, const bool /*IsRepeat*/, HWND /*AppWnd*/);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnKeyCharDelegate, TCHAR /*Character*/, bool /*IsRepeat*/, HWND /*AppWnd*/);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnKeyDownDelegate, const FKeyEvent& /*InKeyEvent*/, HWND /*AppWnd*/);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnKeyUpDelegate, const FKeyEvent& /*InKeyEvent*/, HWND /*AppWnd*/);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseDownDelegate, const FPointerEvent& /*InMouseEvent*/, HWND /*AppWnd*/);
@@ -23,6 +23,8 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMouseMoveDelegate, const FPointerEvent& 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnRawMouseInputDelegate, const FPointerEvent& /*InRawMouseEvent*/, HWND /*AppWnd*/);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnRawKeyboardInputDelegate, const FKeyEvent& /*InRawKeyboardEvent*/, HWND /*AppWnd*/);
 
+DECLARE_MULTICAST_DELEGATE(FOnPIEModeStart);
+DECLARE_MULTICAST_DELEGATE(FOnPIEModeEnd);
 
 class FSlateAppMessageHandler
 {
@@ -58,6 +60,9 @@ protected:
     void OnRawKeyboardInput(HWND AppWnd, const RAWKEYBOARD& RawKeyboardInput);
     // 추가적인 함수는 UnrealEngine [SlateApplication.h:1628]을 참조
 
+    void OnPIEModeStart();
+    void OnPIEModeEnd();
+
 public:
     FOnKeyCharDelegate OnKeyCharDelegate;
     FOnKeyDownDelegate OnKeyDownDelegate;
@@ -71,6 +76,9 @@ public:
 
     FOnRawMouseInputDelegate OnRawMouseInputDelegate;
     FOnRawKeyboardInputDelegate OnRawKeyboardInputDelegate;
+
+    FOnPIEModeStart OnPIEModeStartDelegate;
+    FOnPIEModeEnd OnPIEModeEndDelegate;
 
 private:
     struct EModifierKey

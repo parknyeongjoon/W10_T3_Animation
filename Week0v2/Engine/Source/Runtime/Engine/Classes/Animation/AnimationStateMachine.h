@@ -9,7 +9,10 @@ class UAnimationStateMachine : public UObject
     DECLARE_CLASS(UAnimationStateMachine, UObject)
 public:
     UAnimationStateMachine() = default;
-    //UAnimationStateMachine(const UAnimationStateMachine& Other);
+    UAnimationStateMachine(const UAnimationStateMachine& Other);
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
+    virtual void PostDuplicate() override;
 
     void AddState(TState StateName, std::function<void(float)> OnUpdate)
     {
@@ -27,7 +30,6 @@ public:
         if (States.Contains(NewState))
         {
             CurrentState = NewState;
-            std::cout << "State Changed to: " << static_cast<int>(NewState) << std::endl;
         }
     }
 
@@ -61,3 +63,32 @@ private:
     TMap<TState, std::function<void(float)>> States;
     TMap<TPair<TState, TState>, std::function<bool()>> Transitions;
 };
+
+template<typename TState>
+inline UAnimationStateMachine<TState>::UAnimationStateMachine(const UAnimationStateMachine& Other)
+    :UObject(Other),
+    CurrentState(Other.CurrentState),
+    States(Other.States),
+    Transitions(Other.Transitions)
+{
+}
+
+template<typename TState>
+inline UObject* UAnimationStateMachine<TState>::Duplicate(UObject* InOuter)
+{
+    UAnimationStateMachine<TState>* NewComp = FObjectFactory::ConstructObjectFrom<UAnimationStateMachine<TState>>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
+    NewComp->PostDuplicate();
+    return NewComp;
+}
+
+template<typename TState>
+inline void UAnimationStateMachine<TState>::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
+{
+    UObject::DuplicateSubObjects(Source, InOuter);
+}
+
+template<typename TState>
+inline void UAnimationStateMachine<TState>::PostDuplicate()
+{
+}
