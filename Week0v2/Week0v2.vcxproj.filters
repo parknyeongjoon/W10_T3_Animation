@@ -477,6 +477,10 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Skeletal\SkeletalDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\CustomAnimInstance\TestAnimInstance.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify\AnimNotify.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNodeBase.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\include\ImGuiNeoSequencer\imgui_neo_internal.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\include\ImGuiNeoSequencer\imgui_neo_sequencer.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimationRuntime.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -702,6 +706,10 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Skeletal\SkeletalDefine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\CustomAnimInstance\TestAnimInstance.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify\AnimNotify.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNodeBase.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\include\ImGuiNeoSequencer\imgui_neo_internal.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\include\ImGuiNeoSequencer\imgui_neo_sequencer.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimationRuntime.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

@@ -6,6 +6,11 @@
 #include "Animation/AnimNotify/AnimNotify.h"
 UTestAnimInstance::UTestAnimInstance()
 {
+
+    IdleSequence->SetData("Contents/FBX/Idle.fbx\\mixamo.com");
+    WalkSequence->SetData("Contents/FBX/Walking.fbx\\mixamo:com");
+    DanceSequence->SetData("Contents/FBX/Rumba_Dancing.fbx\\mixamo:com");
+
     AnimStateMachine = FObjectFactory::ConstructObject<UAnimationStateMachine<ETestState>>(this);
 
     //**State 추가**
@@ -17,14 +22,14 @@ UTestAnimInstance::UTestAnimInstance()
         std::cout << "Walking Animation Playing..." << std::endl;
         });
 
-    AnimStateMachine->AddState(ETestState::Running, [](float DeltaTime) {
+    AnimStateMachine->AddState(ETestState::Dancing, [](float DeltaTime) {
         std::cout << "Running Animation Playing..." << std::endl;
         });
 
     // **Transition Rule 정의**
     AnimStateMachine->AddTransition(ETestState::Idle, ETestState::Walking, [&]() { return Speed > 0 && Speed <= 300.0f; });
-    AnimStateMachine->AddTransition(ETestState::Walking, ETestState::Running, [&]() { return Speed > 300.0f; });
-    AnimStateMachine->AddTransition(ETestState::Running, ETestState::Idle, [&]() { return Speed == 0; });
+    AnimStateMachine->AddTransition(ETestState::Walking, ETestState::Dancing, [&]() { return Speed > 300.0f; });
+    AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Idle, [&]() { return Speed == 0; });
 
 
 
@@ -32,9 +37,8 @@ UTestAnimInstance::UTestAnimInstance()
     // 초기 상태 설정
     AnimStateMachine->SetState(ETestState::Idle);
 
-    //IdleSequence = CreateAnimation("Idle.fbx");
-    //WalkSequence = CreateAnimation("Walk.fbx");
-    //RunSequence = CreateAnimation("Run.fbx");
+
+
 
 }
 UTestAnimInstance::~UTestAnimInstance()

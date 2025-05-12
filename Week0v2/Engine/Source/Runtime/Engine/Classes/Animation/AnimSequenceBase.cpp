@@ -51,25 +51,34 @@ void UAnimSequenceBase::RenameNotifies(FName InOldName, FName InNewName)
 
 void UAnimSequenceBase::GetAnimationPose(FPoseContext& OutPose, const FAnimExtractContext& ExtractionContext) const
 {
-    //float TimeToExtract = ExtractionContext.CurrentTime;
+    float TimeToExtract = ExtractionContext.CurrentTime;
 
-    //// 루프가 설정된 경우, 시간이 애니메이션 길이를 넘어가면 다시 0으로 감싼다.
-    //if (ExtractionContext.bLooping && TimeToExtract >= DataModel->PlayLength)
-    //{
-    //    TimeToExtract = FMath::Fmod(TimeToExtract, DataModel->PlayLength);
-    //}
+    // 루프가 설정된 경우, 시간이 애니메이션 길이를 넘어가면 다시 0으로 감싼다.
+    if (ExtractionContext.bLooping && TimeToExtract >= DataModel->PlayLength)
+    {
+        TimeToExtract = FMath::Fmod(TimeToExtract, DataModel->PlayLength);
+    }
 
-    //// 각 Bone의 Transform을 업데이트
-    //for (int32 BoneIndex = 0; BoneIndex < OutPose.Pose.BoneTransforms.Num(); ++BoneIndex)
-    //{
-    //    // 현재 시간에서 본(Bone) 트랜스폼 추출
-    //    FTransform BoneTransform = DataModel->GetBoneTrackTransform(BoneIndex, TimeToExtract);
-    //    .Pose.SetBoneTransform(BoneIndex, BoneTransform);
-    //}
+    TArray<FName> BoneNames;
+    DataModel->GetBoneTrackNames(BoneNames);
 
-    //// Root Motion 처리
+    int index = 0;
+    for (const auto& Name : BoneNames)
+    {
+        FTransform Transform = DataModel->GetBoneTrackTransform(Name, TimeToExtract);
+        OutPose.Pose.BoneTransforms.Add(Transform);
+        index++;
+    }
+
+
+
+    // Root Motion 처리
     //if (ExtractionContext.bExtractRootMotion)
     //{
     //    OutPose.Pose.RootMotionTransform = BoneTracks[0].EvaluateTransformAtTime(TimeToExtract);
     //}
+}
+
+void UAnimSequenceBase::EvaluateCurveData(FBlendedCurve& OutCurve, const FAnimExtractContext& ExtractionContext) const
+{
 }

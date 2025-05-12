@@ -264,10 +264,6 @@ void USkeletalMeshComponent::SetData(const FString& FilePath)
 {
     SkeletalMesh = LoadSkeletalMesh(FilePath);
     
-    //Test 코드
-    AnimInstance = FObjectFactory::ConstructObject<UAnimInstance>(this);
-    AnimInstance->AnimA->SetData(FilePath + "\\mixamo.com");
-    AnimInstance->AnimB->SetData(FilePath + "\\mixamo:com");
 }
 
 void USkeletalMesh::ResetToOriginalPose()
