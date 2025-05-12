@@ -1,16 +1,26 @@
 #include "AnimInstance.h"
+#include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "UObject/Casts.h"
 
-USkeletalMeshComponent* UAnimInstance::GetSkelMeshComponent() const
+UObject* UAnimInstance::Duplicate(UObject* InOuter)
 {
-    return nullptr;
-    //return CastChecked<USkeletalMeshComponent>(GetOuter());
+    UAnimInstance* NewComp = FObjectFactory::ConstructObjectFrom<UAnimInstance>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
+    NewComp->PostDuplicate();
+    return NewComp;
 }
 
-void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
+AActor* UAnimInstance::GetOwningActor() const
 {
+    return GetOwningComponent()->GetOwner();
 }
 
-void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
+USkeletalMeshComponent* UAnimInstance::GetOwningComponent() const
 {
+    return CastChecked<USkeletalMeshComponent>(GetOuter());
+}
+
+void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
+{
+    
 }

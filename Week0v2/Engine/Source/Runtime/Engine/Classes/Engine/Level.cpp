@@ -68,7 +68,7 @@ void ULevel::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
     UObject::DuplicateSubObjects(SourceObj, InOuter);
     for (AActor* Actor : Cast<ULevel>(SourceObj)->GetActors())
     {
-        AActor* dupActor = static_cast<AActor*>(Actor->Duplicate(InOuter));
+        AActor* dupActor = static_cast<AActor*>(Actor->Duplicate(this));
         DuplicatedObjects.Add(Actor, dupActor);
         PendingBeginPlayActors.Add(dupActor);
         Actors.Add(dupActor);

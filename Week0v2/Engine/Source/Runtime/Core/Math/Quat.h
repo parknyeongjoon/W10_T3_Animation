@@ -67,4 +67,4 @@ struct FQuat
     static FQuat Slerp_NotNormalized(const FQuat& Quat1, const FQuat& Quat2, float Slerp);
 };
 
-inline const FQuat FQuat::Identity = FQuat(0.0f, 0.0f, 0.0f, 1.0f);
+inline const FQuat FQuat::Identity = FQuat(1.0f, 0.0f, 0.0f, 0.0f);

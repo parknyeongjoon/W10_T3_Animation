@@ -27,7 +27,7 @@ public:
 
     virtual UObject* Duplicate(UObject* InOuter);
 
-    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter){}; // 하위 클래스에서 override
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter){} // 하위 클래스에서 override
     virtual void PostDuplicate(){};
 private:
     friend class FObjectFactory;

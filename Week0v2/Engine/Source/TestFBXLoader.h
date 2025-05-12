@@ -7,6 +7,8 @@
 #include "Container/Map.h"
 #include "Skeletal/SkeletalDefine.h"
 
+class UAnimDataModel;
+
 class TestFBXLoader
 {
 public:
@@ -17,12 +19,15 @@ public:
     static USkeletalMesh* GetSkeletalMesh(const FString& FilePath);
     static const TMap<FString, USkeletalMesh*>& GetSkeletalMeshes() { return SkeletalMeshMap;}
     
-    static FSkeletalMeshRenderData* GetSkeletalRenderData(FString FilePath);
-    static FSkeletalMeshRenderData GetCopiedSkeletalRenderData(FString FilePath);
+    static FSkeletalMeshRenderData* GetSkeletalRenderData(const FString& FilePath);
+    static FSkeletalMeshRenderData GetCopiedSkeletalRenderData(const FString& FilePath);
     static TMap<FName, FSkeletalMeshRenderData*> GetAllSkeletalMeshData() { return SkeletalMeshData; }
     
     static FRefSkeletal* GetRefSkeletal(FString FilePath);
     static TMap<FName, FRefSkeletal*> GetAllRefSkeletal() { return RefSkeletalData; }
+
+    static TMap<FName, UAnimDataModel*> GetAllAnimData() { return AnimDataMap; }
+    static UAnimDataModel* GetAnimData(const FString& FilePath);
     
     static void UpdateBoundingBox(FSkeletalMeshRenderData& MeshData);
 private:
@@ -47,8 +52,8 @@ private:
 
     
     // Anim
-    static void ExtractFBXAnimData(const FbxScene* scene, TArray<FSkeletalAnimation>& AnimData);
-    static void ExtractAnimClip(FbxAnimStack* AnimStack, FSkeletalAnimation& AnimClip, const TArray<FbxNode*>& BoneNodes);
+    static void ExtractFBXAnimData(const FbxScene* scene, const FString& FilePath);
+    static void ExtractAnimClip(FbxAnimStack* AnimStack, const TArray<FbxNode*>& BoneNodes, const FString& FilePath);
     static void ExtractAnimTrack(FbxAnimLayer* AnimLayer, FbxNode* BoneNode, FRawAnimSequenceTrack& AnimTrack);
 
 private:
@@ -57,7 +62,7 @@ private:
     inline static TMap<FName, FSkeletalMeshRenderData*> SkeletalMeshData;
     inline static TMap<FString, USkeletalMesh*> SkeletalMeshMap;
     inline static TMap<FName, FRefSkeletal*> RefSkeletalData;
-    inline static TMap<FName, TArray<FSkeletalAnimation>> AnimationMap;
+    inline static TMap<FName, UAnimDataModel*> AnimDataMap;
 
     // data structure for parsing
     inline static TMap<FString, uint32> IndexMap;

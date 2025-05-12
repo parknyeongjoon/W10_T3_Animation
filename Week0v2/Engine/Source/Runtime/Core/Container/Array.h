@@ -113,7 +113,7 @@ public:
     void AppendArray(const T* array, SizeType count);
 
     bool IsValidIndex(uint32 ElementIndex) const {
-        if (ElementIndex < 0 || ElementIndex >= Len()) return false;
+        if (ElementIndex < 0 || ElementIndex >= Num()) return false;
 
         return true;
     }

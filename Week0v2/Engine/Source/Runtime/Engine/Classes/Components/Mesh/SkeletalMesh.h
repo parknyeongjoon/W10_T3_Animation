@@ -11,6 +11,8 @@ class USkeletalMesh : public UObject
 public:
     USkeletalMesh() = default;
     virtual ~USkeletalMesh() override = default;
+    
+    USkeletalMesh* Duplicate(UObject* InOuter) override;
 
     FSkeletalMeshRenderData& GetRenderData() { return SkeletalMeshRenderData; }
     USkeleton* GetSkeleton() const { return Skeleton;}
@@ -31,7 +33,7 @@ public:
     void RotateBoneByIndex(int32 BoneIndex, float DeltaAngleInDegrees, const FVector& RotationAxis, bool bIsChildUpdate = true);
     int FindBoneIndexByName(const FString& BoneName) const;
 
-    USkeletalMesh* Duplicate(UObject* InOuter) override;
+    void ResetToOriginalPose();
 private:
     
     FSkeletalMeshRenderData SkeletalMeshRenderData;
@@ -40,5 +42,4 @@ private:
 
     void UpdateChildBones(int ParentIndex);
     void ApplyRotationToBone(int BoneIndex, float DeltaAngleInDegrees, const FVector& RotationAxis);
-    void ResetToOriginalPose();
 };

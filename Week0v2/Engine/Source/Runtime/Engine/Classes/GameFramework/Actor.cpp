@@ -69,6 +69,7 @@ bool AActor::Destroy()
             World->DestroyActor(this);
             bActorIsBeingDestroyed = true;
         }
+        GUObjectArray.MarkRemoveObject(this);
     }
 
     return IsActorBeingDestroyed();
@@ -242,7 +243,7 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
     
     for (UActorComponent* Component : Source->OwnedComponents)
     {
-        UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate(InOuter));
+        UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate(this));
         dupComponent->Owner = this;
         OwnedComponents.Add(dupComponent);
         GetWorld()->GetLevel()->GetDuplicatedObjects().Add(Component, dupComponent);
