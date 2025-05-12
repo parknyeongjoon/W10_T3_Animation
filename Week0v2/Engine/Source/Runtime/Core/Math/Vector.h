@@ -114,6 +114,24 @@ struct FVector
         float mag = Magnitude();
         return (mag > 0) ? FVector(X / mag, Y / mag, Z / mag) : FVector(0, 0, 0);
     }
+
+    FVector GetSafeNormal(float Tolerance = KINDA_SMALL_NUMBER) const
+    {
+        const float SquareSum = X * X + Y * Y + Z * Z;
+
+        // Not sure if it's safe to add tolerance in there. Might introduce too many errors
+        if (SquareSum == 1.f)
+        {
+            return *this;
+        }
+        else if (SquareSum < Tolerance)
+        {
+            return ZeroVector;
+        }
+        const float Scale = FMath::InvSqrt(SquareSum);
+        return { X * Scale, Y * Scale, Z * Scale };
+    }
+
     FVector Cross(const FVector& Other) const
     {
         return FVector{
@@ -163,6 +181,16 @@ struct FVector
         // 두 벡터의 차 벡터의 크기를 계산
         return ((*this - other).Magnitude());
     }
+
+    float Distance(const FVector& V1, const FVector& V2)
+    {
+        return FMath::Sqrt(
+            FMath::Square(V2.X - V1.X)
+            + FMath::Square(V2.Y - V1.Y)
+            + FMath::Square(V2.Z - V1.Z)
+        );
+    }
+
     DirectX::XMFLOAT3 ToXMFLOAT3() const
     {
         return DirectX::XMFLOAT3(X, Y, Z);
