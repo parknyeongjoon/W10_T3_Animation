@@ -8,6 +8,7 @@
 #include "LaunchEngineLoop.h"
 #include "WindowsCursor.h"
 #include "Engine/World.h"
+#include "UnrealEd/EditorPlayer.h"
 
 extern UEngine* GEngine;
 
@@ -346,6 +347,40 @@ void SLevelEditor::RegisterEditorInputDelegates()
                     }
                     break;
                 }
+                case EKeys::LeftMouseButton:
+                {
+                    UEditorPlayer* EditorPlayer = nullptr;
+                    if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+                    {
+                        EditorPlayer = EditorEngine->GetEditorPlayer();
+                    }
+                    if (!EditorPlayer)
+                    {
+                        return;
+                    }
+
+                    if(InMouseEvent.IsLeftAltDown() && InMouseEvent.IsControlDown())
+                    {
+                        if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+                        {
+                            EditorPlayer->MultiSelectingStart();
+                        }
+                    }
+
+                    FWindowViewportClientData& WindowViewportClientData = WindowViewportDataMap[AppWnd];
+                    std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportClientData.GetActiveViewportClient();
+
+                    FVector2D ClientPos = FWindowsCursor::GetClientPosition(AppWnd);
+                    FVector PickPosition;
+                    EditorPlayer->ScreenToViewSpace(ClientPos.X, ClientPos.Y, ActiveViewportClient->GetViewMatrix(), ActiveViewportClient->GetProjectionMatrix(), PickPosition);
+                    
+                    bool Result = EditorPlayer->PickGizmo(WindowViewportData.GetControlMode(), ActiveViewportClient->GetWorld(), PickPosition);
+                    if (Result == false)
+                    {
+                        EditorPlayer->PickActor(ActiveViewportClient->GetWorld(), PickPosition);
+                    }
+                    break;
+                }
                 default:
                     break;
                 }
@@ -362,6 +397,11 @@ void SLevelEditor::RegisterEditorInputDelegates()
 
         InputDelegatesHandles.Add(Handler->OnMouseUpDelegate.AddLambda([this](const FPointerEvent& InMouseEvent, HWND AppWnd)
             {
+                if (ImGuiManager::Get().GetWantCaptureMouse(AppWnd))
+                {
+                    return;
+                }
+
                 if (!WindowViewportDataMap.Contains(AppWnd))
                 {
                     return;

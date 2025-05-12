@@ -2,6 +2,7 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 #include "Animation/AnimSequence.h"
+#include "AnimTypes.h"
 
 class USkeleton;
 class UAnimSequenceBase;
@@ -21,6 +22,8 @@ public:
     // APawn* TryGetPawnOwner() const;
     AActor* GetOwningActor() const;
     USkeletalMeshComponent* GetOwningComponent() const;
+
+    USkeletalMeshComponent* GetSkelMeshComponent() const;
     
     bool IsPlayingSlotAnimation(const UAnimSequenceBase* Asset, FName SlotNodeName) const;
     void StopSlotAnimation(float InBlendOutTime = 0.25f, FName SlotNodeName = "Empty") const;
@@ -29,13 +32,12 @@ public:
     // int32 GetStateMachineIndex(FName MachineName) const;
     /** Gets the runtime instance of the specified state machine */
     // const FAnimNode_StateMachine* GetStateMachineInstance(int32 MachineIndex) const;
-    
-    void TriggerAnimNotifies(float DeltaSeconds) const;
 
     // 테스트 코드
     UAnimSequence* AnimA = FObjectFactory::ConstructObject<UAnimSequence>(nullptr);
     UAnimSequence* AnimB = FObjectFactory::ConstructObject<UAnimSequence>(nullptr);
 protected:
+    virtual void TriggerAnimNotifies(float DeltaSeconsds) const;
     virtual void NativeUpdateAnimation(float DeltaSeconds) const;
 
 private:

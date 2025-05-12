@@ -27,9 +27,9 @@ public:
     /** Renames all named notifies with InOldName to InNewName */
     void RenameNotifies(FName InOldName, FName InNewName);
 
+    TArray<FAnimNotifyEvent> Notifies;
 protected:
     float RateScale;
     UAnimDataModel* DataModel;
-    TArray<FAnimNotifyEvent> Notifies;
 };
 

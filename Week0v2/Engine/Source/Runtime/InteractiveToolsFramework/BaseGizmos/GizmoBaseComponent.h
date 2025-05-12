@@ -30,4 +30,6 @@ private:
 public:
     GizmoType GetGizmoType() const { return gizmoType; }
     void SetGizmoType(GizmoType _gizmoType) { gizmoType = _gizmoType; }
+
+    float GizmoScale = 0.2f;
 };

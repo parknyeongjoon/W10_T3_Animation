@@ -24,3 +24,13 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
 {
     
 }
+
+USkeletalMeshComponent* UAnimInstance::GetSkelMeshComponent() const
+{
+    return nullptr;
+    //return CastChecked<USkeletalMeshComponent>(GetOuter());
+}
+
+void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds) const
+{
+}
