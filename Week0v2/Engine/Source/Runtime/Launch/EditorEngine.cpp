@@ -146,7 +146,7 @@ void UEditorEngine::PreparePIE()
     PIEWorldContext = CreateNewWorldContext(PIEWorld, EWorldType::PIE, LEVELTICK_All);
 }
 
-void UEditorEngine::StartPIE()
+void UEditorEngine::StartPIE() const
 {
     // 1. BeingPlay() 호출
     PIEWorldContext->GetWorld()->BeginPlay();
@@ -164,20 +164,24 @@ void UEditorEngine::StartPIE()
     UE_LOG(LogLevel::Display, "Start PIE");
 }
 
-void UEditorEngine::PausedPIE()
+void UEditorEngine::PausedPIE() const
 {
-    if (PIEWorldContext->LevelType == LEVELTICK_All)
+    switch (PIEWorldContext->LevelType)
     {
-        PIEWorldContext->LevelType = LEVELTICK_PauseTick;
+        case LEVELTICK_All:
+            PIEWorldContext->LevelType = LEVELTICK_PauseTick;
+            break;
+        case LEVELTICK_PauseTick:
+            PIEWorldContext->LevelType = LEVELTICK_All;
+            break;
+        default: 
+            break;
     }
-    else if (PIEWorldContext->LevelType == LEVELTICK_PauseTick)
-    {
-        PIEWorldContext->LevelType = LEVELTICK_All;
-    }
+
     UE_LOG(LogLevel::Display, "Pause PIE");
 }
 
-void UEditorEngine::ResumingPIE()
+void UEditorEngine::ResumingPIE() const
 {
 
 }
@@ -191,9 +195,9 @@ void UEditorEngine::StopPIE()
     }
 
     WorldContexts.Remove(PIEWorldContext->GetWorld()->GetUUID());
-    for (const auto& viewportClient: GetLevelEditor()->GetViewportClients(GEngineLoop.GetDefaultWindow()))
+    for (const auto& ViewportClient: GetLevelEditor()->GetViewportClients(GEngineLoop.GetDefaultWindow()))
     {
-        viewportClient->SetWorld(EditorWorldContext->GetWorld());
+        ViewportClient->SetWorld(EditorWorldContext->GetWorld());
     }
     PIEWorldContext->GetWorld()->Release();
     
@@ -201,7 +205,7 @@ void UEditorEngine::StopPIE()
     PIEWorldContext = nullptr;
 }
 
-void UEditorEngine::UpdateGizmos(UWorld* World)
+void UEditorEngine::UpdateGizmos(UWorld* World) const
 {
     for (UGizmoBaseComponent* GizmoComp : TObjectRange<UGizmoBaseComponent>())
     {
@@ -212,24 +216,22 @@ void UEditorEngine::UpdateGizmos(UWorld* World)
         
         if (!World->GetSelectedActors().IsEmpty())
         {
-            AActor* PickedActor = *World->GetSelectedActors().begin();
+            const AActor* PickedActor = *World->GetSelectedActors().begin();
             if (PickedActor == nullptr || PickedActor->GetRootComponent() == nullptr)
             {
                 break;
             }
-            std::shared_ptr<FEditorViewportClient> activeViewport = GetLevelEditor()->GetActiveViewportClient();
-            if (activeViewport->IsPerspective())
+            const std::shared_ptr<FEditorViewportClient> ActiveViewport = GetLevelEditor()->GetActiveViewportClient();
+            if (ActiveViewport->IsPerspective())
             {
-                float scalar = abs(
-                    (activeViewport->ViewTransformPerspective.GetLocation() - PickedActor->GetRootComponent()->GetRelativeLocation()).Magnitude()
-                );
-                scalar *= 0.1f;
-                GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
+                float ScaleModifier = abs((ActiveViewport->ViewTransformPerspective.GetLocation() - PickedActor->GetRootComponent()->GetRelativeLocation()).Magnitude());
+                ScaleModifier *= GizmoComp->GizmoScale;
+                GizmoComp->SetRelativeScale(FVector(ScaleModifier));
             }
             else
             {
-                float scalar = activeViewport->OrthoSize * 0.1f;
-                GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
+                const float ScaleModifier = ActiveViewport->OrthoSize * GizmoComp->GizmoScale;
+                GizmoComp->SetRelativeScale(FVector(ScaleModifier));
             }
         }
     }

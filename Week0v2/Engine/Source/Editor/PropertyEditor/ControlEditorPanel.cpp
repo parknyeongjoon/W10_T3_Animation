@@ -9,7 +9,6 @@
 #include "Classes/Actors/DirectionalLightActor.h"
 #include "Classes/Actors/PointLightActor.h"
 #include "Components/GameFramework/ProjectileMovementComponent.h"
-#include "Serialization/FWindowsBinHelper.h"
 #include "Actors/SpotLightActor.h"
 #include <Actors/ExponentialHeightFog.h>
 #include <UObject/UObjectIterator.h>
@@ -29,17 +28,15 @@
 #include "Components/USpringArmComponent.h"
 #include "Components/Mesh/StaticMesh.h"
 
-#include "Contents/AGBullet.h"
 #include "Contents/AGPlayer.h"
 #include "ImGUI/imgui.h"
 #include "Renderer/Renderer.h"
-#include "UnrealEd/EditorPlayer.h"
 #include "UObject/ObjectTypes.h"
 
 
-void ControlEditorPanel::Initialize(SLevelEditor* levelEditor, float Width, float Height)
+void ControlEditorPanel::Initialize(SLevelEditor* LevelEditor, float Width, float Height)
 {
-    activeLevelEditor = levelEditor;
+    ActiveLevelEditor = LevelEditor;
     this->Width = Width;
     this->Height = Height;
 }
@@ -47,18 +44,18 @@ void ControlEditorPanel::Initialize(SLevelEditor* levelEditor, float Width, floa
 void ControlEditorPanel::Render()
 {
     /* Pre Setup */
-    ImGuiIO& io = ImGui::GetIO();
+    const ImGuiIO& io = ImGui::GetIO();
     ImFont* IconFont = io.Fonts->Fonts[FEATHER_FONT];
-    ImVec2 IconSize = ImVec2(32, 32);
+    constexpr auto IconSize = ImVec2(32, 32);
 
-    float PanelWidth = (Width) * 0.8f;
-    float PanelHeight = 45.0f;
+    const float PanelWidth = (Width) * 0.8f;
+    constexpr float PanelHeight = 45.0f;
 
-    float PanelPosX = 1.0f;
-    float PanelPosY = 1.0f;
+    constexpr float PanelPosX = 1.0f;
+    constexpr float PanelPosY = 1.0f;
 
-    ImVec2 MinSize(300, 50);
-    ImVec2 MaxSize(FLT_MAX, 50);
+    constexpr ImVec2 MinSize(300, 50);
+    constexpr ImVec2 MaxSize(FLT_MAX, 50);
 
     /* Min, Max Size */
     ImGui::SetNextWindowSizeConstraints(MinSize, MaxSize);
@@ -90,8 +87,8 @@ void ControlEditorPanel::Render()
     CreateShaderHotReloadButton(IconSize);
 
     ImGui::SameLine();
-    
-    ImVec2 PIEIconSize = ImVec2(IconSize.x + 8, IconSize.y);
+
+    auto PIEIconSize = ImVec2(IconSize.x + 8, IconSize.y);
     ImGui::PushFont(IconFont);
     CreatePIEButton(PIEIconSize);
     ImGui::PopFont();
@@ -99,7 +96,7 @@ void ControlEditorPanel::Render()
     ImGui::SameLine();
 
     /* Get Window Content Region */
-    float ContentWidth = ImGui::GetWindowContentRegionMax().x;
+    const float ContentWidth = ImGui::GetWindowContentRegionMax().x;
 
     /* Move Cursor X Position */
     ImGui::SetCursorPosX(ContentWidth - (IconSize.x * 3.0f + 16.0f));
@@ -111,7 +108,7 @@ void ControlEditorPanel::Render()
     ImGui::End();
 }
 
-void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
+void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconFont)
 {
     ImGui::PushFont(IconFont);
     if (ImGui::Button("\ue9ad", ButtonSize)) // Menu
@@ -216,15 +213,15 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
             ImGui::OpenPopup("프로그램 종료");
         }
 
-        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        const ImVec2 Center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(Center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-        if (ImGui::BeginPopupModal("프로그램 종료", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("프로그램 종료", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::Text("정말 프로그램을 종료하시겠습니까?");
             ImGui::Separator();
 
-            float ContentWidth = ImGui::GetWindowContentRegionMax().x;
+            const float ContentWidth = ImGui::GetWindowContentRegionMax().x;
 
             /* Move Cursor X Position */
             ImGui::SetCursorPosX(ContentWidth - (160.f + 10.0f));
@@ -235,9 +232,9 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 
             ImGui::SetItemDefaultFocus();
             ImGui::PushID("CancelButtonWithQuitWindow");
-            ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.0f, 1.0f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.0f, 0.9f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.0f, 1.0f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_Button, static_cast<ImVec4>(ImColor::HSV(0.0f, 1.0f, 1.0f)));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, static_cast<ImVec4>(ImColor::HSV(0.0f, 0.9f, 1.0f)));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, static_cast<ImVec4>(ImColor::HSV(0.0f, 1.0f, 1.0f)));
             if (ImGui::Button("Cancel", ImVec2(80, 0))) { ImGui::CloseCurrentPopup(); }
             ImGui::PopStyleColor(3);
             ImGui::PopID();
@@ -249,7 +246,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
     }
 }
 
-void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
+void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* IconFont)
 {
     UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
 
@@ -317,13 +314,13 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
     if (ImGui::BeginPopup("ActorControl"))
     {
         struct Actor {
-            const char* category;
-            const char* label;
-            int obj;
+            const char* Category;
+            const char* Label;
+            int Obj;
         };
 
         // 카테고리 순서대로 정렬된 배열
-        static const Actor actors[] = {
+        static const Actor Actors[] = {
             { "Defaults", "Actor", OBJ_ACTOR},
             { "Defaults", "GamePlayer", OBJ_GAMEPLAYER},
             // 🔦 라이트
@@ -346,14 +343,14 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             { "Effects", "Fog",            OBJ_FOG },
         };
 
-        const char* currentCategory = nullptr;
+        const char* CurrentCategory = nullptr;
 
-        for (const auto& actor : actors)
+        for (const auto& [Category, Label, Obj] : Actors)
         {
             // 카테고리 헤더 추가
-            if (currentCategory != actor.category)
+            if (CurrentCategory != Category)
             {
-                if (currentCategory != nullptr)
+                if (CurrentCategory != nullptr)
                 {
                     ImGui::Separator(); // 카테고리 구분선
                 }
@@ -361,184 +358,188 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), "\ue9a8"); // 헤더
                 ImGui::PopFont();
                 ImGui::SameLine();
-                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), "%s", actor.category); // 헤더
-                currentCategory = actor.category;
+                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), "%s", Category); // 헤더
+                CurrentCategory = Category;
             }
 
             // 액터 생성 버튼
-            if (ImGui::Selectable(actor.label))
+            if (ImGui::Selectable(Label))
             {
                 AActor* SpawnedActor = nullptr;
 
-                switch (static_cast<OBJECTS>(actor.obj))
+                switch (static_cast<EObjects>(Obj))
                 {
-                case OBJ_ACTOR:
-                    SpawnedActor = World->SpawnActor<AActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_ACTOR"));
-                    SpawnedActor->AddComponent<USceneComponent>(EComponentOrigin::Editor);
-                    break;
-                case OBJ_GAMEPLAYER:
-                {
-                    SpawnedActor = World->SpawnActor<AGPlayer>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_GAMEPLAYER"));
-                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Cube.obj");
-                    UStaticMeshComponent* MeshComp = SpawnedActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Editor);
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
-                    USpringArmComponent* SpringComp = SpawnedActor->AddComponent<USpringArmComponent>(EComponentOrigin::Editor);
-                    UCameraComponent* Camera = SpawnedActor->AddComponent<UCameraComponent>(EComponentOrigin::Editor);
-                    //SpawnedActor->AddComponent<USphereShapeComponent>(EComponentOrigin::Editor)->SetAttachParent(SpringComp);
-                    SpringComp->SetTargetComponent(Camera);
-
-                    SpawnedActor->AddComponent<UBoxShapeComponent>(EComponentOrigin::Editor);
-                    break;
-                }
-                    //  셰이프
-                case OBJ_CUBE:
-                {
-                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    TempActor->SetActorLabel(TEXT("Cube"));
-                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Cube.obj");
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
-                    TempActor->AddComponent<UBoxShapeComponent>(EComponentOrigin::Editor);
-
-                    SpawnedActor = TempActor;
-                    break;
-                }
-                case OBJ_SPHERE:
-                {
-                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    TempActor->SetActorLabel(TEXT("Sphere"));
-                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Sphere.obj");
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Sphere.obj"));
-                    TempActor->AddComponent<USphereShapeComponent>(EComponentOrigin::Editor);
-
-                    SpawnedActor = TempActor;
-                    break;
-                }
-                case OBJ_CAPSULE:
-                {
-                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    TempActor->SetActorLabel(TEXT("Capsule"));
-                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    FManagerOBJ::CreateStaticMesh("Assets/Primitives/Capsule.obj");
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
-                    TempActor->AddComponent<UCapsuleShapeComponent>(EComponentOrigin::Editor);
-
-                    SpawnedActor = TempActor;
-                    break;
-                }
-                case OBJ_SKYSPHERE:
-                {
-                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
-                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
-                    MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetDiffuse(FVector::OneVector);
-                    MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetEmissive(FVector::OneVector);
-                    TempActor->SetActorRotation(FRotator(0.0f, 0.0f, 90.0f));
-                    TempActor->SetActorScale(FVector(1.0f, 1.0f, 1.0f));
-                    SpawnedActor = TempActor;
-
-                    // AGBullet* TempActor = World->SpawnActor<AGBullet>();
-                    // TempActor->SetActorLabel(TEXT("Bullet"));
-                    //
-                    // SpawnedActor = TempActor;
-
-                    break; // 누락된 break 추가
-                }
-                case OBJ_SKELETAL:
-                {
-                    ASkeletalMeshActor* skeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
-                    skeletalMeshActor->SetActorLabel("SkeletalMesh");
-                    SpawnedActor = skeletalMeshActor;
-                    break;
-                }
-                case OBJ_POINTLIGHT:
-                {
-                    SpawnedActor = World->SpawnActor<APointLightActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_POINTLIGHT"));
-                    break;
-                }
-                case OBJ_SPOTLIGHT:
-                {
-                    SpawnedActor = World->SpawnActor<ASpotLightActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_SpotLight"));
-                    break;
-                }
-                case OBJ_DIRECTIONALLIGHT:
-                {
-                    SpawnedActor = World->SpawnActor<ADirectionalLightActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_DIRECTIONALLIGHT"));
-                    break;
-                }
-
-                // ✨ 효과
-                case OBJ_PARTICLE:
-                {
-                    SpawnedActor = World->SpawnActor<AActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_PARTICLE"));
-                    UParticleSubUVComp* Particle = SpawnedActor->AddComponent<UParticleSubUVComp>(EComponentOrigin::Editor);
-                    Particle->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
-                    Particle->SetRowColumnCount(6, 6);
-                    Particle->SetRelativeScale(FVector(10.0f, 10.0f, 10.0f));
-                    Particle->Activate();
-                    break;
-                }
-                case OBJ_TEXT:
-                {
-                    SpawnedActor = World->SpawnActor<AActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_TEXT"));
-                    UTextComponent* Text = SpawnedActor->AddComponent<UTextComponent>(EComponentOrigin::Editor);
-                    Text->SetTexture(L"Assets/Texture/font.png");
-                    Text->SetRowColumnCount(106, 106);
-                    Text->SetText(L"안녕하세요 Jungle 1");
-                    break;
-                }
-                case OBJ_FOG:
-                {
-                    for (const auto& Actor : TObjectRange<AExponentialHeightFogActor>())
+                    case OBJ_ACTOR:
                     {
-                        if (Actor)
+                        SpawnedActor = World->SpawnActor<AActor>();
+                        SpawnedActor->SetActorLabel(TEXT("OBJ_ACTOR"));
+                        SpawnedActor->AddComponent<USceneComponent>(EComponentOrigin::Editor);
+                        break;
+                    }
+                    case OBJ_GAMEPLAYER:
+                    {
+                        SpawnedActor = World->SpawnActor<AGPlayer>();
+                        SpawnedActor->SetActorLabel(TEXT("OBJ_GAMEPLAYER"));
+                        FManagerOBJ::CreateStaticMesh("Assets/Primitives/Cube.obj");
+                        UStaticMeshComponent* MeshComp = SpawnedActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Editor);
+                        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
+                        USpringArmComponent* SpringComp = SpawnedActor->AddComponent<USpringArmComponent>(EComponentOrigin::Editor);
+                        UCameraComponent* Camera = SpawnedActor->AddComponent<UCameraComponent>(EComponentOrigin::Editor);
+                        //SpawnedActor->AddComponent<USphereShapeComponent>(EComponentOrigin::Editor)->SetAttachParent(SpringComp);
+                        SpringComp->SetTargetComponent(Camera);
+
+                        SpawnedActor->AddComponent<UBoxShapeComponent>(EComponentOrigin::Editor);
+                        break;
+                    }
+                    //  셰이프
+                    case OBJ_CUBE:
+                    {
+                        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                        TempActor->SetActorLabel(TEXT("Cube"));
+                        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                        FManagerOBJ::CreateStaticMesh("Assets/Primitives/Cube.obj");
+                        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
+                        TempActor->AddComponent<UBoxShapeComponent>(EComponentOrigin::Editor);
+
+                        SpawnedActor = TempActor;
+                        break;
+                    }
+                    case OBJ_SPHERE:
+                    {
+                        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                        TempActor->SetActorLabel(TEXT("Sphere"));
+                        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                        FManagerOBJ::CreateStaticMesh("Assets/Primitives/Sphere.obj");
+                        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Sphere.obj"));
+                        TempActor->AddComponent<USphereShapeComponent>(EComponentOrigin::Editor);
+
+                        SpawnedActor = TempActor;
+                        break;
+                    }
+                    case OBJ_CAPSULE:
+                    {
+                        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                        TempActor->SetActorLabel(TEXT("Capsule"));
+                        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                        FManagerOBJ::CreateStaticMesh("Assets/Primitives/Capsule.obj");
+                        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Capsule.obj"));
+                        TempActor->AddComponent<UCapsuleShapeComponent>(EComponentOrigin::Editor);
+
+                        SpawnedActor = TempActor;
+                        break;
+                    }
+                    case OBJ_SKYSPHERE:
+                    {
+                        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                        TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
+                        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                        FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
+                        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
+                        MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetDiffuse(FVector::OneVector);
+                        MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetEmissive(FVector::OneVector);
+                        TempActor->SetActorRotation(FRotator(0.0f, 0.0f, 90.0f));
+                        TempActor->SetActorScale(FVector(1.0f, 1.0f, 1.0f));
+                        SpawnedActor = TempActor;
+
+                        // AGBullet* TempActor = World->SpawnActor<AGBullet>();
+                        // TempActor->SetActorLabel(TEXT("Bullet"));
+                        //
+                        // SpawnedActor = TempActor;
+
+                        break;
+                    }
+                    case OBJ_SKELETAL:
+                    {
+                        ASkeletalMeshActor* SkeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
+                        SkeletalMeshActor->SetActorLabel("SkeletalMesh");
+                        SpawnedActor = SkeletalMeshActor;
+                        break;
+                    }
+                    case OBJ_POINTLIGHT:
+                    {
+                        SpawnedActor = World->SpawnActor<APointLightActor>();
+                        SpawnedActor->SetActorLabel(TEXT("OBJ_POINTLIGHT"));
+                        break;
+                    }
+                    case OBJ_SPOTLIGHT:
+                    {
+                        SpawnedActor = World->SpawnActor<ASpotLightActor>();
+                        SpawnedActor->SetActorLabel(TEXT("OBJ_SpotLight"));
+                        break;
+                    }
+                    case OBJ_DIRECTIONALLIGHT:
+                    {
+                        SpawnedActor = World->SpawnActor<ADirectionalLightActor>();
+                        SpawnedActor->SetActorLabel(TEXT("OBJ_DIRECTIONALLIGHT"));
+                        break;
+                    }
+
+                    // ✨ 효과
+                    case OBJ_PARTICLE:
+                    {
+                        SpawnedActor = World->SpawnActor<AActor>();
+                        SpawnedActor->SetActorLabel(TEXT("OBJ_PARTICLE"));
+                        UParticleSubUVComp* Particle = SpawnedActor->AddComponent<UParticleSubUVComp>(EComponentOrigin::Editor);
+                        Particle->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
+                        Particle->SetRowColumnCount(6, 6);
+                        Particle->SetRelativeScale(FVector(10.0f, 10.0f, 10.0f));
+                        Particle->Activate();
+                        break;
+                    }
+                    case OBJ_TEXT:
+                    {
+                        SpawnedActor = World->SpawnActor<AActor>();
+                        SpawnedActor->SetActorLabel(TEXT("OBJ_TEXT"));
+                        UTextComponent* Text = SpawnedActor->AddComponent<UTextComponent>(EComponentOrigin::Editor);
+                        Text->SetTexture(L"Assets/Texture/font.png");
+                        Text->SetRowColumnCount(106, 106);
+                        Text->SetText(L"안녕하세요 Jungle 1");
+                        break;
+                    }
+                    case OBJ_FOG:
+                    {
+                        for (const auto& ExponentialHeightFogActor : TObjectRange<AExponentialHeightFogActor>())
                         {
-                            if (Actor->GetWorld() != World)
+                            if (ExponentialHeightFogActor)
                             {
-                                continue;
-                            }
-                            Actor->Destroy();
-                            TSet<AActor*> Actors = World->GetSelectedActors();
-                            if(Actors.Contains(Actor))
-                            {
-                                World->ClearSelectedActors();
+                                if (ExponentialHeightFogActor->GetWorld() != World)
+                                {
+                                    continue;
+                                }
+                                ExponentialHeightFogActor->Destroy();
+                                TSet<AActor*> SelectedActors = World->GetSelectedActors();
+                                if(SelectedActors.Contains(ExponentialHeightFogActor))
+                                {
+                                    World->ClearSelectedActors();
+                                }
                             }
                         }
+                        SpawnedActor = World->SpawnActor<AExponentialHeightFogActor>();
+                        SpawnedActor->SetActorLabel(TEXT("OBJ_FOG"));
+                        break;
                     }
-                    SpawnedActor = World->SpawnActor<AExponentialHeightFogActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_FOG"));
-                    break;
-                }
-                case OBJ_CAR:
-                {
-                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    TempActor->SetActorLabel(TEXT("OBJ_DODGE"));
-                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    FManagerOBJ::CreateStaticMesh("Assets/Dodge/Dodge.obj");
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Dodge.obj"));
-                    SpawnedActor = TempActor;
-                    break;
-                }
-                case OBJ_YEOUL:
-                {
-                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    TempActor->SetActorLabel(TEXT("OBJ_YEOUL"));
-                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    FManagerOBJ::CreateStaticMesh("Assets/Yeoul/yeoul.obj");
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"yeoul.obj"));
-                    SpawnedActor = TempActor;
-                    break;
-                }
+                    case OBJ_CAR:
+                    {
+                        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                        TempActor->SetActorLabel(TEXT("OBJ_DODGE"));
+                        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                        FManagerOBJ::CreateStaticMesh("Assets/Dodge/Dodge.obj");
+                        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Dodge.obj"));
+                        SpawnedActor = TempActor;
+                        break;
+                    }
+                    case OBJ_YEOUL:
+                    {
+                        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                        TempActor->SetActorLabel(TEXT("OBJ_YEOUL"));
+                        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                        FManagerOBJ::CreateStaticMesh("Assets/Yeoul/yeoul.obj");
+                        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"yeoul.obj"));
+                        SpawnedActor = TempActor;
+                        break;
+                    }
+                    default:
+                        break;
                 }
 
                 if (SpawnedActor)
@@ -553,16 +554,16 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
 
 void ControlEditorPanel::CreateFlagButton() const
 {
-    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    const UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
 
     if (EditorEngine == nullptr)
     {
         return;
     }
-    auto ActiveViewport = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
+    const auto ActiveViewport = EditorEngine->GetLevelEditor()->GetActiveViewportClient();
 
     const char* ViewTypeNames[] = { "Perspective", "Top", "Bottom", "Left", "Right", "Front", "Back" };
-    ELevelViewportType ActiveViewType = ActiveViewport->GetViewportType();
+    const ELevelViewportType ActiveViewType = ActiveViewport->GetViewportType();
     FString TextViewType = ViewTypeNames[ActiveViewType];
 
     if (ImGui::Button(GetData(TextViewType), ImVec2(120, 32)))
@@ -573,12 +574,12 @@ void ControlEditorPanel::CreateFlagButton() const
 
     if (ImGui::BeginPopup("ViewControl"))
     {
-        for (int i = 0; i < IM_ARRAYSIZE(ViewTypeNames); i++)
+        for (int ViewportTypeIndex = 0; ViewportTypeIndex < IM_ARRAYSIZE(ViewTypeNames); ViewportTypeIndex++)
         {
-            bool bIsSelected = ((int)ActiveViewport->GetViewportType() == i);
-            if (ImGui::Selectable(ViewTypeNames[i], bIsSelected))
+            const bool bIsSelected = (static_cast<int>(ActiveViewport->GetViewportType()) == ViewportTypeIndex);
+            if (ImGui::Selectable(ViewTypeNames[ViewportTypeIndex], bIsSelected))
             {
-                ActiveViewport->SetViewportType((ELevelViewportType)i);
+                ActiveViewport->SetViewportType(static_cast<ELevelViewportType>(ViewportTypeIndex));
             }
 
             if (bIsSelected)
@@ -593,7 +594,7 @@ void ControlEditorPanel::CreateFlagButton() const
 
     const char* ViewModeNames[] = { "Goroud_Lit", "Lambert_Lit", "Phong_Lit", "Unlit", "Wireframe", "Depth", "Normal"};
     FString SelectLightControl = ViewModeNames[static_cast<uint32>(ActiveViewport->GetViewMode())];
-    ImVec2 LightTextSize = ImGui::CalcTextSize(GetData(SelectLightControl));
+    const ImVec2 LightTextSize = ImGui::CalcTextSize(GetData(SelectLightControl));
 
     if (ImGui::Button(GetData(SelectLightControl), ImVec2(30 + LightTextSize.x, 32)))
     {
@@ -602,12 +603,12 @@ void ControlEditorPanel::CreateFlagButton() const
 
     if (ImGui::BeginPopup("LightControl"))
     {
-        for (int i = 0; i < IM_ARRAYSIZE(ViewModeNames); i++)
+        for (int ViewModeIndex = 0; ViewModeIndex < IM_ARRAYSIZE(ViewModeNames); ViewModeIndex++)
         {
-            const bool bIsSelected = (static_cast<uint32>(ActiveViewport->GetViewMode()) == i);
-            if (ImGui::Selectable(ViewModeNames[i], bIsSelected))
+            const bool bIsSelected = (static_cast<uint32>(ActiveViewport->GetViewMode()) == ViewModeIndex);
+            if (ImGui::Selectable(ViewModeNames[ViewModeIndex], bIsSelected))
             {
-                ActiveViewport->SetViewMode(static_cast<EViewModeIndex>(i));
+                ActiveViewport->SetViewMode(static_cast<EViewModeIndex>(ViewModeIndex));
                 //UEditorEngine::renderer.SetViewMode(ActiveViewport->GetViewMode());
             }
 
@@ -626,12 +627,12 @@ void ControlEditorPanel::CreateFlagButton() const
         ImGui::OpenPopup("ShowControl");
     }
 
-    const char* items[] = { "AABB", "Primitive", "BillBoard", "UUID", "Fog", "SkeletalMesh" };
-    uint64 ActiveViewportFlags = ActiveViewport->GetShowFlag();
+    const char* Items[] = { "AABB", "Primitive", "BillBoard", "UUID", "Fog", "SkeletalMesh" };
+    const uint64 ActiveViewportFlags = ActiveViewport->GetShowFlag();
 
     if (ImGui::BeginPopup("ShowControl"))
     {
-        bool selected[IM_ARRAYSIZE(items)] =
+        bool bIsSelected[IM_ARRAYSIZE(Items)] =
         {
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_AABB)) != 0,
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Primitives)) != 0,
@@ -641,11 +642,11 @@ void ControlEditorPanel::CreateFlagButton() const
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_SkeletalMesh)) != 0,
         };  // 각 항목의 체크 상태 저장
 
-        for (int i = 0; i < IM_ARRAYSIZE(items); i++)
+        for (int ItemIndex = 0; ItemIndex < IM_ARRAYSIZE(Items); ItemIndex++)
         {
-            ImGui::Checkbox(items[i], &selected[i]);
+            ImGui::Checkbox(Items[ItemIndex], &bIsSelected[ItemIndex]);
         }
-        ActiveViewport->SetShowFlag(ConvertSelectionToFlags(selected));
+        ActiveViewport->SetShowFlag(ConvertSelectionToFlags(bIsSelected));
         ImGui::EndPopup();
     }
 }
@@ -653,36 +654,36 @@ void ControlEditorPanel::CreateFlagButton() const
 void ControlEditorPanel::CreateShaderHotReloadButton(const ImVec2 ButtonSize) const
 {
     ID3D11ShaderResourceView* IconTextureSRV = GEngineLoop.ResourceManager.GetTexture(L"Assets/Texture/HotReload.png")->TextureSRV;
-    const ImTextureID textureID = reinterpret_cast<ImTextureID>(IconTextureSRV); // 실제 사용되는 텍스처 SRV
-    if (ImGui::ImageButton("btn1", textureID, ButtonSize))
+    const ImTextureID TextureID = reinterpret_cast<ImTextureID>(IconTextureSRV); // 실제 사용되는 텍스처 SRV
+    if (ImGui::ImageButton("btn1", TextureID, ButtonSize))
     {
-        GEngineLoop.Renderer.GetResourceManager()->HotReloadShaders();
+        FEngineLoop::Renderer.GetResourceManager()->HotReloadShaders();
     }
 }
 
-void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
+void ControlEditorPanel::CreatePIEButton(const ImVec2 ButtonSize) const
 {
-    float TotalWidth = ButtonSize.x * 3.0f + 16.0f;
-    float ContentWidth = ImGui::GetWindowContentRegionMax().x;
+    const float TotalWidth = ButtonSize.x * 3.0f + 16.0f;
+    const float ContentWidth = ImGui::GetWindowContentRegionMax().x;
 
     // 중앙 정렬을 위한 커서 위치 설정
-    float CursorPosX = (ContentWidth - TotalWidth) * 0.5f;
+    const float CursorPosX = (ContentWidth - TotalWidth) * 0.5f;
     ImGui::SetCursorPosX(CursorPosX);
 
-    if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
+    if (ActiveLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
         if (ImGui::Button("\ue9a8", ButtonSize)) // Play
         {
-            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
+            ActiveLevelEditor->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
         }
         ImGui::PopStyleColor();
     }
-    else if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Paused)
+    else if (ActiveLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Paused)
     {
         if (ImGui::Button("\ue9a8", ButtonSize)) // Play
         {
-            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Playing);
+            ActiveLevelEditor->GetEditorStateManager().SetState(EEditorState::Playing);
         }
     }
     else
@@ -690,16 +691,16 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
         if (ImGui::Button("\ue99c", ButtonSize)) // Pause
         {
             // TODO: PIE 일시정지
-            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Paused);
+            ActiveLevelEditor->GetEditorStateManager().SetState(EEditorState::Paused);
         }
     }
     ImGui::SameLine();
 
-    if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
+    if (ActiveLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
     {
         if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
         {
-            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
+            ActiveLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
         }
     }
     else
@@ -707,16 +708,16 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
         if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
         {
-            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
+            ActiveLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
         }
         ImGui::PopStyleColor();
     }
 }
 
 // code is so dirty / Please refactor
-void ControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
+void ControlEditorPanel::CreateSRTButton(const ImVec2 ButtonSize) const
 {
-    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    const UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
 
     if (EditorEngine == nullptr)
     {
@@ -725,9 +726,9 @@ void ControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
     
     SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor();
 
-    ImVec4 ActiveColor = ImVec4(0.00f, 0.00f, 0.85f, 1.0f);
+    constexpr auto ActiveColor = ImVec4(0.00f, 0.00f, 0.85f, 1.0f);
 
-    ControlMode ControlMode = LevelEditor->GetActiveViewportClientData().GetControlMode();
+    const EControlMode ControlMode = LevelEditor->GetActiveViewportClientData().GetControlMode();
 
     if (ControlMode == CM_TRANSLATION)
     {
@@ -773,30 +774,30 @@ void ControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
     }
 }
 
-uint64 ControlEditorPanel::ConvertSelectionToFlags(const bool selected[]) const
+uint64 ControlEditorPanel::ConvertSelectionToFlags(const bool Selected[]) const
 {
-    uint64 flags = static_cast<uint64>(EEngineShowFlags::None);
+    uint64 Flags = static_cast<uint64>(EEngineShowFlags::None);
 
-    if (selected[0])
-        flags |= static_cast<uint64>(EEngineShowFlags::SF_AABB);
-    if (selected[1])
-        flags |= static_cast<uint64>(EEngineShowFlags::SF_Primitives);
-    if (selected[2])
-        flags |= static_cast<uint64>(EEngineShowFlags::SF_BillboardText);
-    if (selected[3])
-        flags |= static_cast<uint64>(EEngineShowFlags::SF_UUIDText);
-    if (selected[4])
-        flags |= static_cast<uint64>(EEngineShowFlags::SF_Fog);
-    if (selected[5])
-        flags |= static_cast<uint64>(EEngineShowFlags::SF_SkeletalMesh);
-    return flags;
+    if (Selected[0])
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_AABB);
+    if (Selected[1])
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_Primitives);
+    if (Selected[2])
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_BillboardText);
+    if (Selected[3])
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_UUIDText);
+    if (Selected[4])
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_Fog);
+    if (Selected[5])
+        Flags |= static_cast<uint64>(EEngineShowFlags::SF_SkeletalMesh);
+    return Flags;
 }
 
 
-void ControlEditorPanel::OnResize(HWND hWnd)
+void ControlEditorPanel::OnResize(const HWND hWnd)
 {
-    RECT clientRect;
-    GetClientRect(hWnd, &clientRect);
-    Width = clientRect.right - clientRect.left;
-    Height = clientRect.bottom - clientRect.top;
+    RECT ClientRect;
+    GetClientRect(hWnd, &ClientRect);
+    Width = static_cast<float>(ClientRect.right - ClientRect.left);
+    Height = static_cast<float>(ClientRect.bottom - ClientRect.top);
 }

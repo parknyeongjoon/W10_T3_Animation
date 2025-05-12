@@ -11,27 +11,25 @@ class FEditorViewportClient;
 
 struct FWindowViewportClientData
 {
-public:    
     float EditorWidth;
     float EditorHeight;
 
     bool bMultiViewportMode;
     uint32 ActiveViewportIndex;
 
-    ControlMode cMode;
-    CoordiMode cdMode;
+    EControlMode ViewportControlMode;
+    ECoordiMode ViewportCoordiMode;
 
     TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients;
     
     std::shared_ptr<SSplitterH> HSplitter;
     std::shared_ptr<SSplitterV> VSplitter;
 
-public:
-    void SetMode(ControlMode _Mode) { cMode = _Mode; }
-    ControlMode GetControlMode() const { return cMode; }
-    CoordiMode GetCoordiMode() const { return cdMode; }
-    void AddControlMode() { cMode = static_cast<ControlMode>((cMode + 1) % CM_END); }
-    void AddCoordiMode() { cdMode = static_cast<CoordiMode>((cdMode + 1) % CDM_END); }
+    void SetMode(const EControlMode InViewportControlMode) { ViewportControlMode = InViewportControlMode; }
+    EControlMode GetControlMode() const { return ViewportControlMode; }
+    ECoordiMode GetCoordiMode() const { return ViewportCoordiMode; }
+    void AddControlMode() { ViewportControlMode = static_cast<EControlMode>((ViewportControlMode + 1) % CM_END); }
+    void AddCoordiMode() { ViewportCoordiMode = static_cast<ECoordiMode>((ViewportCoordiMode + 1) % CDM_END); }
     
     std::shared_ptr<FEditorViewportClient> GetActiveViewportClient() { return ViewportClients[ActiveViewportIndex]; }
 
@@ -40,8 +38,8 @@ public:
         , EditorHeight(0.0f)
         , bMultiViewportMode(false)
         , ActiveViewportIndex(0)
-        , cMode()
-        , cdMode()
+        , ViewportControlMode()
+        , ViewportCoordiMode()
     {
     }
 };
@@ -49,8 +47,13 @@ public:
 class SLevelEditor
 {
 public:
-    SLevelEditor();
+    SLevelEditor() = default;
     ~SLevelEditor() = default;
+
+    SLevelEditor(const SLevelEditor&) = delete;
+    SLevelEditor& operator=(const SLevelEditor&) = delete;
+    SLevelEditor(SLevelEditor&&) = delete;
+    SLevelEditor& operator=(SLevelEditor&&) = delete;
 
     void Initialize(UWorld* World, HWND OwnerWindow);
     void Tick(double DeltaTime);
@@ -60,8 +63,8 @@ public:
         requires std::derived_from<T, FViewportClient>
     std::shared_ptr<T> AddViewportClient(HWND OwnerWindow, UWorld* World);
 
-    void RemoveViewportClient(HWND OwnerWindow, std::shared_ptr<FEditorViewportClient> ViewportClient);
-    void RemoveViewportClients(HWND HWnd);
+    void RemoveViewportClient(HWND OwnerWindow, const std::shared_ptr<FEditorViewportClient>& ViewportClient);
+    void RemoveViewportClients(HWND OwnerWindow);
 
     void ResizeWindow(HWND AppWnd, FVector2D ClientSize);
     void ResizeViewports(HWND AppWnd);
@@ -73,27 +76,10 @@ public:
     void RegisterEditorInputDelegates();
     void RegisterPIEInputDelegates();
 
-private:
-    // TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients;
-
-    uint32 ActiveViewportClientIndex = 0;
-    HWND ActiveViewportWindow = nullptr;
-
-    /** 우클릭 시 캡처된 마우스 커서의 초기 위치 (스크린 좌표계) */
-    FVector2D MousePinPosition;
-
-    TArray<FDelegateHandle> InputDelegatesHandles;
-    
-    FEditorStateManager EditorStateManager;
-
-public:
-    TMap<HWND, FWindowViewportClientData> WindowViewportDataMap;
-public:
-
     uint32 GetCurrentViewportClientIndex() const { return ActiveViewportClientIndex; }
     HWND GetCurrentViewportWindow() const { return ActiveViewportWindow; }
 
-    TArray<std::shared_ptr<FEditorViewportClient>> GetViewportClients(HWND AppWnd) const
+    TArray<std::shared_ptr<FEditorViewportClient>> GetViewportClients(const HWND AppWnd) const
     {
         if (!WindowViewportDataMap.Contains(ActiveViewportWindow))
         {
@@ -116,53 +102,67 @@ public:
     {
         if (!WindowViewportDataMap.Contains(ActiveViewportWindow))
         {
-            FWindowViewportClientData temp = FWindowViewportClientData();
-            return temp;
+            auto Temp = FWindowViewportClientData();
+            return Temp;
         }
+
         return WindowViewportDataMap[ActiveViewportWindow];
     }
 
-    FWindowViewportClientData& GetViewportClientData(HWND HWnd)
+    FWindowViewportClientData& GetViewportClientData(const HWND AppWnd)
     {
-        if (!WindowViewportDataMap.Contains(HWnd))
+        if (!WindowViewportDataMap.Contains(AppWnd))
         {
-            FWindowViewportClientData temp = FWindowViewportClientData();
-            return temp;
+            auto Temp = FWindowViewportClientData();
+            return Temp;
         }
-        return WindowViewportDataMap[HWnd];
+        return WindowViewportDataMap[AppWnd];
     }
     
-    void FocusViewportClient(HWND InAppWnd, uint32 InViewportClientIndex)
+    void FocusViewportClient(const HWND AppWnd, const uint32 ViewportClientIndex)
     {
-        ActiveViewportWindow = InAppWnd;
-        ActiveViewportClientIndex = InViewportClientIndex;
+        ActiveViewportWindow = AppWnd;
+        ActiveViewportClientIndex = ViewportClientIndex;
     }
 
     FEditorStateManager& GetEditorStateManager() { return EditorStateManager; }
 
 /* Save And Load*/
-private:
-    const FString IniFilePath = "editor.ini";
 public:
     void LoadConfig();
     void SaveConfig();
+
 private:
-    TMap<FString, FString> ReadIniFile(const FString& filePath);
-    void WriteIniFile(const FString& filePath, const TMap<FString, FString>& config);
+    TMap<FString, FString> ReadIniFile(const FString& FilePath) const;
+    void WriteIniFile(const FString& FilePath, const TMap<FString, FString>& Config) const;
 
     template <typename T>
-    T GetValueFromConfig(const TMap<FString, FString>& config, const FString& key, T defaultValue) {
-        if (const FString* Value = config.Find(key))
+    T GetValueFromConfig(const TMap<FString, FString>& Config, const FString& Key, T DefaultValue) {
+        if (const FString* Value = Config.Find(Key))
         {
             std::istringstream iss(**Value);
-            T value;
-            if (iss >> value)
+            T NewValue;
+            if (iss >> NewValue)
             {
-                return value;
+                return NewValue;
             }
         }
-        return defaultValue;
+        return DefaultValue;
     }
 /* End of Save And Load */
+
+private:
+    uint32 ActiveViewportClientIndex = 0;
+    HWND ActiveViewportWindow = nullptr;
+    FEditorStateManager EditorStateManager;
+
+    TArray<FDelegateHandle> InputDelegatesHandles;
+
+    TMap<HWND, FWindowViewportClientData> WindowViewportDataMap;
+
+    /** 우클릭 시 캡처된 마우스 커서의 초기 위치 (스크린 좌표계) */
+    FVector2D MousePinPosition;
+
+    const FString IniFilePath = "editor.ini";
 };
 

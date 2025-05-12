@@ -7,8 +7,6 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "UnrealEd/EditorPlayer.h"
 
-extern UEngine* GEngine;
-
 UTransformGizmo::UTransformGizmo()
 {
     FManagerOBJ::CreateStaticMesh("Assets/gizmo_loc_x.obj");
@@ -25,23 +23,23 @@ UTransformGizmo::UTransformGizmo()
         AddComponent<USceneComponent>(EComponentOrigin::Constructor)
     );
 
-    UGizmoArrowComponent* locationX = AddComponent<UGizmoArrowComponent>(EComponentOrigin::Constructor);
-    locationX->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"gizmo_loc_x.obj"));
-	locationX->SetupAttachment(RootComponent);
-    locationX->SetGizmoType(UGizmoBaseComponent::ArrowX);
-	ArrowArr.Add(locationX);
+    UGizmoArrowComponent* LocationX = AddComponent<UGizmoArrowComponent>(EComponentOrigin::Constructor);
+    LocationX->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"gizmo_loc_x.obj"));
+	LocationX->SetupAttachment(RootComponent);
+    LocationX->SetGizmoType(UGizmoBaseComponent::ArrowX);
+	ArrowArr.Add(LocationX);
 
-    UGizmoArrowComponent* locationY = AddComponent<UGizmoArrowComponent>(EComponentOrigin::Constructor);
-    locationY->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"gizmo_loc_y.obj"));
-    locationY->SetupAttachment(RootComponent);
-    locationY->SetGizmoType(UGizmoBaseComponent::ArrowY);
-    ArrowArr.Add(locationY);
+    UGizmoArrowComponent* LocationY = AddComponent<UGizmoArrowComponent>(EComponentOrigin::Constructor);
+    LocationY->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"gizmo_loc_y.obj"));
+    LocationY->SetupAttachment(RootComponent);
+    LocationY->SetGizmoType(UGizmoBaseComponent::ArrowY);
+    ArrowArr.Add(LocationY);
 
-    UGizmoArrowComponent* locationZ = AddComponent<UGizmoArrowComponent>(EComponentOrigin::Constructor);
-    locationZ->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"gizmo_loc_z.obj"));
-    locationZ->SetupAttachment(RootComponent);
-    locationZ->SetGizmoType(UGizmoBaseComponent::ArrowZ);
-    ArrowArr.Add(locationZ);
+    UGizmoArrowComponent* LocationZ = AddComponent<UGizmoArrowComponent>(EComponentOrigin::Constructor);
+    LocationZ->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"gizmo_loc_z.obj"));
+    LocationZ->SetupAttachment(RootComponent);
+    LocationZ->SetGizmoType(UGizmoBaseComponent::ArrowZ);
+    ArrowArr.Add(LocationZ);
 
     UGizmoRectangleComponent* ScaleX = AddComponent<UGizmoRectangleComponent>(EComponentOrigin::Constructor);
     ScaleX->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"gizmo_scale_x.obj"));
@@ -80,7 +78,7 @@ UTransformGizmo::UTransformGizmo()
     CircleArr.Add(CircleZ);
 }
 
-void UTransformGizmo::Tick(float DeltaTime)
+void UTransformGizmo::Tick(const float DeltaTime)
 {
     if (GetWorld()->WorldType != EWorldType::Editor
      || GetWorld()->WorldType != EWorldType::EditorPreview)
@@ -91,21 +89,27 @@ void UTransformGizmo::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
     TSet<AActor*> SelectedActors = GetWorld()->GetSelectedActors();
+
+    // @todo 단일 선택에 대한 케이스 분리
     if (!SelectedActors.IsEmpty())
     {
         const AActor* PickedActor = *SelectedActors.begin();
         if (PickedActor == nullptr)
+        {
             return;
+        }
+
         SetActorLocation(PickedActor->GetActorLocation());
+
         if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
         {
-            ControlMode ControlMode = EditorEngine->GetLevelEditor()->GetActiveViewportClientData().GetControlMode();
-            if (ControlMode == CoordiMode::CDM_LOCAL)
+            EControlMode ControlMode = EditorEngine->GetLevelEditor()->GetActiveViewportClientData().GetControlMode();
+            if (ControlMode == ECoordiMode::CDM_LOCAL)
             {
                 // TODO: 임시로 RootComponent의 정보로 사용
                 SetActorRotation(PickedActor->GetActorRotation());
             }
-            else if (ControlMode == CoordiMode::CDM_WORLD)
+            else if (ControlMode == ECoordiMode::CDM_WORLD)
             {
                 SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
             }

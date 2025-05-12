@@ -1,4 +1,4 @@
-﻿#include "PreviewControlEditorPanel.h"
+#include "PreviewControlEditorPanel.h"
 
 #include "Engine/World.h"
 #include "Engine/FLoaderOBJ.h"
@@ -264,7 +264,7 @@ void PreviewControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* Ic
             {
                 AActor* SpawnedActor = nullptr;
 
-                switch (static_cast<OBJECTS>(actor.obj))
+                switch (static_cast<EObjects>(actor.obj))
                 {
                 case OBJ_ACTOR:
                     SpawnedActor = World->SpawnActor<AActor>();
@@ -621,7 +621,7 @@ void PreviewControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
 
     ImVec4 ActiveColor = ImVec4(0.00f, 0.00f, 0.85f, 1.0f);
 
-    ControlMode ControlMode = LevelEditor->GetActiveViewportClientData().GetControlMode();
+    EControlMode ControlMode = LevelEditor->GetActiveViewportClientData().GetControlMode();
 
     if (ControlMode == CM_TRANSLATION)
     {

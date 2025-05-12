@@ -20,15 +20,15 @@ void OutlinerEditorPanel::Render()
     ImGui::PushID(PanelIndex);
     /* Pre Setup */
     ImGuiIO& io = ImGui::GetIO();
-    
-    float PanelWidth = (Width) * 0.2f - 6.0f;
-    float PanelHeight = (Height) * 0.3f;
 
-    float PanelPosX = (Width) * 0.8f + 5.0f;
-    float PanelPosY = 5.0f;
+    const float PanelWidth = (Width) * 0.2f - 6.0f;
+    const float PanelHeight = (Height) * 0.3f;
 
-    ImVec2 MinSize(140, 100);
-    ImVec2 MaxSize(FLT_MAX, 500);
+    const float PanelPosX = (Width) * 0.8f + 5.0f;
+    constexpr float PanelPosY = 5.0f;
+
+    constexpr ImVec2 MinSize(140, 100);
+    constexpr ImVec2 MaxSize(FLT_MAX, 500);
     
     /* Min, Max Size */
     ImGui::SetNextWindowSizeConstraints(MinSize, MaxSize);
@@ -61,8 +61,8 @@ void OutlinerEditorPanel::Render()
         ImGui::TreePop(); // 트리 닫기
     }
     */
-    FString WorldName = World->GetName();
-    ImGuiTreeNodeFlags WorldTreeNodeFlags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+    const FString WorldName = World->GetName();
+    constexpr ImGuiTreeNodeFlags WorldTreeNodeFlags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
     if (ImGui::TreeNodeEx(*WorldName, WorldTreeNodeFlags)) // 트리 노드 생성
     {
         for (AActor* Actor : World->GetActors())
@@ -82,10 +82,10 @@ void OutlinerEditorPanel::Render()
     ImGui::PopID();
 }
     
-void OutlinerEditorPanel::OnResize(HWND hWnd)
+void OutlinerEditorPanel::OnResize(const HWND hWnd)
 {
-    RECT clientRect;
-    GetClientRect(hWnd, &clientRect);
-    Width = clientRect.right - clientRect.left;
-    Height = clientRect.bottom - clientRect.top;
+    RECT ClientRect;
+    GetClientRect(hWnd, &ClientRect);
+    Width = static_cast<float>(ClientRect.right - ClientRect.left);
+    Height = static_cast<float>(ClientRect.bottom - ClientRect.top);
 }

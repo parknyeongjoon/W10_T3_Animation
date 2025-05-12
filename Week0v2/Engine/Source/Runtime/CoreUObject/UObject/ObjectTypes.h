@@ -1,7 +1,7 @@
 #pragma once
 
 
-enum OBJECTS
+enum EObjects
 {
     OBJ_ACTOR,
     OBJ_GAMEPLAYER,
@@ -20,27 +20,27 @@ enum OBJECTS
     OBJ_SKELETAL,
     OBJ_END
 };
-enum ARROW_DIR
+enum EArrowDirection : uint8
 {
 	AD_X,
 	AD_Y,
 	AD_Z,
 	AD_END
 };
-enum ControlMode
+enum EControlMode : uint8
 {
 	CM_TRANSLATION,
 	CM_ROTATION,
 	CM_SCALE,
 	CM_END
 };
-enum CoordiMode
+enum ECoordiMode : uint8
 {
 	CDM_WORLD,
 	CDM_LOCAL,
 	CDM_END
 };
-enum EPrimitiveColor
+enum EPrimitiveColor : uint8
 {
 	RED_X,
 	GREEN_Y,

@@ -5,7 +5,7 @@ void UGizmoArrowComponent::InitializeComponent()
     Super::InitializeComponent();
 }
 
-void UGizmoArrowComponent::TickComponent(float DeltaTime)
+void UGizmoArrowComponent::TickComponent(const float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 

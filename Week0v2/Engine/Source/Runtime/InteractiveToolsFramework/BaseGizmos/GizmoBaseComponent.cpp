@@ -8,7 +8,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 
 
-int UGizmoBaseComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
+int UGizmoBaseComponent::CheckRayIntersection(FVector& RayOrigin, FVector& RayDirection, float& pNearHitDistance)
 {
     int nIntersections = 0;
     if (staticMesh == nullptr) return 0;
@@ -42,10 +42,10 @@ int UGizmoBaseComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDi
         FVector v1 = *reinterpret_cast<FVector*>(pbPositions + idx1 * stride);
         FVector v2 = *reinterpret_cast<FVector*>(pbPositions + idx2 * stride);
 
-        float fHitDistance;
-        if (IntersectRayTriangle(rayOrigin, rayDirection, v0, v1, v2, fHitDistance)) {
-            if (fHitDistance < fNearHitDistance) {
-                pfNearHitDistance = fNearHitDistance = fHitDistance;
+        float HitDistance;
+        if (IntersectRayTriangle(RayOrigin, RayDirection, v0, v1, v2, HitDistance)) {
+            if (HitDistance < fNearHitDistance) {
+                pNearHitDistance = fNearHitDistance = HitDistance;
             }
             nIntersections++;
         }

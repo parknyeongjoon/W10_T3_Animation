@@ -5,7 +5,7 @@
 
 struct FActorComponentInfo;
 
-enum class EComponentOrigin
+enum class EComponentOrigin : uint8
 {
     None,
     Constructor,            // 생성자에서 추가한 컴포넌트
@@ -20,10 +20,11 @@ class UActorComponent : public UObject
 
 private:
     friend class AActor;
-    friend class FActorComponentInfo;
+    friend struct FActorComponentInfo;
 
 public:
     UActorComponent();
+    ~UActorComponent() override = default;
     UActorComponent(const UActorComponent& Other);
 
     /** AActor가 World에 Spawn되어 BeginPlay이전에 호출됩니다. */
@@ -45,7 +46,7 @@ public:
      * Ends gameplay for this component.
      * Called from AActor::EndPlay only
      */
-    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
+    virtual void EndPlay(EEndPlayReason::Type EndPlayReason);
 
 public:
     /** 이 컴포넌트를 소유하고 있는 Actor를 반환합니다. */
@@ -67,7 +68,7 @@ public:
     void Deactivate();
 
     bool IsComponentTickEnabled() const { return bTickEnabled; }
-    void SetComponentTickEnabled(bool bEnabled) { bTickEnabled = bEnabled; }
+    void SetComponentTickEnabled(const bool bEnabled) { bTickEnabled = bEnabled; }
 
 public:
     /** Tick을 아예 지원하는 컴포넌트인지 확인합니다. */
@@ -77,10 +78,10 @@ public:
     void UnregisterComponent();
 
     bool IsRegistered() const { return bRegistered; }
-    
-    virtual UObject* Duplicate(UObject* InOuter) override;
-    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
-    virtual void PostDuplicate() override;
+
+    UObject* Duplicate(UObject* InOuter) override;
+    void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
+    void PostDuplicate() override;
 
 protected:
     /**월드에 등록되었을 때 호출되는 함수*/

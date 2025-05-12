@@ -17,11 +17,13 @@ public:
     using Super = UObject;
     using ThisClass = UObject;
     UObject(const UObject& Other)
-        : ClassPrivate(Other.ClassPrivate)
-        , NamePrivate(Other.NamePrivate)
+        : UUID(0)
         , InternalIndex(Other.InternalIndex)
+        , NamePrivate(Other.NamePrivate)
+        , ClassPrivate(Other.ClassPrivate)
     {
     }
+
     static UClass* StaticClass();
     static FFunctionRegistry* FunctionRegistry();
 
@@ -74,9 +76,9 @@ public:
     }
 
 public:
-    void* operator new(size_t size);
+    void* operator new(size_t Size);
 
-    void operator delete(void* ptr, size_t size);
+    void operator delete(void* Ptr, size_t Size);
 public:
     // Serialize
 
