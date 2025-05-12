@@ -87,12 +87,50 @@ void UAnimSequenceBase::GetAnimationPose(FPoseContext& OutPose, const FAnimExtra
     TArray<FName> BoneNames;
     DataModel->GetBoneTrackNames(BoneNames);
 
-    int index = 0;
+    float FrameRate = DataModel->FrameRate.AsDecimal(); // 프레임 레이트를 float로 변환
+    float FramePosition = TimeToExtract * FrameRate;
+
+    int32 FrameIndex = static_cast<int32>(FramePosition); // 정수 인덱스
+    float Fraction = FramePosition - FrameIndex; // 보간 값
+
     for (const auto& Name : BoneNames)
     {
-        FTransform Transform = DataModel->GetBoneTrackTransform(Name, TimeToExtract);
+        FTransform Transform;
+        const FBoneAnimationTrack* Track = nullptr;
+
+        if (DataModel->IsValidBoneTrackName(Name))
+        {
+            Track = &DataModel->GetBoneTrackByName(Name);
+        }
+
+        if (Track)
+        {
+            // 보간 처리
+            if (Track->InternalTrackData.RotKeys.IsValidIndex(FrameIndex) &&
+                Track->InternalTrackData.RotKeys.IsValidIndex(FrameIndex + 1))
+            {
+                FQuat RotA = Track->InternalTrackData.RotKeys[FrameIndex];
+                FQuat RotB = Track->InternalTrackData.RotKeys[FrameIndex + 1];
+                Transform.SetRotation(FQuat::Slerp(RotA, RotB, Fraction));
+            }
+
+            if (Track->InternalTrackData.PosKeys.IsValidIndex(FrameIndex) &&
+                Track->InternalTrackData.PosKeys.IsValidIndex(FrameIndex + 1))
+            {
+                FVector PosA = Track->InternalTrackData.PosKeys[FrameIndex];
+                FVector PosB = Track->InternalTrackData.PosKeys[FrameIndex + 1];
+                Transform.SetLocation(FMath::Lerp(PosA, PosB, Fraction));
+            }
+
+            if (Track->InternalTrackData.ScaleKeys.IsValidIndex(FrameIndex) &&
+                Track->InternalTrackData.ScaleKeys.IsValidIndex(FrameIndex + 1))
+            {
+                FVector ScaleA = Track->InternalTrackData.ScaleKeys[FrameIndex];
+                FVector ScaleB = Track->InternalTrackData.ScaleKeys[FrameIndex + 1];
+                Transform.SetScale(FMath::Lerp(ScaleA, ScaleB, Fraction));
+            }
+        }
         OutPose.Pose.BoneTransforms.Add(Transform);
-        index++;
     }
 
 

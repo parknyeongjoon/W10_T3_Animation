@@ -32,7 +32,7 @@ public:
     /** Renames all named notifies with InOldName to InNewName */
     void RenameNotifies(FName InOldName, FName InNewName);
 
-    virtual void GetAnimationPose(struct FPoseContext& OutPose, const FAnimExtractContext& ExtractionContext) const;
+    void GetAnimationPose(struct FPoseContext& OutPose, const FAnimExtractContext& ExtractionContext) const;
     virtual void EvaluateCurveData(struct FBlendedCurve& OutCurve, const FAnimExtractContext& ExtractionContext) const;
 
     TArray<FAnimNotifyEvent> Notifies;

@@ -72,19 +72,37 @@ void UAnimInstance::UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime
     USkeletalMeshComponent* SkeletalMeshComp = GetOwningComponent();
     USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMesh();
 
-    for (const auto& Name : BoneNames)
-    {
-        FTransform Transform = DataModel->GetBoneTrackTransform(Name, CurrentTime);
-        FMatrix TransformMatrix = JungleMath::CreateModelMatrix(
-            Transform.GetLocation(),
-            Transform.GetRotation(),
-            Transform.GetScale()
-        );
+    //for (const auto& Name : BoneNames)
+    //{   
+    //    FTransform Transform = DataModel->GetBoneTrackTransform(Name, CurrentTime);
+    //    FMatrix TransformMatrix = JungleMath::CreateModelMatrix(
+    //        Transform.GetLocation(),
+    //        Transform.GetRotation(),
+    //        Transform.GetScale()
+    //    );
 
-        int BoneIndex = SkeletalMesh->GetSkeleton()->GetRefSkeletal()->BoneNameToIndexMap[Name.ToString()];
-        SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform = TransformMatrix;
+    //    int BoneIndex = SkeletalMesh->GetSkeleton()->GetRefSkeletal()->BoneNameToIndexMap[Name.ToString()];
+    //    SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform = TransformMatrix;
+    //}
+
+
+    FPoseContext Pose;
+    FAnimExtractContext Context(CurrentTime, true, false);
+    AnimSequence->GetAnimationPose(Pose, Context);
+
+    for (int32 i = 0; i < SkeletalMesh->GetRenderData().Bones.Num(); ++i)
+    {
+        const FTransform& BoneTransform = Pose.Pose.BoneTransforms[i];
+        FMatrix TransformMatrix = JungleMath::CreateModelMatrix(
+            BoneTransform.GetLocation(),
+            BoneTransform.GetRotation(),
+            BoneTransform.GetScale()
+        );
+        SkeletalMesh->GetRenderData().Bones[i].LocalTransform = TransformMatrix;
     }
 
+
+    std::cout << "CurrentTime : " << CurrentTime << std::endl;
     CurrentTime += DeltaTime;
     if (CurrentTime > DataModel->GetPlayLength())
     {
