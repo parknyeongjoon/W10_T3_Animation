@@ -12,6 +12,7 @@
 
 #include "Math/Matrix.h"
 
+class FArchive;
 
 struct FVertexSimple
 {
@@ -30,6 +31,8 @@ struct FMaterialSubset
     uint32 IndexCount; // Index Count
     uint32 MaterialIndex; // Material Index
     FString MaterialName; // Material Name
+    void Serialize(FArchive& ar) const;
+    void Deserialize(FArchive& ar);
 };
 
 struct FMaterialSlot
@@ -118,6 +121,9 @@ struct FObjMaterialInfo
     FWString NormalTexturePath;
 
     float NormalScale = 1.0f;
+
+    void Serialize(FArchive& Ar) const;
+    void Deserialize(FArchive& Ar);
 };
 
 // Cooked Data

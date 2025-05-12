@@ -26,6 +26,16 @@ public:
         materialInfo.TransparencyScalar = TransparencyIn;
         materialInfo.bTransparent = (TransparencyIn < 1.0f);
     }
+
+    virtual void Serialize(FArchive& Ar) const
+    {
+        Ar << materialInfo;
+    }
+
+    virtual void Deserialize(FArchive& Ar)
+    {
+        Ar >> materialInfo;
+    }
 private:
     FObjMaterialInfo materialInfo;
 };

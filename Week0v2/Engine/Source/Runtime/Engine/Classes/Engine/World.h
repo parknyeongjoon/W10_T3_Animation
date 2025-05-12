@@ -29,11 +29,10 @@ public:
     void InitWorld();
     void LoadLevel(const FString& LevelName);
     void PreLoadResources();
-    void CreateBaseObject();
+    void CreateBaseObject(EWorldType::Type WorldType);
     void ReleaseBaseObject();
     void Tick(ELevelTick tickType, float deltaSeconds);
     void Release();
-    void ReloadScene(const FString& FileName);
     void LoadScene(const FString& FileName);
     void SaveScene(const FString& FileName);
     void ClearScene();

@@ -32,6 +32,7 @@ void FResourceManager::Initialize(FGraphicsDevice* device)
 	LoadTextureFromDDS(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/UUID_Font.dds");
 	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png");
 	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/spotLight.png");
+	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Contents/Textures/Logo.png");
 }
 
 void FResourceManager::Release()

@@ -41,11 +41,12 @@ void UWorld::InitWorld()
     PreLoadResources();
     if (WorldType == EWorldType::Editor)
     {
-        LoadScene("Assets/Scenes/NewScene.Scene");
+        // LoadScene("Assets/Scenes/NewScene.Scene");
+        CreateBaseObject(WorldType);
     }
-    else if (WorldType == EWorldType::EditorPreview)
+    else
     {
-        CreateBaseObject();
+        CreateBaseObject(WorldType);
     }
 }
 
@@ -61,14 +62,18 @@ void UWorld::PreLoadResources()
     FManagerOBJ::CreateStaticMesh(TEXT("Assets/CastleObj.obj"));
 }
 
-void UWorld::CreateBaseObject()
+void UWorld::CreateBaseObject(EWorldType::Type WorldType)
 {
-    if (LocalGizmo == nullptr)
+    if (WorldType == EWorldType::PIE) return;
+    if (LocalGizmo == nullptr && WorldType)
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(this);
     }
     
-    PlayerCameraManager = SpawnActor<APlayerCameraManager>();
+    if (PlayerCameraManager == nullptr) // TODO APlayer랑 결합해주기
+    {
+        PlayerCameraManager = SpawnActor<APlayerCameraManager>();
+    }
 }
 
 
@@ -167,6 +172,14 @@ void UWorld::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
     UObject::DuplicateSubObjects(SourceObj, InOuter);
     Level = Cast<ULevel>(Level->Duplicate(this));
     LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(this);
+    for (const auto Actor : GetActors())
+    {
+        if (APlayerCameraManager* CameraManager = Cast<APlayerCameraManager>(Actor))
+        {
+            PlayerCameraManager = CameraManager;
+            break;
+        }
+    }
 }
 
 void UWorld::PostDuplicate()
@@ -179,19 +192,10 @@ UWorld* UWorld::GetWorld() const
     return const_cast<UWorld*>(this);
 }
 
-void UWorld::ReloadScene(const FString& FileName)
-{
-    ClearScene(); // 기존 오브젝트 제거
-    CreateBaseObject();
-    FArchive ar;
-    FWindowsBinHelper::LoadFromBin(FileName, ar);
-
-    ar >> *this;
-}
-
 void UWorld::LoadScene(const FString& FileName)
 {
-    CreateBaseObject();
+    ClearScene(); // 기존 오브젝트 제거
+    CreateBaseObject(WorldType);
     FArchive ar;
     FWindowsBinHelper::LoadFromBin(FileName, ar);
 

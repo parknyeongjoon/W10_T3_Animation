@@ -1,6 +1,7 @@
 #include "EditorEngine.h"
 
 #include "LaunchEngineLoop.h"
+#include "PlayerCameraManager.h"
 #include "WindowsCursor.h"
 #include "Engine/World.h"
 #include "UnrealEd/EditorViewportClient.h"
@@ -8,6 +9,7 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "UObject/UObjectIterator.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
+#include "Camera/CameraFadeInOut.h"
 #include "Contents/UI/ContentsUI.h"
 #include "Coroutine/LuaCoroutine.h"
 #include "GameFramework/Actor.h"
@@ -152,6 +154,13 @@ void UEditorEngine::StartPIE()
     {
         viewportClient->SetWorld(PIEWorldContext->GetWorld());
     }
+
+    // Logo Fade In/Out
+    APlayerCameraManager* PlayerCameraManager = PIEWorldContext->GetWorld()->GetPlayerCameraManager();
+    UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>(PlayerCameraManager);
+    CameraModifier->StartFadeIn(0.002f);
+    PlayerCameraManager->AddCameraModifier(CameraModifier);
+    
     UE_LOG(LogLevel::Display, "Start PIE");
 }
 

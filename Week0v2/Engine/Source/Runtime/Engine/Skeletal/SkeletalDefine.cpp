@@ -1,4 +1,6 @@
 ﻿#include "SkeletalDefine.h"
+#include "Components/Material/Material.h"
+#include "Engine/FLoaderOBJ.h"
 
 FVector FSkeletalVertex::SkinVertexPosition(const TArray<FBone>& bones) const
 {
@@ -16,6 +18,42 @@ FVector FSkeletalVertex::SkinVertexPosition(const TArray<FBone>& bones) const
     }
 
     return result;
+}
+
+void FRefSkeletal::Serialize(FArchive& Ar) const
+{
+    Ar << Name
+        << RawVertices
+        << RawBones
+        << BoneTree
+        << RootBoneIndices
+        << BoneNameToIndexMap
+        << MaterialSubsets;
+    Ar << Materials.Num();
+    for (const auto& material : Materials)
+    {
+        Ar << *material;
+    }
+}
+
+void FRefSkeletal::Deserialize(FArchive& Ar)
+{
+    int MaterialCount;
+    Ar >> Name
+        >> RawVertices
+        >> RawBones
+        >> BoneTree
+        >> RootBoneIndices
+        >> BoneNameToIndexMap
+        >> MaterialSubsets;
+    Ar >> MaterialCount;
+    Materials.SetNum(MaterialCount);
+    for (auto& material : Materials)
+    {
+        material = FObjectFactory::ConstructObject<UMaterial>(nullptr);
+        Ar >> *material;
+        FManagerOBJ::RegisterMaterial(material->GetMaterialInfo().MTLName, material);
+    }
 }
 
 void FSkeletalVertex::SkinningVertex(const TArray<FBone>& bones)

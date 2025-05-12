@@ -24,6 +24,7 @@ public:
     static TMap<FName, FSkeletalMeshRenderData*> GetAllSkeletalMeshData() { return SkeletalMeshData; }
     
     static FRefSkeletal* GetRefSkeletal(FString FilePath);
+    static FSkeletalMeshRenderData* ParseBin(FString FilePath);
     static TMap<FName, FRefSkeletal*> GetAllRefSkeletal() { return RefSkeletalData; }
 
     static TMap<FName, UAnimDataModel*> GetAllAnimData() { return AnimDataMap; }
@@ -73,4 +74,5 @@ private:
         float BoneWeight;
     };
     inline static TMap<uint32, TArray<FBoneWeightInfo>> SkinWeightMap;
+    inline static TMap<FName, UAnimDataModel*> ParsedAnimData;
 };
