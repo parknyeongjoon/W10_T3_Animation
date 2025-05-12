@@ -1,6 +1,7 @@
 #pragma once
 #include "AnimationAsset.h"
 #include "AnimTypes.h"
+#include "TestFBXLoader.h"
 #include "UObject/ObjectMacros.h"
 
 class UAnimDataModel;
@@ -12,7 +13,10 @@ public:
 
     PROPERTY(float, RateScale)
     
-    UAnimDataModel* GetDataMode() const { return DataModel; }
+    UAnimDataModel* GetDataModel() const { return DataModel; }
+
+    void SetData(UAnimDataModel* InDataModel) { DataModel = InDataModel; }
+    void SetData(const FString& FilePath);
 
     /** Sort the Notifies array by time, earliest first. */
     void SortNotifies();

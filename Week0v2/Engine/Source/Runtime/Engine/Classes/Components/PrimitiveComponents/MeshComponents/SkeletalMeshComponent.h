@@ -2,6 +2,7 @@
 #include "MeshComponent.h"
 #include "Components/Mesh/SkeletalMesh.h"
 
+class UAnimInstance;
 class UStaticMeshComponent;
 
 class USkeletalMeshComponent : public UMeshComponent
@@ -17,6 +18,8 @@ public:
     virtual void PostDuplicate() override;
     virtual void TickComponent(float DeltaTime) override;
 
+    void SetData(const FString& FilePath);
+
     PROPERTY(int, SelectedSubMeshIndex);
 
     virtual uint32 GetNumMaterials() const override;
@@ -31,6 +34,10 @@ public:
     USkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
     void SetSkeletalMesh(USkeletalMesh* value);
     USkeletalMesh* LoadSkeletalMesh(const FString& FilePath);
+
+    UAnimInstance* GetAnimInstance() const { return AnimInstance; }
+    void SetAnimInstance(UAnimInstance* InAnimInstance) { AnimInstance = InAnimInstance; };
+    
     void CreateBoneComponents();
     void UpdateBoneHierarchy();
 
@@ -41,5 +48,7 @@ private:
 
 protected:
     USkeletalMesh* SkeletalMesh = nullptr;
+    UAnimInstance* AnimInstance = nullptr;
+    
     int SelectedSubMeshIndex = -1;
 };
