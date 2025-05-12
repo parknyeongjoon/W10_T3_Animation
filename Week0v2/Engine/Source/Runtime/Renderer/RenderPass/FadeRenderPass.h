@@ -19,6 +19,9 @@ public:
     class ID3D11Buffer* FadeConstantBuffer = nullptr;
 
     void UpdateFadeConstant();
-
+    
     TArray<APlayerCameraManager*> PlayerCameraManagers;
+    
+private:
+    float AccumulatedFadeAlpha = 0.0f;
 };

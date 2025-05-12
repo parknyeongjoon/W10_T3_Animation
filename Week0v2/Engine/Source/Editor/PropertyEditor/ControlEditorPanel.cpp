@@ -129,7 +129,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 
         if (ImGui::MenuItem("New Scene"))
         {
-            World->ReloadScene("Assets/Scenes/NewScene.scene");
+            World->LoadScene("Assets/Scenes/NewScene.scene");
         }
 
         if (ImGui::MenuItem("Load Scene"))
@@ -143,7 +143,7 @@ void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
                 ImGui::End();
                 return;
             }
-            World->ReloadScene(FileName);
+            World->LoadScene(FileName);
         }
 
         ImGui::Separator();

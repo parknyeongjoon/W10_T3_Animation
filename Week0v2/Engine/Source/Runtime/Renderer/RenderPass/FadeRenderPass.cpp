@@ -56,7 +56,9 @@ void FFadeRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
         Graphics.DeviceContext->PSSetSamplers(0, 1, &Sampler);
 
         const auto PreviousSRV = Graphics.GetPreviousShaderResourceView();
-        Graphics.DeviceContext->PSSetShaderResources(1, 1, &PreviousSRV);
+        const auto LogoSRV = GEngineLoop.ResourceManager.GetTexture(L"Contents/Textures/Logo.png")->TextureSRV;
+        const auto SRV = (AccumulatedFadeAlpha > 0.0f && AccumulatedFadeAlpha < 1.0f) ? LogoSRV : PreviousSRV;
+        Graphics.DeviceContext->PSSetShaderResources(1, 1, &SRV);
     }
 }
 
@@ -83,7 +85,7 @@ void FFadeRenderPass::UpdateFadeConstant()
 
     FFadeConstants FadeConstants;
     FLinearColor AccumulatedFadeColor = {0.f,0.f,0.f,0.f}; // 시작은 완전 투명 (알파 0)
-    float AccumulatedFadeAlpha = 0.0f;
+    AccumulatedFadeAlpha = 0.0f;
     
     for (APlayerCameraManager* iter : PlayerCameraManagers)
     {
@@ -91,8 +93,7 @@ void FFadeRenderPass::UpdateFadeConstant()
         const TArray<float>* BlendWeightsPtr = nullptr;
         iter->GetCachedPostProcessBlends(PPSettingsPtr, BlendWeightsPtr);
         
-        
-        if (PPSettingsPtr )
+        if (PPSettingsPtr)
         {
             int32 NumSettings = PPSettingsPtr->Num();
             for (int i = 0 ; i < NumSettings; ++i)
@@ -132,36 +133,9 @@ void FFadeRenderPass::UpdateFadeConstant()
     FadeConstants.FadeColor.A = 1.0f; // 알파는 1로 고정 (페이드 색상은 완전 불투명)
     FadeConstants.FadeAlpha = AccumulatedFadeAlpha;
 
-    if (FadeConstants.FadeAlpha >0.1f)
-    {
-        int a = 0;
-    }
-        
-
-
     const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
 
     renderResourceManager->UpdateConstantBuffer(FadeConstantBuffer, &FadeConstants);
     Graphics.DeviceContext->PSSetConstantBuffers(0, 1, &FadeConstantBuffer);
-
-        
 }
-
-// void FFadeRenderPass::UpdateFadeConstant()
-// {
-//     const FGraphicsDevice& Graphics = GEngine->graphicDevice;
-//     FRenderResourceManager* renderResourceManager = GEngine->renderer.GetResourceManager();
-//     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
-//
-//     FFogCameraConstant CameraConstants;
-//     CameraConstants.InvProjMatrix = FMatrix::Inverse(curEditorViewportClient->GetProjectionMatrix());
-//     CameraConstants.InvViewMatrix = FMatrix::Inverse(curEditorViewportClient->GetViewMatrix());
-//     CameraConstants.CameraForward = curEditorViewportClient->ViewTransformPerspective.GetForwardVector();
-//     CameraConstants.CameraPos = curEditorViewportClient->ViewTransformPerspective.GetLocation();
-//     CameraConstants.NearPlane = curEditorViewportClient->GetNearClip();
-//     CameraConstants.FarPlane = curEditorViewportClient->GetFarClip();
-//
-//     renderResourceManager->UpdateConstantBuffer(FadeConstantBuffer, &CameraConstants);
-//     Graphics.DeviceContext->PSSetConstantBuffers(0, 1, &FadeConstantBuffer);
-// }

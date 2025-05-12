@@ -78,8 +78,6 @@ void FGameManager::EndGame()
     UCameraLetterBox* CameraLetterBox = FObjectFactory::ConstructObject<UCameraLetterBox>(PlayerCameraManager);
     CameraLetterBox->DeactivateLetterbox(1.0f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
-    
-    //GetWorld()->ReloadScene("Assets/Scenes/EndGame.scene");
 }
 
 void FGameManager::SpawnEnemy()
@@ -100,7 +98,7 @@ void FGameManager::EditorTick(float DeltaTime)
 {    
     if (CurrentGameState == EGameState::PrepareRestart)
     {
-        GEngine->GetWorld()->ReloadScene("Assets/Scenes/Game.scene");
+        GEngine->GetWorld()->LoadScene("Assets/Scenes/Game.scene");
         if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
         {
             EditorEngine->GetLevelEditor()->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
