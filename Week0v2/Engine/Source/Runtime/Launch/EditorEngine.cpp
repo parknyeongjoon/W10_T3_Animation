@@ -33,6 +33,7 @@ void UEditorEngine::Init()
     SkeletalPreviewUI = new FSkeletalPreviewUI();
 
     UWorld* EditorWorld = CreateWorld(EWorldType::Editor, LEVELTICK_ViewportsOnly);
+    EditorWorldContext = CreateNewWorldContext(EditorWorld, EWorldType::Editor, LEVELTICK_ViewportsOnly);
     
     /* must be initialized before window. */
     LevelEditor->Initialize(EditorWorld, GEngineLoop.GetDefaultWindow());
@@ -58,7 +59,7 @@ void UEditorEngine::Init()
 
 void UEditorEngine::Tick(float DeltaTime)
 {
-    for (const auto& [World, WorldContext] : WorldContexts)
+    for (const auto& [key, WorldContext] : WorldContexts)
     {
         WorldContext->GetWorld()->Tick(WorldContext->LevelType, DeltaTime);
     }
@@ -77,9 +78,9 @@ void UEditorEngine::Release()
 {
     LevelEditor->Release();
     
-    for (const auto& [World, WorldContext] : WorldContexts)
+    for (const auto& [key, WorldContext] : WorldContexts)
     {
-        World->Release();
+        WorldContext->GetWorld()->Release();
     }
     WorldContexts.Empty();
     
@@ -151,7 +152,7 @@ void UEditorEngine::StartPIE()
     {
         viewportClient->SetWorld(PIEWorldContext->GetWorld());
     }
-    UE_LOG(LogLevel::Error, "Start PIE");
+    UE_LOG(LogLevel::Display, "Start PIE");
 }
 
 void UEditorEngine::PausedPIE()
@@ -164,7 +165,7 @@ void UEditorEngine::PausedPIE()
     {
         PIEWorldContext->LevelType = LEVELTICK_All;
     }
-    UE_LOG(LogLevel::Error, "Pause PIE");
+    UE_LOG(LogLevel::Display, "Pause PIE");
 }
 
 void UEditorEngine::ResumingPIE()
@@ -180,7 +181,7 @@ void UEditorEngine::StopPIE()
         return;
     }
 
-    WorldContexts.Remove(PIEWorldContext->GetWorld());
+    WorldContexts.Remove(PIEWorldContext->GetWorld()->GetUUID());
     for (const auto& viewportClient: GetLevelEditor()->GetViewportClients(GEngineLoop.GetDefaultWindow()))
     {
         viewportClient->SetWorld(EditorWorldContext->GetWorld());
@@ -230,11 +231,6 @@ UWorld* UEditorEngine::CreateWorld(EWorldType::Type WorldType, ELevelTick LevelT
     UWorld* World = FObjectFactory::ConstructObject<UWorld>(this);
     World->WorldType = WorldType;
     World->InitWorld();
-    std::shared_ptr<FWorldContext> WorldContext = CreateNewWorldContext(World, WorldType, LevelTick);
-    if (WorldType == EWorldType::Editor)
-        EditorWorldContext = WorldContext;
-    // std::shared_ptr<FWorldContext> EditorContext = CreateNewWorldContext(World, WorldType, LevelTick);
-
     return World;
 }
 
@@ -245,7 +241,7 @@ void UEditorEngine::RemoveWorld(UWorld* World)
         PreviewWorld = nullptr;
     }
     World->Release();    
-    WorldContexts.Remove(World);
+    WorldContexts.Remove(World->GetUUID());
 }
 
 UWorld* UEditorEngine::CreatePreviewWindow()
@@ -273,12 +269,11 @@ std::shared_ptr<FWorldContext> UEditorEngine::CreateNewWorldContext(UWorld* InWo
 {
     std::shared_ptr<FWorldContext> NewWorldContext = std::make_shared<FWorldContext>();
     NewWorldContext->WorldType = InWorldType;
-    WorldContexts.Add(InWorld, NewWorldContext);
     
-
+    WorldContexts.Add(InWorld->GetUUID(), NewWorldContext);
+    
     NewWorldContext->LevelType = LevelType;
     NewWorldContext->SetWorld(InWorld);
-    
 
     return NewWorldContext;
 }

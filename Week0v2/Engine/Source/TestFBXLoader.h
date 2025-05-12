@@ -54,7 +54,8 @@ private:
     // Anim
     static void ExtractFBXAnimData(const FbxScene* scene, const FString& FilePath);
     static void ExtractAnimClip(FbxAnimStack* AnimStack, const TArray<FbxNode*>& BoneNodes, const FString& FilePath);
-    static void ExtractAnimTrack(FbxAnimLayer* AnimLayer, FbxNode* BoneNode, FRawAnimSequenceTrack& AnimTrack);
+    static void ExtractAnimTrack(FbxNode* BoneNode, FRawAnimSequenceTrack& AnimTrack, const UAnimDataModel* AnimData);
+    static void ExtractAnimCurve(FbxAnimLayer* AnimLayer, FbxNode* BoneNode, FRawAnimSequenceTrack& AnimTrack);
 
 private:
     inline static FbxManager* FbxManager;

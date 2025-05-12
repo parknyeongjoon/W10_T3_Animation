@@ -60,7 +60,7 @@ private:
     // TODO 임시 Public 바꿔잇
 public:
     FContentsUI* ContentsUI = nullptr;
-    
+
     std::shared_ptr<FWorldContext> PIEWorldContext = nullptr;
     std::shared_ptr<FWorldContext> EditorWorldContext = nullptr;
 private:
