@@ -42,10 +42,10 @@ UTestAnimInstance::~UTestAnimInstance()
 }
 
 
-void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
+void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
-    USkeletalMeshComponent* SkeletalMesh = GetSkelMeshComponent();
+    USkeletalMeshComponent* SkeletalMesh = GetOwningComponent();
     AActor* OwnerPawn = SkeletalMesh->GetOwner();
 
     if (AnimStateMachine) AnimStateMachine->Update(DeltaSeconds);

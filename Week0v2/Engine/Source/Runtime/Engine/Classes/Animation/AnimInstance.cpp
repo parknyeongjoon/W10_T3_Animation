@@ -21,7 +21,7 @@ USkeletalMeshComponent* UAnimInstance::GetOwningComponent() const
 {
     return CastChecked<USkeletalMeshComponent>(GetOuter());
 }
-void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
+void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds) const
 {
     if (CurrentSequence)
     {
@@ -32,7 +32,7 @@ void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
             {
                 if (Notify.Notify)
                 {
-                    Notify.Notify->Notify(GetSkelMeshComponent(), CurrentSequence);
+                    Notify.Notify->Notify(GetOwningComponent(), CurrentSequence);
                 }
             }
         }
@@ -45,7 +45,7 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
     UpdateCurveValues(DeltaSeconds);
 }
 
-void UAnimInstance::UpdateCurveValues(float DeltaSeconds)
+void UAnimInstance::UpdateCurveValues(float DeltaSeconds) const
 {
     if (CurrentSequence)
     {

@@ -15,4 +15,11 @@ struct FAnimExtractContext
 {
 
     double CurrentTime;
+    bool bLooping;
+    bool bExtractRootMotion;
+
+    FAnimExtractContext(float InCurrentTime, bool bInLooping = true, bool bInExtractRootMotion = false)
+        : CurrentTime(InCurrentTime), bLooping(bInLooping), bExtractRootMotion(bInExtractRootMotion)
+    {
+    }
 };
