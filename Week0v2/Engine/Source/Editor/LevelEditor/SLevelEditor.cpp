@@ -355,34 +355,42 @@ void SLevelEditor::RegisterEditorInputDelegates()
 
                 switch (InMouseEvent.GetEffectingButton())  // NOLINT(clang-diagnostic-switch-enum)
                 {
-                case EKeys::RightMouseButton:
-                {
-                    if (!InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
+                    case EKeys::RightMouseButton:
                     {
-                        FWindowsCursor::SetShowMouseCursor(false);
-                        MousePinPosition = InMouseEvent.GetScreenSpacePosition();
-                    }
-                    break;
-                }
-                case EKeys::LeftMouseButton:
-                {
-                    if(InMouseEvent.IsLeftAltDown() && InMouseEvent.IsControlDown())
-                    {
-                        EditorPlayer->MultiSelectingStart();
-                    }
+                        if (!InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
+                        {
+                            FWindowsCursor::SetShowMouseCursor(false);
+                            MousePinPosition = InMouseEvent.GetScreenSpacePosition();
+                        }
 
-                    const FVector2D ClientPos = FWindowsCursor::GetClientPosition(AppWnd);
-                    FVector PickPosition;
-                    EditorPlayer->ScreenToViewSpace(ClientPos.X, ClientPos.Y, ActiveViewportClient->GetViewMatrix(), ActiveViewportClient->GetProjectionMatrix(), PickPosition);
-                    
-                    if (!EditorPlayer->PickGizmo(WindowViewportData.GetControlMode(), ActiveViewportClient->GetWorld(), PickPosition))
-                    {
-                        EditorPlayer->PickActor(ActiveViewportClient->GetWorld(), PickPosition);
+                            if (ActiveViewportClient)
+                            {
+                                ActiveViewportClient->SetRightMouseDown(true);
+                            }
+
+                        break;
                     }
-                    break;
-                }
-                default:
-                    break;
+                    case EKeys::LeftMouseButton:
+                    {
+                        if(InMouseEvent.IsLeftAltDown() && InMouseEvent.IsControlDown())
+                        {
+                            EditorPlayer->MultiSelectingStart();
+                        }
+
+                        const FVector2D ClientPos = FWindowsCursor::GetClientPosition(AppWnd);
+                        FVector PickPosition;
+                        EditorPlayer->ScreenToViewSpace(ClientPos.X, ClientPos.Y, ActiveViewportClient->GetViewMatrix(), ActiveViewportClient->GetProjectionMatrix(), PickPosition);
+                        
+                        if (!EditorPlayer->PickGizmo(WindowViewportData.GetControlMode(), ActiveViewportClient->GetWorld(), PickPosition))
+                        {
+                            EditorPlayer->PickActor(ActiveViewportClient->GetWorld(), PickPosition);
+                        }
+                        break;
+                    }
+                    default:
+                    {
+                        break;
+                    }
                 }
 
                 const FVector2D ClientPos = FWindowsCursor::GetClientPosition(AppWnd);
@@ -421,6 +429,7 @@ void SLevelEditor::RegisterEditorInputDelegates()
                 }
 
                 FWindowViewportClientData& WindowViewportData = WindowViewportDataMap[AppWnd];
+                const std::shared_ptr<FEditorViewportClient> ActiveViewportClient = WindowViewportData.GetActiveViewportClient();
 
                 switch (InMouseEvent.GetEffectingButton())  // NOLINT(clang-diagnostic-switch-enum)
                 {
@@ -431,6 +440,12 @@ void SLevelEditor::RegisterEditorInputDelegates()
                         static_cast<int32>(MousePinPosition.X),
                         static_cast<int32>(MousePinPosition.Y)
                     );
+
+
+                    if (ActiveViewportClient)
+                    {
+                        ActiveViewportClient->SetRightMouseDown(true);
+                    }
 
                     // @todo ImGui로 피킹된 액터의 옵션 메뉴 표기
                     return;

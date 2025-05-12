@@ -199,7 +199,10 @@ public: //Camera Movement
     void SetViewMode(const EViewModeIndex newMode) { ViewMode = newMode; }
     uint64 GetShowFlag() { return ShowFlag; }
     void SetShowFlag(uint64 newMode) { ShowFlag = newMode; }
-    bool GetIsOnRBMouseClick() { return bRightMouseDown; }
+
+    // 마우스 우클릭 상태 제어 메소드
+    void SetRightMouseDown(const bool bIsDown) { bRightMouseDown = bIsDown; }
+    bool GetRightMouseDown() const { return bRightMouseDown; }
 
     //camera overriding
     USceneComponent* GetOverrideComponent() { return OverrideComponent; }
@@ -207,8 +210,9 @@ public: //Camera Movement
 
     static float GetOrthoSize() { return OrthoSize; }
     static void SetOrthoSize(float InValue);
+
 private: // Input
-    POINT lastMousePos;
+    POINT LastMousePos_;
     bool bRightMouseDown = false;
     bool bLCtrlDown = false;
 

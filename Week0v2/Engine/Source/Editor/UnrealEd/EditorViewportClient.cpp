@@ -61,34 +61,6 @@ void FEditorViewportClient::Tick(float DeltaTime)
     UpdateViewMatrix();
     UpdateProjectionMatrix();
     UpdateCascadeShadowArea();
-
-    // ----- Test Start
-    // if (DebugCube.IsEmpty())
-    // {
-    //     for (int i=0;i<CASCADE_COUNT*8;i++)
-    //     {
-    //         AStaticMeshActor* TempActor = GetWorld()->SpawnActor<AStaticMeshActor>();
-    //         TempActor->SetActorLabel(TEXT("OBJ_CUBE"));
-    //         UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-    //         FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
-    //         MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
-    //         DebugCube.Add(TempActor);
-    //     }
-    // }
-    //
-    // for (int i=0;i<CASCADE_COUNT;i++)
-    // {
-    //     for (int j=0;j<8;j++)
-    //     {
-    //         DebugCube[i*8+j]->SetActorLocation(cascadeCorners[i][j]);
-    //     }
-    // }
-    // ----- Test Finish
-    
-    // UEditorEngine::renderer.GetConstantBufferUpdater().UpdateCameraConstant(
-    //     UEditorEngine::renderer.CameraConstantBuffer,
-    //     this
-    // );
 }
 
 void FEditorViewportClient::Release()
@@ -131,7 +103,6 @@ void FEditorViewportClient::UpdateEditorCameraMovement(const float DeltaTime)
 
 void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
 {
-    // TODO: 나중에 InKeyEvent.GetKey();로 가져오는걸로 수정하기
     // TODO: 나중에 PIEViewportClient에서 처리하는걸로 수정하기
     // if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
     // {
@@ -149,9 +120,8 @@ void FEditorViewportClient::InputKey(HWND AppWnd, const FKeyEvent& InKeyEvent)
     // // 에디터 모드
     // else
     {
-        // TODO: 나중에 InKeyEvent.GetKey();로 가져오는걸로 수정하기
         // 마우스 우클릭이 되었을때만 실행되는 함수
-        if (GetKeyState(VK_RBUTTON) & 0x8000)
+        if (bRightMouseDown)
         {
             switch (InKeyEvent.GetCharacter())
             {
@@ -362,7 +332,8 @@ void FEditorViewportClient::MouseMove(const FPointerEvent& InMouseEvent)
     const auto& [DeltaX, DeltaY] = InMouseEvent.GetCursorDelta();
 
     // 마우스 우클릭이 되었을때만 실행되는 함수
-    if (GetKeyState(VK_RBUTTON) & 0x8000)
+    // @todo bRightMouseDown와 InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton) 둘 중 무엇을 사용하는 게 좋을지? (FKeyEvent는 IsMouseButtonDown()이 없음)
+    if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
     {
         // Yaw(좌우 회전) 및 Pitch(상하 회전) 값 변경
         if (IsPerspective())
