@@ -9,7 +9,7 @@ enum class ETestState
 {
     Idle,
     Walking,
-    Running,
+    Dancing,
 };
 
 namespace std {
@@ -44,18 +44,17 @@ class UTestAnimInstance :
 public:
     UTestAnimInstance();
     ~UTestAnimInstance();
+    UTestAnimInstance(const UTestAnimInstance& Other);
 
-    virtual void TriggerAnimNotifies(float DeltaSeconds) const override;
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    //virtual void TriggerAnimNotifies(float DeltaSeconds) override;
     virtual void NativeUpdateAnimation(float DeltaSeconds) const override;
 private:
     UAnimationStateMachine<ETestState>* AnimStateMachine = nullptr;
 
-    UAnimSequence* CurrentSequence = nullptr;
     UAnimSequence* IdleSequence = nullptr;
     UAnimSequence* WalkSequence = nullptr;
-    UAnimSequence* RunSequence = nullptr;
+    UAnimSequence* DanceSequence = nullptr;
 
-    float CurrentTime;
-    float Speed;
 };
 
