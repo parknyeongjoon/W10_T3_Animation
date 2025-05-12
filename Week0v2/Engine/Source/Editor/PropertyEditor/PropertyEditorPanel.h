@@ -28,7 +28,6 @@ public:
     void DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent);
     virtual void OnResize(HWND hWnd) override;
 
-
 private:
     void RGBToHSV(float r, float g, float b, float& h, float& s, float& v) const;
     void HSVToRGB(float h, float s, float v, float& r, float& g, float& b) const;
