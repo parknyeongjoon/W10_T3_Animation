@@ -9,7 +9,7 @@ enum class ETestState
 {
     Idle,
     Walking,
-    Running,
+    Dancing,
 };
 
 namespace std {
@@ -52,7 +52,7 @@ private:
 
     UAnimSequence* IdleSequence = nullptr;
     UAnimSequence* WalkSequence = nullptr;
-    UAnimSequence* RunSequence = nullptr;
+    UAnimSequence* DanceSequence = nullptr;
 
     float Speed;
 };

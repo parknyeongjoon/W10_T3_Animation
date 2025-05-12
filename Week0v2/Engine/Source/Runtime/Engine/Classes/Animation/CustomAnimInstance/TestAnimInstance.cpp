@@ -6,30 +6,45 @@
 #include "Animation/AnimNotify/AnimNotify.h"
 UTestAnimInstance::UTestAnimInstance()
 {
+    IdleSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
+    WalkSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
+    DanceSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
+
+    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Idle.fbx");
+    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Walking.fbx");
+    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Rumba_Dancing.fbx");
 
     IdleSequence->SetData("Contents/FBX/Idle.fbx\\mixamo.com");
-    WalkSequence->SetData("Contents/FBX/Walking.fbx\\mixamo:com");
-    DanceSequence->SetData("Contents/FBX/Rumba_Dancing.fbx\\mixamo:com");
+    WalkSequence->SetData("Contents/FBX/Walking.fbx\\mixamo.com");
+    DanceSequence->SetData("Contents/FBX/Rumba_Dancing.fbx\\mixamo.com");
 
     AnimStateMachine = FObjectFactory::ConstructObject<UAnimationStateMachine<ETestState>>(this);
 
     //**State 추가**
-    AnimStateMachine->AddState(ETestState::Idle, [](float DeltaTime) {
-        std::cout << "Idle Animation Playing..." << std::endl;
+    AnimStateMachine->AddState(ETestState::Idle, [this](float DeltaTime) {
+        UpdateAnimation(IdleSequence, DeltaTime);
         });
 
-    AnimStateMachine->AddState(ETestState::Walking, [](float DeltaTime) {
-        std::cout << "Walking Animation Playing..." << std::endl;
+    AnimStateMachine->AddState(ETestState::Walking, [this](float DeltaTime) {
+        UpdateAnimation(WalkSequence, DeltaTime);
         });
 
-    AnimStateMachine->AddState(ETestState::Dancing, [](float DeltaTime) {
-        std::cout << "Running Animation Playing..." << std::endl;
+    AnimStateMachine->AddState(ETestState::Dancing, [this](float DeltaTime) {
+        UpdateAnimation(DanceSequence, DeltaTime);
         });
 
     // **Transition Rule 정의**
-    AnimStateMachine->AddTransition(ETestState::Idle, ETestState::Walking, [&]() { return Speed > 0 && Speed <= 300.0f; });
-    AnimStateMachine->AddTransition(ETestState::Walking, ETestState::Dancing, [&]() { return Speed > 300.0f; });
-    AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Idle, [&]() { return Speed == 0; });
+    AnimStateMachine->AddTransition(ETestState::Idle, ETestState::Walking, [&]() { 
+        return (GetAsyncKeyState('Z') & 0x8000);
+        });
+
+    AnimStateMachine->AddTransition(ETestState::Walking, ETestState::Dancing, [&]() {
+        return (GetAsyncKeyState('X') & 0x8000);
+        });
+
+    AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Idle, [&]() {
+        return (GetAsyncKeyState('C') & 0x8000);
+        });
 
 
 

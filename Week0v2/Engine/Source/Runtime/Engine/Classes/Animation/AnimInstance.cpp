@@ -3,6 +3,10 @@
 #include "UObject/Casts.h"
 #include "Animation/AnimSequence.h"
 #include "Animation/AnimNotify/AnimNotify.h"
+#include "AnimData/AnimDataModel.h"
+#include "Math/JungleMath.h"
+#include "Components/Mesh/SkeletalMesh.h"
+#include "Animation/Skeleton.h"
 
 UObject* UAnimInstance::Duplicate(UObject* InOuter)
 {
@@ -43,6 +47,35 @@ void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
 {
     TriggerAnimNotifies(DeltaSeconds);
     UpdateCurveValues(DeltaSeconds);
+}
+
+void UAnimInstance::UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime)
+{
+    const UAnimDataModel* DataModel = AnimSequence->GetDataModel();
+    TArray<FName> BoneNames;
+    DataModel->GetBoneTrackNames(BoneNames);
+
+    USkeletalMeshComponent* SkeletalMeshComp = GetOwningComponent();
+    USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMesh();
+
+    for (const auto& Name : BoneNames)
+    {
+        FTransform Transform = DataModel->GetBoneTrackTransform(Name, CurrentTime);
+        FMatrix TransformMatrix = JungleMath::CreateModelMatrix(
+            Transform.GetLocation(),
+            Transform.GetRotation(),
+            Transform.GetScale()
+        );
+
+        int BoneIndex = SkeletalMesh->GetSkeleton()->GetRefSkeletal()->BoneNameToIndexMap[Name.ToString()];
+        SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform = TransformMatrix;
+    }
+
+    CurrentTime += DeltaTime;
+    if (CurrentTime > DataModel->GetPlayLength())
+    {
+        CurrentTime = 0.0f;
+    }
 }
 
 void UAnimInstance::UpdateCurveValues(float DeltaSeconds) const

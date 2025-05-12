@@ -21,7 +21,7 @@ public:
     UAnimInstance() = default;
     UAnimInstance(const UAnimInstance&) = default;
 
-    UObject* Duplicate(UObject* InOuter) override;
+    virtual UObject* Duplicate(UObject* InOuter) override;
 
     // APawn* TryGetPawnOwner() const;
     AActor* GetOwningActor() const;
@@ -37,11 +37,10 @@ public:
     
     void TriggerAnimNotifies(float DeltaSeconds) const;
     void UpdateCurveValues(float DeltaSeconds) const ;
-    // 테스트 코드
-    UAnimSequence* AnimA = FObjectFactory::ConstructObject<UAnimSequence>(nullptr);
-    UAnimSequence* AnimB = FObjectFactory::ConstructObject<UAnimSequence>(nullptr);
-protected:
+
     virtual void NativeUpdateAnimation(float DeltaSeconds) const;
+    void UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime);
+protected:
 
 private:
     USkeleton* Skeleton;
