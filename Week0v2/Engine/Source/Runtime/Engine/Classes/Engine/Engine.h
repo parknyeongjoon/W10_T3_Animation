@@ -40,6 +40,7 @@ public:
 
     static inline UINT GFrameCount = 0;
 
+    std::shared_ptr<FWorldContext> GetWorldContextByKey(FName key);
 protected:
-    TMap<UWorld*, std::shared_ptr<FWorldContext>> WorldContexts;
+    TMap<uint32, std::shared_ptr<FWorldContext>> WorldContexts;
 };
