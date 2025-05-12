@@ -20,12 +20,13 @@ class UEditorPlayer : public UObject
     static bool PickGizmo(ControlMode ControlMode, UWorld* World, const FVector& PickPosition);
     void PickActor(UWorld* World, const FVector& PickPosition) const;
 
-private:
-    static int RayIntersectsObject(const FVector& PickPosition, USceneComponent* Component, float& HitDistance, int& IntersectCount);
-    static void ScreenToViewSpace(int ScreenX, int ScreenY, const FMatrix& viewMatrix, const FMatrix& ProjectionMatrix, FVector& RayOrigin);
-    void PickedObjControl(ControlMode ControlMode, CoordiMode CoordiMode, UWorld* World);
     void MultiSelectingStart();
     void MultiSelectingEnd(UWorld* World);
+
+    static void ScreenToViewSpace(int ScreenX, int ScreenY, const FMatrix& viewMatrix, const FMatrix& ProjectionMatrix, FVector& RayOrigin);
+private:
+    static int RayIntersectsObject(const FVector& PickPosition, USceneComponent* Component, float& HitDistance, int& IntersectCount);
+    void PickedObjControl(ControlMode ControlMode, CoordiMode CoordiMode, UWorld* World);
     void MakeMulitRect() const;
 
     void ControlRotation(CoordiMode CoordiMode, UWorld* World, USceneComponent* pObj, const UGizmoBaseComponent* Gizmo, int32 DeltaX, int32 DeltaY);
