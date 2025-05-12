@@ -2,6 +2,31 @@
 #include "AnimNodeBase.h"
 #include "AnimData/AnimDataModel.h"
 
+UAnimSequenceBase::UAnimSequenceBase(const UAnimSequenceBase& Other)
+    :UAnimationAsset(Other),
+    Notifies(Other.Notifies),
+    RateScale(Other.RateScale),
+    DataModel(Other.DataModel)
+{
+}
+
+UObject* UAnimSequenceBase::Duplicate(UObject* InOuter)
+{
+    UAnimSequenceBase* NewComp = FObjectFactory::ConstructObjectFrom<UAnimSequenceBase>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
+    NewComp->PostDuplicate();
+    return NewComp;
+}
+
+void UAnimSequenceBase::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
+{
+    Super::DuplicateSubObjects(Source, InOuter);
+}
+
+void UAnimSequenceBase::PostDuplicate()
+{
+}
+
 void UAnimSequenceBase::SetData(const FString& FilePath)
 {
     SetData(TestFBXLoader::GetAnimData(FilePath));

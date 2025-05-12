@@ -19,10 +19,11 @@ class UAnimInstance : public UObject
     DECLARE_CLASS(UAnimInstance, UObject)
 public:
     UAnimInstance() = default;
-    UAnimInstance(const UAnimInstance&) = default;
+    UAnimInstance(const UAnimInstance& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;
-
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
+    virtual void PostDuplicate() override;
     // APawn* TryGetPawnOwner() const;
     AActor* GetOwningActor() const;
     USkeletalMeshComponent* GetOwningComponent() const;
@@ -45,9 +46,8 @@ protected:
 private:
     USkeleton* Skeleton;
     FBlendedCurve BlendedCurve;
-
     UAnimSequence* CurrentSequence = nullptr;
 
-    float CurrentTime;
+    float CurrentTime = 0;
 };
 

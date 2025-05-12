@@ -11,7 +11,11 @@ class UAnimSequenceBase : public UAnimationAsset
     DECLARE_CLASS(UAnimSequenceBase, UAnimationAsset)
 public:
     UAnimSequenceBase() = default;
+    UAnimSequenceBase(const UAnimSequenceBase& Other);
 
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
+    virtual void PostDuplicate() override;
     PROPERTY(float, RateScale)
     
     UAnimDataModel* GetDataModel() const { return DataModel; }

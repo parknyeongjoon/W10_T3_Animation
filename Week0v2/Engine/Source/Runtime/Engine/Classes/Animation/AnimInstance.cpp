@@ -8,12 +8,26 @@
 #include "Components/Mesh/SkeletalMesh.h"
 #include "Animation/Skeleton.h"
 
+UAnimInstance::UAnimInstance(const UAnimInstance& Other) 
+    :UObject(Other)
+
+{
+}
+
 UObject* UAnimInstance::Duplicate(UObject* InOuter)
 {
     UAnimInstance* NewComp = FObjectFactory::ConstructObjectFrom<UAnimInstance>(this, InOuter);
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;
+}
+
+void UAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
+{
+}
+
+void UAnimInstance::PostDuplicate()
+{
 }
 
 AActor* UAnimInstance::GetOwningActor() const

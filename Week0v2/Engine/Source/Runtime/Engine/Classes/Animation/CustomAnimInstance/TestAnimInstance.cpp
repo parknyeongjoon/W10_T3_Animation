@@ -60,6 +60,32 @@ UTestAnimInstance::~UTestAnimInstance()
 {
 }
 
+UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 
+    UAnimInstance(Other),
+    AnimStateMachine(Other.AnimStateMachine),
+    IdleSequence(Other.IdleSequence),
+    WalkSequence(Other.WalkSequence),
+    DanceSequence(Other.DanceSequence)
+{
+}
+
+UObject* UTestAnimInstance::Duplicate(UObject* InOuter)
+{
+    UTestAnimInstance* NewComp = FObjectFactory::ConstructObjectFrom<UTestAnimInstance>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
+    NewComp->PostDuplicate();
+    return NewComp;
+}
+
+void UTestAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
+{
+    Super::DuplicateSubObjects(Source, InOuter);
+}
+
+void UTestAnimInstance::PostDuplicate()
+{
+}
+
 
 void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
 {

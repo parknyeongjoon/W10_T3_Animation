@@ -44,7 +44,11 @@ class UTestAnimInstance :
 public:
     UTestAnimInstance();
     ~UTestAnimInstance();
+    UTestAnimInstance(const UTestAnimInstance& Other);
 
+    virtual UObject* Duplicate(UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
+    virtual void PostDuplicate() override;
     //virtual void TriggerAnimNotifies(float DeltaSeconds) override;
     virtual void NativeUpdateAnimation(float DeltaSeconds) const override;
 private:
@@ -54,6 +58,5 @@ private:
     UAnimSequence* WalkSequence = nullptr;
     UAnimSequence* DanceSequence = nullptr;
 
-    float Speed;
 };
 
