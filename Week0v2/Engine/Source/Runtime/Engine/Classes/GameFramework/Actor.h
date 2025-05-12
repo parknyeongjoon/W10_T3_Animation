@@ -20,6 +20,7 @@ class AActor : public UObject
 
 public:
     AActor() = default;
+    ~AActor() override = default;
     AActor(const AActor& Other);
     /** Actor가 게임에 배치되거나 스폰될 때 호출됩니다. */
     virtual void BeginPlay();
@@ -36,7 +37,7 @@ public:
      * @param EndPlayReason EndPlay가 호출된 이유를 나타내는 열거형 값
      * @note Destroyed와는 다른점은, EndPlay는 레벨 전환, 게임 종료, 또는 Destroy() 호출 시 항상 실행됩니다.
      */
-    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
+    virtual void EndPlay(EEndPlayReason::Type EndPlayReason);
     sol::protected_function LuaFunctionEndPlay;
 
 public:
@@ -60,7 +61,7 @@ public:
 
     // 클래스 정보를 바탕으로 컴포넌트를 새로 추가.
     UActorComponent* AddComponentByClass(UClass* ComponentClass, EComponentOrigin Origin);
-    UActorComponent* AddComponentByName(FString ComponentName, EComponentOrigin Origin);
+    UActorComponent* AddComponentByName(const FString& ComponentName, EComponentOrigin Origin);
     void AddComponent(UActorComponent* Component);
     /** Actor가 가지고 있는 Component를 제거합니다. */
     void RemoveOwnedComponent(UActorComponent* Component);
@@ -72,8 +73,8 @@ public:
         requires std::derived_from<T, UActorComponent>
     T* GetComponentByClass() const;
 
-    void InitializeComponents();
-    void UninitializeComponents();
+    void InitializeComponents() const;
+    void UninitializeComponents() const;
 
 public:
     USceneComponent* GetRootComponent() const { return RootComponent; }
@@ -91,13 +92,13 @@ public:
     FVector GetActorRightVector() const { return RootComponent ? RootComponent->GetWorldRightVector() : FVector::RightVector; }
     FVector GetActorUpVector() const { return RootComponent ? RootComponent->GetWorldUpVector() : FVector::UpVector; }
 
-    bool SetActorLocation(const FVector& NewLocation);
+    bool SetActorLocation(const FVector& NewLocation) const;
     bool SetActorRotation(const FRotator& NewRotation) const;
-    bool SetActorScale(const FVector& NewScale);
-    
-    virtual UObject* Duplicate(UObject* InOuter) override;
-    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
-    virtual void PostDuplicate() override;
+    bool SetActorScale(const FVector& NewScale) const;
+
+    UObject* Duplicate(UObject* InOuter) override;
+    void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
+    void PostDuplicate() override;
 
 public:
     virtual void LoadAndConstruct(const TArray<std::unique_ptr<FActorComponentInfo>>& InfoArray);

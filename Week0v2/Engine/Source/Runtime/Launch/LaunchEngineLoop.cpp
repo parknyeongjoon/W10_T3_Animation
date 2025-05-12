@@ -18,13 +18,9 @@ FGraphicsDevice FEngineLoop::GraphicDevice;
 FRenderer FEngineLoop::Renderer;
 FResourceManager FEngineLoop::ResourceManager;
 
-extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
-FEngineLoop::FEngineLoop()
-{
-}
-
-int32 FEngineLoop::Init(HINSTANCE hInstance)
+int32 FEngineLoop::Init(const HINSTANCE hInstance)
 {
     WCHAR EngineWindowClass[] = L"JungleWindowClass";
     WCHAR EngineTitle[] = L"GTL TTAL KKAK";
@@ -49,7 +45,7 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
 
     GEngine->Init();
 
-    for (auto& AppWnd : AppWindows)
+    for (const auto& AppWnd : AppWindows)
     {
         UpdateUI(AppWnd);
     }
@@ -60,7 +56,7 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
 void FEngineLoop::Tick()
 {
     LARGE_INTEGER Frequency;
-    const float targetFrameTime = 1000.0 / TargetFPS; // 한 프레임의 목표 시간 (밀리초 단위)
+    const float TargetFrameTime = 1000.0f / TargetFPS; // 한 프레임의 목표 시간 (밀리초 단위)
 
     QueryPerformanceFrequency(&Frequency);
 
@@ -71,13 +67,13 @@ void FEngineLoop::Tick()
     {
         QueryPerformanceCounter(&StartTime);
 
-        MSG msg;
-        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+        MSG Msg;
+        while (PeekMessage(&Msg, nullptr, 0, 0, PM_REMOVE))
         {
-            TranslateMessage(&msg); // 키보드 입력 메시지를 문자메시지로 변경
-            DispatchMessage(&msg);  // 메시지를 WndProc에 전달
+            TranslateMessage(&Msg); // 키보드 입력 메시지를 문자메시지로 변경
+            DispatchMessage(&Msg);  // 메시지를 WndProc에 전달
 
-            if (msg.message == WM_QUIT && !AppWindows.Contains(DefaultWindow))
+            if (Msg.message == WM_QUIT && !AppWindows.Contains(DefaultWindow))
             {
                 bIsExit = true;
                 break;
@@ -98,15 +94,15 @@ void FEngineLoop::Tick()
             ElapsedTime = static_cast<double>(EndTime.QuadPart - StartTime.QuadPart) * 1000.0 / static_cast<double>(Frequency.QuadPart);
 
         }
-        while (ElapsedTime < targetFrameTime);
+        while (ElapsedTime < TargetFrameTime);
 
         UEngine::GFrameCount++;
     }
 }
 
-void FEngineLoop::Render()
+void FEngineLoop::Render() const
 {
-    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    const UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
     if (EditorEngine == nullptr)
     {
         return;
@@ -117,11 +113,11 @@ void FEngineLoop::Render()
     {
         return;
     }
-    
-    uint32 OriginalIndex = LevelEditor->GetCurrentViewportClientIndex();
-    HWND OriginalWindow = LevelEditor->GetCurrentViewportWindow();
+
+    const uint32 OriginalIndex = LevelEditor->GetCurrentViewportClientIndex();
+    const HWND OriginalWindow = LevelEditor->GetCurrentViewportWindow();
     TArray<HWND> CopiedAppWindows = AppWindows;
-    for (auto& AppWindow : CopiedAppWindows)
+    for (const auto& AppWindow : CopiedAppWindows)
     {
         LevelEditor->FocusViewportClient(AppWindow, 0);
         TArray<std::shared_ptr<FEditorViewportClient>> ViewportClients = LevelEditor->GetViewportClients(AppWindow);
@@ -193,7 +189,7 @@ void FEngineLoop::Render()
     LevelEditor->FocusViewportClient(OriginalWindow, OriginalIndex);
 }
 
-void FEngineLoop::Exit()
+void FEngineLoop::Exit() const
 {
     ImGuiManager::Get().Release();
     
@@ -208,7 +204,7 @@ void FEngineLoop::ClearPendingCleanupObjects()
 {
 }
 
-HWND FEngineLoop::CreateEngineWindow(HINSTANCE hInstance, WCHAR WindowClass[], WCHAR Title[])
+HWND FEngineLoop::CreateEngineWindow(const HINSTANCE hInstance, WCHAR WindowClass[], WCHAR Title[])
 {
     WNDCLASSW wc{};
     wc.lpfnWndProc = AppWndProc;
@@ -218,7 +214,7 @@ HWND FEngineLoop::CreateEngineWindow(HINSTANCE hInstance, WCHAR WindowClass[], W
 
     RegisterClassW(&wc);
 
-    HWND AppWnd = CreateWindowExW(
+    const HWND AppWnd = CreateWindowExW(
         0, WindowClass, Title, WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, 1400, 1000,
         nullptr, nullptr, hInstance, nullptr
@@ -235,7 +231,7 @@ HWND FEngineLoop::CreateEngineWindow(HINSTANCE hInstance, WCHAR WindowClass[], W
     return AppWnd;
 }
 
-void FEngineLoop::DestroyEngineWindow(HWND AppWnd, HINSTANCE hInstance, WCHAR WindowClass[])
+void FEngineLoop::DestroyEngineWindow(const HWND AppWnd, const HINSTANCE hInstance, WCHAR WindowClass[])
 {
     DestroyWindow(AppWnd);
     UnregisterClassW(WindowClass, hInstance);
@@ -250,12 +246,12 @@ void FEngineLoop::UpdateUI(HWND AppWnd) const
     Console::GetInstance().OnResize(AppWnd);
     if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
     {
-        if (UnrealEd* UnrealEditor = EditorEngine->GetUnrealEditor())
+        if (const UnrealEd* UnrealEditor = EditorEngine->GetUnrealEditor())
         {
             UnrealEditor->OnResize(AppWnd);
         }
 
-        if (FSkeletalPreviewUI* SkeletalPreviewUI = EditorEngine->GetSkeletalPreviewUI())
+        if (const FSkeletalPreviewUI* SkeletalPreviewUI = EditorEngine->GetSkeletalPreviewUI())
         {
             SkeletalPreviewUI->OnResize(AppWnd);
         }
@@ -267,13 +263,13 @@ void FEngineLoop::UpdateUI(HWND AppWnd) const
     }
 }
 
-LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK FEngineLoop::AppWndProc(const HWND hWnd, const UINT Msg, const WPARAM wParam, const LPARAM lParam)
 {
     if (ImGuiContext* TargetContext = ImGuiManager::Get().GetImGuiContext(hWnd))
     {
         ImGuiContext* OriginalContext = ImGui::GetCurrentContext();
         ImGui::SetCurrentContext(TargetContext);
-        if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+        if (ImGui_ImplWin32_WndProcHandler(hWnd, Msg, wParam, lParam))
         {
             ImGui::SetCurrentContext(OriginalContext);
             return true;
@@ -281,11 +277,11 @@ LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, UINT message, WPARAM wParam,
         ImGui::SetCurrentContext(OriginalContext);
     }
     
-    switch (message)
+    switch (Msg)
     {
-    case WM_CLOSE:
+        case WM_CLOSE:
         {
-            HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(hWnd, GWLP_HINSTANCE));
+            const auto hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(hWnd, GWLP_HINSTANCE));
             WCHAR ClassName[256];
             GetClassNameW(hWnd, ClassName, sizeof(ClassName) / sizeof(WCHAR));
             GEngineLoop.DestroyEngineWindow(hWnd, hInstance, ClassName);
@@ -307,34 +303,34 @@ LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, UINT message, WPARAM wParam,
             }
         }
         //break;
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    case WM_SIZE:
-        if (wParam != SIZE_MINIMIZED)
-        {
-            FEngineLoop::GraphicDevice.OnResize(hWnd);
-            
-            if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+        case WM_SIZE:
+            if (wParam != SIZE_MINIMIZED)
             {
-                if (SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor())
+                FEngineLoop::GraphicDevice.OnResize(hWnd);
+                
+                if (const UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
                 {
-                    FVector2D ClientSize = FWindowsCursor::GetClientSize(hWnd);
-                    LevelEditor->ResizeWindow(hWnd, ClientSize);
-                    // for (std::shared_ptr<FEditorViewportClient>& ViewportClient : LevelEditor->GetViewports())
-                    // {
-                    //     FWindowData& WindowData = FEngineLoop::GraphicDevice.SwapChains[hWnd];
-                    //     ViewportClient->ResizeViewport(WindowData.screenWidth, WindowData.screenHeight);
-                    // }
-                }   
+                    if (SLevelEditor* LevelEditor = EditorEngine->GetLevelEditor())
+                    {
+                        const FVector2D ClientSize = FWindowsCursor::GetClientSize(hWnd);
+                        LevelEditor->ResizeWindow(hWnd, ClientSize);
+                        // for (std::shared_ptr<FEditorViewportClient>& ViewportClient : LevelEditor->GetViewports())
+                        // {
+                        //     FWindowData& WindowData = FEngineLoop::GraphicDevice.SwapChains[hWnd];
+                        //     ViewportClient->ResizeViewport(WindowData.screenWidth, WindowData.screenHeight);
+                        // }
+                    }   
+                }
             }
-        }
-        ViewportTypePanel::GetInstance().OnResize(hWnd);
-        GEngineLoop.UpdateUI(hWnd);
-        break;
-    default:
-        GEngineLoop.AppMessageHandler->ProcessMessage(hWnd, message, wParam, lParam);
-        return DefWindowProc(hWnd, message, wParam, lParam);
+            ViewportTypePanel::GetInstance().OnResize(hWnd);
+            GEngineLoop.UpdateUI(hWnd);
+            break;
+        default:
+            GEngineLoop.AppMessageHandler->ProcessMessage(hWnd, Msg, wParam, lParam);
+            return DefWindowProc(hWnd, Msg, wParam, lParam);
     }
 
     return 0;

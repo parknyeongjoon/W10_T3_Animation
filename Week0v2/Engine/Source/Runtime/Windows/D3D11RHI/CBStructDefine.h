@@ -209,6 +209,11 @@ struct alignas(16) FConstatntBufferActor
     FVector padding; // offset: 20, size: 12
 };
 
+struct alignas(16) FBoneConstant
+{
+    FMatrix BoneSkinningMatrices[128];
+};
+
 enum class EShaderConstantBuffer : std::uint8_t
 {
     FCameraConstant = 0,

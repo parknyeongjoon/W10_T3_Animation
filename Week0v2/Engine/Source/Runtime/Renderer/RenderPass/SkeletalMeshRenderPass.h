@@ -28,6 +28,7 @@ private:
     void UpdateMatrixConstants(USkeletalMeshComponent* InStaticMeshComponent, const FMatrix& InView, const FMatrix& InProjection);
     void UpdateFlagConstant();
     void UpdateLightConstants();
+    void UpdateBoneConstant(USkeletalMeshComponent* SkeletalMeshComponent);
     void UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo);
     void UpdateCameraConstant(const std::shared_ptr<FViewportClient>& InViewportClient);
 

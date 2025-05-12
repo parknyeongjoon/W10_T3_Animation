@@ -20,7 +20,7 @@ FFunctionRegistry* UObject::FunctionRegistry()
 
 UObject* UObject::Duplicate(UObject* InOuter)
 {
-    UObject* NewObject = new UObject();
+    const auto NewObject = new UObject();
     NewObject->DuplicateSubObjects(this, InOuter);       // 깊은 복사 수행
     return NewObject;
 }
@@ -46,7 +46,7 @@ UObject* UObject::GetOuter() const
 
 UWorld* UObject::GetWorld() const
 {
-    if (UObject* Outer = GetOuter())
+    if (const UObject* Outer = GetOuter())
     {
         return Outer->GetWorld();
     }
@@ -60,11 +60,11 @@ bool UObject::IsA(const UClass* SomeBase) const
     return ThisClass->IsChildOf(SomeBase);
 }
 
-void* UObject::operator new(size_t size)
+void* UObject::operator new(const size_t Size)
 {
-    UE_LOG(LogLevel::Display, "UObject Created : %d", size);
+    UE_LOG(LogLevel::Display, "UObject Created : %d", Size);
 
-    void* RawMemory = FPlatformMemory::Malloc<EAT_Object>(size);
+    void* RawMemory = FPlatformMemory::Malloc<EAT_Object>(Size);
     UE_LOG(
         LogLevel::Display,
         "TotalAllocationBytes : %d, TotalAllocationCount : %d",
@@ -74,19 +74,8 @@ void* UObject::operator new(size_t size)
     return RawMemory;
 }
 
-void UObject::operator delete(void* ptr, size_t size)
+void UObject::operator delete(void* Ptr, const size_t Size)
 {
-    UE_LOG(LogLevel::Display, "UObject Deleted : %d", size);
-    FPlatformMemory::Free<EAT_Object>(ptr, size);
+    UE_LOG(LogLevel::Display, "UObject Deleted : %d", Size);
+    FPlatformMemory::Free<EAT_Object>(Ptr, Size);
 }
-
-// FVector4 UObject::EncodeUUID() const {
-//     FVector4 result;
-//
-//     result.X = UUID & 0xFF;
-//     result.Y = (UUID >> 8) & 0xFF;
-//     result.Z = (UUID >> 16) & 0xFF;
-//     result.W = (UUID >> 24) & 0xFF;
-//
-//     return result;
-// }

@@ -10,7 +10,7 @@ cbuffer FMatrixConstants : register(b0)
     row_major float4x4 MInverseTranspose;
     bool isSelected;
     float3 pad0;
-};
+}
 
 struct VS_INPUT
 {
@@ -18,8 +18,8 @@ struct VS_INPUT
     float3 normal : NORMAL; // 버텍스 노멀
     float4 tangent : TANGENT;
     float2 texcoord : TEXCOORD;
-    int4 boneIndices : BORN_INDICES;
-    float4 boneWeights : BONE_WEIGHTS;
+    float boneIndices[4] : BORN_INDICES;
+    float boneWeights[4] : BONE_WEIGHTS;
 };
 
 struct PS_INPUT
@@ -127,6 +127,11 @@ cbuffer FMaterialConstants : register(b4)
     float MaterialPad0;
 }
 
+cbuffer FBoneConstant : register(b5)
+{
+    float4x4 BoneSkinningMatrices[128];
+}
+
 float3 CalculateDirectionalLight(
     FDirectionalLight Light,
     float3 Normal,
@@ -224,10 +229,20 @@ float3 CalculateSpotLight(
 PS_INPUT mainVS(VS_INPUT input)
 {
     PS_INPUT output;
+
+    float4 weightedPos = float4(0,0,0,0);
+    for (int i = 0; i < 4; i++)
+    {
+        if (input.boneWeights[i] > 0.0)
+        {
+            weightedPos += mul(BoneSkinningMatrices[input.boneIndices[i]], input.position) * input.boneWeights[i];
+        }
+    }
     
-    float4 worldPos = mul(input.position, Model);
+    float4 worldPos = mul(weightedPos, Model);
+    
     output.position = mul(worldPos, ViewProj);
-    output.worldPos = float3(worldPos.x, worldPos.y, worldPos.z);
+    output.worldPos = worldPos.xyz;
     output.texcoord = input.texcoord;
     
     float3 normal = mul(float4(input.normal, 0), MInverseTranspose).xyz;

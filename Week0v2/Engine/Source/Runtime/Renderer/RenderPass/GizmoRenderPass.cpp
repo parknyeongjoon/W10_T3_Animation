@@ -78,7 +78,7 @@ void FGizmoRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewport
     {
         if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
         {
-            ControlMode ControlMode = EditorEngine->GetLevelEditor()->GetActiveViewportClientData().GetControlMode();
+            EControlMode ControlMode = EditorEngine->GetLevelEditor()->GetActiveViewportClientData().GetControlMode();
             if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowX ||
                 GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowY ||
                 GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowZ)

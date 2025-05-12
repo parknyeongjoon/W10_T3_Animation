@@ -1,6 +1,7 @@
 #pragma once
+#include "HAL/PlatformType.h"
 
-enum EViewModeIndex
+enum EViewModeIndex : uint8
 {
     VMI_Lit_Goroud = 0,
     VMI_Lit_Lambert = 1,
@@ -12,7 +13,7 @@ enum EViewModeIndex
     MAXCOUNT = 7,
 };
 
-enum ELevelTick
+enum ELevelTick : uint8
 {
     /** Update the level time only. */
     LEVELTICK_TimeOnly = 0,
@@ -24,26 +25,26 @@ enum ELevelTick
     LEVELTICK_PauseTick = 3,
 };
 
-enum ELevelViewportType
+enum ELevelViewportType : uint8
 {
     LVT_Perspective = 0,
     /** Top */
     LVT_OrthoXY = 1,
     /** Bottom */
-    LVT_OrthoNegativeXY,
+    LVT_OrthoNegativeXY = 2,
     /** Left */
-    LVT_OrthoYZ,
+    LVT_OrthoYZ = 3,
     /** Right */
-    LVT_OrthoNegativeYZ,
+    LVT_OrthoNegativeYZ = 4,
     /** Front */
-    LVT_OrthoXZ,
+    LVT_OrthoXZ = 5,
     /** Back */
-    LVT_OrthoNegativeXZ,
-    LVT_MAX,
+    LVT_OrthoNegativeXZ = 6,
+    LVT_MAX = 7,
     LVT_None = 255,
 };
 
-enum class EEditorState
+enum class EEditorState : uint8
 {
     Editing,        // 기본 에디터
     PreparingPlay,  // 씬 복사 및 Playing 모드로 전환 전에 해야 할 일

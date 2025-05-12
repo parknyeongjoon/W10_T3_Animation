@@ -1,9 +1,9 @@
 #include "SSplitter.h"
 #include "LaunchEngineLoop.h"
 
-void SSplitter::Initialize(FRect initRect)
+void SSplitter::Initialize(const FRect InitRect)
 {
-    __super::Initialize(initRect);
+    __super::Initialize(InitRect);
     if (SideLT == nullptr)
     {
         SideLT = new SWindow();
@@ -14,15 +14,15 @@ void SSplitter::Initialize(FRect initRect)
     }
 }
 
-bool SSplitter::OnPressed(FPoint coord)
+bool SSplitter::OnPressed(const FPoint Coord)
 {
-    if (!IsHover(coord))
+    if (!IsHover(Coord))
     {
         return false;
     }
 
-    bIsSplitterPressed = IsSplitterHovered(coord);
-    
+    bIsSplitterPressed = IsSplitterHovered(Coord);
+
     return bIsPressed = true;
 }
 
@@ -30,7 +30,7 @@ bool SSplitter::OnReleased()
 {
     bIsPressed = false;
     bIsSplitterPressed = false;
-    
+
     return false;
 }
 
@@ -47,21 +47,21 @@ bool SSplitter::IsSplitterHovered(const FPoint& InPoint) const
     return true;
 }
 
-void SSplitter::LoadConfig(const TMap<FString, FString>& config)
+void SSplitter::LoadConfig(const TMap<FString, FString>& Config)
 {
 }
 
-void SSplitter::SaveConfig(TMap<FString, FString>& config) const
+void SSplitter::SaveConfig(TMap<FString, FString>& Config) const
 {
 }
 
-void SSplitterH::Initialize(FRect initRect)
+void SSplitterH::Initialize(const FRect InitRect)
 {
-    __super::Initialize(initRect);
+    __super::Initialize(InitRect);
     UpdateChildRects();
 }
 
-void SSplitterH::Resize(float InWidth, float InHeight)
+void SSplitterH::Resize(const float InWidth, const float InHeight)
 {
     __super::Resize(InWidth, InHeight);
 
@@ -88,7 +88,7 @@ void SSplitterH::OnDrag(const FPoint& Delta)
 
     // 픽셀 단위 이동을 위해 정수형으로 변환 후 계산
     SplitRatio = std::trunc(CenterX) / Rect.Width;
-    
+
     UpdateChildRects();
 }
 
@@ -96,7 +96,7 @@ void SSplitterH::UpdateChildRects()
 {
     // 픽셀 단위로 계산하기 위해 정수형으로 변환
     const uint32 SplitterCenterX = static_cast<uint32>(GetSplitterLTCenter());
-    
+
     if (SideLT)
     {
         SideLT->Initialize(FRect(
@@ -109,7 +109,7 @@ void SSplitterH::UpdateChildRects()
     if (SideRB)
     {
         const float Offset = static_cast<float>(SplitterCenterX + SplitterHalfThickness);
-        
+
         SideRB->Initialize(FRect(
             Offset,
             0.0f,
@@ -119,34 +119,34 @@ void SSplitterH::UpdateChildRects()
     }
 }
 
-void SSplitterH::LoadConfig(const TMap<FString, FString>& config)
+void SSplitterH::LoadConfig(const TMap<FString, FString>& Config)
 {
     // 각 키에 대해 기본값을 지정 (예: 기본 위치 및 크기)
-    Rect.LeftTopX = GetValueFromConfig(config, "SplitterH.X", GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth * 0.5f);
-    Rect.LeftTopY = GetValueFromConfig(config, "SplitterH.Y", 0.0f);
+    Rect.LeftTopX = GetValueFromConfig(Config, "SplitterH.X", FEngineLoop::GraphicDevice.GetDefaultWindowData().ScreenWidth * 0.5f);
+    Rect.LeftTopY = GetValueFromConfig(Config, "SplitterH.Y", 0.0f);
 
-    Rect.Width = GetValueFromConfig(config, "SplitterH.Width", 20.0f);
-    Rect.Height = GetValueFromConfig(config, "SplitterH.Height", 10.0f); // 수평 스플리터는 높이 고정
-    
-    Rect.LeftTopX *= GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth / GetValueFromConfig(config, "SplitterV.Width", 1000.0f);
+    Rect.Width = GetValueFromConfig(Config, "SplitterH.Width", 20.0f);
+    Rect.Height = GetValueFromConfig(Config, "SplitterH.Height", 10.0f); // 수평 스플리터는 높이 고정
+
+    Rect.LeftTopX *= FEngineLoop::GraphicDevice.GetDefaultWindowData().ScreenWidth / GetValueFromConfig(Config, "SplitterV.Width", 1000.0f);
 }
 
-void SSplitterH::SaveConfig(TMap<FString, FString>& config) const
+void SSplitterH::SaveConfig(TMap<FString, FString>& Config) const
 {
-    config["SplitterH.X"] = std::to_string(Rect.LeftTopX);
-    config["SplitterH.Y"] = std::to_string(Rect.LeftTopY);
-    config["SplitterH.Width"] = std::to_string(Rect.Width);
-    config["SplitterH.Height"] = std::to_string(Rect.Height);
+    Config["SplitterH.X"] = std::to_string(Rect.LeftTopX);
+    Config["SplitterH.Y"] = std::to_string(Rect.LeftTopY);
+    Config["SplitterH.Width"] = std::to_string(Rect.Width);
+    Config["SplitterH.Height"] = std::to_string(Rect.Height);
 }
 
-void SSplitterV::Initialize(FRect InRect)
+void SSplitterV::Initialize(const FRect InRect)
 {
     __super::Initialize(InRect);
 
     UpdateChildRects();
 }
 
-void SSplitterV::Resize(float InWidth, float InHeight)
+void SSplitterV::Resize(const float InWidth, const float InHeight)
 {
     __super::Resize(InWidth, InHeight);
 
@@ -172,7 +172,7 @@ void SSplitterV::OnDrag(const FPoint& Delta)
 
     // 픽셀 단위 이동을 위해 정수형으로 변환 후 계산
     SplitRatio = std::trunc(CenterY) / Rect.Height;
-    
+
     UpdateChildRects();
 }
 
@@ -180,7 +180,7 @@ void SSplitterV::UpdateChildRects()
 {
     // 픽셀 단위로 계산하기 위해 정수형으로 변환
     const uint32 SplitterCenterY = static_cast<uint32>(GetSplitterLTCenter());
-    
+
     if (SideLT)
     {
         SideLT->Initialize(FRect(
@@ -193,7 +193,7 @@ void SSplitterV::UpdateChildRects()
     if (SideRB)
     {
         const float Offset = static_cast<float>(SplitterCenterY + SplitterHalfThickness);
-        
+
         SideRB->Initialize(FRect(
             0.0f,
             Offset,
@@ -203,21 +203,20 @@ void SSplitterV::UpdateChildRects()
     }
 }
 
-void SSplitterV::LoadConfig(const TMap<FString, FString>& config)
+void SSplitterV::LoadConfig(const TMap<FString, FString>& Config)
 {
-    Rect.LeftTopX = GetValueFromConfig(config, "SplitterV.X", 0.0f);
-    Rect.LeftTopY = GetValueFromConfig(config, "SplitterV.Y", GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight * 0.5f);
-    Rect.Width = GetValueFromConfig(config, "SplitterV.Width", 10); // 수직 스플리터는 너비 고정
-    Rect.Height = GetValueFromConfig(config, "SplitterV.Height", 20);
+    Rect.LeftTopX = GetValueFromConfig(Config, "SplitterV.X", 0.0f);
+    Rect.LeftTopY = GetValueFromConfig(Config, "SplitterV.Y", FEngineLoop::GraphicDevice.GetDefaultWindowData().ScreenHeight * 0.5f);
+    Rect.Width = GetValueFromConfig(Config, "SplitterV.Width", 10); // 수직 스플리터는 너비 고정
+    Rect.Height = GetValueFromConfig(Config, "SplitterV.Height", 20);
 
-    Rect.LeftTopY *= GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight / GetValueFromConfig(config, "SplitterH.Height", 1000.0f);
-
+    Rect.LeftTopY *= FEngineLoop::GraphicDevice.GetDefaultWindowData().ScreenHeight / GetValueFromConfig(Config, "SplitterH.Height", 1000.0f);
 }
 
-void SSplitterV::SaveConfig(TMap<FString, FString>& config) const
+void SSplitterV::SaveConfig(TMap<FString, FString>& Config) const
 {
-    config["SplitterV.X"] = std::to_string(Rect.LeftTopX);
-    config["SplitterV.Y"] = std::to_string(Rect.LeftTopY);
-    config["SplitterV.Width"] = std::to_string(Rect.Width);
-    config["SplitterV.Height"] = std::to_string(Rect.Height);
+    Config["SplitterV.X"] = std::to_string(Rect.LeftTopX);
+    Config["SplitterV.Y"] = std::to_string(Rect.LeftTopY);
+    Config["SplitterV.Width"] = std::to_string(Rect.Width);
+    Config["SplitterV.Height"] = std::to_string(Rect.Height);
 }

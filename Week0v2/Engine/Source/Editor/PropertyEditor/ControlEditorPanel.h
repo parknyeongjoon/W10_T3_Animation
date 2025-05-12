@@ -9,7 +9,7 @@ class SLevelEditor;
 class ControlEditorPanel : public UEditorPanel
 {
 public:
-    void Initialize(SLevelEditor* levelEditor, float Width, float Height);
+    void Initialize(SLevelEditor* LevelEditor, float Width, float Height);
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
 
@@ -21,10 +21,10 @@ private:
     void CreatePIEButton(ImVec2 ButtonSize) const;
     void CreateSRTButton(ImVec2 ButtonSize) const;
 
-    uint64 ConvertSelectionToFlags(const bool selected[]) const;
+    uint64 ConvertSelectionToFlags(const bool Selected[]) const;
     
 private:
-    SLevelEditor* activeLevelEditor;
+    SLevelEditor* ActiveLevelEditor = nullptr;
     float Width = 300, Height = 100;
     bool bOpenMenu = false;
 
