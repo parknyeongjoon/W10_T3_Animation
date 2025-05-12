@@ -82,6 +82,12 @@ UTransformGizmo::UTransformGizmo()
 
 void UTransformGizmo::Tick(float DeltaTime)
 {
+    if (GetWorld()->WorldType != EWorldType::Editor
+     || GetWorld()->WorldType != EWorldType::EditorPreview)
+    {
+        return;
+    }
+
 	Super::Tick(DeltaTime);
 
     TSet<AActor*> SelectedActors = GetWorld()->GetSelectedActors();

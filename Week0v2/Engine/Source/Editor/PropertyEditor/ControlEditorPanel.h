@@ -13,7 +13,6 @@ public:
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
 
-
 private:
     void CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont);
     void CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont);

@@ -337,4 +337,9 @@ struct FMath
 
 	    return fmodf(X, Y);
 	}
+
+    static FORCEINLINE float RoundToFloat(float F)
+	{
+	    return std::round(F + 0.5f);
+	}
 };

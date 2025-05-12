@@ -1,13 +1,17 @@
 #include "SkeletalMeshComponent.h"
 
 #include "TestFBXLoader.h"
+#include "Animation/AnimInstance.h"
 #include "Animation/Skeleton.h"
+#include "Animation/AnimData/AnimDataModel.h"
 #include "Engine/World.h"
 #include "Launch/EditorEngine.h"
 #include "UObject/ObjectFactory.h"
 #include "UnrealEd/PrimitiveBatch.h"
 #include "Classes/Engine/FLoaderOBJ.h"
 #include "GameFramework/Actor.h"
+#include "Math/JungleMath.h"
+#include "Math/Transform.h"
 #include "StaticMeshComponents/StaticMeshComponent.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent(const USkeletalMeshComponent& Other)
@@ -223,15 +227,40 @@ UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
 void USkeletalMeshComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
     UMeshComponent::DuplicateSubObjects(Source, InOuter);
-    // TODO: Material 복사
+    // TODO: SkeletalMesh 복사
+    AnimInstance = Cast<UAnimInstance>(Cast<USkeletalMeshComponent>(Source)->AnimInstance->Duplicate(this));
 }
 
 void USkeletalMeshComponent::PostDuplicate() {}
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
 {
-    //Timer += DeltaTime * 0.005f;
-    //SetLocation(GetWorldLocation()+ (FVector(1.0f,1.0f, 1.0f) * sin(Timer)));
+    static float Time = 0.0f;
+    Time += DeltaTime * 5;
+    const UAnimDataModel* DataModel = AnimInstance->AnimA->GetDataModel();
+    TArray<FName> BoneNames;
+    DataModel->GetBoneTrackNames(BoneNames);
+    
+    for (const auto& Name : BoneNames)
+    {
+        FTransform Transform = DataModel->GetBoneTrackTransform(Name, Time);
+        FMatrix TransformMatrix = Transform.ToMatrixWithScale();
+        int BoneIndex = SkeletalMesh->GetSkeleton()->GetRefSkeletal()->BoneNameToIndexMap[Name.ToString()];
+        SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform =  SkeletalMesh->GetSkeleton()->GetRefSkeletal()->RawBones[BoneIndex].LocalTransform * TransformMatrix;
+    }
+    
+    SkeletalMesh->UpdateBoneHierarchy();
+    SkeletalMesh->UpdateSkinnedVertices();
+}
+
+void USkeletalMeshComponent::SetData(const FString& FilePath)
+{
+    SkeletalMesh = LoadSkeletalMesh(FilePath);
+    
+    //Test 코드
+    AnimInstance = FObjectFactory::ConstructObject<UAnimInstance>(this);
+    AnimInstance->AnimA->SetData(FilePath + "\\mixamo.com");
+    AnimInstance->AnimB->SetData(FilePath + "\\mixamo:com");
 }
 
 void USkeletalMesh::ResetToOriginalPose()

@@ -45,8 +45,8 @@ public:
     UTestAnimInstance();
     ~UTestAnimInstance();
 
-    virtual void TriggerAnimNotifies(float DeltaSeconds) override;
-    virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+    virtual void TriggerAnimNotifies(float DeltaSeconds) const override;
+    virtual void NativeUpdateAnimation(float DeltaSeconds) const override;
 private:
     UAnimationStateMachine<ETestState>* AnimStateMachine = nullptr;
 
