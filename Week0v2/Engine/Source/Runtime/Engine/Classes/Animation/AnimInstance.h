@@ -32,14 +32,12 @@ public:
     // int32 GetStateMachineIndex(FName MachineName) const;
     /** Gets the runtime instance of the specified state machine */
     // const FAnimNode_StateMachine* GetStateMachineInstance(int32 MachineIndex) const;
-    
-    void TriggerAnimNotifies(float DeltaSeconds) const;
 
     // 테스트 코드
     UAnimSequence* AnimA = FObjectFactory::ConstructObject<UAnimSequence>(nullptr);
     UAnimSequence* AnimB = FObjectFactory::ConstructObject<UAnimSequence>(nullptr);
 protected:
-    virtual void TriggerAnimNotifies(float DeltaSeconsds);
+    virtual void TriggerAnimNotifies(float DeltaSeconsds) const;
     virtual void NativeUpdateAnimation(float DeltaSeconds) const;
 
 private:

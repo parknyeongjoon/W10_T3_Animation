@@ -40,7 +40,7 @@ UTestAnimInstance::UTestAnimInstance()
 UTestAnimInstance::~UTestAnimInstance()
 {
 }
-void UTestAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
+void UTestAnimInstance::TriggerAnimNotifies(float DeltaSeconds) const
 {
     if (CurrentSequence)
     {
@@ -58,7 +58,7 @@ void UTestAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
     }
 }
 
-void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
+void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
 {
     USkeletalMeshComponent* SkeletalMesh = GetSkelMeshComponent();
     AActor* OwnerPawn = SkeletalMesh->GetOwner();

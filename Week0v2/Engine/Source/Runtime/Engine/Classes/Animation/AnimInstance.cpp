@@ -31,6 +31,6 @@ USkeletalMeshComponent* UAnimInstance::GetSkelMeshComponent() const
     //return CastChecked<USkeletalMeshComponent>(GetOuter());
 }
 
-void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds)
+void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds) const
 {
 }
