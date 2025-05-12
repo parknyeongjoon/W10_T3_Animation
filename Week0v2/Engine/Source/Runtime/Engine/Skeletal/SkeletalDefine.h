@@ -15,6 +15,26 @@ struct FBone
     FMatrix GlobalTransform;
     FMatrix LocalTransform;
     int ParentIndex;
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << BoneName
+            << SkinningMatrix
+            << InverseBindPoseMatrix
+            << GlobalTransform
+            << LocalTransform
+            << ParentIndex;
+    }
+
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> BoneName
+            >> SkinningMatrix
+            >> InverseBindPoseMatrix
+            >> GlobalTransform
+            >> LocalTransform
+            >> ParentIndex;
+    }
 };
 
 struct FBoneNode
@@ -22,6 +42,16 @@ struct FBoneNode
     FString BoneName;
     int BoneIndex;             // Index in the Bones array
     TArray<int> ChildIndices;  // Indices of child bones
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << BoneName << BoneIndex << ChildIndices;
+    }
+    
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> BoneName >> BoneIndex >> ChildIndices;
+    }
 };
 
 struct FSkeletalVertex
@@ -34,6 +64,21 @@ struct FSkeletalVertex
     float BoneWeights[4];
 
     void SkinningVertex(const TArray<FBone>& bones);
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << Position << Normal << Tangent << TexCoord;
+        Ar << BoneIndices[0] << BoneIndices[1] << BoneIndices[2] << BoneIndices[3];
+        Ar << BoneWeights[0] << BoneWeights[1] << BoneWeights[2] << BoneWeights[3];
+    }
+
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> Position >> Normal >> Tangent >> TexCoord;
+        Ar >> BoneIndices[0] >> BoneIndices[1] >> BoneIndices[2] >> BoneIndices[3];
+        Ar >> BoneWeights[0] >> BoneWeights[1] >> BoneWeights[2] >> BoneWeights[3];
+    }
+    
 private:
     FVector SkinVertexPosition(const TArray<FBone>& bones) const;
 };
@@ -50,6 +95,10 @@ struct FRefSkeletal
     TMap<FString, int> BoneNameToIndexMap;  // For quick lookups
     TArray<UMaterial*> Materials;
     TArray<FMaterialSubset> MaterialSubsets;
+
+    void Serialize(FArchive& Ar) const;
+
+    void Deserialize(FArchive& Ar);
 };
 
 struct FSkeletalMeshRenderData
@@ -61,5 +110,19 @@ struct FSkeletalMeshRenderData
     FBoundingBox BoundingBox;
     ID3D11Buffer* VB = nullptr;
     ID3D11Buffer* IB = nullptr;
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << Name;
+        Ar << Vertices;
+        Ar << Indices;
+        Ar << Bones;
+        Ar << BoundingBox;
+    }
+
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> Name >> Vertices >> Indices >> Bones >> BoundingBox;
+    }
 };
 #pragma endregion

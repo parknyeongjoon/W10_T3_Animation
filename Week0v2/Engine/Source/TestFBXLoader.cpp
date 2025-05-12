@@ -33,9 +33,10 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     Importer->Destroy();
 
     FbxAxisSystem UnrealAxisSystem(
-    FbxAxisSystem::eZAxis,
-    FbxAxisSystem::eParityEven, // TODO Check
-    FbxAxisSystem::eLeftHanded);
+        FbxAxisSystem::eZAxis,
+        FbxAxisSystem::eParityEven, // TODO Check
+        FbxAxisSystem::eLeftHanded
+    );
     if (Scene->GetGlobalSettings().GetAxisSystem() != UnrealAxisSystem)
         UnrealAxisSystem.DeepConvertScene(Scene);
     
@@ -44,7 +45,8 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     {
         FbxSystemUnit::cm.ConvertScene(Scene);
     }
-    
+
+    ParsedAnimData.Empty();
     FSkeletalMeshRenderData* NewMeshData = new FSkeletalMeshRenderData();
     FRefSkeletal* RefSkeletal = new FRefSkeletal();
     
@@ -70,8 +72,50 @@ FSkeletalMeshRenderData* TestFBXLoader::ParseFBX(const FString& FilePath)
     
     SkeletalMeshData.Add(FilePath, NewMeshData);
     RefSkeletalData.Add(FilePath, RefSkeletal);
-
     Scene->Destroy();
+
+    // caching
+    std::filesystem::path fullpath(FilePath);
+    FString binSaveFilePath = "Contents/FBX/" + fullpath.filename().string() + ".bin";
+    FArchive ar;
+    ar << FilePath;
+    ar << *NewMeshData << *RefSkeletal;
+    ar << ParsedAnimData.Num();
+    for (const auto& parsed: ParsedAnimData)
+    {
+        ar << parsed.Key;
+        ar << *parsed.Value;
+    }
+    FWindowsBinHelper::SaveToBin(binSaveFilePath, ar);
+    
+    return NewMeshData;
+}
+
+FSkeletalMeshRenderData* TestFBXLoader::ParseBin(const FString FilePath)
+{
+    FSkeletalMeshRenderData* NewMeshData = new FSkeletalMeshRenderData();
+    FRefSkeletal* RefSkeletal = new FRefSkeletal();
+    
+    std::filesystem::path fullpath(FilePath);
+    FArchive ar;
+    FString originalFilePath;
+    FWindowsBinHelper::LoadFromBin(FilePath, ar);
+    ar >> originalFilePath;
+    ar >> *NewMeshData >> *RefSkeletal;
+    
+    int ParsedAnimCount;
+    FName AnimKey;
+    UAnimDataModel* AnimData = FObjectFactory::ConstructObject<UAnimDataModel>(nullptr);
+    ar >> ParsedAnimCount;
+    for (int i = 0; i < ParsedAnimCount; ++i)
+    {
+        ar >> AnimKey;
+        ar >> *AnimData;
+        AnimDataMap.Add(AnimKey, AnimData);
+    }
+    
+    SkeletalMeshData.Add(originalFilePath, NewMeshData);
+    RefSkeletalData.Add(originalFilePath, RefSkeletal);
     
     return NewMeshData;
 }
@@ -846,8 +890,10 @@ void TestFBXLoader::ExtractAnimClip(FbxAnimStack* AnimStack, const TArray<FbxNod
 
         AnimData->BoneAnimationTracks.Add(AnimTrack);
     }
-    
-    AnimDataMap.Add(FilePath + "\\" + AnimData->Name, AnimData);
+
+    FName key(FilePath + "\\" + AnimData->Name);
+    AnimDataMap.Add(key, AnimData);
+    ParsedAnimData.Add(key, AnimData);
 }
 
 void TestFBXLoader::ExtractAnimTrack(FbxNode* BoneNode, FRawAnimSequenceTrack& AnimTrack, const UAnimDataModel* AnimData)
@@ -1107,7 +1153,7 @@ FObjMaterialInfo TestFBXLoader::ConvertFbxToObjMaterialInfo(
 
 USkeletalMesh* TestFBXLoader::CreateSkeletalMesh(const FString& FilePath)
 {
-    // 있으면 return
+    // USkeletalMesh가 있으면 return
     USkeletalMesh* SkeletalMesh = GetSkeletalMesh(FilePath);
     if (SkeletalMesh != nullptr)
     {
@@ -1115,14 +1161,28 @@ USkeletalMesh* TestFBXLoader::CreateSkeletalMesh(const FString& FilePath)
         NewSkeletalMesh->SetData(FilePath);
         return NewSkeletalMesh;
     }
-    
-    FSkeletalMeshRenderData* MeshData = ParseFBX(FilePath);
+
+
+    // Contents/FBX/ 폴더 내에 대응되는 bin 파일 있는지 확인하고.
+    // 있으면 bin 파싱, 없으면 fbx 직접 파싱.
+    std::filesystem::path path(FilePath);
+    std::filesystem::path binPath("Contents/FBX/" + path.filename().string() + ".bin");
+    FSkeletalMeshRenderData* MeshData;
+    if (std::filesystem::exists(binPath))
+    {
+        MeshData = ParseBin(binPath.string());
+    }
+    else
+    {
+        MeshData = ParseFBX(FilePath);
+    }
+
     if (MeshData == nullptr)
         return nullptr;
-    
+
     SkeletalMesh = FObjectFactory::ConstructObject<USkeletalMesh>(nullptr);
     SkeletalMesh->SetData(FilePath);
-    
+
     SkeletalMeshMap.Add(FilePath, SkeletalMesh);
     return SkeletalMesh;
 }
@@ -1157,6 +1217,7 @@ FRefSkeletal* TestFBXLoader::GetRefSkeletal(FString FilePath)
     
     return nullptr;
 }
+
 
 bool TestFBXLoader::IsTriangulated(FbxMesh* Mesh)
 {

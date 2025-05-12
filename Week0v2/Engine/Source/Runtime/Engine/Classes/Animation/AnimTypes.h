@@ -1,9 +1,8 @@
 #pragma once
 #include "Container/Array.h"
 #include "UObject/NameTypes.h"
-
-class FVector;
-class FQuat;
+#include "Math/Vector.h"
+#include "Math/Quat.h"
 
 enum class EAnimInterpolationType : std::uint8_t
 {
@@ -68,12 +67,38 @@ struct FCurve
     ETangentWeightMode TangentWeightMode;
 
     float Evaluate(float CurrentTime) const;
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << Time << Value << ArriveTangent << LeaveTangent << TangentWeightArrive << TangentWeightLeave;
+        Ar << static_cast<uint32>(InterpMode) << static_cast<uint32>(TangentMode) << static_cast<uint32>(TangentWeightMode);
+    }
+
+    void Deserialize(FArchive& Ar)
+    {
+        uint32 interpMode, tangentMode, tangentWeightMode;
+        Ar >> Time >> Value >> ArriveTangent >> LeaveTangent >> TangentWeightArrive >> TangentWeightLeave;
+        Ar >> interpMode >> tangentMode >> tangentWeightMode;
+        InterpMode = static_cast<EAnimInterpolationType>(interpMode);
+        TangentMode = static_cast<ETangentMode>(tangentMode);
+        TangentWeightMode = static_cast<ETangentWeightMode>(tangentWeightMode);
+    }
 };
 
 struct FAnimationCurveData
 {
     FName CurveName;
     TArray<FCurve> CurveWeights;
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << CurveName << CurveWeights;
+    }
+
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> CurveName >> CurveWeights;
+    }
 };
 
 struct FAnimNotifyEvent
@@ -97,12 +122,27 @@ struct FRawAnimSequenceTrack
     TArray<float> KeyTimes;         // 각 키프레임의 시간값
 
     EAnimInterpolationType InterpMode;     // 전체 트랙의 보간 모드
+
+    void Serialize(FArchive& Ar) const;
+
+    void Deserialize(FArchive& Ar);
 };
+
 
 struct FBoneAnimationTrack
 {
     FName Name = "Empty";                       // Bone 이름
     FRawAnimSequenceTrack InternalTrackData;    // 실제 애니메이션 데이터
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << Name << InternalTrackData;
+    }
+
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> Name >> InternalTrackData;
+    }
 };
 
 struct FSkeletalAnimation
@@ -111,4 +151,14 @@ struct FSkeletalAnimation
     TArray<FBoneAnimationTrack> BoneAnimTracks;
     TArray<FAnimationCurveData> AttributeCurves;
     TArray<FAnimNotifyEvent> Notifies;
+
+    void Serialize(FArchive& Ar) const
+    {
+        Ar << Name << BoneAnimTracks << AttributeCurves;
+    }
+
+    void Deserialize(FArchive& Ar)
+    {
+        Ar >> Name >> BoneAnimTracks >> AttributeCurves;
+    }
 };

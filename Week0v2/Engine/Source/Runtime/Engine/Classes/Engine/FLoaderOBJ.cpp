@@ -694,6 +694,11 @@ UMaterial* FManagerOBJ::CreateMaterial(const FObjMaterialInfo& materialInfo)
     return newMaterial;
 }
 
+void FManagerOBJ::RegisterMaterial(const FString& name, UMaterial* Material)
+{
+    materialMap.Add(name, Material);
+}
+
 UMaterial* FManagerOBJ::GetMaterial(const FString& name)
 {
     if (materialMap.Contains(name))
