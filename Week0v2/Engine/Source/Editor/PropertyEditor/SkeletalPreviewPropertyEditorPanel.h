@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #pragma once
 #include "Define.h"
@@ -20,7 +20,6 @@ public:
     void DrawSceneComponentTree(USceneComponent* Component, UActorComponent*& PickedComponent);
     void DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent);
     virtual void OnResize(HWND hWnd) override;
-
 
 private:
     void RGBToHSV(float r, float g, float b, float& h, float& s, float& v) const;
