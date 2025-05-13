@@ -36,6 +36,7 @@ public:
     virtual void EvaluateCurveData(struct FBlendedCurve& OutCurve, const FAnimExtractContext& ExtractionContext) const;
 
     TArray<FAnimNotifyEvent> Notifies;
+    TArray<FAnimNotifyTrack> AnimNotifyTracks;
 protected:
     float RateScale;
     UAnimDataModel* DataModel;
