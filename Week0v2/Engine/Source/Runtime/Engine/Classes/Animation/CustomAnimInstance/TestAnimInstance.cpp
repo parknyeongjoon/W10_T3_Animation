@@ -20,6 +20,52 @@ UTestAnimInstance::UTestAnimInstance()
 
     AnimStateMachine = FObjectFactory::ConstructObject<UAnimationStateMachine<ETestState>>(this);
 
+    RegisterStateMachine();
+
+
+    // 초기 상태 설정
+    AnimStateMachine->SetState(ETestState::Idle);
+    CurrentSequence = IdleSequence;
+    PreviousSequence = IdleSequence;
+}
+
+UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 
+    UAnimInstance(Other),
+    IdleSequence(Other.IdleSequence),
+    WalkSequence(Other.WalkSequence),
+    DanceSequence(Other.DanceSequence)
+{
+}
+
+UObject* UTestAnimInstance::Duplicate(UObject* InOuter)
+{
+    UTestAnimInstance* NewComp = FObjectFactory::ConstructObjectFrom<UTestAnimInstance>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
+    NewComp->PostDuplicate();
+    NewComp->SetSkeleton(Cast<USkeletalMeshComponent>(InOuter)->GetSkeletalMesh()->GetSkeleton());
+    return NewComp;
+}
+
+void UTestAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
+{
+    AnimStateMachine = Cast<UAnimationStateMachine<ETestState>>(Cast<UTestAnimInstance>(Source)->AnimStateMachine->Duplicate(this));
+}
+
+void UTestAnimInstance::PostDuplicate()
+{
+    RegisterStateMachine();
+}
+
+
+void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
+{
+    Super::NativeUpdateAnimation(DeltaSeconds);
+
+    if (AnimStateMachine) AnimStateMachine->Update(DeltaSeconds);
+}
+
+void UTestAnimInstance::RegisterStateMachine()
+{
     //**State 추가**
     AnimStateMachine->AddState(ETestState::Idle, [this](float DeltaTime) {
         if (CurrentSequence != IdleSequence) {
@@ -67,7 +113,7 @@ UTestAnimInstance::UTestAnimInstance()
         });
 
     // **Transition Rule 정의**
-    AnimStateMachine->AddTransition(ETestState::Idle, ETestState::Walking, [&]() { 
+    AnimStateMachine->AddTransition(ETestState::Idle, ETestState::Walking, [&]() {
         return (GetAsyncKeyState('Z') & 0x8000);
         });
 
@@ -78,40 +124,4 @@ UTestAnimInstance::UTestAnimInstance()
     AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Idle, [&]() {
         return (GetAsyncKeyState('C') & 0x8000);
         });
-
-
-    // 초기 상태 설정
-    AnimStateMachine->SetState(ETestState::Idle);
-    CurrentSequence = IdleSequence;
-    PreviousSequence = IdleSequence;
-}
-
-UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 
-    UAnimInstance(Other),
-    IdleSequence(Other.IdleSequence),
-    WalkSequence(Other.WalkSequence),
-    DanceSequence(Other.DanceSequence)
-{
-}
-
-UObject* UTestAnimInstance::Duplicate(UObject* InOuter)
-{
-    UTestAnimInstance* NewComp = FObjectFactory::ConstructObjectFrom<UTestAnimInstance>(this, InOuter);
-    NewComp->DuplicateSubObjects(this, InOuter);
-    NewComp->PostDuplicate();
-    NewComp->SetSkeleton(Cast<USkeletalMeshComponent>(InOuter)->GetSkeletalMesh()->GetSkeleton());
-    return NewComp;
-}
-
-void UTestAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
-{
-    AnimStateMachine = Cast<UAnimationStateMachine<ETestState>>(Cast<UTestAnimInstance>(Source)->AnimStateMachine->Duplicate(this));
-}
-
-
-void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
-{
-    Super::NativeUpdateAnimation(DeltaSeconds);
-
-    if (AnimStateMachine) AnimStateMachine->Update(DeltaSeconds);
 }

@@ -9,8 +9,10 @@
 #include "Animation/Skeleton.h"
 #include "Animation/AnimationRuntime.h"
 UAnimInstance::UAnimInstance(const UAnimInstance& Other) 
-    :UObject(Other)
-
+    :UObject(Other),
+    CurrentSequence(Other.CurrentSequence),
+    PreviousSequence(Other.PreviousSequence),
+    BlendDuration(Other.BlendDuration)
 {
 }
 

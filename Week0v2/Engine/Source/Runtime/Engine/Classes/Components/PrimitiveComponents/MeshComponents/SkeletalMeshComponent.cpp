@@ -228,6 +228,7 @@ void USkeletalMeshComponent::DuplicateSubObjects(const UObject* Source, UObject*
 {
     USkeletalMeshComponent* Comp = Cast<USkeletalMeshComponent>(Source);
     AnimInstance = Cast<UAnimInstance>(Comp->AnimInstance->Duplicate(this));
+    SkeletalMesh = Cast<USkeletalMesh>(Comp->SkeletalMesh->Duplicate(this));
 }
 
 void USkeletalMeshComponent::PostDuplicate() {}

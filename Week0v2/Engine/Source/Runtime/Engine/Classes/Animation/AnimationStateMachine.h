@@ -65,9 +65,9 @@ private:
 template<typename TState>
 inline UAnimationStateMachine<TState>::UAnimationStateMachine(const UAnimationStateMachine& Other)
     :UObject(Other),
-    CurrentState(Other.CurrentState),
-    States(Other.States),
-    Transitions(Other.Transitions)
+    CurrentState(Other.CurrentState)
+    //States(Other.States),
+    //Transitions(Other.Transitions)
 {
 }
 

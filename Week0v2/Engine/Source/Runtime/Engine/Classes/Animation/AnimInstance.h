@@ -49,7 +49,7 @@ protected:
 
 
     float BlendTime = 0;
-    float BlendDuration = 5.0f;
+    float BlendDuration = 1.0f;
     bool bIsBlending = false;
 
 private:
