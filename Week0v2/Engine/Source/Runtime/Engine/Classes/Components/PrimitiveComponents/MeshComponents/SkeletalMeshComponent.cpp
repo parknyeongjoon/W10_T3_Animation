@@ -446,3 +446,8 @@ void USkeletalMeshComponent::SetLoopEndFrame(int32 InLoopEndFrame)
         SingleNodeInstance->SetLoopEndFrame(InLoopEndFrame);
     }
 }
+
+void USkeletalMeshComponent::SetAnimationMode(EAnimationMode InAnimationMode)
+{
+    AnimationMode = InAnimationMode;
+}
