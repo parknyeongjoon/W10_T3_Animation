@@ -69,7 +69,11 @@ void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds) const
     }
 }
 
-void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
+void UAnimInstance::NativeInitializeAnimation()
+{
+}
+
+void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     TriggerAnimNotifies(DeltaSeconds);
     UpdateCurveValues(DeltaSeconds);
