@@ -1103,6 +1103,16 @@ namespace ImGui
                context.SelectedTimeline == openTimeline;
     }
 
+    void ClearNeoKeyframeSelection()
+    {
+        if (sequencerData.contains(currentSequencer))
+        {
+            auto& context = sequencerData[currentSequencer];
+            context.Selection.clear();
+            context.SelectionData.clear();
+        }
+    }
+
     bool BeginNeoTimelineEx(const char* label, bool* open, ImGuiNeoTimelineFlags flags)
     {
         IM_ASSERT(inSequencer && "Not in active sequencer!");
