@@ -25,6 +25,7 @@
 #include "Components/PrimitiveComponents/UParticleSubUVComp.h"
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
+#include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "Components/USpringArmComponent.h"
 #include "Components/Mesh/StaticMesh.h"
 
@@ -33,7 +34,7 @@
 #include "ImGUI/imgui.h"
 #include "Renderer/Renderer.h"
 #include "UObject/ObjectTypes.h"
-
+#include "Animation/CustomAnimInstance/TestAnimInstance.h"
 
 void ControlEditorPanel::Initialize(SLevelEditor* LevelEditor, float Width, float Height)
 {
@@ -453,6 +454,12 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     {
                         ASkeletalMeshActor* SkeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
                         SkeletalMeshActor->SetActorLabel("SkeletalMesh");
+                        USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->AddComponent<USkeletalMeshComponent>(EComponentOrigin::Constructor);
+                        SkeletalMeshActor->SetRootComponent(SkeletalMeshComp);
+                        SkeletalMeshComp->SetData("Contents/FBX/Rumba_Dancing.fbx");
+
+                        UTestAnimInstance* TestAnimInstance = FObjectFactory::ConstructObject<UTestAnimInstance>(SkeletalMeshComp);
+                        SkeletalMeshComp->SetAnimInstance(TestAnimInstance);
                         SpawnedActor = SkeletalMeshActor;
                         break;
                     }
