@@ -36,17 +36,6 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/FunctionRegistry.h"
 
-
-struct FBoneRotation
-{
-    float X;
-    float Y;
-    float Z;
-    
-    FBoneRotation() : X(0.0f), Y(0.0f), Z(0.0f) {}
-    FBoneRotation(float InX, float InY, float InZ) : X(InX), Y(InY), Z(InZ) {}
-};
-
 void SkeletalPreviewPropertyEditorPanel::Initialize(float InWidth, float InHeight)
 {
     Width = InWidth;

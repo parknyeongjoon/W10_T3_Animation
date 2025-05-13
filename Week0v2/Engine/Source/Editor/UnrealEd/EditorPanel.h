@@ -21,4 +21,6 @@ public:
     UWorld* World = nullptr;
 
     uint32 PanelIndex = 0;
+
+    bool bIsVisible = true;
 };
