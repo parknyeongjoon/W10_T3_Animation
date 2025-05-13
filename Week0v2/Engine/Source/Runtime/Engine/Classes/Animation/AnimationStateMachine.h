@@ -58,6 +58,8 @@ public:
     {
         return CurrentState;
     }
+    
+    void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
 
 private:
     TState CurrentState;
@@ -91,9 +93,4 @@ inline void UAnimationStateMachine<TState>::DuplicateSubObjects(const UObject* S
     {
         Callback.Bind(Cast<UAnimInstance>(InOuter));
     }
-}
-
-template<typename TState>
-inline void UAnimationStateMachine<TState>::PostDuplicate()
-{
 }
