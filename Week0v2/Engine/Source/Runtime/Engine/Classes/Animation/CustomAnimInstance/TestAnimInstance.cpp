@@ -27,6 +27,7 @@ UTestAnimInstance::UTestAnimInstance()
             self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->IdleSequence;
+            self->CurrentSequence->ResetNotifies();
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -42,6 +43,7 @@ UTestAnimInstance::UTestAnimInstance()
             self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->WalkSequence;
+            self->CurrentSequence->ResetNotifies();
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -57,6 +59,7 @@ UTestAnimInstance::UTestAnimInstance()
             self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->DanceSequence;
+            self->CurrentSequence->ResetNotifies();
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -86,17 +89,25 @@ UTestAnimInstance::UTestAnimInstance()
         return (GetAsyncKeyState('C') & 0x8000);
         });
 
-
-
-
     // 초기 상태 설정
     AnimStateMachine->SetState(ETestState::Idle);
     CurrentSequence = IdleSequence;
     PreviousSequence = IdleSequence;
-
-
-
+    
+    IdleSequence->AddNotify(1.0f, []()
+    {
+        printf("AnimNotify: Idle\n");
+    });
+    WalkSequence->AddNotify(1.0f, []()
+    {
+        printf("AnimNotify: Walking\n");
+    });
+    DanceSequence->AddNotify(1.0f, []()
+    {
+        printf("AnimNotify: Dancing\n");
+    });
 }
+
 UTestAnimInstance::~UTestAnimInstance()
 {
 }

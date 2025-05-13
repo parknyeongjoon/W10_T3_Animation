@@ -1,6 +1,7 @@
 #include "AnimSequenceBase.h"
 #include "AnimNodeBase.h"
 #include "AnimData/AnimDataModel.h"
+#include "Delegates/FFunctor.h"
 #include "UObject/Casts.h"
 
 UAnimSequenceBase::UAnimSequenceBase(const UAnimSequenceBase& Other)
@@ -37,6 +38,26 @@ void UAnimSequenceBase::PostDuplicate()
 void UAnimSequenceBase::SetData(const FString& FilePath)
 {
     SetData(TestFBXLoader::GetAnimData(FilePath));
+}
+
+void UAnimSequenceBase::AddNotify(float Second, TDelegate<void()> OnNotify, float Duration)
+{
+    FAnimNotifyEvent NotifyEvent;
+    NotifyEvent.OnNotify = OnNotify;
+    NotifyEvent.TriggerTime = Second;
+    NotifyEvent.Duration = Duration;
+    Notifies.Add(NotifyEvent);
+    SortNotifies();
+}
+
+void UAnimSequenceBase::AddNotify(float Second, std::function<void()> OnNotify, float Duration)
+{
+    FAnimNotifyEvent NotifyEvent;
+    NotifyEvent.OnNotify.BindLambda(OnNotify);
+    NotifyEvent.TriggerTime = Second;
+    NotifyEvent.Duration = Duration;
+    Notifies.Add(NotifyEvent);
+    SortNotifies();
 }
 
 void UAnimSequenceBase::SortNotifies()
@@ -78,6 +99,14 @@ void UAnimSequenceBase::RenameNotifies(FName InOldName, FName InNewName)
         {
             Notify.NotifyName = InNewName;
         }
+    }
+}
+
+void UAnimSequenceBase::ResetNotifies()
+{
+    for (FAnimNotifyEvent& Notify : Notifies)
+    {
+        Notify.bIsTriggered = false;
     }
 }
 

@@ -14,6 +14,7 @@ public:
     // FFunctorWithContext() = delete;
     FFunctorWithContext() = default;
     FFunctorWithContext(ClassType* self): self(self) {}
+    FFunctorWithContext(ClassType* self, FuncPtrType funcPtr): self(self), func(funcPtr) {}
 private:
     ClassType* self;
 public:

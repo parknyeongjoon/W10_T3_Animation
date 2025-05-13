@@ -2,6 +2,7 @@
 #include "AnimationAsset.h"
 #include "AnimTypes.h"
 #include "TestFBXLoader.h"
+#include "Delegates/FFunctor.h"
 #include "UObject/ObjectMacros.h"
 
 class UAnimDataModel;
@@ -22,7 +23,11 @@ public:
 
     void SetData(UAnimDataModel* InDataModel) { DataModel = InDataModel; }
     void SetData(const FString& FilePath);
-
+    
+    /** Add Notify data from TDelegate */
+    void AddNotify(float Second, TDelegate<void()> OnNotify, float Duration = 0.f);
+    /** Add Notify data from function */
+    void AddNotify(float Second, std::function<void()> OnNotify, float Duration = 0.f);
     /** Sort the Notifies array by time, earliest first. */
     void SortNotifies();
     /** Remove the notifies specified */
@@ -31,6 +36,8 @@ public:
     void RemoveNotifies();
     /** Renames all named notifies with InOldName to InNewName */
     void RenameNotifies(FName InOldName, FName InNewName);
+
+    void ResetNotifies();
 
     void GetAnimationPose(struct FPoseContext& OutPose, const FAnimExtractContext& ExtractionContext) const;
     virtual void EvaluateCurveData(struct FBlendedCurve& OutCurve, const FAnimExtractContext& ExtractionContext) const;
