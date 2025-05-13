@@ -7,6 +7,7 @@
 #include "Animation/Skeleton.h"
 #include "Components/Material/Material.h"
 #include "Engine/FLoaderOBJ.h"
+#include "UObject/Casts.h"
 
 uint32 USkeletalMesh::GetMaterialIndex(FName MaterialSlotName) const
 {
@@ -186,11 +187,27 @@ void USkeletalMesh::ApplyRotationToBone(int BoneIndex, float DeltaAngleInDegrees
         rotationMatrix * SkeletalMeshRenderData.Bones[BoneIndex].LocalTransform;
 }
 
+USkeletalMesh::USkeletalMesh(const USkeletalMesh& Other):
+    SkeletalMeshRenderData(Other.SkeletalMeshRenderData),
+    Skeleton(Other.Skeleton),
+    MaterialSlots(Other.MaterialSlots)
+{
+}
+
 USkeletalMesh* USkeletalMesh::Duplicate(UObject* InOuter)
 {
-    USkeletalMesh* NewObject = new USkeletalMesh();
+    USkeletalMesh* NewObject = FObjectFactory::ConstructObjectFrom<USkeletalMesh>(this, InOuter);
     NewObject->DuplicateSubObjects(this, InOuter);       // 깊은 복사 수행
     return NewObject;
+}
+
+void USkeletalMesh::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
+{
+    UObject::DuplicateSubObjects(Source, InOuter);
+    // TODO: SkeletalMeshRenderData 깊은 복사 수행.
+    SkeletalMeshRenderData = Cast<USkeletalMesh>(Source)->SkeletalMeshRenderData;
+    Skeleton = Cast<USkeletalMesh>(Source)->Skeleton;
+    MaterialSlots = Cast<USkeletalMesh>(Source)->MaterialSlots;
 }
 
 void USkeletalMesh::UpdateSkinnedVertices()

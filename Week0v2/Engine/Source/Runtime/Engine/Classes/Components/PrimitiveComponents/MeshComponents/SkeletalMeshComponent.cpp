@@ -228,6 +228,7 @@ void USkeletalMeshComponent::DuplicateSubObjects(const UObject* Source, UObject*
 {
     UMeshComponent::DuplicateSubObjects(Source, InOuter);
     // TODO: SkeletalMesh 복사
+    SkeletalMesh = Cast<USkeletalMesh>(Cast<USkeletalMeshComponent>(Source)->SkeletalMesh->Duplicate(this));
     AnimInstance = Cast<UAnimInstance>(Cast<USkeletalMeshComponent>(Source)->AnimInstance->Duplicate(this));
 }
 
