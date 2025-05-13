@@ -1,10 +1,19 @@
-﻿#pragma once
+#pragma once
 
 #pragma once
 #include "Define.h"
 #include "UnrealEd/EditorPanel.h"
 
-struct FBoneRotation;
+struct FBoneRotation
+{
+    float X;
+    float Y;
+    float Z;
+    
+    FBoneRotation() : X(0.0f), Y(0.0f), Z(0.0f) {}
+    FBoneRotation(float InX, float InY, float InZ) : X(InX), Y(InY), Z(InZ) {}
+};
+
 class AActor;
 class USkeletalMeshComponent;
 class UActorComponent;
@@ -20,7 +29,6 @@ public:
     void DrawSceneComponentTree(USceneComponent* Component, UActorComponent*& PickedComponent);
     void DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent);
     virtual void OnResize(HWND hWnd) override;
-
 
 private:
     void RGBToHSV(float r, float g, float b, float& h, float& s, float& v) const;

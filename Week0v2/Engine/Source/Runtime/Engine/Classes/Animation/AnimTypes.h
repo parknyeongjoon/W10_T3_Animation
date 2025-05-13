@@ -113,6 +113,19 @@ struct FAnimNotifyEvent
     }
 };
 
+struct FAnimNotifyTrack
+{
+    FName TrackName;
+    TArray<int32> NotifyIndices;
+
+    FAnimNotifyTrack() = default;
+
+    FAnimNotifyTrack(FName InName)
+        : TrackName(InName)
+    {
+    }
+};
+
 struct FRawAnimSequenceTrack
 {
     TArray<FVector> PosKeys;        // 위치 키들

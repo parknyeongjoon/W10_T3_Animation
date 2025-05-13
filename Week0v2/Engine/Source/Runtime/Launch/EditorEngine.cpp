@@ -263,6 +263,7 @@ UWorld* UEditorEngine::CreatePreviewWindow()
     }
     
     WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass";
+    // @todo 확인하려는 오브젝트의 이름으로 변경 (ex: "ModelName", "ModelName_Skeleton", "Anim_Name")
     WCHAR EnginePreviewTitle[] = L"Preview";
 
     HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(GEngineLoop.GetDefaultWindow(), GWLP_HINSTANCE));
