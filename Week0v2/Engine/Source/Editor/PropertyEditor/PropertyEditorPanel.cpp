@@ -1757,6 +1757,7 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
         
         UWorld* World = EditorEngine->CreatePreviewWindow();
 
+        // @todo CreatePreviewWindow()에서 다른 액터들을 소환하는가? 아니라면 불필요해 보이는 검사
         const TArray<AActor*> CopiedActors = World->GetActors();
         for (AActor* Actor : CopiedActors)
         {
@@ -1768,22 +1769,23 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
             Actor->Destroy();
         }
         World->ClearSelectedActors();
-        
-        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-        TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
-        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+
+        // SkySphere 생성
+        AStaticMeshActor* SkySphereActor = World->SpawnActor<AStaticMeshActor>();
+        SkySphereActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
+        UStaticMeshComponent* MeshComp = SkySphereActor->GetStaticMeshComponent();
         FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
         MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
         MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetDiffuse(FVector::OneVector);
         MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetEmissive(FVector::OneVector);
         MeshComp->SetWorldRotation(FRotator(0.0f, 0.0f, 90.0f));
-        TempActor->SetActorScale(FVector(1.0f, 1.0f, 1.0f));
+        SkySphereActor->SetActorScale(FVector(1.0f, 1.0f, 1.0f));
 
+        // StaticMeshActor 생성
         ASkeletalMeshActor* SkeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
-        SkeletalMeshActor->SetActorLabel("SkeletalMesh");
+        SkeletalMeshActor->SetActorLabel("PreviewSkeletalMeshActor");
         USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->GetComponentByClass<USkeletalMeshComponent>();
-
-        SkeletalMeshComp->SetSkeletalMesh(FFBXLoader::CreateSkeletalMesh(FilePath));
+        SkeletalMeshComp->SetSkeletalMesh(TestFBXLoader::CreateSkeletalMesh(FilePath));
     }
 }
 

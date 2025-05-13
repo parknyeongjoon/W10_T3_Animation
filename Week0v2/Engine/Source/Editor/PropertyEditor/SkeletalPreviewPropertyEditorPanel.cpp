@@ -1,4 +1,4 @@
-﻿#include "SkeletalPreviewPropertyEditorPanel.h"
+#include "SkeletalPreviewPropertyEditorPanel.h"
 
 #include <shellapi.h> // ShellExecute 관련 함수 정의 포함
 
@@ -96,7 +96,8 @@ void SkeletalPreviewPropertyEditorPanel::Render()
 
     /* Render Start */
     ImGui::Begin("Detail", nullptr, PanelFlags);
-    
+
+    // 프리뷰 월드에서는 오로지 하나의 액터만 선택 가능 (스켈레탈 메쉬 프리뷰인 경우, 스켈레탈 메쉬 액터)
     AActor* PickedActor = nullptr;
 
     if (!World->GetSelectedActors().IsEmpty())

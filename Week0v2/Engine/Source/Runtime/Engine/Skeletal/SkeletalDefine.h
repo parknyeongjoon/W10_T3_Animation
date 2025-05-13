@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Define.h"
 #include "Container/Array.h"
 #include "Container/Map.h"
@@ -103,6 +103,7 @@ struct FRefSkeletal
 
 struct FSkeletalMeshRenderData
 {
+    // @todo PreviewName과 FilePath 분리하기
     FString Name = "Empty";
     TArray<FSkeletalVertex> Vertices;
     TArray<uint32> Indices;
