@@ -25,7 +25,7 @@ public:
     void Initialize(float InWidth, float InHeight);
     virtual void Render() override;
     void DrawSceneComponentTree(USceneComponent* Component, UActorComponent*& PickedComponent);
-    void DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent);
+    void DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent) const;
     virtual void OnResize(HWND hWnd) override;
 
 private:
@@ -33,24 +33,22 @@ private:
     void HSVToRGB(float h, float s, float v, float& r, float& g, float& b) const;
 
     /* Static Mesh Settings */
-    void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp);
-    void RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp);
-    void RenderForSkeletalMesh2(USkeletalMeshComponent* SkeletalMesh);
+    void RenderForStaticMesh(UStaticMeshComponent* StaticMeshComponent) const;
+    void RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComponent) const;
     void RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int BoneIndex);
-    void RenderForSkeletalMesh3(USkeletalMeshComponent* SkeletalMesh);
     void OnBoneSelected(int BoneIndex);
 
     /* Materials Settings */
     void RenderForMaterial(UStaticMeshComponent* StaticMeshComp);
     void RenderForMaterial(USkeletalMeshComponent* SkeletalMeshComp);
-    void RenderMaterialView(UMaterial* Material, bool IsStaticMesh);
+    void RenderMaterialView(UMaterial* InMaterial, bool IsStaticMesh);
     void RenderCreateMaterialView();
 
-    void RenderForLua(class ULuaComponent* LuaComponent);
-    void RenderShapeProperty(AActor* PickedActor);
-    void RenderDelegate(ULevel* level);
+    void RenderForLua(class ULuaComponent* InLuaComponent) const;
+    void RenderShapeProperty(const AActor* PickedActor) const;
+    void RenderDelegate(ULevel* Level) const;
     
-    void DrawSkeletalMeshPreviewButton(const FString& FilePath);
+    void DrawSkeletalMeshPreviewButton(const FString& FilePath) const;
     
 private:
     float Width = 0, Height = 0;

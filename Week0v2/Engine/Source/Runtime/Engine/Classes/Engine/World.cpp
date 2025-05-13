@@ -37,11 +37,12 @@ void UWorld::InitWorld()
 {
     // TODO: Load Scene
     if (Level == nullptr)
+    {
         Level = FObjectFactory::ConstructObject<ULevel>(this);
+    }
     PreLoadResources();
     if (WorldType == EWorldType::Editor)
     {
-        // LoadScene("Assets/Scenes/NewScene.Scene");
         CreateBaseObject(WorldType);
     }
     else
@@ -64,7 +65,11 @@ void UWorld::PreLoadResources()
 
 void UWorld::CreateBaseObject(EWorldType::Type WorldType)
 {
-    if (WorldType == EWorldType::PIE) return;
+    if (WorldType == EWorldType::PIE)
+    {
+        return;
+    }
+
     if (LocalGizmo == nullptr && WorldType)
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(this);
