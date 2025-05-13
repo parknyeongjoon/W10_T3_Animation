@@ -4,7 +4,6 @@
 #include "AnimTypes.h"
 #include "AnimNodeBase.h"
 #include "Animation/AnimSequence.h"
-#include "AnimTypes.h"
 
 class USkeleton;
 class UAnimSequenceBase;
@@ -35,11 +34,15 @@ public:
     // int32 GetStateMachineIndex(FName MachineName) const;
     /** Gets the runtime instance of the specified state machine */
     // const FAnimNode_StateMachine* GetStateMachineInstance(int32 MachineIndex) const;
-    
+
+    //void AddAnimNotify(float Second, TDelegate<void()> OnNotify, float Duration = 0.1f) const;
+    //void AddAnimNotify(float Second, std::function<void()> OnNotify, float Duration = 0.1f) const;
+    //void DeleteAnimNotify(float Second) const;
     void TriggerAnimNotifies(float DeltaSeconds) const;
     void UpdateCurveValues(float DeltaSeconds) const ;
 
-    virtual void NativeUpdateAnimation(float DeltaSeconds) const;
+    virtual void NativeInitializeAnimation();
+    virtual void NativeUpdateAnimation(float DeltaSeconds);
     void UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime);
     void BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* ToSequence,float DeltaTime);
 protected:
@@ -48,7 +51,7 @@ protected:
 
 
     float BlendTime = 0;
-    float BlendDuration = 5.0f;
+    float BlendDuration = 0.5f;
     bool bIsBlending = false;
 
 private:

@@ -112,7 +112,7 @@ UObject* UTestAnimInstance::Duplicate(UObject* InOuter)
 }
 
 
-void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
+void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
 
