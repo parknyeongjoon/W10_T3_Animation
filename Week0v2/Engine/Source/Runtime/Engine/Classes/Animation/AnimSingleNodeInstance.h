@@ -4,7 +4,7 @@ class UAnimSingleNodeInstance : public UAnimInstance
 {
     DECLARE_CLASS(UAnimSingleNodeInstance, UAnimInstance)
 public:
-    UAnimSingleNodeInstance() = default;
+    UAnimSingleNodeInstance();
     UAnimSingleNodeInstance(const UAnimSingleNodeInstance& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;
@@ -14,11 +14,6 @@ public:
     virtual void NativeInitializeAnimation() override;
 
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
-
-    UAnimSequence* GetAnimSequence() const
-    {
-        return CurrentSequence;
-    }
 
     void SetPlaying(bool bIsPlaying)
     {
@@ -99,6 +94,17 @@ public:
     {
         CurrentKey = InCurrentKey;
     }
+
+    UAnimSequence* GetCurrentAsset() const
+    {
+        return CurrentAsset;
+    }
+
+    void SetCurrentAsset(UAnimSequence* InCurrentAsset)
+    {
+        CurrentAsset = InCurrentAsset;
+    }
+
 private:
     UAnimSequence* CurrentAsset;
 

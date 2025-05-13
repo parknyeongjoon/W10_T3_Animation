@@ -1,9 +1,26 @@
 #include "AnimSingleNodeInstance.h"
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
+#include "Animation/AnimSequence.h"
+#include "Animation/AnimData/AnimDataModel.h"
+#include <Math/JungleMath.h>
+
+UAnimSingleNodeInstance::UAnimSingleNodeInstance()
+    :CurrentAsset(nullptr),
+    ElapsedTime(0.f),
+    PlayRate(1.f),
+    bLooping(true),
+    bPlaying(true),
+    bReverse(false),
+    PreviousTime(0.f),
+    LoopStartFrame(0),
+    LoopEndFrame(0),
+    CurrentKey(0)
+{
+}
 
 UAnimSingleNodeInstance::UAnimSingleNodeInstance(const UAnimSingleNodeInstance& Other)
     :UAnimInstance(Other),
-    CurrentAsset(Other.CurrentAsset),
+    CurrentAsset(nullptr),
     ElapsedTime(Other.ElapsedTime),
     PreviousTime(Other.PreviousTime),
     PlayRate(Other.PlayRate),
@@ -51,4 +68,72 @@ void UAnimSingleNodeInstance::NativeInitializeAnimation()
 
 void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
+    UAnimInstance::NativeUpdateAnimation(DeltaSeconds);
+
+    USkeletalMeshComponent* SkeletalMeshComp = GetOwningComponent();
+    USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMesh();
+    if (!CurrentSequence||!SkeletalMesh||!SkeletalMesh->GetSkeleton()) return;
+
+    const UAnimDataModel* DataModel = CurrentSequence->GetDataModel();  
+    const int32 FrameRate = DataModel->GetFrameRate().Numerator;    // Number of Frames per second);    // Number of Frames per second
+    const int32 NumFrames = DataModel->GetNumberOfFrames();
+
+    LoopStartFrame = FMath::Clamp(LoopStartFrame, 0, NumFrames - 2);
+    LoopEndFrame = FMath::Clamp(LoopEndFrame, LoopStartFrame + 1, NumFrames - 1);
+    const float StartTime = static_cast<float>(LoopStartFrame) / static_cast<float>(FrameRate);
+    const float EndTime = static_cast<float>(LoopEndFrame) / static_cast<float>(FrameRate);
+
+    if (bPlaying)
+    {
+        float DeltaPlayTime = DeltaSeconds * PlayRate;
+        if (bReverse)
+        {
+            DeltaPlayTime *= -1.0f;
+        }
+
+        PreviousTime = ElapsedTime;
+        ElapsedTime += DeltaPlayTime;
+
+        //CurrentAsset->EvaluateAnimNotify()
+
+
+        if (bLooping)
+        {
+            if (ElapsedTime > EndTime)
+            {
+                ElapsedTime = StartTime + FMath::Fmod(ElapsedTime - StartTime, EndTime - StartTime);
+            }
+            else if (ElapsedTime <= StartTime)
+            {
+                ElapsedTime = EndTime - FMath::Fmod(EndTime - ElapsedTime, EndTime - StartTime);
+            }
+        }
+        else
+        {
+            if (!bReverse && ElapsedTime >= EndTime)
+            {
+                ElapsedTime = StartTime;
+            }
+            else if (bReverse && ElapsedTime <= StartTime)
+            {
+                ElapsedTime = EndTime;
+            }
+        }
+    }
+
+    FPoseContext Pose;
+    FAnimExtractContext Context(ElapsedTime, true, false);
+    CurrentAsset->GetAnimationPose(Pose, Context);
+
+    for (int32 i = 0; i < SkeletalMesh->GetRenderData().Bones.Num(); ++i)
+    {
+        const FTransform& BoneTransform = Pose.Pose.BoneTransforms[i];
+        FMatrix TransformMatrix = JungleMath::CreateModelMatrix(
+            BoneTransform.GetLocation(),
+            BoneTransform.GetRotation(),
+            BoneTransform.GetScale()
+        );
+        SkeletalMesh->GetRenderData().Bones[i].LocalTransform = TransformMatrix;
+    }
+
 }
