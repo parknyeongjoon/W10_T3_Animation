@@ -80,23 +80,14 @@ UTestAnimInstance::UTestAnimInstance()
         });
 
 
-
-
     // 초기 상태 설정
     AnimStateMachine->SetState(ETestState::Idle);
     CurrentSequence = IdleSequence;
     PreviousSequence = IdleSequence;
-
-
-
-}
-UTestAnimInstance::~UTestAnimInstance()
-{
 }
 
 UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 
     UAnimInstance(Other),
-    AnimStateMachine(Other.AnimStateMachine),
     IdleSequence(Other.IdleSequence),
     WalkSequence(Other.WalkSequence),
     DanceSequence(Other.DanceSequence)
@@ -108,7 +99,13 @@ UObject* UTestAnimInstance::Duplicate(UObject* InOuter)
     UTestAnimInstance* NewComp = FObjectFactory::ConstructObjectFrom<UTestAnimInstance>(this, InOuter);
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
+    NewComp->SetSkeleton(Cast<USkeletalMeshComponent>(InOuter)->GetSkeletalMesh()->GetSkeleton());
     return NewComp;
+}
+
+void UTestAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
+{
+    AnimStateMachine = Cast<UAnimationStateMachine<ETestState>>(Cast<UTestAnimInstance>(Source)->AnimStateMachine->Duplicate(this));
 }
 
 
@@ -116,9 +113,5 @@ void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
 
-    USkeletalMeshComponent* SkeletalMesh = GetOwningComponent();
-    AActor* OwnerPawn = SkeletalMesh->GetOwner();
-
     if (AnimStateMachine) AnimStateMachine->Update(DeltaSeconds);
-
 }

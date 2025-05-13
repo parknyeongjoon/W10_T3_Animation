@@ -43,10 +43,10 @@ class UTestAnimInstance :
     DECLARE_CLASS(UTestAnimInstance, UAnimInstance)
 public:
     UTestAnimInstance();
-    ~UTestAnimInstance();
     UTestAnimInstance(const UTestAnimInstance& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;
+    void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
     //virtual void TriggerAnimNotifies(float DeltaSeconds) override;
     virtual void NativeUpdateAnimation(float DeltaSeconds) const override;
 private:

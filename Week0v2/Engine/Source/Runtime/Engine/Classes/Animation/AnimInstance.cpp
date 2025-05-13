@@ -19,15 +19,8 @@ UObject* UAnimInstance::Duplicate(UObject* InOuter)
     UAnimInstance* NewComp = FObjectFactory::ConstructObjectFrom<UAnimInstance>(this, InOuter);
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
+    NewComp->SetSkeleton(Cast<USkeletalMeshComponent>(InOuter)->GetSkeletalMesh()->GetSkeleton());
     return NewComp;
-}
-
-void UAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
-{
-}
-
-void UAnimInstance::PostDuplicate()
-{
 }
 
 AActor* UAnimInstance::GetOwningActor() const

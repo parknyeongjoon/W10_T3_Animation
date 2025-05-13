@@ -29,6 +29,7 @@
 #include "Components/Mesh/StaticMesh.h"
 
 #include "Contents/AGPlayer.h"
+#include "GameFramework/Character.h"
 #include "ImGUI/imgui.h"
 #include "Renderer/Renderer.h"
 #include "UObject/ObjectTypes.h"
@@ -334,8 +335,8 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
             { "Shapes", "Capsule",         OBJ_CAPSULE },
             { "Shapes", "Car (Dodge)",     OBJ_CAR },
             { "Shapes", "SkySphere",       OBJ_SKYSPHERE},
-            { "Shapes", "Yeoul",           OBJ_YEOUL},
             { "Shapes", "SkeletalMesh",    OBJ_SKELETAL},
+            {"Shapes", "Character",           OBJ_CHARACTER},
 
             // ✨ 효과
             { "Effects", "Particle",       OBJ_PARTICLE },
@@ -455,6 +456,12 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                         SpawnedActor = SkeletalMeshActor;
                         break;
                     }
+                    case OBJ_CHARACTER:
+                        {
+                            ACharacter* Character = World->SpawnActor<ACharacter>();
+                            Character->SetActorLabel(TEXT("Character"));
+                            break;
+                        }
                     case OBJ_POINTLIGHT:
                     {
                         SpawnedActor = World->SpawnActor<APointLightActor>();
@@ -525,16 +532,6 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                         UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                         FManagerOBJ::CreateStaticMesh("Assets/Dodge/Dodge.obj");
                         MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Dodge.obj"));
-                        SpawnedActor = TempActor;
-                        break;
-                    }
-                    case OBJ_YEOUL:
-                    {
-                        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                        TempActor->SetActorLabel(TEXT("OBJ_YEOUL"));
-                        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                        FManagerOBJ::CreateStaticMesh("Assets/Yeoul/yeoul.obj");
-                        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"yeoul.obj"));
                         SpawnedActor = TempActor;
                         break;
                     }

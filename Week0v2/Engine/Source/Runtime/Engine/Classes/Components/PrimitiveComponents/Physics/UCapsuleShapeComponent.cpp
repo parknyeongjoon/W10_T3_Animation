@@ -19,6 +19,14 @@ UCapsuleShapeComponent::~UCapsuleShapeComponent()
 {
 }
 
+UObject* UCapsuleShapeComponent::Duplicate(UObject* InOuter)
+{
+    UCapsuleShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<UCapsuleShapeComponent>(this, InOuter);
+    NewComp->DuplicateSubObjects(this, InOuter);
+    NewComp->PostDuplicate();
+    return NewComp;
+}
+
 void UCapsuleShapeComponent::InitializeComponent()
 {
     Super::InitializeComponent();

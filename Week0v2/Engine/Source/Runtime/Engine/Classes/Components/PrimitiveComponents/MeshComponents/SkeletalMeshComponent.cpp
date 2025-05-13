@@ -226,9 +226,8 @@ UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
 
 void USkeletalMeshComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    UMeshComponent::DuplicateSubObjects(Source, InOuter);
-    // TODO: SkeletalMesh 복사
-    AnimInstance = Cast<UAnimInstance>(Cast<USkeletalMeshComponent>(Source)->AnimInstance->Duplicate(this));
+    USkeletalMeshComponent* Comp = Cast<USkeletalMeshComponent>(Source);
+    AnimInstance = Cast<UAnimInstance>(Comp->AnimInstance->Duplicate(this));
 }
 
 void USkeletalMeshComponent::PostDuplicate() {}
@@ -241,8 +240,6 @@ void USkeletalMeshComponent::BeginPlay()
 
 void USkeletalMeshComponent::TickComponent(float DeltaTime)
 {
-
-
     if (AnimInstance) AnimInstance->NativeUpdateAnimation(DeltaTime);
 
     SkeletalMesh->UpdateBoneHierarchy();
@@ -252,7 +249,6 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 void USkeletalMeshComponent::SetData(const FString& FilePath)
 {
     SkeletalMesh = LoadSkeletalMesh(FilePath);
-    
 }
 
 void USkeletalMesh::ResetToOriginalPose()

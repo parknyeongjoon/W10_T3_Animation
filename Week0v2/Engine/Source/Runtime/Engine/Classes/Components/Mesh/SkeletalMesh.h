@@ -10,9 +10,11 @@ class USkeletalMesh : public UObject
     DECLARE_CLASS(USkeletalMesh, UObject)
 public:
     USkeletalMesh() = default;
+    USkeletalMesh(const USkeletalMesh& Other);
     virtual ~USkeletalMesh() override = default;
     
     USkeletalMesh* Duplicate(UObject* InOuter) override;
+    void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
 
     FSkeletalMeshRenderData& GetRenderData() { return SkeletalMeshRenderData; }
     USkeleton* GetSkeleton() const { return Skeleton;}

@@ -11,8 +11,6 @@ public:
     UAnimationStateMachine() = default;
     UAnimationStateMachine(const UAnimationStateMachine& Other);
     virtual UObject* Duplicate(UObject* InOuter) override;
-    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
-    virtual void PostDuplicate() override;
 
     void AddState(TState StateName, std::function<void(float)> OnUpdate)
     {
@@ -80,15 +78,4 @@ inline UObject* UAnimationStateMachine<TState>::Duplicate(UObject* InOuter)
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;
-}
-
-template<typename TState>
-inline void UAnimationStateMachine<TState>::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
-{
-    UObject::DuplicateSubObjects(Source, InOuter);
-}
-
-template<typename TState>
-inline void UAnimationStateMachine<TState>::PostDuplicate()
-{
 }

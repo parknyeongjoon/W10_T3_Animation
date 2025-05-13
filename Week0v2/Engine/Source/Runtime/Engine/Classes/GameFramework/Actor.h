@@ -58,6 +58,8 @@ public:
     template <typename T>
         requires std::derived_from<T, UActorComponent>
     T* AddComponent(EComponentOrigin Origin);
+    template <class T>
+    void AddDuplicatedComponent(T* Component, EComponentOrigin Origin = EComponentOrigin::Duplicated);
 
     // 클래스 정보를 바탕으로 컴포넌트를 새로 추가.
     UActorComponent* AddComponentByClass(UClass* ComponentClass, EComponentOrigin Origin);
@@ -268,6 +270,29 @@ T* AActor::AddComponent(EComponentOrigin Origin)
     Component->ComponentOrigin = Origin;
 
     return Component;
+}
+
+template <class T>
+void AActor::AddDuplicatedComponent(T* Component, EComponentOrigin Origin)
+{
+    OwnedComponents.Add(Component);
+    Component->Owner = this;
+
+    // 만약 SceneComponent를 상속 받았다면
+    if (USceneComponent* NewSceneComp = Cast<USceneComponent>(Component))
+    {
+        if (RootComponent == nullptr)
+        {
+            RootComponent = NewSceneComp;
+        }
+        else
+        {
+            NewSceneComp->SetupAttachment(RootComponent);
+        }
+    }
+
+    // TODO: RegisterComponent() 생기면 제거
+    Component->ComponentOrigin = Origin;
 }
 
 

@@ -7,6 +7,16 @@
 #include "Animation/Skeleton.h"
 #include "Components/Material/Material.h"
 #include "Engine/FLoaderOBJ.h"
+#include "UObject/Casts.h"
+
+
+USkeletalMesh::USkeletalMesh(const USkeletalMesh& Other)
+: UObject(Other)
+    , Skeleton(Other.Skeleton)
+    , MaterialSlots(Other.MaterialSlots)
+{
+    
+}
 
 uint32 USkeletalMesh::GetMaterialIndex(FName MaterialSlotName) const
 {
@@ -30,7 +40,7 @@ void USkeletalMesh::SetData(const FString& FilePath)
 {
     FSkeletalMeshRenderData SkeletalMeshRenderData = TestFBXLoader::GetCopiedSkeletalRenderData(FilePath);
     FRefSkeletal* RefSkeletal = TestFBXLoader::GetRefSkeletal(FilePath);
-    USkeleton* Skeleton = new USkeleton(); // TODO: Map에 저장하고 들고오기 
+    USkeleton* Skeleton = FObjectFactory::ConstructObject<USkeleton>(this); // TODO: Map에 저장하고 들고오기 
     Skeleton->SetRefSkeletal(RefSkeletal);
 
     SetData(SkeletalMeshRenderData, Skeleton);
@@ -188,9 +198,15 @@ void USkeletalMesh::ApplyRotationToBone(int BoneIndex, float DeltaAngleInDegrees
 
 USkeletalMesh* USkeletalMesh::Duplicate(UObject* InOuter)
 {
-    USkeletalMesh* NewObject = new USkeletalMesh();
+    USkeletalMesh* NewObject = FObjectFactory::ConstructObjectFrom<USkeletalMesh>(this, InOuter);
     NewObject->DuplicateSubObjects(this, InOuter);       // 깊은 복사 수행
     return NewObject;
+}
+
+void USkeletalMesh::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
+{
+    USkeletalMesh* Mesh = Cast<USkeletalMesh>(Source);
+    SkeletalMeshRenderData = FSkeletalMeshRenderData(Mesh->SkeletalMeshRenderData);
 }
 
 void USkeletalMesh::UpdateSkinnedVertices()
