@@ -55,10 +55,10 @@ public:
 public:
     void PlayAnimation(UAnimSequence* NewAnimToPlay, bool bLooping);
 
-    void SetAnimation(UAnimSequence* NewAnimToPlay);
+    void SetAnimSequence(UAnimSequence* NewAnimToPlay);
 
-    UAnimSequence* GetAnimation() const;
-
+    UAnimSequence* GetAnimSequence() const;
+        
     void Play(bool bLooping);
 
     void Stop();

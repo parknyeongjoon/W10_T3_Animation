@@ -454,7 +454,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     {
                         ASkeletalMeshActor* SkeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
                         SkeletalMeshActor->SetActorLabel("SkeletalMesh");
-                        USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->AddComponent<USkeletalMeshComponent>(EComponentOrigin::Constructor);
+                        USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->AddComponent<USkeletalMeshComponent>(EComponentOrigin::Editor);
                         SkeletalMeshActor->SetRootComponent(SkeletalMeshComp);
                         SkeletalMeshComp->SetData("Contents/FBX/Rumba_Dancing.fbx");
 

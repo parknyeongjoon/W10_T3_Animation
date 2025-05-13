@@ -17,6 +17,7 @@
 #include "StaticMeshComponents/StaticMeshComponent.h"
 #include "UObject/Casts.h"
 #include "Animation/AnimSingleNodeInstance.h"
+#include "Animation/CustomAnimInstance/TestAnimInstance.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent(const USkeletalMeshComponent& Other)
     : UMeshComponent(Other)
@@ -189,18 +190,26 @@ void USkeletalMeshComponent::UpdateBoneHierarchy()
 
 void USkeletalMeshComponent::PlayAnimation(UAnimSequence* NewAnimToPlay, bool bLooping)
 {
-    SetAnimation(NewAnimToPlay);
+    SetAnimSequence(NewAnimToPlay);
     Play(bLooping);
 }
 
-void USkeletalMeshComponent::SetAnimation(UAnimSequence* NewAnimToPlay)
+void USkeletalMeshComponent::SetAnimSequence(UAnimSequence* NewAnimToPlay)
 {
-    //AnimInstance
+    if (NewAnimToPlay == nullptr)
+    {
+        return;
+    }
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetCurrentAsset(NewAnimToPlay);
+    }
 }
 
-UAnimSequence* USkeletalMeshComponent::GetAnimation() const
+UAnimSequence* USkeletalMeshComponent::GetAnimSequence() const
 {
-    return nullptr;
+
+    return GetSingleNodeInstance()->GetCurrentAsset();
 }
 
 void USkeletalMeshComponent::SkinningVertex()
