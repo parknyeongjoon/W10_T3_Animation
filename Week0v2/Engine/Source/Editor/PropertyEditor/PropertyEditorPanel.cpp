@@ -38,6 +38,8 @@
 #include "Light/ShadowMapAtlas.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/FunctionRegistry.h"
+#include <Animation/CustomAnimInstance/TestAnimInstance.h>
+#include <Animation/AnimSingleNodeInstance.h>
 
 void PropertyEditorPanel::Initialize(float InWidth, float InHeight)
 {
@@ -1783,9 +1785,14 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
 
         // StaticMeshActor 생성
         ASkeletalMeshActor* SkeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
-        SkeletalMeshActor->SetActorLabel("PreviewSkeletalMeshActor");
-        USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->GetComponentByClass<USkeletalMeshComponent>();
+        SkeletalMeshActor->SetActorLabel("PreviewSkeletalMeshActor"); 
+        USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->AddComponent<USkeletalMeshComponent>(EComponentOrigin::Editor);
+        SkeletalMeshActor->SetRootComponent(SkeletalMeshComp);
         SkeletalMeshComp->SetSkeletalMesh(TestFBXLoader::CreateSkeletalMesh(FilePath));
+
+        UAnimSingleNodeInstance* TestAnimInstance = FObjectFactory::ConstructObject<UAnimSingleNodeInstance>(SkeletalMeshComp);
+        TestAnimInstance->GetCurrentAsset()->SetData(FilePath+"\\mixamo.com");
+        SkeletalMeshComp->SetAnimInstance(TestAnimInstance);
     }
 }
 

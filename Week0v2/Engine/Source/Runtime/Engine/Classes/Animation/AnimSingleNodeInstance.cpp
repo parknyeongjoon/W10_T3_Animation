@@ -16,6 +16,7 @@ UAnimSingleNodeInstance::UAnimSingleNodeInstance()
     LoopEndFrame(0),
     CurrentKey(0)
 {
+    CurrentAsset = FObjectFactory::ConstructObject<UAnimSequence>(this);
 }
 
 UAnimSingleNodeInstance::UAnimSingleNodeInstance(const UAnimSingleNodeInstance& Other)
@@ -72,9 +73,9 @@ void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds)
 
     USkeletalMeshComponent* SkeletalMeshComp = GetOwningComponent();
     USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMesh();
-    if (!CurrentSequence||!SkeletalMesh||!SkeletalMesh->GetSkeleton()) return;
+    if (!CurrentAsset ||!SkeletalMesh||!SkeletalMesh->GetSkeleton()) return;
 
-    const UAnimDataModel* DataModel = CurrentSequence->GetDataModel();  
+    const UAnimDataModel* DataModel = CurrentAsset->GetDataModel();
     const int32 FrameRate = DataModel->GetFrameRate().Numerator;    // Number of Frames per second);    // Number of Frames per second
     const int32 NumFrames = DataModel->GetNumberOfFrames();
 
