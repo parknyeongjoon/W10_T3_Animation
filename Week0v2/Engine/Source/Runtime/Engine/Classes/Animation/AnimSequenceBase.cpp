@@ -1,6 +1,7 @@
 #include "AnimSequenceBase.h"
 #include "AnimNodeBase.h"
 #include "AnimData/AnimDataModel.h"
+#include "UObject/Casts.h"
 
 UAnimSequenceBase::UAnimSequenceBase(const UAnimSequenceBase& Other)
     :UAnimationAsset(Other),
@@ -21,6 +22,12 @@ UObject* UAnimSequenceBase::Duplicate(UObject* InOuter)
 void UAnimSequenceBase::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
     Super::DuplicateSubObjects(Source, InOuter);
+    UAnimSequenceBase* original = Cast<UAnimSequenceBase>(Source);
+    for (int i = 0; i < Notifies.Num(); ++i)
+    {
+        Notifies[i] = original->Notifies[i];
+    }
+    DataModel = original->DataModel;
 }
 
 void UAnimSequenceBase::PostDuplicate()

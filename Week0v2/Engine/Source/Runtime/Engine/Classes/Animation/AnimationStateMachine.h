@@ -2,11 +2,14 @@
 #include "UObject/Object.h"
 #include "Container/Array.h"
 #include "Container/Map.h"
+#include "Delegates/FFunctor.h"
+#include "UObject/Casts.h"
 
 template <typename TState>
 class UAnimationStateMachine : public UObject
 {
     DECLARE_CLASS(UAnimationStateMachine, UObject)
+    using StateCallback = FFunctorWithContext<UAnimInstance, void, float>;
 public:
     UAnimationStateMachine() = default;
     UAnimationStateMachine(const UAnimationStateMachine& Other);
@@ -14,7 +17,7 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
     virtual void PostDuplicate() override;
 
-    void AddState(TState StateName, std::function<void(float)> OnUpdate)
+    void AddState(TState StateName, StateCallback OnUpdate)
     {
         States.Emplace(StateName, OnUpdate);
     }
@@ -60,7 +63,7 @@ public:
 
 private:
     TState CurrentState;
-    TMap<TState, std::function<void(float)>> States;
+    TMap<TState, StateCallback> States;
     TMap<TPair<TState, TState>, std::function<bool()>> Transitions;
 };
 
@@ -86,6 +89,10 @@ template<typename TState>
 inline void UAnimationStateMachine<TState>::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
     UObject::DuplicateSubObjects(Source, InOuter);
+    for (auto& [State, Callback]: States)
+    {
+        Callback.Bind(Cast<UAnimInstance>(InOuter));
+    }
 }
 
 template<typename TState>

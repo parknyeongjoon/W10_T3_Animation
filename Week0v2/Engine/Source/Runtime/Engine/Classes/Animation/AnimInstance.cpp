@@ -24,6 +24,9 @@ UObject* UAnimInstance::Duplicate(UObject* InOuter)
 
 void UAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
+    Super::DuplicateSubObjects(Source, InOuter);
+    this->CurrentSequence = FObjectFactory::ConstructObjectFrom(Cast<UAnimInstance>(Source)->CurrentSequence, this);
+    this->PreviousSequence = FObjectFactory::ConstructObjectFrom(Cast<UAnimInstance>(Source)->PreviousSequence, this);
 }
 
 void UAnimInstance::PostDuplicate()
@@ -39,6 +42,39 @@ USkeletalMeshComponent* UAnimInstance::GetOwningComponent() const
 {
     return CastChecked<USkeletalMeshComponent>(GetOuter());
 }
+
+void UAnimInstance::AddAnimNotify(float Second, TDelegate<void()> OnNotify, float Duration) const
+{
+    FAnimNotifyEvent NotifyEvent;
+    NotifyEvent.OnNotify = OnNotify;
+    NotifyEvent.TriggerTime = Second;
+    NotifyEvent.Duration = Duration;
+    CurrentSequence->Notifies.Add(NotifyEvent);
+    CurrentSequence->SortNotifies();
+}
+
+void UAnimInstance::AddAnimNotify(float Second, std::function<void()> OnNotify, float Duration) const
+{
+    FAnimNotifyEvent NotifyEvent;
+    NotifyEvent.OnNotify.BindLambda(OnNotify);
+    NotifyEvent.TriggerTime = Second;
+    NotifyEvent.Duration = Duration;
+    CurrentSequence->Notifies.Add(NotifyEvent);
+    CurrentSequence->SortNotifies();
+}
+
+void UAnimInstance::DeleteAnimNotify(float Second) const
+{
+    for (const FAnimNotifyEvent& Notify : CurrentSequence->Notifies)
+    {
+        if (Notify.TriggerTime == Second)
+        {
+            CurrentSequence->Notifies.Remove(Notify);
+            break;
+        }
+    }
+}
+
 void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds) const
 {
     if (CurrentSequence)
@@ -48,9 +84,13 @@ void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds) const
             // 시간 조건에 맞으면 Notify 실행
             if (Notify.TriggerTime <= CurrentTime && CurrentTime < Notify.TriggerTime + Notify.Duration)
             {
-                if (Notify.Notify)
+                // if (Notify.Notify)
+                // {
+                //     Notify.Notify->Notify(GetOwningComponent(), CurrentSequence);
+                // }
+                if (Notify.OnNotify.IsBound())
                 {
-                    Notify.Notify->Notify(GetOwningComponent(), CurrentSequence);
+                    Notify.OnNotify.Execute();
                 }
             }
         }

@@ -1,5 +1,6 @@
 #pragma once
 #include "Container/Array.h"
+#include "Delegates/Delegate.h"
 #include "UObject/NameTypes.h"
 #include "Math/Vector.h"
 #include "Math/Quat.h"
@@ -106,11 +107,13 @@ struct FAnimNotifyEvent
     float TriggerTime;
     float Duration;
     FName NotifyName;
-    class UAnimNotify* Notify;
+    // class UAnimNotify* Notify;
+    TDelegate<void()> OnNotify;
     // < 연산자 오버로딩
     bool operator<(const FAnimNotifyEvent& other) const {
         return TriggerTime < other.TriggerTime;
     }
+    friend bool operator==(const FAnimNotifyEvent& A, const FAnimNotifyEvent& B);
 };
 
 struct FRawAnimSequenceTrack
