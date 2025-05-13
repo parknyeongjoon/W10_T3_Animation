@@ -227,10 +227,9 @@ void FSkeletalMeshRenderPass::UpdateFlagConstant()
     FFlagConstants FlagConstant;
 
     FlagConstant.IsLit = GEngineLoop.Renderer.bIsLit;
-
     FlagConstant.IsNormal = GEngineLoop.Renderer.bIsNormal;
-
     FlagConstant.IsVSM = GEngineLoop.Renderer.GetShadowFilterMode();
+    FlagConstant.IsGPUSkinning = GEngineLoop.Renderer.GetSkinningMode();
 
     renderResourceManager->UpdateConstantBuffer(TEXT("FFlagConstants"), &FlagConstant);
 }

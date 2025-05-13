@@ -88,7 +88,7 @@ void ControlEditorPanel::Render()
     CreateShaderHotReloadButton(IconSize);
 
     ImGui::SameLine();
-
+    
     auto PIEIconSize = ImVec2(IconSize.x + 8, IconSize.y);
     ImGui::PushFont(IconFont);
     CreatePIEButton(PIEIconSize);
@@ -644,6 +644,35 @@ void ControlEditorPanel::CreateFlagButton() const
             ImGui::Checkbox(Items[ItemIndex], &bIsSelected[ItemIndex]);
         }
         ActiveViewport->SetShowFlag(ConvertSelectionToFlags(bIsSelected));
+        ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
+
+    const char* SkinningModeNames[] = { "CPU_Skinning", "GPU_Skinning" };
+    FString SelectSkinningControl = SkinningModeNames[static_cast<uint32>(GEngineLoop.Renderer.GetSkinningMode())];
+    const ImVec2 SkinningTextSize = ImGui::CalcTextSize(GetData(SelectSkinningControl));
+
+    if (ImGui::Button(GetData(SelectSkinningControl), ImVec2(30 + SkinningTextSize.x, 32)))
+    {
+        ImGui::OpenPopup("SkinningControl");
+    }
+
+    if (ImGui::BeginPopup("SkinningControl"))
+    {
+        for (int SkinningModeIndex = 0; SkinningModeIndex < IM_ARRAYSIZE(SkinningModeNames); SkinningModeIndex++)
+        {
+            const bool bIsSelected = (static_cast<uint32>(GEngineLoop.Renderer.GetSkinningMode()) == SkinningModeIndex);
+            if (ImGui::Selectable(SkinningModeNames[SkinningModeIndex], bIsSelected))
+            {
+                GEngineLoop.Renderer.SetSkinningMode(static_cast<ESkinningType>(SkinningModeIndex));
+            }
+
+            if (bIsSelected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
         ImGui::EndPopup();
     }
 }

@@ -66,7 +66,10 @@ public:
     EViewModeIndex GetCurrentViewMode() const { return CurrentViewMode; }
 
     void SetShadowFilterMode(EShadowFilterMode FilterMode) { CurrentShadowFilterMode = FilterMode; }
-    EShadowFilterMode GetShadowFilterMode() { return CurrentShadowFilterMode; }
+    EShadowFilterMode GetShadowFilterMode() const { return CurrentShadowFilterMode; }
+
+    void SetSkinningMode(ESkinningType FilterMode) { CurrentSkinningType = FilterMode; }
+    ESkinningType GetSkinningMode() const { return CurrentSkinningType; }
 
 public:
     //Render Pass Demo
@@ -118,5 +121,6 @@ private:
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
     EViewModeIndex CurrentViewMode = VMI_Lit_Goroud;
     EShadowFilterMode CurrentShadowFilterMode = EShadowFilterMode::PCF;
+    ESkinningType CurrentSkinningType = ESkinningType::GPU;
 };
 
