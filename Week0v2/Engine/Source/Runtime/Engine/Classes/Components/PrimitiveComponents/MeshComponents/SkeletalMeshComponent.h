@@ -7,6 +7,14 @@ class UStaticMeshComponent;
 class UAnimationAsset;
 class UAnimSingleNodeInstance;
 class UAnimSequence;
+
+enum class EAnimationMode : uint8
+{
+    AnimationBlueprint,
+    AnimationSingleNode,
+};
+
+
 class USkeletalMeshComponent : public UMeshComponent
 {
     DECLARE_CLASS(USkeletalMeshComponent, UMeshComponent)
@@ -88,8 +96,14 @@ public:
     void SetLoopEndFrame(int32 InLoopEndFrame);
 
     bool bIsAnimationEnabled() const { return bPlayAnimation; }
+
+    void SetAnimationMode(EAnimationMode InAnimationMode);
+
+    EAnimationMode GetAnimationMode() const { return AnimationMode; }
+
 private:
 
+    EAnimationMode AnimationMode;
     bool bPlayAnimation;
 
 private:
