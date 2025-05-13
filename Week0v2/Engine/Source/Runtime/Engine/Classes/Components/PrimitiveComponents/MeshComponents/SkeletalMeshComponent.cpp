@@ -1,5 +1,6 @@
 #include "SkeletalMeshComponent.h"
 
+#include "LaunchEngineLoop.h"
 #include "TestFBXLoader.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/Skeleton.h"
@@ -12,6 +13,7 @@
 #include "GameFramework/Actor.h"
 #include "Math/JungleMath.h"
 #include "Math/Transform.h"
+#include "Renderer/Renderer.h"
 #include "StaticMeshComponents/StaticMeshComponent.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent(const USkeletalMeshComponent& Other)
@@ -79,7 +81,7 @@ void USkeletalMeshComponent::GetUsedMaterials(TArray<UMaterial*>& Out) const
 
 int USkeletalMeshComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
 {
-    //if (!AABB.IntersectRay(rayOrigin, rayDirection, pfNearHitDistance)) return 0;
+    if (!AABB.IntersectRay(rayOrigin, rayDirection, pfNearHitDistance)) return 0;
     int nIntersections = 0;
     if (SkeletalMesh == nullptr) return 0;
 
@@ -245,7 +247,19 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     if (AnimInstance) AnimInstance->NativeUpdateAnimation(DeltaTime);
 
     SkeletalMesh->UpdateBoneHierarchy();
-    // SkeletalMesh->UpdateSkinnedVertices();
+    if (GEngineLoop.Renderer.GetSkinningMode() == ESkinningType::CPU)
+    {
+        SkeletalMesh->UpdateSkinnedVertices();
+        bCPUSkinned = true; 
+    }
+    else
+    {
+        if (bCPUSkinned)
+        {
+            SkeletalMesh->ResetToOriginalPose();
+            bCPUSkinned = false;
+        }   
+    }
 }
 
 void USkeletalMeshComponent::SetData(const FString& FilePath)

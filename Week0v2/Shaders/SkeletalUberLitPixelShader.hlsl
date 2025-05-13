@@ -114,8 +114,8 @@ cbuffer FFlagConstants : register(b3)
 {
     uint IsLit;
     uint IsNormal;
-    uint IsVSM; 
-    float flagPad0;
+    uint IsVSM;
+    uint IsGPUSkinning;
 }
 
 cbuffer FSubUVConstant : register(b4)
