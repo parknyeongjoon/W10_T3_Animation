@@ -60,6 +60,7 @@ void UShapeComponent::TickComponent(float DeltaTime)
 
 void UShapeComponent::DestroyComponent()
 {
+    Super::DestroyComponent();
     UEditorEngine::CollisionManager.Unregister(this);
 }
 

@@ -12,6 +12,7 @@
 
 USkeletalMesh::USkeletalMesh(const USkeletalMesh& Other)
 : UObject(Other)
+    , SkeletalMeshRenderData(Other.SkeletalMeshRenderData)
     , Skeleton(Other.Skeleton)
     , MaterialSlots(Other.MaterialSlots)
 {

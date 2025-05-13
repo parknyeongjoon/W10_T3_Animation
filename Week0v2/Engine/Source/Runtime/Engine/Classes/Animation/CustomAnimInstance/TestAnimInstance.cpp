@@ -20,51 +20,58 @@ UTestAnimInstance::UTestAnimInstance()
 
     AnimStateMachine = FObjectFactory::ConstructObject<UAnimationStateMachine<ETestState>>(this);
 
+    IdleCallback.func = [](UTestAnimInstance* self, float DeltaTime)
+    {
+        if (self->CurrentSequence != self->IdleSequence) {
+            self->bIsBlending = true;
+            self->BlendTime = 0.0f;
+            self->PreviousSequence = self->CurrentSequence;
+            self->CurrentSequence = self->IdleSequence;
+        }
+        if (self->bIsBlending) {
+            self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
+        }
+        else {
+            self->UpdateAnimation(self->IdleSequence, DeltaTime);
+        }
+    };
+    WalkCallback.func = [](UTestAnimInstance* self, float DeltaTime)
+    {
+        if (self->CurrentSequence != self->WalkSequence) {
+            self->bIsBlending = true;
+            self->BlendTime = 0.0f;
+            self->PreviousSequence = self->CurrentSequence;
+            self->CurrentSequence = self->WalkSequence;
+        }
+        if (self->bIsBlending) {
+            self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
+        }
+        else {
+            self->UpdateAnimation(self->WalkSequence, DeltaTime);
+        }
+    };
+    DanceCallback.func = [](UTestAnimInstance* self, float DeltaTime)
+    {
+        if (self->CurrentSequence != self->DanceSequence) {
+            self->bIsBlending = true;
+            self->BlendTime = 0.0f;
+            self->PreviousSequence = self->CurrentSequence;
+            self->CurrentSequence = self->DanceSequence;
+        }
+        if (self->bIsBlending) {
+            self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
+        }
+        else {
+            self->UpdateAnimation(self->DanceSequence, DeltaTime);
+        }
+    };
+
     //**State 추가**
-    AnimStateMachine->AddState(ETestState::Idle, [this](float DeltaTime) {
-        if (CurrentSequence != IdleSequence) {
-            bIsBlending = true;
-            BlendTime = 0.0f;
-            PreviousSequence = CurrentSequence;
-            CurrentSequence = IdleSequence;
-        }
-        if (bIsBlending) {
-            BlendAnimations(PreviousSequence, CurrentSequence, DeltaTime);
-        }
-        else {
-            UpdateAnimation(IdleSequence, DeltaTime);
-        }
-        });
+    AnimStateMachine->AddState(ETestState::Idle, IdleCallback);
 
-    AnimStateMachine->AddState(ETestState::Walking, [this](float DeltaTime) {
-        if (CurrentSequence != WalkSequence) {
-            bIsBlending = true;
-            BlendTime = 0.0f;
-            PreviousSequence = CurrentSequence;
-            CurrentSequence = WalkSequence;
-        }
-        if (bIsBlending) {
-            BlendAnimations(PreviousSequence, CurrentSequence, DeltaTime);
-        }
-        else {
-            UpdateAnimation(WalkSequence, DeltaTime);
-        }
-        });
+    AnimStateMachine->AddState(ETestState::Walking, WalkCallback);
 
-    AnimStateMachine->AddState(ETestState::Dancing, [this](float DeltaTime) {
-        if (CurrentSequence != DanceSequence) {
-            bIsBlending = true;
-            BlendTime = 0.0f;
-            PreviousSequence = CurrentSequence;
-            CurrentSequence = DanceSequence;
-        }
-        if (bIsBlending) {
-            BlendAnimations(PreviousSequence, CurrentSequence, DeltaTime);
-        }
-        else {
-            UpdateAnimation(DanceSequence, DeltaTime);
-        }
-        });
+    AnimStateMachine->AddState(ETestState::Dancing, DanceCallback);
 
     // **Transition Rule 정의**
     AnimStateMachine->AddTransition(ETestState::Idle, ETestState::Walking, [&]() { 
@@ -92,6 +99,9 @@ UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) :
     WalkSequence(Other.WalkSequence),
     DanceSequence(Other.DanceSequence)
 {
+    IdleCallback.func = Other.IdleCallback.func;
+    WalkCallback.func = Other.WalkCallback.func;
+    DanceCallback.func = Other.DanceCallback.func;
 }
 
 UObject* UTestAnimInstance::Duplicate(UObject* InOuter)
@@ -105,7 +115,9 @@ UObject* UTestAnimInstance::Duplicate(UObject* InOuter)
 
 void UTestAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    AnimStateMachine = Cast<UAnimationStateMachine<ETestState>>(Cast<UTestAnimInstance>(Source)->AnimStateMachine->Duplicate(this));
+    UAnimInstance::DuplicateSubObjects(Source, InOuter);
+    UObject* obj = Cast<UTestAnimInstance>(Source)->AnimStateMachine->Duplicate(this);
+    AnimStateMachine = Cast<UAnimationStateMachine<ETestState>>(obj);
 }
 
 

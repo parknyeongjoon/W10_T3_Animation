@@ -1,5 +1,6 @@
 #pragma once
 #include "Animation/AnimInstance.h"
+#include "Delegates/FFunctor.h"
 
 class UAnimSequence;
 template <typename T>
@@ -39,14 +40,14 @@ namespace std {
 class UTestAnimInstance :
     public UAnimInstance
 {
-
     DECLARE_CLASS(UTestAnimInstance, UAnimInstance)
+    DECLARE_CONTEXT_FUNC(StateCallback, void, float);
 public:
     UTestAnimInstance();
     UTestAnimInstance(const UTestAnimInstance& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;
-    void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
     //virtual void TriggerAnimNotifies(float DeltaSeconds) override;
     virtual void NativeUpdateAnimation(float DeltaSeconds) const override;
 private:
@@ -56,5 +57,8 @@ private:
     UAnimSequence* WalkSequence = nullptr;
     UAnimSequence* DanceSequence = nullptr;
 
+    StateCallback IdleCallback = StateCallback(this);
+    StateCallback WalkCallback = StateCallback(this);
+    StateCallback DanceCallback = StateCallback(this);
 };
 
