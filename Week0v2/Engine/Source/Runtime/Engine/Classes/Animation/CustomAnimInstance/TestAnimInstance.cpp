@@ -133,15 +133,16 @@ UTestAnimInstance::UTestAnimInstance()
     CurrentSequence = DanceSequence;
     PreviousSequence = DanceSequence;
     
-    StandingSequence->AddNotify(1.0f, []()
+    IdleSequence->AddNotify(1, 1.0f,
+    []()
     {
         printf("AnimNotify: Standing\n");
     });
-    JumpSequence->AddNotify(1.0f, []()
+    WalkSequence->AddNotify(1, 1.0f, []()
     {
         printf("AnimNotify: Jump\n");
     });
-    DanceSequence->AddNotify(1.0f, []()
+    DanceSequence->AddNotify(1, 1.0f, []()
     {
         printf("AnimNotify: Dancing\n");
     });
