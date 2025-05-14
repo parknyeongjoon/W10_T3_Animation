@@ -125,6 +125,11 @@ void AActor::UninitializeComponents() const
     }
 }
 
+USceneComponent* AActor::GetRootComponent() const
+{
+    return RootComponent;
+}
+
 bool AActor::SetRootComponent(USceneComponent* NewRootComponent)
 {
     if (NewRootComponent == nullptr || NewRootComponent->GetOwner() == this)
@@ -142,6 +147,46 @@ bool AActor::SetRootComponent(USceneComponent* NewRootComponent)
         return true;
     }
     return false;
+}
+
+AActor* AActor::GetOwner() const
+{
+    return Owner;
+}
+
+void AActor::SetOwner(AActor* NewOwner)
+{
+    Owner = NewOwner;
+}
+
+FVector AActor::GetActorLocation() const
+{
+    return RootComponent ? RootComponent->GetWorldLocation() : FVector::ZeroVector;
+}
+
+FRotator AActor::GetActorRotation() const
+{
+    return RootComponent ? RootComponent->GetWorldRotation() : FRotator();
+}
+
+FVector AActor::GetActorScale() const
+{
+    return RootComponent ? RootComponent->GetWorldScale() : FVector::ZeroVector;
+}
+
+FVector AActor::GetActorForwardVector() const
+{
+    return RootComponent ? RootComponent->GetWorldForwardVector() : FVector::ForwardVector;
+}
+
+FVector AActor::GetActorRightVector() const
+{
+    return RootComponent ? RootComponent->GetWorldRightVector() : FVector::RightVector;
+}
+
+FVector AActor::GetActorUpVector() const
+{
+    return RootComponent ? RootComponent->GetWorldUpVector() : FVector::UpVector;
 }
 
 bool AActor::SetActorLocation(const FVector& NewLocation) const

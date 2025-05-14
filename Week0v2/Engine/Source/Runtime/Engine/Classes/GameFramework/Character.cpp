@@ -48,6 +48,8 @@ UObject* ACharacter::Duplicate(UObject* InOuter)
 
 void ACharacter::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
+    APawn::DuplicateSubObjects(Source, InOuter);
+    
     ACharacter* Character = Cast<ACharacter>(Source);
     BodyMesh = Cast<USkeletalMeshComponent>(Character->BodyMesh->Duplicate(this));
     RootComponent = BodyMesh;

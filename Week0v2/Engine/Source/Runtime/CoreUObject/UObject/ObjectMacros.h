@@ -20,6 +20,7 @@ public: \
     static UClass* StaticClass() { \
         static UClass ClassInfo{ TEXT(#TClass), static_cast<uint32>(sizeof(TClass)), static_cast<uint32>(alignof(TClass)), TSuperClass::StaticClass() }; \
         ClassInfo.Creator = [](UObject* InOuter) -> void* { return FObjectFactory::ConstructObject<TClass>(InOuter); }; \
+        ClassInfo.BindPropertiesToLua = TClass::BindPropertiesToLua; \
         return &ClassInfo; \
     } \
 private: \
@@ -29,7 +30,35 @@ private: \
         } \
     }; \
 public: \
-    static inline FAutoRegister_##TClass AutoRegister_##TClass_Instance;
+    static inline FAutoRegister_##TClass AutoRegister_##TClass_Instance; \
+private: \
+    static TMap<FString, std::function<void(sol::usertype<TClass>)>>& GetBindFunctions() { \
+        static TMap<FString, std::function<void(sol::usertype<TClass>)>> _binds; \
+        return _binds; \
+    } \
+public: \
+    using InheritTypes = SolTypeBinding::InheritList<TClass, TSuperClass>::type; \
+    static sol::usertype<TClass> GetLuaUserType(sol::state& lua) { \
+        static sol::usertype<TClass> usertype = lua.new_usertype<TClass>( \
+            #TClass, \
+            sol::base_classes, \
+            SolTypeBinding::TypeListToBases<typename SolTypeBinding::InheritList<TClass, TSuperClass>::base_list>::Get() \
+        ); \
+        return usertype; \
+    } \
+    static void BindPropertiesToLua(sol::state& lua) { \
+        sol::usertype<TClass> table = GetLuaUserType(lua); \
+        for (const auto [name, bind] : GetBindFunctions()) \
+        { \
+            bind(table); \
+        } \
+        SolTypeBinding::RegisterGetComponentByClass<TClass>(lua, #TClass); \
+        lua.set_function(std::string("As") + #TClass, [](UObject* obj)->TClass* { \
+            return dynamic_cast<TClass*>(obj); \
+        }); \
+    } \
+
+
 
 #define DECLARE_ACTORCOMPONENT_INFO(T) \
     struct T##FactoryRegister { \
@@ -39,7 +68,7 @@ public: \
             }; \
         } \
     }; \
-static inline T##FactoryRegister Global_##T##_FactoryRegister; \
+    static inline T##FactoryRegister Global_##T##_FactoryRegister; \
 
 
 
@@ -53,5 +82,47 @@ static inline T##FactoryRegister Global_##T##_FactoryRegister; \
 
 // Getter & Setter 생성
 #define PROPERTY(type, name) \
+private: \
+    type name; \
+public: \
     void Set##name(const type& value) { name = value; } \
-    type Get##name() const { return name; }
+    type Get##name() const { return name; } \
+
+#define UPROPERTY(type, name) \
+    PROPERTY(type, name) \
+private: \
+    inline static struct name##_PropRegister \
+    { \
+        name##_PropRegister() \
+        { \
+            GetBindFunctions().Add(#name, [](sol::usertype<ThisClass> table) { \
+                table[#name] = &ThisClass::name; \
+            }); \
+        } \
+    } name##_PropRegister_{}; \
+
+#define UFUNCTION(Type, FuncName, ...) \
+    Type FuncName (__VA_ARGS__); \
+    inline static struct FuncName##_PropRegister \
+    { \
+        FuncName##_PropRegister() \
+        { \
+            GetBindFunctions().Add(#FuncName, [](sol::usertype<ThisClass> table) { \
+                table[#FuncName] = &ThisClass::FuncName; \
+            }); \
+        } \
+    } FuncName##_PropRegister_{}; \
+
+#define UFUNCTION_CONST(Type, FuncName, ...) \
+    Type FuncName (__VA_ARGS__) const; \
+    inline static struct FuncName##_PropRegister \
+    { \
+        FuncName##_PropRegister() \
+        { \
+            GetBindFunctions().Add(#FuncName, [](sol::usertype<ThisClass> table) { \
+                table[#FuncName] = &ThisClass::FuncName; \
+            }); \
+        } \
+    } FuncName##_PropRegister_{}; \
+
+    

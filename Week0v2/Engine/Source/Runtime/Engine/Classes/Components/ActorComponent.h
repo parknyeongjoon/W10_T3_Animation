@@ -51,7 +51,7 @@ public:
 
 public:
     /** 이 컴포넌트를 소유하고 있는 Actor를 반환합니다. */
-    AActor* GetOwner() const { return Owner; }
+    AActor* GetOwner() const;
 
     /** 이 컴포넌트를 제거합니다. */
     virtual void DestroyComponent();
@@ -63,10 +63,10 @@ public:
     bool HasBeenInitialized() const { return bHasBeenInitialized; }
 
     /** Component가 현재 활성화 중인지 여부를 반환합니다. */
-    bool IsActive() const { return bIsActive; }
+    UFUNCTION_CONST(bool, IsActive);
 
-    void Activate();
-    void Deactivate();
+    UFUNCTION(void, Activate);
+    UFUNCTION(void, Deactivate);
 
     bool IsComponentTickEnabled() const { return bTickEnabled; }
     void SetComponentTickEnabled(const bool bEnabled) { bTickEnabled = bEnabled; }

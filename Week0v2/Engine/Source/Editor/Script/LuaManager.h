@@ -62,6 +62,7 @@ private:
     void BindForwardDeclarations(sol::table& lua);
     void BindFStringToLua(sol::table& lua) ;
     
+    static std::string LuaObjToString(const sol::object& obj, int depth = 0, bool showHidden = 0);
     bool bInitialized = false;
 
     // 싱글톤을 위한 정적 인스턴스
