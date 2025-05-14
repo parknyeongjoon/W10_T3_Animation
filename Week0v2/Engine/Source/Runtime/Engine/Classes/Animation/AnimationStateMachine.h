@@ -4,7 +4,9 @@
 #include "Container/Map.h"
 #include "Delegates/FFunctor.h"
 #include "UObject/Casts.h"
+#include "UObject/ObjectMacros.h"
 
+class UAnimInstance;
 template <typename TState>
 class UAnimationStateMachine : public UObject
 {

@@ -168,14 +168,6 @@ void UAnimSequenceBase::GetAnimationPose(FPoseContext& OutPose, const FAnimExtra
         }
         OutPose.Pose.BoneTransforms.Add(Transform);
     }
-
-
-
-    // Root Motion 처리
-    //if (ExtractionContext.bExtractRootMotion)
-    //{
-    //    OutPose.Pose.RootMotionTransform = BoneTracks[0].EvaluateTransformAtTime(TimeToExtract);
-    //}
 }
 
 void UAnimSequenceBase::EvaluateCurveData(FBlendedCurve& OutCurve, const FAnimExtractContext& ExtractionContext) const

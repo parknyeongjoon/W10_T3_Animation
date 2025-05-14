@@ -5,6 +5,8 @@
 #include "Animation/CustomAnimInstance/TestAnimInstance.h"
 #include "Components/InputComponent.h"
 #include "Components/GameFramework/ProjectileMovementComponent.h"
+#include "Contents/GameManager.h"
+#include "UObject/FunctionRegistry.h"
 
 ACharacter::ACharacter()
 {
@@ -25,6 +27,10 @@ ACharacter::ACharacter()
     CollisionCapsule->SetRelativeLocation(FVector(0, 0, ZSize/2));
 
     MovementComponent = AddComponent<UProjectileMovementComponent>(EComponentOrigin::Constructor);
+
+    PlayAnimA.AddStatic(FGameManager::PlayAnimA);
+    PlayAnimB.AddStatic(FGameManager::PlayAnimB);
+    PlayAnimC.AddStatic(FGameManager::PlayAnimC);
 }
 
 ACharacter::ACharacter(const ACharacter& Other)
@@ -53,7 +59,7 @@ void ACharacter::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
     AddDuplicatedComponent(MovementComponent);
 }
 
-void ACharacter::Tick(float DeltaTime)
+void ACharacter::Tick(float DeltaTime) // TODO: Character 상속받는 MyCharacter 만들어서 거기에다가 제작
 {
     APawn::Tick(DeltaTime);
     MovementComponent->Velocity *= 0.9f;
@@ -63,7 +69,7 @@ void ACharacter::Tick(float DeltaTime)
     }
 }
 
-void ACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void ACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) // TODO: Character 상속받는 MyCharacter 만들어서 거기에다가 제작
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
     // 카메라 조작용 축 바인딩
@@ -73,6 +79,9 @@ void ACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
         PlayerInputComponent->BindAxis("MoveForward", [this](float V) { GetMovementComponent()->Velocity += FVector(V,0,0); });
         PlayerInputComponent->BindAxis("MoveRight", [this](float V) { GetMovementComponent()->Velocity += FVector(0,V,0); });
         PlayerInputComponent->BindAxis("MoveRight", [this](float V) { GetMovementComponent()->Velocity += FVector(0,V,0); });
+        PlayerInputComponent->BindAction("AnimA", [this] { Cast<UTestAnimInstance>(BodyMesh->GetAnimInstance())->SetState(ETestState::Pose); PlayAnimA.Broadcast(); });
+        PlayerInputComponent->BindAction("AnimB", [this] { Cast<UTestAnimInstance>(BodyMesh->GetAnimInstance())->SetState(ETestState::Jump); PlayAnimB.Broadcast(); });
+        PlayerInputComponent->BindAction("AnimC", [this] { Cast<UTestAnimInstance>(BodyMesh->GetAnimInstance())->SetState(ETestState::Dance); PlayAnimC.Broadcast(); });
     }
 }
 
