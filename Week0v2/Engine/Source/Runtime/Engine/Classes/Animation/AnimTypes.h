@@ -106,15 +106,20 @@ struct FAnimNotifyEvent
 {
     float TriggerTime;
     float Duration;
+    int32 TrackIndex;
     FName NotifyName;
     // class UAnimNotify* Notify;
     TDelegate<void()> OnNotify;
     bool bIsTriggered = false;
     // < 연산자 오버로딩
-    bool operator<(const FAnimNotifyEvent& other) const {
+    bool operator<(const FAnimNotifyEvent& other) const
+    {
         return TriggerTime < other.TriggerTime;
     }
     friend bool operator==(const FAnimNotifyEvent& A, const FAnimNotifyEvent& B);
+
+    bool IsState() const { return Duration > 0.f; }
+    float GetEndTime() const { return TriggerTime + Duration; }
 };
 
 struct FAnimNotifyTrack
@@ -124,7 +129,7 @@ struct FAnimNotifyTrack
 
     FAnimNotifyTrack() = default;
 
-    FAnimNotifyTrack(FName InName)
+    FAnimNotifyTrack(const FName InName)
         : TrackName(InName)
     {
     }

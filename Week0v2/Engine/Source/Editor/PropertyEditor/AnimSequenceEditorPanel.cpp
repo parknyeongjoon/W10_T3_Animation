@@ -123,8 +123,8 @@ void AnimSequenceEditorPanel::Render()
         ImGui::PopFont();
     }
     ImGui::Separator();
-    //const TArray<FAnimNotifyTrack>& Tracks = AnimSeqence->GetAnimNotifyTracks();
-    //const TArray<FAnimNotifyEvent>& Events = AnimSeqence->Notifies;
+    const TArray<FAnimNotifyTrack>& Tracks = AnimSeqence->GetAnimNotifyTracks();
+    const TArray<FAnimNotifyEvent>& Events = AnimSeqence->Notifies;
 
     ImGuiNeoSequencerFlags Flags = ImGuiNeoSequencerFlags_EnableSelection |
                                     ImGuiNeoSequencerFlags_Selection_EnableDragging;
@@ -142,54 +142,52 @@ void AnimSequenceEditorPanel::Render()
             ImGui::ClearNeoKeyframeSelection();
         }
 
-        /*
         int32 PendingRemoveTrackIdx = INDEX_NONE;
-        for (int TrackIdx = 0; TrackIdx < Tracks.Num(); ++TrackIdx)
+        static bool bOpen;
+        if (ImGui::BeginNeoGroup("Notify", &bOpen))
         {
-            bool bOpen = true;
-            std::string TrackLabel = *Tracks[TrackIdx].TrackName.ToString();
-            FAnimNotifyTrack& CurrentTrack = AnimSeqence->AnimNotifyTracks[TrackIdx];
-            ImGui::PushID(TrackIdx);
-            if (ImGui::BeginNeoGroup(TrackLabel.c_str(), &bOpen))
+            for (int TrackIdx = 0; TrackIdx < Tracks.Num(); ++TrackIdx)
             {
+                std::string TrackLabel = *Tracks[TrackIdx].TrackName.ToString();
+                FAnimNotifyTrack& CurrentTrack = AnimSeqence->AnimNotifyTracks[TrackIdx];
+                ImGui::PushID(TrackIdx);
                 bool bRenamePopup = false;
                 char trackCtxId[64];
                 if (ImGui::BeginPopupContextItem(trackCtxId))
                 {
                     if (ImGui::MenuItem("Add Track"))
                     {
-                        int32 NewTrackIdx = INDEX_NONE;
                         int Index = 0;
                         FName NewTrackName;
                         do {
                             // Find a unique name from 0 to N
                             NewTrackName = FName(*FString::Printf(TEXT("%d"), Index));
                             Index++;
-                        } while (AnimSeqence->FindNotifyTrackIndex(NewTrackName) != INDEX_NONE);
-                        AnimSeqence->AddNotifyTrack(NewTrackName, NewTrackIdx);
+                        } while (AnimSeqence->FindNotifyTrackIndexByName(NewTrackName) != INDEX_NONE);
+                        AnimSeqence->AddNotifyTrack(NewTrackName);
                     }
                     if (ImGui::MenuItem("Remove Track"))
                     {
                         PendingRemoveTrackIdx = TrackIdx;
                         ImGui::CloseCurrentPopup();
                     }
-                    if (ImGui::MenuItem("Rename Track"))
-                    {
-                        SelectedTrackIndex_ForRename = TrackIdx;
-                        FCString::Strncpy(RenameTrackBuffer, *CurrentTrack.TrackName.ToString(), sizeof(RenameTrackBuffer) / sizeof(TCHAR) - 1);
-                        RenameTrackBuffer[sizeof(RenameTrackBuffer) / sizeof(TCHAR) - 1] = 0;
-                        bRenamePopup = true;
-                    }
+                    //if (ImGui::MenuItem("Rename Track"))
+                    //{
+                    //    SelectedTrackIndex_ForRename = TrackIdx;
+                    //    FCString::Strncpy(RenameTrackBuffer, *CurrentTrack.TrackName.ToString(), sizeof(RenameTrackBuffer) / sizeof(TCHAR) - 1);
+                    //    RenameTrackBuffer[sizeof(RenameTrackBuffer) / sizeof(TCHAR) - 1] = 0;
+                    //    bRenamePopup = true;
+                    //}
                     if (ImGui::MenuItem("Add Notify"))
                     {
-                        int32 NewIndex;
-                        AnimSeqence->AddNotifyEvent(TrackIdx, Elapsed, 0, "New Notify", NewIndex);
+                        // @todo 테스트용 람다 작성 설정
+                        AnimSeqence->AddNotify(TrackIdx, Elapsed, []() { printf("NO!!!!!!!!!!!!!!!!!\n"); }, 0, "New Notify");
                     }
                     ImGui::EndPopup();
                 }
 
                 // Rename Track Popup
-                if (bRenamePopup)
+                /*if (bRenamePopup)
                 {
                     ImGui::OpenPopup("RenameTrackPopupModal");
                 }
@@ -215,8 +213,9 @@ void AnimSequenceEditorPanel::Render()
                         ImGui::CloseCurrentPopup();
                     }
                     ImGui::EndPopup();
-                }
-                if (ImGui::BeginNeoTimelineEx("Notify"))
+                }*/
+
+                if (ImGui::BeginNeoTimelineEx(TrackLabel.c_str()))
                 {
                     for (int32 Index : Tracks[TrackIdx].NotifyIndices)
                     {
@@ -228,7 +227,7 @@ void AnimSequenceEditorPanel::Render()
                         FAnimNotifyEvent& Notify = AnimSeqence->Notifies[Index];
 
                         // 현재 Notify의 프레임 계산
-                        int32 Frame = static_cast<int32>(Notify.Time * static_cast<float>(FrameRate));
+                        int32 Frame = static_cast<int32>(Notify.TriggerTime * static_cast<float>(FrameRate));
                         int32 OriginalFrame = Frame;
                         float DurationFrame = Notify.Duration * static_cast<float>(FrameRate);
                         ImGui::PushID(Index);
@@ -244,23 +243,23 @@ void AnimSequenceEditorPanel::Render()
                         if (ImGui::IsNeoKeyframeRightClicked())
                         {
                             SelectedNotifyGlobalIndex_ForRename = Index;
-                            FCString::Strncpy(RenameNotifyBuffer, *Notify.NotifyName.ToString(), sizeof(RenameNotifyBuffer) / sizeof(TCHAR) - 1);
+                            //FCString::Strncpy(RenameNotifyBuffer, *Notify.NotifyName.ToString(), sizeof(RenameNotifyBuffer) / sizeof(TCHAR) - 1);
                             RenameNotifyDuration = Notify.Duration;
                             ImGui::OpenPopup("Edit Notify");
                         }
                         // 변경 감지 후 업데이트
                         if (Frame != OriginalFrame)
                         {
-                            float NewTime = static_cast<float>(Frame) / FrameRate;
+                            float NewTriggerTime = static_cast<float>(Frame) / FrameRate;
                             if (Frame < LoopStart)
                             {
-                                NewTime = LoopStart / FrameRate;
+                                NewTriggerTime = LoopStart / FrameRate;
                             }
                             else if (Frame + DurationFrame > LoopEnd)
                             {
-                                NewTime = (LoopEnd - DurationFrame) / FrameRate;
+                                NewTriggerTime = (LoopEnd - DurationFrame) / FrameRate;
                             }
-                            AnimSeqence->UpdateNotifyEvent(Index, NewTime, Notify.Duration, Notify.TrackIndex, Notify.NotifyName);
+                            AnimSeqence->UpdateNotify(Index, NewTriggerTime, Notify.Duration, Notify.TrackIndex, Notify.NotifyName);
                         }
                     }
                     ImGui::EndNeoTimeLine();
@@ -276,15 +275,15 @@ void AnimSequenceEditorPanel::Render()
                         if (AnimSeqence->Notifies.IsValidIndex(SelectedNotifyGlobalIndex_ForRename))
                         {
                             FName NewName(RenameNotifyBuffer);
-                            float NewTime = AnimSeqence->Notifies[SelectedNotifyGlobalIndex_ForRename].Time;
+                            float NewTriggerTime = AnimSeqence->Notifies[SelectedNotifyGlobalIndex_ForRename].TriggerTime;
                             float MaxEndTime = static_cast<float>(LoopEnd) / static_cast<float>(FrameRate);
-                            if ((RenameNotifyDuration + NewTime) > MaxEndTime)
+                            if ((RenameNotifyDuration + NewTriggerTime) > MaxEndTime)
                             {
-                                RenameNotifyDuration = MaxEndTime - NewTime;
+                                RenameNotifyDuration = MaxEndTime - NewTriggerTime;
                             }
                             int32 TrackIndex = AnimSeqence->Notifies[SelectedNotifyGlobalIndex_ForRename].TrackIndex;
 
-                            AnimSeqence->UpdateNotifyEvent(SelectedNotifyGlobalIndex_ForRename, NewTime, RenameNotifyDuration, TrackIndex, NewName);
+                            AnimSeqence->UpdateNotify(SelectedNotifyGlobalIndex_ForRename, NewTriggerTime, RenameNotifyDuration, TrackIndex, NewName);
                         }
                         ImGui::CloseCurrentPopup();
                     }
@@ -304,18 +303,16 @@ void AnimSequenceEditorPanel::Render()
                     }
                     ImGui::EndPopup();
                 }
-
-
-
-                ImGui::EndNeoGroup();
+                ImGui::PopID();
             }
-            ImGui::PopID();
+
+            ImGui::EndNeoGroup();
         }
+
         if (PendingRemoveTrackIdx != INDEX_NONE && AnimSeqence->AnimNotifyTracks.IsValidIndex(PendingRemoveTrackIdx))
         {
             AnimSeqence->RemoveNotifyTrack(PendingRemoveTrackIdx);
         }
-        */
 
         ImGui::EndNeoSequencer();
     }
