@@ -453,15 +453,8 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     }
                     case OBJ_SKELETAL:
                     {
-                        ASkeletalMeshActor* SkeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
-                        SkeletalMeshActor->SetActorLabel("SkeletalMesh");
-                        USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->AddComponent<USkeletalMeshComponent>(EComponentOrigin::Editor);
-                        SkeletalMeshActor->SetRootComponent(SkeletalMeshComp);
-                        SkeletalMeshComp->SetData("Contents/FBX/Rumba_Dancing.fbx");
-
-                        UTestAnimInstance* TestAnimInstance = FObjectFactory::ConstructObject<UTestAnimInstance>(SkeletalMeshComp);
-                        SkeletalMeshComp->SetAnimInstance(TestAnimInstance);
-                        SpawnedActor = SkeletalMeshActor;
+                        SpawnedActor = World->SpawnActor<ASkeletalMeshActor>();
+                        SpawnedActor->SetActorLabel("SkeletalMesh");
                         break;
                     }
                     case OBJ_CHARACTER:

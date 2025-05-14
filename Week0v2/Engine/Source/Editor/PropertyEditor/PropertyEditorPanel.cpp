@@ -1783,16 +1783,17 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
         MeshComp->SetWorldRotation(FRotator(0.0f, 0.0f, 90.0f));
         SkySphereActor->SetActorScale(FVector(1.0f, 1.0f, 1.0f));
 
-        // StaticMeshActor 생성
+        // SkeletalMeshActor 생성
         ASkeletalMeshActor* SkeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
-        SkeletalMeshActor->SetActorLabel("PreviewSkeletalMeshActor"); 
-        USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->AddComponent<USkeletalMeshComponent>(EComponentOrigin::Editor);
-        SkeletalMeshActor->SetRootComponent(SkeletalMeshComp);
-        SkeletalMeshComp->SetSkeletalMesh(TestFBXLoader::CreateSkeletalMesh(FilePath));
+        SkeletalMeshActor->SetActorLabel("PreviewSkeletalMeshActor");
 
-        UAnimSingleNodeInstance* TestAnimInstance = FObjectFactory::ConstructObject<UAnimSingleNodeInstance>(SkeletalMeshComp);
+        // Mesh 및 Animation 설정
+        USkeletalMeshComponent* SkeletalMeshComponent = Cast<USkeletalMeshComponent>(SkeletalMeshActor->GetRootComponent());
+        SkeletalMeshComponent->SetSkeletalMesh(TestFBXLoader::CreateSkeletalMesh(FilePath));
+
+        UAnimSingleNodeInstance* TestAnimInstance = FObjectFactory::ConstructObject<UAnimSingleNodeInstance>(SkeletalMeshComponent);
         TestAnimInstance->GetCurrentAsset()->SetData(FilePath+"\\mixamo.com");
-        SkeletalMeshComp->SetAnimInstance(TestAnimInstance);
+        SkeletalMeshComponent->SetAnimInstance(TestAnimInstance);
     }
 }
 
