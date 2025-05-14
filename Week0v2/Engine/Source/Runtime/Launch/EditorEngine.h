@@ -36,7 +36,7 @@ public:
     UWorld* CreateWorld(EWorldType::Type WorldType, ELevelTick LevelTick);
     void RemoveWorld(UWorld* World);
 
-    UWorld* CreatePreviewWindow();
+    UWorld* CreatePreviewWindow(const FString& Name = TEXT("Preview"));
 
 public:
     static FCollisionManager CollisionManager;
@@ -63,11 +63,12 @@ public:
 
     std::shared_ptr<FWorldContext> EditorWorldContext = nullptr;
     std::shared_ptr<FWorldContext> PIEWorldContext = nullptr;
+    // UUID 타입 대신 WorldContexts 맵과 동일한 방식으로 정의
+    TMap<int, std::shared_ptr<FWorldContext>> PreviewWorldContexts;
 private:
     UnrealEd* UnrealEditor = nullptr;
     FSkeletalPreviewUI* SkeletalPreviewUI = nullptr;
     
     SLevelEditor* LevelEditor = nullptr;
     UEditorPlayer* EditorPlayer = nullptr;
-    UWorld* PreviewWorld = nullptr;
 };

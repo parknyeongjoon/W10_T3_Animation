@@ -248,35 +248,49 @@ UWorld* UEditorEngine::CreateWorld(EWorldType::Type WorldType, ELevelTick LevelT
 
 void UEditorEngine::RemoveWorld(UWorld* World)
 {
-    if (World == PreviewWorld)
+    if (World == nullptr)
     {
-        PreviewWorld = nullptr;
+        return;
     }
+
+    // PreviewWorld인지 검사
+    for (const auto& [key, context] : PreviewWorldContexts)
+    {
+        if (context->GetWorld() == World)
+        {
+            PreviewWorldContexts.Remove(key);
+            break;
+        }
+    }
+    
     World->Release();    
     WorldContexts.Remove(World->GetUUID());
 }
 
-UWorld* UEditorEngine::CreatePreviewWindow()
+UWorld* UEditorEngine::CreatePreviewWindow(const FString& Name)
 {
-    if (PreviewWorld != nullptr)
-    {
-        return PreviewWorld;
-    }
-    
     WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass";
-    // @todo 확인하려는 오브젝트의 이름으로 변경 (ex: "ModelName", "ModelName_Skeleton", "Anim_Name")
-    WCHAR EnginePreviewTitle[] = L"Preview";
+
+    // @todo Name 사용하도록 변경
+    WCHAR EnginePreviewTitle[256] = L"Preview";
 
     HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(GEngineLoop.GetDefaultWindow(), GWLP_HINSTANCE));
     HWND AppWnd = GEngineLoop.CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
         
-    PreviewWorld = CreateWorld(EWorldType::EditorPreview, LEVELTICK_All);
-    CreateNewWorldContext(PreviewWorld, EWorldType::EditorPreview, ELevelTick::LEVELTICK_All);
+    UWorld* NewPreviewWorld = CreateWorld(EWorldType::EditorPreview, LEVELTICK_All);
+    
+    // 새 WorldContext 생성
+    std::shared_ptr<FWorldContext> PreviewWorldContext = CreateNewWorldContext(NewPreviewWorld, EWorldType::EditorPreview, ELevelTick::LEVELTICK_All);
+    
+    // PreviewWorldContexts에 추가 (임의의 고유 ID 사용)
+    static int PreviewWorldCounter = 0;
+    PreviewWorldContexts.Add(PreviewWorldCounter++, PreviewWorldContext);
         
-    std::shared_ptr<FEditorViewportClient> EditorViewportClient = GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, PreviewWorld);
+    // 뷰포트 클라이언트 생성 및 설정
+    std::shared_ptr<FEditorViewportClient> EditorViewportClient = GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, NewPreviewWorld);
     EditorViewportClient->SetViewMode(VMI_Unlit);
 
-    return PreviewWorld;
+    return NewPreviewWorld;
 }
 
 std::shared_ptr<FWorldContext> UEditorEngine::CreateNewWorldContext(UWorld* InWorld, EWorldType::Type InWorldType, ELevelTick LevelType)
