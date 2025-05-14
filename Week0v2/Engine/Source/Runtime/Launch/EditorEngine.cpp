@@ -269,7 +269,8 @@ UWorld* UEditorEngine::CreatePreviewWindow()
     HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(GEngineLoop.GetDefaultWindow(), GWLP_HINSTANCE));
     HWND AppWnd = GEngineLoop.CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
         
-    PreviewWorld = CreateWorld(EWorldType::EditorPreview, LEVELTICK_ViewportsOnly);
+    PreviewWorld = CreateWorld(EWorldType::EditorPreview, LEVELTICK_All);
+    CreateNewWorldContext(PreviewWorld, EWorldType::EditorPreview, ELevelTick::LEVELTICK_All);
         
     std::shared_ptr<FEditorViewportClient> EditorViewportClient = GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, PreviewWorld);
     EditorViewportClient->SetViewMode(VMI_Unlit);

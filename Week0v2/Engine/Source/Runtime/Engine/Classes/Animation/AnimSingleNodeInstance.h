@@ -32,7 +32,7 @@ public:
 
     bool IsReverse() const
     {
-        return bReverse;
+        return (PlayRate < 0.f);
     }
 
     void SetLooping(bool bIsLooping)
