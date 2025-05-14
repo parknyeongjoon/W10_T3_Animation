@@ -1,7 +1,7 @@
 #include "SkeletalMeshComponent.h"
 
 #include "LaunchEngineLoop.h"
-#include "TestFBXLoader.h"
+#include "Engine/FBXLoader.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/Skeleton.h"
 #include "Animation/AnimData/AnimDataModel.h"
@@ -15,6 +15,9 @@
 #include "Math/Transform.h"
 #include "Renderer/Renderer.h"
 #include "StaticMeshComponents/StaticMeshComponent.h"
+#include "UObject/Casts.h"
+#include "Animation/AnimSingleNodeInstance.h"
+#include "Animation/CustomAnimInstance/TestAnimInstance.h"
 
 USkeletalMeshComponent::USkeletalMeshComponent(const USkeletalMeshComponent& Other)
     : UMeshComponent(Other)
@@ -141,6 +144,11 @@ void USkeletalMeshComponent::SetSkeletalMesh(USkeletalMesh* value)
     // CreateBoneComponents();
 }
 
+UAnimSingleNodeInstance* USkeletalMeshComponent::GetSingleNodeInstance() const
+{
+    return Cast<UAnimSingleNodeInstance>(AnimInstance);
+}
+
 void USkeletalMeshComponent::CreateBoneComponents()
 {
     // 이미 할당된 component가 있다면 삭제
@@ -162,7 +170,7 @@ void USkeletalMeshComponent::CreateBoneComponents()
 
 USkeletalMesh* USkeletalMeshComponent::LoadSkeletalMesh(const FString& FilePath)
 {
-    USkeletalMesh* SkeletalMesh = TestFBXLoader::CreateSkeletalMesh(FilePath);
+    USkeletalMesh* SkeletalMesh = FFBXLoader::CreateSkeletalMesh(FilePath);
     SetSkeletalMesh(SkeletalMesh);
 
     return SkeletalMesh;
@@ -180,6 +188,30 @@ void USkeletalMeshComponent::UpdateBoneHierarchy()
     SkinningVertex();
 }
 
+void USkeletalMeshComponent::PlayAnimation(UAnimSequence* NewAnimToPlay, bool bLooping)
+{
+    SetAnimSequence(NewAnimToPlay);
+    Play(bLooping);
+}
+
+void USkeletalMeshComponent::SetAnimSequence(UAnimSequence* NewAnimToPlay)
+{
+    if (NewAnimToPlay == nullptr)
+    {
+        return;
+    }
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetCurrentSequence(NewAnimToPlay);
+    }
+}
+
+UAnimSequence* USkeletalMeshComponent::GetAnimSequence() const
+{
+
+    return GetSingleNodeInstance()->GetCurrentSequence();
+}
+
 void USkeletalMeshComponent::SkinningVertex()
 {
     for (auto& Vertex : SkeletalMesh->GetRenderData().Vertices)
@@ -187,7 +219,7 @@ void USkeletalMeshComponent::SkinningVertex()
         Vertex.SkinningVertex(SkeletalMesh->GetRenderData().Bones);
     }
 
-    TestFBXLoader::UpdateBoundingBox(SkeletalMesh->GetRenderData());
+    FFBXLoader::UpdateBoundingBox(SkeletalMesh->GetRenderData());
     AABB = SkeletalMesh->GetRenderData().BoundingBox;
 
     SkeletalMesh->SetData(SkeletalMesh->GetRenderData(), SkeletalMesh->GetSkeleton()); // TODO: Dynamic VertexBuffer Update하게 바꾸기
@@ -280,4 +312,163 @@ void USkeletalMesh::ResetToOriginalPose()
 
     // 스키닝 적용
     UpdateSkinnedVertices();
+}
+
+void USkeletalMeshComponent::Play(bool bLooping)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetPlaying(true);
+        SingleNodeInstance->SetLooping(bLooping);
+    }
+}
+
+void USkeletalMeshComponent::Stop()
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetPlaying(false);
+    }
+}
+
+void USkeletalMeshComponent::SetPlaying(bool bPlaying)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetPlaying(bPlaying);
+    }
+}
+
+bool USkeletalMeshComponent::IsPlaying() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->IsPlaying();
+    }
+
+    return false;
+}
+
+void USkeletalMeshComponent::SetReverse(bool bIsReverse)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetReverse(bIsReverse);
+    }
+}
+
+bool USkeletalMeshComponent::IsReverse() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->IsReverse();
+    }
+}
+
+void USkeletalMeshComponent::SetPlayRate(float Rate)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetPlayRate(Rate);
+    }
+}
+
+float USkeletalMeshComponent::GetPlayRate() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->GetPlayRate();
+    }
+
+    return 0.f;
+}
+
+void USkeletalMeshComponent::SetLooping(bool bIsLooping)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetLooping(bIsLooping);
+    }
+}
+
+bool USkeletalMeshComponent::IsLooping() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->IsLooping();
+    }
+    return false;
+}
+
+int USkeletalMeshComponent::GetCurrentKey() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->GetCurrentKey();
+    }
+    return 0;
+}
+
+void USkeletalMeshComponent::SetCurrentKey(int InKey)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetCurrentKey(InKey);
+    }
+}
+
+void USkeletalMeshComponent::SetElapsedTime(float InElapsedTime)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetElapsedTime(InElapsedTime);
+    }
+}
+
+float USkeletalMeshComponent::GetElapsedTime() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->GetElapsedTime();
+    }
+    return 0.f;
+}
+
+int32 USkeletalMeshComponent::GetLoopStartFrame() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->GetLoopStartFrame();
+    }
+    return 0;
+}
+
+void USkeletalMeshComponent::SetLoopStartFrame(int32 InLoopStartFrame)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetLoopStartFrame(InLoopStartFrame);
+    }
+}
+
+int32 USkeletalMeshComponent::GetLoopEndFrame() const
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        return SingleNodeInstance->GetLoopEndFrame();
+    }
+    return 0;
+}
+
+void USkeletalMeshComponent::SetLoopEndFrame(int32 InLoopEndFrame)
+{
+    if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
+    {
+        SingleNodeInstance->SetLoopEndFrame(InLoopEndFrame);
+    }
+}
+
+void USkeletalMeshComponent::SetAnimationMode(EAnimationMode InAnimationMode)
+{
+    AnimationMode = InAnimationMode;
 }

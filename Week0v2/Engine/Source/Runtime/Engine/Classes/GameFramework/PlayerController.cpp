@@ -3,6 +3,7 @@
 #include "PlayerCameraManager.h"
 #include "PlayerInput.h"
 #include "Components/InputComponent.h"
+#include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Engine/World.h"
 
 APlayerController::APlayerController(const APlayerController& other)
@@ -24,6 +25,8 @@ void APlayerController::BeginPlay()
         PlayerCameraManager = GetWorld()->SpawnActor<APlayerCameraManager>();
         PlayerCameraManager->Initialize(this);
     }
+
+    SetupInputComponent();
 }
 
 void APlayerController::Tick(float DeltaTime)
@@ -139,13 +142,18 @@ void APlayerController::MouseInput(float DeltaX, float DeltaY)
     PlayerInput->MouseInput(DeltaX, DeltaY);
 }
 
+void APlayerController::SetPlayerCameraManager(APlayerCameraManager* InPlayerCameraManager)
+{
+    PlayerCameraManager = InPlayerCameraManager;
+    PlayerCameraManager->Initialize(this);
+}
+
 void APlayerController::SetupInputBindings()
 {
     // 카메라 조작용 축 바인딩
     if (InputComponent)
     {
-        InputComponent->BindAxis("Turn", [this](float V) { AddYawInput(V); });
-        InputComponent->BindAxis("LookUp", [this](float V) { AddPitchInput(V); });
+
     }
 }
 

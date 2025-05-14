@@ -1103,6 +1103,91 @@ namespace ImGui
                context.SelectedTimeline == openTimeline;
     }
 
+    void ClearNeoKeyframeSelection()
+    {
+        if (sequencerData.contains(currentSequencer))
+        {
+            auto& context = sequencerData[currentSequencer];
+            context.Selection.clear();
+            context.SelectionData.clear();
+        }
+    }
+
+    void NeoNotifyRange(int32_t* startFrame, float* duration, ImU32 color)
+    {
+        IM_ASSERT(inSequencer && "Not in active sequencer!");
+        auto& context = sequencerData[currentSequencer];
+        IM_ASSERT(!context.TimelineStack.empty() && "Not in timeline!");
+
+        const auto& imStyle = GetStyle();
+        auto* drawList = GetWindowDrawList();
+
+        float perFrameWidth = GetPerFrameWidth(context.Size.x, context.ValuesWidth, context.EndFrame, context.StartFrame, context.Zoom);
+        float offsetX = (*startFrame - context.OffsetFrame - context.StartFrame) * perFrameWidth;
+        float width = (*duration) * perFrameWidth;
+
+        ImVec2 pos = context.ValuesCursor + ImVec2(context.ValuesWidth + offsetX, 0);
+        ImVec2 size = ImVec2(width, currentTimelineHeight);
+
+        ImRect rect(pos, pos + size);
+
+        ImGuiID id = GetCurrentWindow()->GetID(startFrame);
+
+        bool hovered = ItemHoverable(rect, id, 0);
+        bool inSelection = getKeyframeInSelection(*startFrame, id, context, rect);
+
+        // 드래그 처리
+        if (context.SelectionEnabled && context.Selection.contains(id) &&
+            (context.StateOfSelection != SelectionState::Selecting))
+        {
+            if (rect.Contains(GetMousePos()) && IsMouseClicked(ImGuiMouseButton_Left) &&
+                context.StateOfSelection != SelectionState::Dragging &&
+                context.DraggingEnabled)
+            {
+                context.StartDragging = true;
+            }
+
+            if (context.StateOfSelection == SelectionState::Dragging)
+            {
+                ImGuiID* it = context.Selection.find(id);
+                int32_t index = context.Selection.index_from_ptr(it);
+
+                if (context.DraggingSelectionStart.size() < index + 1 || context.DraggingSelectionStart[index] == -1)
+                {
+                    if (context.DraggingSelectionStart.size() < index + 1)
+                    {
+                        context.DraggingSelectionStart.resize(index + 1, -1);
+                    }
+
+                    context.DraggingSelectionStart[index] = *startFrame;
+                }
+
+                float mouseDelta = GetMousePos().x - context.DraggingMouseStart.x;
+                int32_t offsetFrames = int32_t(mouseDelta / perFrameWidth);
+
+                *startFrame = context.DraggingSelectionStart[index] + offsetFrames;
+            }
+        }
+
+        ImU32 finalColor = inSelection
+            ? ColorConvertFloat4ToU32(GetStyleNeoSequencerColorVec4(ImGuiNeoSequencerCol_KeyframeSelected))
+            : (hovered
+                ? ColorConvertFloat4ToU32(GetStyleNeoSequencerColorVec4(ImGuiNeoSequencerCol_KeyframeHovered))
+                : color);
+
+        drawList->AddRectFilled(rect.Min, rect.Max, finalColor, 4.0f);
+        drawList->AddRect(rect.Min, rect.Max, IM_COL32_WHITE);
+
+        context.IsLastKeyframeHovered = hovered;
+        context.IsLastKeyframeSelected = inSelection;
+        context.IsLastKeyframeRightClicked = hovered && IsMouseClicked(ImGuiMouseButton_Right);
+
+        if (context.Selection.contains(id) && context.IsLastKeyframeRightClicked)
+        {
+            context.IsSelectionRightClicked = true;
+        }
+    }
+
     bool BeginNeoTimelineEx(const char* label, bool* open, ImGuiNeoTimelineFlags flags)
     {
         IM_ASSERT(inSequencer && "Not in active sequencer!");

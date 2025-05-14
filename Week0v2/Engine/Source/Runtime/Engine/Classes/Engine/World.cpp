@@ -9,7 +9,7 @@
 #include "Engine/FLoaderOBJ.h"
 #include "UObject/UObjectIterator.h"
 #include "Level.h"
-#include "TestFBXLoader.h"
+#include "Engine/FBXLoader.h"
 #include "Actors/ADodge.h"
 #include "Contents/GameManager.h"
 #include "Serialization/FWindowsBinHelper.h"
@@ -21,6 +21,8 @@
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/SkySphereComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
+#include "GameFramework//PlayerController.h"
+#include "GameFramework/Character.h"
 #include "Script/LuaManager.h"
 #include "UObject/UObjectArray.h"
 #include "UnrealEd/PrimitiveBatch.h"
@@ -37,11 +39,12 @@ void UWorld::InitWorld()
 {
     // TODO: Load Scene
     if (Level == nullptr)
+    {
         Level = FObjectFactory::ConstructObject<ULevel>(this);
+    }
     PreLoadResources();
     if (WorldType == EWorldType::Editor)
     {
-        // LoadScene("Assets/Scenes/NewScene.Scene");
         CreateBaseObject(WorldType);
     }
     else
@@ -64,15 +67,14 @@ void UWorld::PreLoadResources()
 
 void UWorld::CreateBaseObject(EWorldType::Type WorldType)
 {
-    if (WorldType == EWorldType::PIE) return;
+    if (WorldType == EWorldType::PIE)
+    {
+        return;
+    }
+
     if (LocalGizmo == nullptr && WorldType)
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(this);
-    }
-    
-    if (PlayerCameraManager == nullptr) // TODO APlayer랑 결합해주기
-    {
-        PlayerCameraManager = SpawnActor<APlayerCameraManager>();
     }
 }
 
@@ -172,14 +174,6 @@ void UWorld::DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter)
     UObject::DuplicateSubObjects(SourceObj, InOuter);
     Level = Cast<ULevel>(Level->Duplicate(this));
     LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(this);
-    for (const auto Actor : GetActors())
-    {
-        if (APlayerCameraManager* CameraManager = Cast<APlayerCameraManager>(Actor))
-        {
-            PlayerCameraManager = CameraManager;
-            break;
-        }
-    }
 }
 
 void UWorld::PostDuplicate()
@@ -317,12 +311,30 @@ void UWorld::BeginPlay()
 {
     // FGameManager::Get().BeginPlay();
 
-    for (auto Actor :GetActors())
+    if (PlayerController == nullptr)
     {
-        if (APlayerCameraManager* CameraManager = Cast<APlayerCameraManager>(Actor))
+        PlayerController = SpawnActor<APlayerController>();
+
+        bool bCharacterExist = false;
+        for (AActor* Actor : Level->GetActors())
         {
-            PlayerCameraManager = CameraManager;
+            if (ACharacter* Character = Cast<ACharacter>(Actor))
+            {
+                bCharacterExist = true;
+                PlayerController->Possess(Character);
+                break;
+            }
         }
+        
+        if (bCharacterExist == false)
+        {
+            ACharacter* Character = SpawnActor<ACharacter>();
+            PlayerController->Possess(Character);
+            Character->SetActorScale(FVector(0.2f, 0.2f, 0.2f));
+        }
+        
+        APlayerCameraManager* PlayerCameraManager = SpawnActor<APlayerCameraManager>();
+        PlayerController->SetPlayerCameraManager(PlayerCameraManager);
     }
 }
 

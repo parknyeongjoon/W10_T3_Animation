@@ -1,4 +1,5 @@
 #pragma once
+#include "Animation/AnimationStateMachine.h"
 #include "Animation/AnimInstance.h"
 #include "Delegates/FFunctor.h"
 
@@ -6,11 +7,14 @@ class UAnimSequence;
 template <typename T>
 class UAnimationStateMachine;
 
-enum class ETestState
+enum class ETestState : uint8
 {
-    Idle,
-    Walking,
-    Dancing,
+    None,
+    Pose,
+    Jump,
+    Dance,
+    Defeated,
+    Max
 };
 
 namespace std {
@@ -48,17 +52,20 @@ public:
 
     virtual UObject* Duplicate(UObject* InOuter) override;
     virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
-    //virtual void TriggerAnimNotifies(float DeltaSeconds) override;
-    virtual void NativeUpdateAnimation(float DeltaSeconds) const override;
+    virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+    void SetState(ETestState NewState) const { AnimStateMachine->SetState(NewState); }
 private:
     UAnimationStateMachine<ETestState>* AnimStateMachine = nullptr;
 
-    UAnimSequence* IdleSequence = nullptr;
-    UAnimSequence* WalkSequence = nullptr;
+    UAnimSequence* StandingSequence = nullptr;
+    UAnimSequence* JumpSequence = nullptr;
     UAnimSequence* DanceSequence = nullptr;
+    UAnimSequence* DeafeatedSequence = nullptr;
 
-    StateCallback IdleCallback = StateCallback(this);
-    StateCallback WalkCallback = StateCallback(this);
+    StateCallback StandingCallback = StateCallback(this);
+    StateCallback JumpCallback = StateCallback(this);
     StateCallback DanceCallback = StateCallback(this);
+    StateCallback DeafeatedCallback = StateCallback(this);
 };
 

@@ -272,7 +272,7 @@ void AGPlayer::Input(float DeltaTime)
         bIsMoveStarted = true;
         UCameraLetterBox* CameraModifier = FObjectFactory::ConstructObject<UCameraLetterBox>(this);
         CameraModifier->ActivateLetterbox(4.f/3.f, 1.f);
-        GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
+        // GetWorld()->GetPlayerCameraManager()->AddCameraModifier(CameraModifier);
     }
         
     if (!MoveDirection.IsNearlyZero())

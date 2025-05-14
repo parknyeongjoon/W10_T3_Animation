@@ -15,6 +15,7 @@
 #include "Components/LightComponents/DirectionalLightComponent.h"
 #include "Components/LightComponents/SpotLightComponent.h"
 #include "Engine/FEditorStateManager.h"
+#include "GameFramework/PlayerController.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "SlateCore/Layout/SlateRect.h"
 
@@ -110,22 +111,109 @@ void FEditorViewportClient::UpdateEditorCameraMovement(const float DeltaTime)
 
 void FEditorViewportClient::InputKey(const HWND AppWnd, const FKeyEvent& InKeyEvent)
 {
+    // TODO: 나중에 InKeyEvent.GetKey();로 가져오는걸로 수정하기
     // TODO: 나중에 PIEViewportClient에서 처리하는걸로 수정하기
-    // if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
-    // {
-    //     // PIE 모드 → 게임 플레이 입력 처리
-    //     UWorld* PlayWorld = GEngine->ActiveWorld;
-    //     if (PlayWorld)
-    //     {
-    //         // 첫 번째 플레이어 컨트롤러에게 전달
-    //         // if (APlayerController* PC = PlayWorld->GetFirstPlayerController())
-    //         // {
-    //         //     
-    //         // }
-    //     }
-    // }
-    // // 에디터 모드
-    // else
+    if (GetWorld()->WorldType == EWorldType::PIE)
+    {
+        // PIE 모드 → 게임 플레이 입력 처리
+        if (UWorld* PlayWorld = GetWorld())
+        {
+            // 첫 번째 플레이어 컨트롤러에게 전달
+            if (APlayerController* PC = PlayWorld->GetPlayerController())
+            {
+                // FKeyEvent → EKeys, EInputEvent로 변환 후 호출
+
+                switch (InKeyEvent.GetCharacter())
+                {
+                case 'A':
+                {
+                    if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                    {
+                        PC->InputKey(EKeys::A, IE_Pressed);
+                    }
+                    else if (InKeyEvent.GetInputEvent() == IE_Released)
+                    {
+                        PC->InputKey(EKeys::A, IE_Released);
+                    }
+                    break;
+                }
+                case 'D':
+                {
+                    if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                    {
+                        PC->InputKey(EKeys::D, IE_Pressed);
+                    }
+                    else if (InKeyEvent.GetInputEvent() == IE_Released)
+                    {
+                        PC->InputKey(EKeys::D, IE_Released);
+                    }
+                    break;
+                }
+                case 'W':
+                {
+                    if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                    {
+                        PC->InputKey(EKeys::W, IE_Pressed);
+                    }
+                    else if (InKeyEvent.GetInputEvent() == IE_Released)
+                    {
+                        PC->InputKey(EKeys::W, IE_Released);
+                    }
+                    break;
+                }
+                case 'S':
+                {
+                    if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                    {
+                        PC->InputKey(EKeys::S, IE_Pressed);
+                    }
+                    else if (InKeyEvent.GetInputEvent() == IE_Released)
+                    {
+                        PC->InputKey(EKeys::S, IE_Released);
+                    }
+                    break;
+                }
+                case 'Z':
+                    {
+                        if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                        {
+                            PC->InputKey(EKeys::Z, IE_Pressed);
+                        }
+                        else if (InKeyEvent.GetInputEvent() == IE_Released)
+                        {
+                            PC->InputKey(EKeys::Z, IE_Released);
+                        }
+                        break;
+                    }
+                case 'X':
+                    {
+                        if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                        {
+                            PC->InputKey(EKeys::X, IE_Pressed);
+                        }
+                        else if (InKeyEvent.GetInputEvent() == IE_Released)
+                        {
+                            PC->InputKey(EKeys::X, IE_Released);
+                        }
+                        break;
+                    }
+                case 'C':
+                    {
+                        if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                        {
+                            PC->InputKey(EKeys::C, IE_Pressed);
+                        }
+                        else if (InKeyEvent.GetInputEvent() == IE_Released)
+                        {
+                            PC->InputKey(EKeys::C, IE_Released);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    else
     {
         // 마우스 우클릭이 되었을때만 실행되는 함수
         if (bRightMouseDown)

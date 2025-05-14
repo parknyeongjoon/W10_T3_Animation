@@ -3,6 +3,7 @@
 #include "LaunchEngineLoop.h"
 #include "PlayerCameraManager.h"
 #include "WindowsCursor.h"
+#include "Actors/SkeletalMeshActor.h"
 #include "Engine/World.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/UnrealEd.h"
@@ -10,6 +11,7 @@
 #include "UObject/UObjectIterator.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "Camera/CameraFadeInOut.h"
+#include "Contents/GameManager.h"
 #include "Contents/UI/ContentsUI.h"
 #include "Coroutine/LuaCoroutine.h"
 #include "GameFramework/Actor.h"
@@ -18,6 +20,7 @@
 #include "UnrealEd/EditorPlayer.h"
 #include "UObject/Casts.h"
 #include "Engine/AssetManager.h"
+#include "GameFramework/PlayerController.h"
 #include "UnrealEd/SkeletalPreviewUI.h"
 
 class ULevel;
@@ -157,11 +160,21 @@ void UEditorEngine::StartPIE() const
     }
 
     // Logo Fade In/Out
-    APlayerCameraManager* PlayerCameraManager = PIEWorldContext->GetWorld()->GetPlayerCameraManager();
+    APlayerCameraManager* PlayerCameraManager = PIEWorldContext->GetWorld()->GetPlayerController()->GetPlayerCameraManager();
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>(PlayerCameraManager);
     CameraModifier->StartFadeIn(0.001f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
-    
+
+    FGameManager::Get().NPCs.Empty();
+    for (int i=0;i < 4;i++)
+    {
+        ASkeletalMeshActor* NPC = Cast<ASkeletalMeshActor>(PIEWorldContext->GetWorld()->SpawnActor<ASkeletalMeshActor>());
+        NPC->SetActorLocation(FVector(0, -80 + 20 * i, 0));
+        NPC->SetActorScale(FVector(0.2,0.2,0.2));
+        FGameManager::Get().NPCs.Add(NPC);
+    }
+
+    FGameManager::Get().StartGame();
     UE_LOG(LogLevel::Display, "Start PIE");
 }
 
@@ -248,33 +261,49 @@ UWorld* UEditorEngine::CreateWorld(EWorldType::Type WorldType, ELevelTick LevelT
 
 void UEditorEngine::RemoveWorld(UWorld* World)
 {
-    if (World == PreviewWorld)
+    if (World == nullptr)
     {
-        PreviewWorld = nullptr;
+        return;
     }
+
+    // PreviewWorld인지 검사
+    for (const auto& [key, context] : PreviewWorldContexts)
+    {
+        if (context->GetWorld() == World)
+        {
+            PreviewWorldContexts.Remove(key);
+            break;
+        }
+    }
+    
     World->Release();    
     WorldContexts.Remove(World->GetUUID());
 }
 
-UWorld* UEditorEngine::CreatePreviewWindow()
+UWorld* UEditorEngine::CreatePreviewWindow(const FString& Name)
 {
-    if (PreviewWorld != nullptr)
-    {
-        return PreviewWorld;
-    }
-    
     WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass";
-    WCHAR EnginePreviewTitle[] = L"Preview";
+
+    // @todo Name 사용하도록 변경
+    WCHAR EnginePreviewTitle[256] = L"Preview";
 
     HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(GEngineLoop.GetDefaultWindow(), GWLP_HINSTANCE));
     HWND AppWnd = GEngineLoop.CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
         
-    PreviewWorld = CreateWorld(EWorldType::EditorPreview, LEVELTICK_ViewportsOnly);
+    UWorld* NewPreviewWorld = CreateWorld(EWorldType::EditorPreview, LEVELTICK_All);
+    
+    // 새 WorldContext 생성
+    std::shared_ptr<FWorldContext> PreviewWorldContext = CreateNewWorldContext(NewPreviewWorld, EWorldType::EditorPreview, ELevelTick::LEVELTICK_All);
+    
+    // PreviewWorldContexts에 추가 (임의의 고유 ID 사용)
+    static int PreviewWorldCounter = 0;
+    PreviewWorldContexts.Add(PreviewWorldCounter++, PreviewWorldContext);
         
-    std::shared_ptr<FEditorViewportClient> EditorViewportClient = GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, PreviewWorld);
+    // 뷰포트 클라이언트 생성 및 설정
+    std::shared_ptr<FEditorViewportClient> EditorViewportClient = GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, NewPreviewWorld);
     EditorViewportClient->SetViewMode(VMI_Unlit);
 
-    return PreviewWorld;
+    return NewPreviewWorld;
 }
 
 std::shared_ptr<FWorldContext> UEditorEngine::CreateNewWorldContext(UWorld* InWorld, EWorldType::Type InWorldType, ELevelTick LevelType)

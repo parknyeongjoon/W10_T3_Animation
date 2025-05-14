@@ -8,9 +8,11 @@
 #include "Components/Mesh/SkeletalMesh.h"
 #include "Animation/Skeleton.h"
 #include "Animation/AnimationRuntime.h"
+#include "Container/Array.h"
 UAnimInstance::UAnimInstance(const UAnimInstance& Other) 
-    :UObject(Other)
-
+    :UObject(Other),
+    CurrentSequence(Other.CurrentSequence),
+    PreviousSequence(Other.PreviousSequence)
 {
 }
 
@@ -40,57 +42,36 @@ USkeletalMeshComponent* UAnimInstance::GetOwningComponent() const
     return CastChecked<USkeletalMeshComponent>(GetOuter());
 }
 
-void UAnimInstance::AddAnimNotify(float Second, TDelegate<void()> OnNotify, float Duration) const
-{
-    FAnimNotifyEvent NotifyEvent;
-    NotifyEvent.OnNotify = OnNotify;
-    NotifyEvent.TriggerTime = Second;
-    NotifyEvent.Duration = Duration;
-    CurrentSequence->Notifies.Add(NotifyEvent);
-    CurrentSequence->SortNotifies();
-}
-
-void UAnimInstance::AddAnimNotify(float Second, std::function<void()> OnNotify, float Duration) const
-{
-    FAnimNotifyEvent NotifyEvent;
-    NotifyEvent.OnNotify.BindLambda(OnNotify);
-    NotifyEvent.TriggerTime = Second;
-    NotifyEvent.Duration = Duration;
-    CurrentSequence->Notifies.Add(NotifyEvent);
-    CurrentSequence->SortNotifies();
-}
-
-void UAnimInstance::DeleteAnimNotify(float Second) const
-{
-    for (const FAnimNotifyEvent& Notify : CurrentSequence->Notifies)
-    {
-        if (Notify.TriggerTime == Second)
-        {
-            CurrentSequence->Notifies.Remove(Notify);
-            break;
-        }
-    }
-}
-
 void UAnimInstance::TriggerAnimNotifies(float DeltaSeconds) const
 {
     if (CurrentSequence)
     {
-        for (const FAnimNotifyEvent& Notify : CurrentSequence->Notifies)
+        for (FAnimNotifyEvent& Notify : CurrentSequence->Notifies)
         {
             // 시간 조건에 맞으면 Notify 실행
-            if (Notify.TriggerTime <= CurrentTime && CurrentTime < Notify.TriggerTime + Notify.Duration)
+            if (!Notify.OnNotify.IsBound())
+                continue;
+            if (Notify.Duration == 0.f)
             {
-                if (Notify.OnNotify.IsBound())
+                if (Notify.TriggerTime <= CurrentTime && Notify.bIsTriggered == false)
                 {
                     Notify.OnNotify.Execute();
+                    Notify.bIsTriggered = true;
+                }
+            }
+            else
+            {
+                if (Notify.TriggerTime <= CurrentTime && CurrentTime < Notify.TriggerTime + Notify.Duration)
+                {
+                    Notify.OnNotify.Execute();
+                    Notify.bIsTriggered = true;
                 }
             }
         }
     }
 }
 
-void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
+void UAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     TriggerAnimNotifies(DeltaSeconds);
     UpdateCurveValues(DeltaSeconds);
@@ -105,14 +86,13 @@ void UAnimInstance::UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime
     USkeletalMeshComponent* SkeletalMeshComp = GetOwningComponent();
     USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMesh();
 
-
-    FPoseContext Pose;
+    CurrentPose.Pose.BoneTransforms.Empty();
     FAnimExtractContext Context(CurrentTime, true, false);
-    AnimSequence->GetAnimationPose(Pose, Context);
+    AnimSequence->GetAnimationPose(CurrentPose, Context);
 
     for (int32 i = 0; i < SkeletalMesh->GetRenderData().Bones.Num(); ++i)
     {
-        const FTransform& BoneTransform = Pose.Pose.BoneTransforms[i];
+        const FTransform& BoneTransform = CurrentPose.Pose.BoneTransforms[i];
         FMatrix TransformMatrix = JungleMath::CreateModelMatrix(
             BoneTransform.GetLocation(),
             BoneTransform.GetRotation(),
@@ -126,6 +106,7 @@ void UAnimInstance::UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime
     if (CurrentTime > DataModel->GetPlayLength())
     {
         CurrentTime = 0.0f;
+        AnimSequence->ResetNotifies();
     }
 }
 
@@ -137,19 +118,19 @@ void UAnimInstance::BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* 
     BlendTime += DeltaTime;
     float BlendAlpha = FMath::Clamp(BlendTime / BlendDuration, 0.0f, 1.0f);
     
-    FPoseContext FromPose;
-    FPoseContext ToPose;
-    FPoseContext OutPose;
+    FPoseContext &FromPose = OriginalPose;
+    FPoseContext &ToPose = TargetPose;
 
-    FAnimExtractContext FromContext(CurrentTime, true, false);
-    FAnimExtractContext ToContext(0, true, false);
+    //FAnimExtractContext FromContext(CurrentTime, true, false);
+    //FAnimExtractContext ToContext(0, true, false);
 
 
-    FromSequence->GetAnimationPose(FromPose, FromContext); 
-    ToSequence->GetAnimationPose(ToPose, ToContext); 
+    //FromSequence->GetAnimationPose(FromPose, FromContext); 
+    //ToSequence->GetAnimationPose(ToPose, ToContext); 
 
+    CurrentPose.Pose.BoneTransforms.Empty();
     FAnimationRuntime::BlendTwoPosesTogether(FromPose.Pose, ToPose.Pose, 
-        FromPose.Curve,ToPose.Curve, BlendAlpha,OutPose.Pose,OutPose.Curve);
+        FromPose.Curve,ToPose.Curve, BlendAlpha, CurrentPose.Pose, CurrentPose.Curve);
 
 
     USkeletalMeshComponent* SkeletalMeshComp = GetOwningComponent();
@@ -157,7 +138,7 @@ void UAnimInstance::BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* 
 
     for (int32 i = 0; i < SkeletalMesh->GetRenderData().Bones.Num(); ++i)
     {
-        const FTransform& BoneTransform = OutPose.Pose.BoneTransforms[i];
+        const FTransform& BoneTransform = CurrentPose.Pose.BoneTransforms[i];
         FMatrix TransformMatrix = JungleMath::CreateModelMatrix(
             BoneTransform.GetLocation(),
             BoneTransform.GetRotation(),
@@ -171,6 +152,17 @@ void UAnimInstance::BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* 
         bIsBlending = false;
         CurrentTime = 0.0f;
     }
+}
+
+void UAnimInstance::CapturePose()
+{
+    OriginalPose.Pose.BoneTransforms.Empty();
+    TargetPose.Pose.BoneTransforms.Empty();
+
+    FAnimExtractContext TargetContext(0, true, false);
+    CurrentSequence->GetAnimationPose(TargetPose, TargetContext);
+
+    OriginalPose = CurrentPose;
 }
 
 void UAnimInstance::UpdateCurveValues(float DeltaSeconds) const

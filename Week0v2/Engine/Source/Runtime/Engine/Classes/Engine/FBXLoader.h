@@ -9,7 +9,7 @@
 
 class UAnimDataModel;
 
-class TestFBXLoader
+class FFBXLoader
 {
 public:
     static bool InitFBXManager();
