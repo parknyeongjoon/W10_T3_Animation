@@ -69,10 +69,10 @@ void ACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
     // 카메라 조작용 축 바인딩
     if (PlayerInputComponent)
     {
-        PlayerInputComponent->BindAxis("MoveForward", [this](float V) { GetMovementComponent()->Velocity += FVector(V * 0.3,0,0); });
-        PlayerInputComponent->BindAxis("MoveForward", [this](float V) { GetMovementComponent()->Velocity += FVector(V * 0.3,0,0); });
-        PlayerInputComponent->BindAxis("MoveRight", [this](float V) { GetMovementComponent()->Velocity += FVector(0,V * 0.3,0); });
-        PlayerInputComponent->BindAxis("MoveRight", [this](float V) { GetMovementComponent()->Velocity += FVector(0,V * 0.3,0); });
+        PlayerInputComponent->BindAxis("MoveForward", [this](float V) { GetMovementComponent()->Velocity += FVector(V,0,0); });
+        PlayerInputComponent->BindAxis("MoveForward", [this](float V) { GetMovementComponent()->Velocity += FVector(V,0,0); });
+        PlayerInputComponent->BindAxis("MoveRight", [this](float V) { GetMovementComponent()->Velocity += FVector(0,V,0); });
+        PlayerInputComponent->BindAxis("MoveRight", [this](float V) { GetMovementComponent()->Velocity += FVector(0,V,0); });
     }
 }
 

@@ -15,7 +15,7 @@
 
 #include "LaunchEngineLoop.h"
 #include "ShowFlags.h"
-#include "TestFBXLoader.h"
+#include "Engine/FBXLoader.h"
 #include "Actors/SkeletalMeshActor.h"
 #include "Camera/CameraComponent.h"
 
@@ -197,7 +197,7 @@ void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconF
                 {
                     std::cout << FileName << std::endl;
 
-                    if (TestFBXLoader::CreateSkeletalMesh(FileName) == nullptr)
+                    if (FFBXLoader::CreateSkeletalMesh(FileName) == nullptr)
                     {
                         tinyfd_messageBox("Error", "파일을 불러올 수 없습니다.", "ok", "error", 1);
                     }

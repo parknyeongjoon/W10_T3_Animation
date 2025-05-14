@@ -13,9 +13,9 @@ UTestAnimInstance::UTestAnimInstance()
     WalkSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
     DanceSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
 
-    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Ninja_Idle.fbx");
-    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Sneak_Walk.fbx");
-    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Rumba_Dancing.fbx");
+    FFBXLoader::CreateSkeletalMesh("Contents/FBX/Ninja_Idle.fbx");
+    FFBXLoader::CreateSkeletalMesh("Contents/FBX/Sneak_Walk.fbx");
+    FFBXLoader::CreateSkeletalMesh("Contents/FBX/Rumba_Dancing.fbx");
 
     IdleSequence->SetData("Contents/FBX/Ninja_Idle.fbx\\mixamo.com");
     WalkSequence->SetData("Contents/FBX/Sneak_Walk.fbx\\mixamo.com");

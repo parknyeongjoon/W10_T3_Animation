@@ -9,7 +9,7 @@
 #include "Engine/FLoaderOBJ.h"
 #include "UObject/UObjectIterator.h"
 #include "Level.h"
-#include "TestFBXLoader.h"
+#include "Engine/FBXLoader.h"
 #include "Actors/ADodge.h"
 #include "Contents/GameManager.h"
 #include "Serialization/FWindowsBinHelper.h"

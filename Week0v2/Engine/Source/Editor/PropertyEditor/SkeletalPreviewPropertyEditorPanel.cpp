@@ -29,7 +29,7 @@
 
 #include "LaunchEngineLoop.h"
 #include "PlayerCameraManager.h"
-#include "TestFBXLoader.h"
+#include "Engine/FBXLoader.h"
 #include "Animation/Skeleton.h"
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "Light/ShadowMapAtlas.h"
@@ -924,7 +924,7 @@ void SkeletalPreviewPropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComp
         std::filesystem::path P = PreviewName;
         FString FileName = FString( P.filename().string() ); 
         
-        const TMap<FString, USkeletalMesh*> Meshes = TestFBXLoader::GetSkeletalMeshes();
+        const TMap<FString, USkeletalMesh*> Meshes = FFBXLoader::GetSkeletalMeshes();
         if (ImGui::BeginCombo("##SkeletalMesh", GetData(FileName), ImGuiComboFlags_None))
         {
             for (int i = 0; i < (int)fbxFiles.size(); ++i)

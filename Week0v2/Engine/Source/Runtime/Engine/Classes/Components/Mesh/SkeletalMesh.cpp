@@ -3,7 +3,7 @@
 #include "Renderer/RenderResourceManager.h"
 #include "LaunchEngineLoop.h"
 #include "Renderer/Renderer.h"
-#include "TestFBXLoader.h"
+#include "Engine/FBXLoader.h"
 #include "Animation/Skeleton.h"
 #include "Components/Material/Material.h"
 #include "Engine/FLoaderOBJ.h"
@@ -39,8 +39,8 @@ void USkeletalMesh::GetUsedMaterials(TArray<UMaterial*>& Out) const
 
 void USkeletalMesh::SetData(const FString& FilePath)
 {
-    FSkeletalMeshRenderData SkeletalMeshRenderData = TestFBXLoader::GetCopiedSkeletalRenderData(FilePath);
-    FRefSkeletal* RefSkeletal = TestFBXLoader::GetRefSkeletal(FilePath);
+    FSkeletalMeshRenderData SkeletalMeshRenderData = FFBXLoader::GetCopiedSkeletalRenderData(FilePath);
+    FRefSkeletal* RefSkeletal = FFBXLoader::GetRefSkeletal(FilePath);
     USkeleton* Skeleton = FObjectFactory::ConstructObject<USkeleton>(this); // TODO: Map에 저장하고 들고오기 
     Skeleton->SetRefSkeletal(RefSkeletal);
 
