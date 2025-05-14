@@ -56,7 +56,7 @@ void ACharacter::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 void ACharacter::Tick(float DeltaTime)
 {
     APawn::Tick(DeltaTime);
-    MovementComponent->Velocity *= 0.99f;
+    MovementComponent->Velocity *= 0.9f;
     if (MovementComponent->Velocity.Magnitude() < 0.1f)
     {
         MovementComponent->Velocity = FVector::ZeroVector;
@@ -69,10 +69,10 @@ void ACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
     // 카메라 조작용 축 바인딩
     if (PlayerInputComponent)
     {
-        PlayerInputComponent->BindAxis("MoveForward", [this](float V) { GetMovementComponent()->Velocity += FVector(V * 0.1,0,0); });
-        PlayerInputComponent->BindAxis("MoveForward", [this](float V) { GetMovementComponent()->Velocity += FVector(V * 0.1,0,0); });
-        PlayerInputComponent->BindAxis("MoveRight", [this](float V) { GetMovementComponent()->Velocity += FVector(0,V * 0.1,0); });
-        PlayerInputComponent->BindAxis("MoveRight", [this](float V) { GetMovementComponent()->Velocity += FVector(0,V * 0.1,0); });
+        PlayerInputComponent->BindAxis("MoveForward", [this](float V) { GetMovementComponent()->Velocity += FVector(V * 0.3,0,0); });
+        PlayerInputComponent->BindAxis("MoveForward", [this](float V) { GetMovementComponent()->Velocity += FVector(V * 0.3,0,0); });
+        PlayerInputComponent->BindAxis("MoveRight", [this](float V) { GetMovementComponent()->Velocity += FVector(0,V * 0.3,0); });
+        PlayerInputComponent->BindAxis("MoveRight", [this](float V) { GetMovementComponent()->Velocity += FVector(0,V * 0.3,0); });
     }
 }
 
