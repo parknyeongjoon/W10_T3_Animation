@@ -8,14 +8,12 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimData/AnimDataModel.h"
 #include <UObject/UObjectIterator.h>
-
+#include "Actors/SkeletalMeshActor.h"
 
 void AnimSequenceEditorPanel::Initialize(const float InWidth, const float InHeight)
 {
     Width = InWidth;
     Height = InHeight;
-
-    // @todo SkeletalMeshComponent 초기화 (월드에서 USkeletalMeshComponent 가져오기, ASkeletalMeshActor 가 1개만 존재함을 가정)
 }
 
 void AnimSequenceEditorPanel::Render()
@@ -50,23 +48,19 @@ void AnimSequenceEditorPanel::Render()
     ImGui::SetNextWindowSize(ImVec2(PanelWidth, PanelHeight), ImGuiCond_Always);
 
     /* Panel Flags */
-    ImGuiWindowFlags PanelFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_HorizontalScrollbar;;
+    ImGuiWindowFlags PanelFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_HorizontalScrollbar;;
 
     /* Render Start */
-
-    // @todo USkeletalMeshComponent 함수 구현
-    // @tpdp Add Notify 및 Notify Track 함수 구현
-    if (!SkeletalMeshComponent)
+    for (const auto Actor : World->GetLevel()->GetActors())
     {
-        for (const auto& it : TObjectRange<USkeletalMeshComponent>())
+        if (Actor->IsA(ASkeletalMeshActor::StaticClass()))
         {
-            SkeletalMeshComponent = it;
-            /* @todo Break 시에 크래시가 난다. USkeletalMeshComponent가 여러개 존재하는가? 원인 분석 필요
+            SkeletalMeshComponent = Cast<USkeletalMeshComponent>(Actor->GetRootComponent());
             if (SkeletalMeshComponent)
             {
                 break;
             }
-            */
+            break;
         }
     }
     UAnimSequence* AnimSeqence = SkeletalMeshComponent->GetAnimSequence();
@@ -76,11 +70,12 @@ void AnimSequenceEditorPanel::Render()
     {
         return;
     }
-    if (PrevAnimDataModel != DataModel)
+    // 하나의 UI 프레임을 공유하고 있으므로 따로 검사하지 않고 매번 초기화 해줌
+    //if (PrevAnimDataModel != DataModel)
     {
         SkeletalMeshComponent->SetLoopStartFrame(0);
         SkeletalMeshComponent->SetLoopEndFrame(FMath::Max(1, DataModel->GetNumberOfFrames() - 1));
-        PrevAnimDataModel = DataModel;
+        //PrevAnimDataModel = DataModel;
     }
 
     const int32 FrameRate = DataModel->GetFrameRate().Numerator;    // Number of Frames per second
@@ -338,15 +333,6 @@ void AnimSequenceEditorPanel::OnResize(const HWND hWnd)
 
 void AnimSequenceEditorPanel::CreateSequencerButton(ImVec2 ButtonSize) const
 {
-    /*
-    float TotalWidth = ButtonSize.x * 3.0f + 16.0f;
-    float ContentWidth = ImGui::GetWindowContentRegionMax().x;
-
-    // 중앙 정렬을 위한 커서 위치 설정
-    float CursorPosX = (ContentWidth - TotalWidth) * 0.5f;
-    ImGui::SetCursorPosX(CursorPosX);
-    */
-
     bool bLooping = SkeletalMeshComponent->IsLooping();
     bool bReverse = SkeletalMeshComponent->IsReverse();
     bool bPlaying = SkeletalMeshComponent->IsPlaying();

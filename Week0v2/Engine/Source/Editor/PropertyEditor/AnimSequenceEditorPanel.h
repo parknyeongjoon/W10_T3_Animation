@@ -27,7 +27,7 @@ private:
     float Width = 0, Height = 0;
 
     USkeletalMeshComponent* SkeletalMeshComponent = nullptr;
-    UAnimDataModel* PrevAnimDataModel = nullptr;
+    //UAnimDataModel* PrevAnimDataModel = nullptr;
 
     int32 PreviousFrame = 0;
     int32 SelectedTrackIndex_ForRename = INDEX_NONE;
