@@ -4,11 +4,10 @@
 ASkeletalMeshActor::ASkeletalMeshActor()
 {
     SkeletalMeshComp = AddComponent<USkeletalMeshComponent>(EComponentOrigin::Constructor);
-    RootComponent = SkeletalMeshComp;
     SkeletalMeshComp->SetData("Contents/FBX/Rumba_Dancing.fbx");
-
     UTestAnimInstance* TestAnimInstance = FObjectFactory::ConstructObject<UTestAnimInstance>(SkeletalMeshComp);
     SkeletalMeshComp->SetAnimInstance(TestAnimInstance);
+    RootComponent = SkeletalMeshComp;
 }
 
 ASkeletalMeshActor::ASkeletalMeshActor(const ASkeletalMeshActor& Other)

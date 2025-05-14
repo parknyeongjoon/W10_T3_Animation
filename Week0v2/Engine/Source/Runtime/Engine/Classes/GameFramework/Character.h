@@ -8,6 +8,9 @@ class UCapsuleShapeComponent;
 class ACharacter : public APawn
 {
     DECLARE_CLASS(ACharacter, APawn)
+    DECLARE_MULTICAST_DELEGATE(PlayAnimAEvent);
+    DECLARE_MULTICAST_DELEGATE(PlayAnimBEvent);
+    DECLARE_MULTICAST_DELEGATE(PlayAnimCEvent);
 public:
     ACharacter();
     ACharacter(const ACharacter& Other);
@@ -24,11 +27,12 @@ public:
     
     UProjectileMovementComponent* GetMovementComponent() const { return MovementComponent; }
 
+    PlayAnimAEvent PlayAnimA;
+    PlayAnimBEvent PlayAnimB;
+    PlayAnimCEvent PlayAnimC;
+    
 protected:
     USkeletalMeshComponent* BodyMesh = nullptr;
     UCapsuleShapeComponent* CollisionCapsule = nullptr;
     UProjectileMovementComponent* MovementComponent = nullptr;
-
-private:
-    FVector Velocity;
 };

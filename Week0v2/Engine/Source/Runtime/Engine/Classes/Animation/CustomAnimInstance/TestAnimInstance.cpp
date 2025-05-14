@@ -9,27 +9,30 @@
 
 UTestAnimInstance::UTestAnimInstance()
 {
-    IdleSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
-    WalkSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
+    StandingSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
+    JumpSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
     DanceSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
+    DeafeatedSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
 
-    FFBXLoader::CreateSkeletalMesh("Contents/FBX/Ninja_Idle.fbx");
-    FFBXLoader::CreateSkeletalMesh("Contents/FBX/Sneak_Walk.fbx");
+    FFBXLoader::CreateSkeletalMesh("Contents/FBX/Cute_Standing_Pose.fbx");
+    FFBXLoader::CreateSkeletalMesh("Contents/FBX/Joyful_Jump.fbx");
     FFBXLoader::CreateSkeletalMesh("Contents/FBX/Rumba_Dancing.fbx");
+    FFBXLoader::CreateSkeletalMesh("Contents/FBX/Defeated.fbx");
 
-    IdleSequence->SetData("Contents/FBX/Ninja_Idle.fbx\\mixamo.com");
-    WalkSequence->SetData("Contents/FBX/Sneak_Walk.fbx\\mixamo.com");
+    StandingSequence->SetData("Contents/FBX/Cute_Standing_Pose.fbx\\mixamo.com");
+    JumpSequence->SetData("Contents/FBX/Joyful_Jump.fbx\\mixamo.com");
     DanceSequence->SetData("Contents/FBX/Rumba_Dancing.fbx\\mixamo.com");
+    DeafeatedSequence->SetData("Contents/FBX/Defeated.fbx\\mixamo.com");
 
     AnimStateMachine = FObjectFactory::ConstructObject<UAnimationStateMachine<ETestState>>(this);
 
-    IdleCallback.func = [](UTestAnimInstance* self, float DeltaTime)
+    StandingCallback.func = [](UTestAnimInstance* self, float DeltaTime)
     {
-        if (self->CurrentSequence != self->IdleSequence) {
+        if (self->CurrentSequence != self->StandingSequence) {
             self->bIsBlending = true;
             self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
-            self->CurrentSequence = self->IdleSequence;
+            self->CurrentSequence = self->StandingSequence;
             self->CurrentSequence->ResetNotifies();
             self->CurrentTime = 0.0f;
         }
@@ -37,16 +40,16 @@ UTestAnimInstance::UTestAnimInstance()
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
         }
         else {
-            self->UpdateAnimation(self->IdleSequence, DeltaTime);
+            self->UpdateAnimation(self->StandingSequence, DeltaTime);
         }
     };
-    WalkCallback.func = [](UTestAnimInstance* self, float DeltaTime)
+    JumpCallback.func = [](UTestAnimInstance* self, float DeltaTime)
     {
-        if (self->CurrentSequence != self->WalkSequence) {
+        if (self->CurrentSequence != self->JumpSequence) {
             self->bIsBlending = true;
             self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
-            self->CurrentSequence = self->WalkSequence;
+            self->CurrentSequence = self->JumpSequence;
             self->CurrentSequence->ResetNotifies();
             self->CurrentTime = 0.0f;
         }
@@ -54,7 +57,7 @@ UTestAnimInstance::UTestAnimInstance()
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
         }
         else {
-            self->UpdateAnimation(self->WalkSequence, DeltaTime);
+            self->UpdateAnimation(self->JumpSequence, DeltaTime);
         }
     };
     DanceCallback.func = [](UTestAnimInstance* self, float DeltaTime)
@@ -75,59 +78,84 @@ UTestAnimInstance::UTestAnimInstance()
         }
     };
 
+    DeafeatedCallback.func = [](UTestAnimInstance* self, float DeltaTime)
+    {
+        if (self->CurrentSequence != self->DeafeatedSequence) {
+            self->bIsBlending = true;
+            self->BlendTime = 0.0f;
+            self->PreviousSequence = self->CurrentSequence;
+            self->CurrentSequence = self->DeafeatedSequence;
+            self->CurrentSequence->ResetNotifies();
+            self->CurrentTime = 0.0f;
+        }
+        if (self->bIsBlending) {
+            self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
+        }
+        else {
+            self->UpdateAnimation(self->DeafeatedSequence, DeltaTime);
+        }
+    };
+
     //**State 추가**
-    AnimStateMachine->AddState(ETestState::Idle, IdleCallback);
+    AnimStateMachine->AddState(ETestState::Pose, StandingCallback);
 
-    AnimStateMachine->AddState(ETestState::Walking, WalkCallback);
+    AnimStateMachine->AddState(ETestState::Jump, JumpCallback);
 
-    AnimStateMachine->AddState(ETestState::Dancing, DanceCallback);
+    AnimStateMachine->AddState(ETestState::Dance, DanceCallback);
+
+    AnimStateMachine->AddState(ETestState::Defeated, DeafeatedCallback);
 
     // **Transition Rule 정의**
-    AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Idle, [&]() { 
-        return (GetAsyncKeyState('Z') & 0x8000);
-        });
+    // AnimStateMachine->AddTransition(ETestState::Jump, ETestState::Dance, [&]() {
+    //     ACharacter* Character = Cast<ACharacter>(GetOwningActor());
+    //     if (Character == nullptr) return false;
+    //     return Character->GetMovementComponent()->Velocity.Magnitude() < 0.1f;
+    //     });
+    //
+    // AnimStateMachine->AddTransition(ETestState::Pose, ETestState::Jump, [&]() {
+    //     ACharacter* Character = Cast<ACharacter>(GetOwningActor());
+    //     if (Character == nullptr) return false;
+    //     return Character->GetMovementComponent()->Velocity.Magnitude() >= 0.1f;
+    //     });
+    //
+    // AnimStateMachine->AddTransition(ETestState::Dance, ETestState::Jump, [&]() {
+    // ACharacter* Character = Cast<ACharacter>(GetOwningActor());
+    // if (Character == nullptr) return false;
+    // return Character->GetMovementComponent()->Velocity.Magnitude() >= 0.1f;
+    // });
 
-    AnimStateMachine->AddTransition(ETestState::Idle, ETestState::Dancing, [&]() { 
-    return (GetAsyncKeyState('Z') & 0x8000);
-    });
-
-    AnimStateMachine->AddTransition(ETestState::Walking, ETestState::Dancing, [&]() {
-        ACharacter* Character = Cast<ACharacter>(GetOwningActor());
-        printf("%f", Character->GetMovementComponent()->Velocity.Magnitude());
-        return Character->GetMovementComponent()->Velocity.Magnitude() < 0.1f;
-        });
-
-    AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Walking, [&]() {
-        ACharacter* Character = Cast<ACharacter>(GetOwningActor());
-        return Character->GetMovementComponent()->Velocity.Magnitude() >= 0.1f;
-        });
     // 초기 상태 설정
-    AnimStateMachine->SetState(ETestState::Dancing);
+    AnimStateMachine->SetState(ETestState::Dance);
     CurrentSequence = DanceSequence;
     PreviousSequence = DanceSequence;
     
-    IdleSequence->AddNotify(1.0f, []()
+    StandingSequence->AddNotify(1.0f, []()
     {
-        printf("AnimNotify: Idle\n");
+        printf("AnimNotify: Standing\n");
     });
-    WalkSequence->AddNotify(1.0f, []()
+    JumpSequence->AddNotify(1.0f, []()
     {
-        printf("AnimNotify: Walking\n");
+        printf("AnimNotify: Jump\n");
     });
     DanceSequence->AddNotify(1.0f, []()
     {
         printf("AnimNotify: Dancing\n");
     });
+    DeafeatedSequence->AddNotify(1.0f, []()
+{
+    printf("AnimNotify: Defeated\n");
+});
 }
 
 UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 
     UAnimInstance(Other),
-    IdleSequence(Other.IdleSequence),
-    WalkSequence(Other.WalkSequence),
-    DanceSequence(Other.DanceSequence)
+    StandingSequence(Other.StandingSequence),
+    JumpSequence(Other.JumpSequence),
+    DanceSequence(Other.DanceSequence),
+    DeafeatedSequence(Other.DeafeatedSequence)
 {
-    IdleCallback.func = Other.IdleCallback.func;
-    WalkCallback.func = Other.WalkCallback.func;
+    StandingCallback.func = Other.StandingCallback.func;
+    JumpCallback.func = Other.JumpCallback.func;
     DanceCallback.func = Other.DanceCallback.func;
 }
 
