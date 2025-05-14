@@ -1,5 +1,6 @@
 #pragma once
 #include "Define.h"
+#include "ImGUI/imgui.h"
 #include "UnrealEd/EditorPanel.h"
 
 class ULevel;
@@ -14,6 +15,8 @@ public:
     void Initialize(float InWidth, float InHeight);
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
+
+    void CreateSequencerButton(ImVec2 ButtonSize) const;
 
 private:
     // @todo Notify Color

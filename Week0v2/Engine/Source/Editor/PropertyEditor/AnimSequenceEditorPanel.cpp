@@ -1,6 +1,7 @@
 #include "AnimSequenceEditorPanel.h"
 #include "ImGUI/imgui.h"
 #include "ImGuiNeoSequencer/imgui_neo_sequencer.h"
+#include "Font/IconDefs.h"
 
 #include "Engine/FEditorStateManager.h"
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
@@ -26,6 +27,10 @@ void AnimSequenceEditorPanel::Render()
     }
 
     /* Pre Setup */
+    const ImGuiIO& io = ImGui::GetIO();
+    ImFont* IconFont = io.Fonts->Fonts[FEATHER_FONT];
+    constexpr auto IconSize = ImVec2(32, 32);
+
     float PanelWidth = (Width) * 0.6f;
     float PanelHeight = (Height) * 0.35f;
 
@@ -108,11 +113,18 @@ void AnimSequenceEditorPanel::Render()
     PreviousFrame = CurrentFrame;
 
     ImGui::Separator();
-    ImGui::Text("Frame: %d / %d", CurrentFrame, NumFrames - 1);
-    ImGui::SameLine();
-    ImGui::Text("Time: %.2fs", SkeletalMeshComponent->GetElapsedTime());
+    {
+        ImGui::Text("Frame: %d / %d", CurrentFrame, NumFrames - 1);
+        ImGui::SameLine();
+        ImGui::Text("Time: %.2fs", SkeletalMeshComponent->GetElapsedTime());
+    }
     ImGui::Separator();
-
+    {
+        ImGui::PushFont(IconFont);
+        CreateSequencerButton(IconSize);
+        ImGui::PopFont();
+    }
+    ImGui::Separator();
     //const TArray<FAnimNotifyTrack>& Tracks = AnimSeqence->GetAnimNotifyTracks();
     //const TArray<FAnimNotifyEvent>& Events = AnimSeqence->Notifies;
 
@@ -305,9 +317,10 @@ void AnimSequenceEditorPanel::Render()
         //    AnimSeqence->RemoveNotifyTrack(PendingRemoveTrackIdx);
         //}
         ImGui::EndNeoSequencer();
+
     }
+
     ImGui::End();
-    
 }
 
 void AnimSequenceEditorPanel::OnResize(const HWND hWnd)
@@ -316,4 +329,112 @@ void AnimSequenceEditorPanel::OnResize(const HWND hWnd)
     GetClientRect(hWnd, &ClientRect);
     Width = static_cast<float>(ClientRect.right - ClientRect.left);
     Height = static_cast<float>(ClientRect.bottom - ClientRect.top);
+}
+
+void AnimSequenceEditorPanel::CreateSequencerButton(ImVec2 ButtonSize) const
+{
+    /*
+    float TotalWidth = ButtonSize.x * 3.0f + 16.0f;
+    float ContentWidth = ImGui::GetWindowContentRegionMax().x;
+
+    // 중앙 정렬을 위한 커서 위치 설정
+    float CursorPosX = (ContentWidth - TotalWidth) * 0.5f;
+    ImGui::SetCursorPosX(CursorPosX);
+    */
+
+    bool bLooping = SkeletalMeshComponent->IsLooping();
+    bool bReverse = SkeletalMeshComponent->IsReverse();
+    bool bPlaying = SkeletalMeshComponent->IsPlaying();
+
+    {
+        if (ImGui::Button(ICON_SKIP_BACK, ButtonSize))
+        {
+            SkeletalMeshComponent->SetCurrentKey(0);
+        }
+    }
+    ImGui::SameLine();
+    {
+        if (ImGui::Button(ICON_PREV_FRAME, ButtonSize))
+        {
+            SkeletalMeshComponent->SetCurrentKey(FMath::Max(0, SkeletalMeshComponent->GetCurrentKey() - 1));
+        }
+    }
+    ImGui::SameLine();
+    {
+        if (bPlaying && bReverse)
+        {
+            if (ImGui::Button(ICON_PAUSE, ButtonSize))
+            {
+                SkeletalMeshComponent->SetPlayRate(0.0f);
+            }
+            ImGui::SameLine();
+        }
+        else
+        {
+            if (ImGui::Button(ICON_REVERSE, ButtonSize))
+            {
+                SkeletalMeshComponent->SetPlayRate(-1.0f);
+            }
+        }
+    }
+    ImGui::SameLine();
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+        {
+            if (ImGui::Button(ICON_RECORD, ButtonSize))
+            {
+                UE_LOG(LogLevel::Error, "Sequencer Record: Not Implemented!");
+            }
+        }
+        ImGui::PopStyleColor();
+    }
+    ImGui::SameLine();
+    {
+        if (bPlaying && !bReverse)
+        {
+            if (ImGui::Button(ICON_PAUSE, ButtonSize))
+            {
+                SkeletalMeshComponent->SetPlayRate(0.0f);
+            }
+            ImGui::SameLine();
+        }
+        else
+        {
+            if (ImGui::Button(ICON_PLAY, ButtonSize))
+            {
+                SkeletalMeshComponent->SetPlayRate(1.0f);
+            }
+        }
+    }
+    ImGui::SameLine();
+    {
+        if (ImGui::Button(ICON_NEXT_FRAME, ButtonSize))
+        {
+            SkeletalMeshComponent->SetCurrentKey(FMath::Min(SkeletalMeshComponent->GetCurrentKey() + 1, SkeletalMeshComponent->GetLoopEndFrame()));
+        }
+    }
+    ImGui::SameLine();
+    {
+        if (ImGui::Button(ICON_SKIP_FORWARD, ButtonSize))
+        {
+            SkeletalMeshComponent->SetCurrentKey(SkeletalMeshComponent->GetLoopEndFrame());
+        }
+    }
+    ImGui::SameLine();
+    {
+        if (bLooping)
+        {
+            if (ImGui::Button(ICON_REPEAT, ButtonSize))
+            {
+                SkeletalMeshComponent->SetLooping(false);
+            }
+        }
+        else
+        {
+            if (ImGui::Button(ICON_ONCE, ButtonSize))
+            {
+                SkeletalMeshComponent->SetLooping(true);
+            }
+        }
+    }
 }
