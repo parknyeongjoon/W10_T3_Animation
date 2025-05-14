@@ -129,26 +129,30 @@ UTestAnimInstance::UTestAnimInstance()
     CurrentSequence = DanceSequence;
     PreviousSequence = DanceSequence;
     
-    IdleSequence->AddNotify(1.0f, []()
+    StandingSequence->AddNotify(1.0f, []()
     {
-        printf("AnimNotify: Idle\n");
+        printf("AnimNotify: Standing\n");
     });
-    WalkSequence->AddNotify(1.0f, []()
+    JumpSequence->AddNotify(1.0f, []()
     {
-        printf("AnimNotify: Walking\n");
+        printf("AnimNotify: Jump\n");
     });
     DanceSequence->AddNotify(1.0f, []()
     {
         printf("AnimNotify: Dancing\n");
     });
+    DeafeatedSequence->AddNotify(1.0f, []()
+{
+    printf("AnimNotify: Defeated\n");
+});
 }
 
 UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 
     UAnimInstance(Other),
     StandingSequence(Other.StandingSequence),
     JumpSequence(Other.JumpSequence),
-    DanceSequence(Other.DanceSequence)
-    
+    DanceSequence(Other.DanceSequence),
+    DeafeatedSequence(Other.DeafeatedSequence)
 {
     StandingCallback.func = Other.StandingCallback.func;
     JumpCallback.func = Other.JumpCallback.func;
