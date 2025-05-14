@@ -35,6 +35,7 @@
 #include "Renderer/Renderer.h"
 #include "UObject/ObjectTypes.h"
 #include "Animation/CustomAnimInstance/TestAnimInstance.h"
+#include "Font/IconDefs.h"
 
 void ControlEditorPanel::Initialize(SLevelEditor* LevelEditor, float Width, float Height)
 {
@@ -113,7 +114,7 @@ void ControlEditorPanel::Render()
 void ControlEditorPanel::CreateMenuButton(const ImVec2 ButtonSize, ImFont* IconFont)
 {
     ImGui::PushFont(IconFont);
-    if (ImGui::Button("\ue9ad", ButtonSize)) // Menu
+    if (ImGui::Button(ICON_MENU, ButtonSize)) // Menu
     {
         bOpenMenu = !bOpenMenu;
     }
@@ -258,7 +259,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
     }
     
     ImGui::PushFont(IconFont);
-    if (ImGui::Button("\ue9c4", ButtonSize)) // Slider
+    if (ImGui::Button(ICON_SLIDER, ButtonSize)) // Slider
     {
         ImGui::OpenPopup("SliderControl");
     }
@@ -307,7 +308,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
     ImGui::SameLine();
 
     ImGui::PushFont(IconFont);
-    if (ImGui::Button("\ue9c8", ButtonSize))
+    if (ImGui::Button(ICON_PLUS, ButtonSize))
     {
         ImGui::OpenPopup("ActorControl");
     }
@@ -357,7 +358,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                     ImGui::Separator(); // 카테고리 구분선
                 }
                 ImGui::PushFont(IconFont);
-                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), "\ue9a8"); // 헤더
+                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), ICON_PLAY); // 헤더
                 ImGui::PopFont();
                 ImGui::SameLine();
                 ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), "%s", Category); // 헤더
@@ -706,7 +707,7 @@ void ControlEditorPanel::CreatePIEButton(const ImVec2 ButtonSize) const
     if (ActiveLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
-        if (ImGui::Button("\ue9a8", ButtonSize)) // Play
+        if (ImGui::Button(ICON_PLAY, ButtonSize)) // Play
         {
             ActiveLevelEditor->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
         }
@@ -714,14 +715,14 @@ void ControlEditorPanel::CreatePIEButton(const ImVec2 ButtonSize) const
     }
     else if (ActiveLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Paused)
     {
-        if (ImGui::Button("\ue9a8", ButtonSize)) // Play
+        if (ImGui::Button(ICON_PLAY, ButtonSize)) // Play
         {
             ActiveLevelEditor->GetEditorStateManager().SetState(EEditorState::Playing);
         }
     }
     else
     {
-        if (ImGui::Button("\ue99c", ButtonSize)) // Pause
+        if (ImGui::Button(ICON_PAUSE, ButtonSize)) // Pause
         {
             // TODO: PIE 일시정지
             ActiveLevelEditor->GetEditorStateManager().SetState(EEditorState::Paused);
@@ -731,7 +732,7 @@ void ControlEditorPanel::CreatePIEButton(const ImVec2 ButtonSize) const
 
     if (ActiveLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
     {
-        if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+        if (ImGui::Button(ICON_STOP, ButtonSize)) // Stop
         {
             ActiveLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
         }
@@ -739,7 +740,7 @@ void ControlEditorPanel::CreatePIEButton(const ImVec2 ButtonSize) const
     else
     {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-        if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+        if (ImGui::Button(ICON_STOP, ButtonSize)) // Stop
         {
             ActiveLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
         }
@@ -767,7 +768,7 @@ void ControlEditorPanel::CreateSRTButton(const ImVec2 ButtonSize) const
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ActiveColor);
     }
-    if (ImGui::Button("\ue9bc", ButtonSize)) // Move
+    if (ImGui::Button(ICON_MOVE, ButtonSize)) // Move
     {
         LevelEditor->GetActiveViewportClientData().SetMode(CM_TRANSLATION);
     }
@@ -782,7 +783,7 @@ void ControlEditorPanel::CreateSRTButton(const ImVec2 ButtonSize) const
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ActiveColor);
     }
-    if (ImGui::Button("\ue9d3", ButtonSize)) // Rotate
+    if (ImGui::Button(ICON_ROTATE, ButtonSize)) // Rotate
     {
         LevelEditor->GetActiveViewportClientData().SetMode(CM_ROTATION);
     }
@@ -797,7 +798,7 @@ void ControlEditorPanel::CreateSRTButton(const ImVec2 ButtonSize) const
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ActiveColor);
     }
-    if (ImGui::Button("\ue9ab", ButtonSize)) // Scale
+    if (ImGui::Button(ICON_SCALE, ButtonSize)) // Scale
     {
         LevelEditor->GetActiveViewportClientData().SetMode(CM_SCALE);
     }

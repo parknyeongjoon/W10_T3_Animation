@@ -59,13 +59,6 @@ void ImGuiManager::InitializeWindow()
 {
     IMGUI_CHECKVERSION();
     ImGuiIO& io = ImGui::GetIO();
-    // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-    // ImGuiStyle& style = ImGui::GetStyle();
-    // if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    // {
-    //     style.WindowRounding = 0.0f;
-    //     style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    // }
     
     io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\malgun.ttf", 17.0f, NULL, io.Fonts->GetGlyphRangesKorean());
     ImGui::GetStyle().ScaleAllSizes(0.8f);
@@ -75,23 +68,43 @@ void ImGuiManager::InitializeWindow()
     FeatherFontConfig.FontDataOwnedByAtlas = false;
     FeatherFontConfig.GlyphOffset = ImVec2(0, 0);
     static const ImWchar IconRanges[] = {
-        ICON_MOVE,      ICON_MOVE + 1,
-        ICON_ROTATE,    ICON_ROTATE + 1,
-        ICON_SCALE,     ICON_SCALE + 1,
-        ICON_MONITOR,   ICON_MONITOR + 1,
-        ICON_BAR_GRAPH, ICON_BAR_GRAPH + 1,
-        ICON_NEW,       ICON_NEW + 1,
-        ICON_SAVE,      ICON_SAVE + 1,
-        ICON_LOAD,      ICON_LOAD + 1,
-        ICON_MENU,      ICON_MENU + 1,
-        ICON_SLIDER,    ICON_SLIDER + 1,
-        ICON_PLUS,      ICON_PLUS + 1,
-        ICON_PIE_PLAY, ICON_PIE_PLAY + 1,
-        ICON_PIE_PAUSE, ICON_PIE_PAUSE + 1,
-        ICON_PIE_STOP, ICON_PIE_STOP + 1,
+        FEATHER_MOVE,          FEATHER_MOVE + 1,
+        FEATHER_ROTATE,        FEATHER_ROTATE + 1,
+        FEATHER_SCALE,         FEATHER_SCALE + 1,
+        FEATHER_MONITOR,       FEATHER_MONITOR + 1,
+        FEATHER_BAR_GRAPH,     FEATHER_BAR_GRAPH + 1,
+
+        FEATHER_NEW,           FEATHER_NEW + 1,
+        FEATHER_SAVE,          FEATHER_SAVE + 1,
+        FEATHER_LOAD,          FEATHER_LOAD + 1,
+
+        FEATHER_MENU,          FEATHER_MENU + 1,
+        FEATHER_SLIDER,        FEATHER_SLIDER + 1,
+        FEATHER_PLUS,          FEATHER_PLUS + 1,
+
+        FEATHER_ZOOM_IN,       FEATHER_ZOOM_IN + 1,
+        FEATHER_ZOOM_OUT,      FEATHER_ZOOM_OUT + 1,
+
+        FEATHER_LOCK,          FEATHER_LOCK + 1,
+        FEATHER_UNLOCK,        FEATHER_UNLOCK + 1,
+
+        FEATHER_PLAY,          FEATHER_PLAY + 1,
+        FEATHER_REVERSE,       FEATHER_REVERSE + 1,
+        FEATHER_PAUSE,         FEATHER_PAUSE + 1,
+        FEATHER_STOP,          FEATHER_STOP + 1,
+        FEATHER_PREV_FRAME,    FEATHER_PREV_FRAME + 1,
+        FEATHER_NEXT_FRAME,    FEATHER_NEXT_FRAME + 1,
+        FEATHER_SKIP_BACK,     FEATHER_SKIP_BACK + 1,
+        FEATHER_SKIP_FORWARD,  FEATHER_SKIP_FORWARD + 1,
+        FEATHER_REPEAT,        FEATHER_REPEAT + 1,
+        FEATHER_ONCE,          FEATHER_ONCE + 1,
+        FEATHER_RECORD,        FEATHER_RECORD + 1,
+        
+        FEATHER_REWIND,        FEATHER_REWIND + 1,
+        FEATHER_FAST_FORWARD,  FEATHER_FAST_FORWARD + 1,
         0 };
 
-    io.Fonts->AddFontFromMemoryTTF(FeatherRawData, FontSizeOfFeather, 22.0f, &FeatherFontConfig, IconRanges);
+    io.Fonts->AddFontFromMemoryTTF(FeatherExRawData, FontSizeOfFeatherEx, 22.0f, &FeatherFontConfig, IconRanges);
     PreferenceStyle();
 }
 
