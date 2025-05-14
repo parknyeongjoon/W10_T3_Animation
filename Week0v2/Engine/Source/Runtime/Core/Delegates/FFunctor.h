@@ -5,15 +5,18 @@
     using FunctorType = FFunctorWithContext<ThisClass, ReturnType, __VA_ARGS__>; \
     friend FunctorType; \
 
+// 멤버 함수로 구현하지 않고 함수에 대한 friend로 객체에 접근 가능하게 만듬.
+// TODO: Delegate(멤버 함수를 통한)로 대체 고려.
+// TODO: self 삭제 시 대응.
 template <typename ClassType, typename ReturnType, typename... ParamTypes>
 struct FFunctorWithContext
 {
 public:
     using FuncPtrType = std::function<ReturnType(ClassType*, ParamTypes...)>;
 public:
-    // FFunctorWithContext() = delete;
     FFunctorWithContext() = default;
     FFunctorWithContext(ClassType* self): self(self) {}
+    FFunctorWithContext(ClassType* self, FuncPtrType funcPtr): self(self), func(funcPtr) {}
 private:
     ClassType* self;
 public:

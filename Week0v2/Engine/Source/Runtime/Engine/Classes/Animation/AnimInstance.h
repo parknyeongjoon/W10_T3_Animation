@@ -36,9 +36,6 @@ public:
     /** Gets the runtime instance of the specified state machine */
     // const FAnimNode_StateMachine* GetStateMachineInstance(int32 MachineIndex) const;
 
-    void AddAnimNotify(float Second, TDelegate<void()> OnNotify, float Duration = 0.1f) const;
-    void AddAnimNotify(float Second, std::function<void()> OnNotify, float Duration = 0.1f) const;
-    void DeleteAnimNotify(float Second) const;
     void TriggerAnimNotifies(float DeltaSeconds) const;
     void UpdateCurveValues(float DeltaSeconds) const ;
 
@@ -54,11 +51,10 @@ protected:
     float BlendTime = 0;
     float BlendDuration = 0.5f;
     bool bIsBlending = false;
-
+    float CurrentTime = 0;
 private:
     USkeleton* Skeleton;
     FBlendedCurve BlendedCurve;
-    float CurrentTime = 0;
 
 };
 

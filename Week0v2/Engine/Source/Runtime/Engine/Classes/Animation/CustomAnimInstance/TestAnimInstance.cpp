@@ -30,6 +30,8 @@ UTestAnimInstance::UTestAnimInstance()
             self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->IdleSequence;
+            self->CurrentSequence->ResetNotifies();
+            self->CurrentTime = 0.0f;
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -45,6 +47,8 @@ UTestAnimInstance::UTestAnimInstance()
             self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->WalkSequence;
+            self->CurrentSequence->ResetNotifies();
+            self->CurrentTime = 0.0f;
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -60,6 +64,8 @@ UTestAnimInstance::UTestAnimInstance()
             self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->DanceSequence;
+            self->CurrentSequence->ResetNotifies();
+            self->CurrentTime = 0.0f;
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -95,12 +101,23 @@ UTestAnimInstance::UTestAnimInstance()
         ACharacter* Character = Cast<ACharacter>(GetOwningActor());
         return Character->GetMovementComponent()->Velocity.Magnitude() >= 0.1f;
         });
-
-
     // 초기 상태 설정
     AnimStateMachine->SetState(ETestState::Dancing);
     CurrentSequence = DanceSequence;
     PreviousSequence = DanceSequence;
+    
+    IdleSequence->AddNotify(1.0f, []()
+    {
+        printf("AnimNotify: Idle\n");
+    });
+    WalkSequence->AddNotify(1.0f, []()
+    {
+        printf("AnimNotify: Walking\n");
+    });
+    DanceSequence->AddNotify(1.0f, []()
+    {
+        printf("AnimNotify: Dancing\n");
+    });
 }
 
 UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 
