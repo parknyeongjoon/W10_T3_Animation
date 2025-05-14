@@ -57,6 +57,11 @@ void UActorComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
     bHasBegunPlay = false;
 }
 
+AActor* UActorComponent::GetOwner() const
+{
+    return Owner;
+}
+
 void UActorComponent::DestroyComponent()
 {
     if (bIsBeingDestroyed)
@@ -90,6 +95,11 @@ void UActorComponent::DestroyComponent()
 
     // 나중에 ProcessPendingDestroyObjects에서 실제로 제거됨
     GUObjectArray.MarkRemoveObject(this);
+}
+
+bool UActorComponent::IsActive() const
+{
+    return bIsActive;
 }
 
 void UActorComponent::Activate()

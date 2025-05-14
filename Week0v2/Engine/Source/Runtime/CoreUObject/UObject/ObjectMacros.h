@@ -101,3 +101,28 @@ private: \
         } \
     } name##_PropRegister_{}; \
 
+#define UFUNCTION(Type, FuncName, ...) \
+    Type FuncName (__VA_ARGS__); \
+    inline static struct FuncName##_PropRegister \
+    { \
+        FuncName##_PropRegister() \
+        { \
+            GetBindFunctions().Add(#FuncName, [](sol::usertype<ThisClass> table) { \
+                table[#FuncName] = &ThisClass::FuncName; \
+            }); \
+        } \
+    } FuncName##_PropRegister_{}; \
+
+#define UFUNCTION_CONST(Type, FuncName, ...) \
+    Type FuncName (__VA_ARGS__) const; \
+    inline static struct FuncName##_PropRegister \
+    { \
+        FuncName##_PropRegister() \
+        { \
+            GetBindFunctions().Add(#FuncName, [](sol::usertype<ThisClass> table) { \
+                table[#FuncName] = &ThisClass::FuncName; \
+            }); \
+        } \
+    } FuncName##_PropRegister_{}; \
+
+    

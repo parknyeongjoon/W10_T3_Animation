@@ -1,7 +1,7 @@
 Script = {}
 
 function Script.BeginPlay()
-    PrintObject(Script.this.GetOwner)
+    PrintObject(Script.this:GetOwner().GetUSceneComponent)
 end
 
 function Script.Tick(deltaTime)

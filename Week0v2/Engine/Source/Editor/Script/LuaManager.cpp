@@ -213,6 +213,9 @@ void FLuaManager::BindCoreTypes()
     {
         meta->BindPropertiesToLua(LuaState);
     }
+    // UFUNCTION으로 안되는 케이스들 별도로 등록.
+    sol::usertype<UActorComponent> ActorComponentTypeTable = UActorComponent::GetLuaUserType(LuaState);
+    ActorComponentTypeTable["GetOwner"] = &UActorComponent::GetOwner;
 
 
     generateStubs(LuaState);

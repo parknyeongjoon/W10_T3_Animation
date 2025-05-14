@@ -8,6 +8,7 @@ class UClass;
 class AActor;
 class UActorComponent;
 class FFunctionRegistry;
+
 // for sol2 typing
 namespace SolTypeBinding
 {
@@ -67,6 +68,10 @@ namespace SolTypeBinding
             using FuncType = T* (AActor::*)();
             auto funcPtr = static_cast<FuncType>(&AActor::template GetComponentByClass<T>);
             AActor::GetLuaUserType(lua)["Get" + className] = funcPtr;
+            std::cout << "Register AActor::Get" << className << std::endl;
+        } else
+        {
+            std::cout << "Failed Register AActor::Get" << className << std::endl;
         }
     }
 }
