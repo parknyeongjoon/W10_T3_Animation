@@ -59,7 +59,6 @@ void APawn::PossessedBy(AController* NewController)
     {
         EnableInput(PC);
     }
-
 }
 
 void APawn::UnPossessed()

@@ -36,6 +36,9 @@ public:
     void InputAxis(EKeys::Type Key, EInputEvent EventType);
     void MouseInput(float DeltaX, float DeltaY);
 
+    APlayerCameraManager* GetPlayerCameraManager() const { return PlayerCameraManager; }
+    void SetPlayerCameraManager(APlayerCameraManager* InPlayerCameraManager);
+
 protected:
     void SetupInputBindings();
     

@@ -84,6 +84,7 @@ UObject* UMovementComponent::Duplicate(UObject* InOuter)
 void UMovementComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
     UActorComponent::DuplicateSubObjects(Source, InOuter);
+    UpdatedComponent = Cast<UPrimitiveComponent>(Cast<AActor>(InOuter)->GetRootComponent());
 }
 
 void UMovementComponent::PostDuplicate()

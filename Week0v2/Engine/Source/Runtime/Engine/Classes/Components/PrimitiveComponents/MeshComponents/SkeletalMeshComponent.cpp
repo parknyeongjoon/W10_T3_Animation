@@ -1,7 +1,7 @@
 #include "SkeletalMeshComponent.h"
 
 #include "LaunchEngineLoop.h"
-#include "TestFBXLoader.h"
+#include "Engine/FBXLoader.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/Skeleton.h"
 #include "Animation/AnimData/AnimDataModel.h"
@@ -162,7 +162,7 @@ void USkeletalMeshComponent::CreateBoneComponents()
 
 USkeletalMesh* USkeletalMeshComponent::LoadSkeletalMesh(const FString& FilePath)
 {
-    USkeletalMesh* SkeletalMesh = TestFBXLoader::CreateSkeletalMesh(FilePath);
+    USkeletalMesh* SkeletalMesh = FFBXLoader::CreateSkeletalMesh(FilePath);
     SetSkeletalMesh(SkeletalMesh);
 
     return SkeletalMesh;
@@ -187,7 +187,7 @@ void USkeletalMeshComponent::SkinningVertex()
         Vertex.SkinningVertex(SkeletalMesh->GetRenderData().Bones);
     }
 
-    TestFBXLoader::UpdateBoundingBox(SkeletalMesh->GetRenderData());
+    FFBXLoader::UpdateBoundingBox(SkeletalMesh->GetRenderData());
     AABB = SkeletalMesh->GetRenderData().BoundingBox;
 
     SkeletalMesh->SetData(SkeletalMesh->GetRenderData(), SkeletalMesh->GetSkeleton()); // TODO: Dynamic VertexBuffer Update하게 바꾸기

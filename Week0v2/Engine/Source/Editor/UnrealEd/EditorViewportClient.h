@@ -224,7 +224,7 @@ private: // Input
 
     //Temp
     TSet<EKeys::Type> CameraInputPressedKeys;
-
+    
     TSet<EKeys::Type> PressedKeys;
     
 public:

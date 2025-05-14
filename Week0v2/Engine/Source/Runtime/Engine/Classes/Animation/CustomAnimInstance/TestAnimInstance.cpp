@@ -4,15 +4,18 @@
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "Animation/AnimSequence.h"
 #include "Animation/AnimNotify/AnimNotify.h"
+#include "Components/GameFramework/ProjectileMovementComponent.h"
+#include "GameFramework/Character.h"
+
 UTestAnimInstance::UTestAnimInstance()
 {
     IdleSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
     WalkSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
     DanceSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
 
-    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Ninja_Idle.fbx");
-    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Sneak_Walk.fbx");
-    TestFBXLoader::CreateSkeletalMesh("Contents/FBX/Rumba_Dancing.fbx");
+    FFBXLoader::CreateSkeletalMesh("Contents/FBX/Ninja_Idle.fbx");
+    FFBXLoader::CreateSkeletalMesh("Contents/FBX/Sneak_Walk.fbx");
+    FFBXLoader::CreateSkeletalMesh("Contents/FBX/Rumba_Dancing.fbx");
 
     IdleSequence->SetData("Contents/FBX/Ninja_Idle.fbx\\mixamo.com");
     WalkSequence->SetData("Contents/FBX/Sneak_Walk.fbx\\mixamo.com");
@@ -74,23 +77,30 @@ UTestAnimInstance::UTestAnimInstance()
     AnimStateMachine->AddState(ETestState::Dancing, DanceCallback);
 
     // **Transition Rule 정의**
-    AnimStateMachine->AddTransition(ETestState::Idle, ETestState::Walking, [&]() { 
+    AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Idle, [&]() { 
         return (GetAsyncKeyState('Z') & 0x8000);
         });
 
+    AnimStateMachine->AddTransition(ETestState::Idle, ETestState::Dancing, [&]() { 
+    return (GetAsyncKeyState('Z') & 0x8000);
+    });
+
     AnimStateMachine->AddTransition(ETestState::Walking, ETestState::Dancing, [&]() {
-        return (GetAsyncKeyState('X') & 0x8000);
+        ACharacter* Character = Cast<ACharacter>(GetOwningActor());
+        printf("%f", Character->GetMovementComponent()->Velocity.Magnitude());
+        return Character->GetMovementComponent()->Velocity.Magnitude() < 0.1f;
         });
 
-    AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Idle, [&]() {
-        return (GetAsyncKeyState('C') & 0x8000);
+    AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Walking, [&]() {
+        ACharacter* Character = Cast<ACharacter>(GetOwningActor());
+        return Character->GetMovementComponent()->Velocity.Magnitude() >= 0.1f;
         });
 
 
     // 초기 상태 설정
-    AnimStateMachine->SetState(ETestState::Idle);
-    CurrentSequence = IdleSequence;
-    PreviousSequence = IdleSequence;
+    AnimStateMachine->SetState(ETestState::Dancing);
+    CurrentSequence = DanceSequence;
+    PreviousSequence = DanceSequence;
 }
 
 UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 

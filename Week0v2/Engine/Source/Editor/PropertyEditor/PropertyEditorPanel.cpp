@@ -29,7 +29,7 @@
 
 #include "LaunchEngineLoop.h"
 #include "PlayerCameraManager.h"
-#include "TestFBXLoader.h"
+#include "Engine/FBXLoader.h"
 #include "Actors/SkeletalMeshActor.h"
 #include "Animation/Skeleton.h"
 #include "BaseGizmos/TransformGizmo.h"
@@ -941,7 +941,7 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
         FString PreviewName = SkeletalMeshComp->GetSkeletalMesh()->GetRenderData().Name;
         if (ImGui::BeginCombo("SkeletalMesh##", GetData(PreviewName), ImGuiComboFlags_None))
         {
-            for (const auto& [key, mesh]: TestFBXLoader::GetSkeletalMeshes())
+            for (const auto& [key, mesh]: FFBXLoader::GetSkeletalMeshes())
             {
                 bool isSelected = (key == PreviewName);
                 if (ImGui::Selectable(GetData(key), isSelected))
@@ -1736,7 +1736,7 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
         SkeletalMeshActor->SetActorLabel("SkeletalMesh");
         USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->GetComponentByClass<USkeletalMeshComponent>();
 
-        SkeletalMeshComp->SetSkeletalMesh(TestFBXLoader::CreateSkeletalMesh(FilePath));
+        SkeletalMeshComp->SetSkeletalMesh(FFBXLoader::CreateSkeletalMesh(FilePath));
     }
 }
 
