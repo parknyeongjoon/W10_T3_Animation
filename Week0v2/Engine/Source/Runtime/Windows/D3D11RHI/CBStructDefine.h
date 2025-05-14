@@ -190,7 +190,7 @@ struct alignas(16) FFlagConstants
     uint32 IsLit; // offset: 0, size: 4
     uint32 IsNormal;
     uint32 IsVSM;
-    float flagPad0; // offset: 4, size: 12
+    uint32 IsGPUSkinning;
 };
 
 struct alignas(16) FMatrixConstants

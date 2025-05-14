@@ -252,6 +252,12 @@ enum EShadowFilterMode
     VSM
 };
 
+enum ESkinningType
+{
+    CPU,
+    GPU,
+};
+
 struct FVertexTexture
 {
 	float x, y, z;    // Position

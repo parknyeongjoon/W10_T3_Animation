@@ -21,7 +21,7 @@ public:
     UAnimInstance(const UAnimInstance& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;
-    void DuplicateSubObjects(const UObject* Source, UObject* InOuter);
+    void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
 
     // APawn* TryGetPawnOwner() const;
     AActor* GetOwningActor() const;
@@ -48,7 +48,7 @@ public:
     void BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* ToSequence,float DeltaTime);
 protected:
     UAnimSequence* CurrentSequence = nullptr;
-    UAnimSequence* PreviousSequence = nullptr;  
+    UAnimSequence* PreviousSequence = nullptr;
 
 
     float BlendTime = 0;
