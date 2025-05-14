@@ -118,18 +118,6 @@ void FGameUIPanel::Render()
             ImGui::SetWindowFontScale(1.0f);
             ImGui::PopStyleColor();
 
-            // 2. 남은 시간 표시
-            float remainingTime = GameMgr.GetRemainingTime();
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-            ImGui::SetWindowFontScale(1.5f);
-            char timeText[64];
-            sprintf_s(timeText, "Time: %.1f", remainingTime > 0.0f ? remainingTime : 0.0f);
-            ImVec2 textSize = ImGui::CalcTextSize(timeText);
-            ImGui::SetCursorPos(ImVec2(displaySize.x - textSize.x - 250, 30));
-            ImGui::Text(timeText);
-            ImGui::SetWindowFontScale(1.0f);
-            ImGui::PopStyleColor();
-
             // 3. 크로스헤어 (기존 코드와 동일)
             // ImDrawList* drawList = ImGui::GetWindowDrawList();
             // ... (크로스헤어 그리는 로직) ...

@@ -45,7 +45,7 @@ void AGEnemy::BeginPlay()
     Super::BeginPlay();
     OnHit.AddUObject(this, &AGEnemy::OnDamaged);
     OnDead.AddStatic(FGameManager::AddScore);
-    OnDead.AddStatic(FGameManager::SpawnEnemy);
+    // OnDead.AddStatic(FGameManager::SpawnEnemy);
     OnBeginOverlap.AddUObject(this, &AGEnemy::OnCollision);
     static std::mt19937 generator(std::chrono::system_clock::now().time_since_epoch().count());
     

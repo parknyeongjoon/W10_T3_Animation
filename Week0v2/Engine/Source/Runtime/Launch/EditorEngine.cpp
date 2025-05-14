@@ -3,6 +3,7 @@
 #include "LaunchEngineLoop.h"
 #include "PlayerCameraManager.h"
 #include "WindowsCursor.h"
+#include "Actors/SkeletalMeshActor.h"
 #include "Engine/World.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/UnrealEd.h"
@@ -10,6 +11,7 @@
 #include "UObject/UObjectIterator.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "Camera/CameraFadeInOut.h"
+#include "Contents/GameManager.h"
 #include "Contents/UI/ContentsUI.h"
 #include "Coroutine/LuaCoroutine.h"
 #include "GameFramework/Actor.h"
@@ -161,7 +163,17 @@ void UEditorEngine::StartPIE() const
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>(PlayerCameraManager);
     CameraModifier->StartFadeIn(0.001f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
-    
+
+    FGameManager::Get().NPCs.Empty();
+    for (int i=0;i < 4;i++)
+    {
+        ASkeletalMeshActor* NPC = Cast<ASkeletalMeshActor>(PIEWorldContext->GetWorld()->SpawnActor<ASkeletalMeshActor>());
+        NPC->SetActorLocation(FVector(0, -80 + 20 * i, 0));
+        NPC->SetActorScale(FVector(0.2,0.2,0.2));
+        FGameManager::Get().NPCs.Add(NPC);
+    }
+
+    FGameManager::Get().StartGame();
     UE_LOG(LogLevel::Display, "Start PIE");
 }
 

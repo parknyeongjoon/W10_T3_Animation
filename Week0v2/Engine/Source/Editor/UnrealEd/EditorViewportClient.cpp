@@ -173,6 +173,42 @@ void FEditorViewportClient::InputKey(const HWND AppWnd, const FKeyEvent& InKeyEv
                     }
                     break;
                 }
+                case 'Z':
+                    {
+                        if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                        {
+                            PC->InputKey(EKeys::Z, IE_Pressed);
+                        }
+                        else if (InKeyEvent.GetInputEvent() == IE_Released)
+                        {
+                            PC->InputKey(EKeys::Z, IE_Released);
+                        }
+                        break;
+                    }
+                case 'X':
+                    {
+                        if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                        {
+                            PC->InputKey(EKeys::X, IE_Pressed);
+                        }
+                        else if (InKeyEvent.GetInputEvent() == IE_Released)
+                        {
+                            PC->InputKey(EKeys::X, IE_Released);
+                        }
+                        break;
+                    }
+                case 'C':
+                    {
+                        if (InKeyEvent.GetInputEvent() == IE_Pressed)
+                        {
+                            PC->InputKey(EKeys::C, IE_Pressed);
+                        }
+                        else if (InKeyEvent.GetInputEvent() == IE_Released)
+                        {
+                            PC->InputKey(EKeys::C, IE_Released);
+                        }
+                        break;
+                    }
                 }
             }
         }

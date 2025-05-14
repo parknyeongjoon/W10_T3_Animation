@@ -11,6 +11,9 @@ void UPlayerInput::InitializeDefaultMappings()
     AddAxisMapping({ "MoveRight",   EKeys::A, -1.f });
     AddAxisMapping({ "Turn",       EKeys::MouseX, 1.f });
     AddAxisMapping({ "LookUp",     EKeys::MouseY, 1.f });
+    AddActionMapping({"AnimA", EKeys::Z });
+    AddActionMapping({"AnimB", EKeys::X });
+    AddActionMapping({"AnimC", EKeys::C });
 }
 
 void UPlayerInput::AddActionMapping(const FInputActionKeyMapping& Mapping)
@@ -51,7 +54,10 @@ void UPlayerInput::InputKey(EKeys::Type Key, EInputEvent EventType)
     if (EventType == IE_Pressed)
         PressedKeys.Add(Key);
     else if (EventType == IE_Released)
+    {
         PressedKeys.Remove(Key);
+        return;
+    }
 
     // 매핑된 액션 찾기
     for (const auto& M : ActionMappings)
