@@ -82,5 +82,22 @@ public: \
 
 // Getter & Setter 생성
 #define PROPERTY(type, name) \
+private: \
+    type name; \
+public: \
     void Set##name(const type& value) { name = value; } \
-    type Get##name() const { return name; }
+    type Get##name() const { return name; } \
+
+#define UPROPERTY(type, name) \
+    PROPERTY(type, name) \
+private: \
+    inline static struct name##_PropRegister \
+    { \
+        name##_PropRegister() \
+        { \
+            GetBindFunctions().Add(#name, [](sol::usertype<ThisClass> table) { \
+                table[#name] = &ThisClass::name; \
+            }); \
+        } \
+    } name##_PropRegister_{}; \
+

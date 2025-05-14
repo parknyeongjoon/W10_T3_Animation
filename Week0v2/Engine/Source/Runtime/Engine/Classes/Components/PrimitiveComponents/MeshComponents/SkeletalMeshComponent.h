@@ -21,8 +21,6 @@ public:
 
     void SetData(const FString& FilePath);
 
-    PROPERTY(int, SelectedSubMeshIndex);
-
     virtual uint32 GetNumMaterials() const override;
     virtual UMaterial* GetMaterial(uint32 ElementIndex) const override;
     virtual uint32 GetMaterialIndex(FName MaterialSlotName) const override;
@@ -42,6 +40,8 @@ public:
     void CreateBoneComponents();
     void UpdateBoneHierarchy();
 
+    UPROPERTY(int, SelectedSubMeshIndex);
+    
 private:
     TArray<UStaticMeshComponent*> BoneComponents;
     bool bCPUSkinned = true;
@@ -52,6 +52,5 @@ protected:
     USkeletalMesh* SkeletalMesh = nullptr;
     UAnimInstance* AnimInstance = nullptr;
     
-    int SelectedSubMeshIndex = -1;
     float animTime = 0.f;
 };

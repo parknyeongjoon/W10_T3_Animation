@@ -42,8 +42,6 @@ public:
     virtual void PostDuplicate() override;
     virtual void TickComponent(float DeltaTime) override;
 
-    PROPERTY(int, selectedSubMeshIndex);
-
     virtual uint32 GetNumMaterials() const override;
     virtual UMaterial* GetMaterial(uint32 ElementIndex) const override;
     virtual uint32 GetMaterialIndex(FName MaterialSlotName) const override;
@@ -60,9 +58,9 @@ public:
     virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
+    UPROPERTY(int, selectedSubMeshIndex);
 protected:
     UStaticMesh* staticMesh = nullptr;
-    int selectedSubMeshIndex = -1;
 private:
     float Timer = 0.0f;
 };

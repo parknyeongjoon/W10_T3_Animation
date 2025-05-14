@@ -16,8 +16,9 @@ public:
     virtual UObject* Duplicate(UObject* InOuter) override;
     virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
     virtual void PostDuplicate() override;
-    PROPERTY(float, RateScale)
-    
+    UPROPERTY(float, RateScale)
+
+public:
     UAnimDataModel* GetDataModel() const { return DataModel; }
 
     void SetData(UAnimDataModel* InDataModel) { DataModel = InDataModel; }
@@ -37,7 +38,6 @@ public:
 
     TArray<FAnimNotifyEvent> Notifies;
 protected:
-    float RateScale;
     UAnimDataModel* DataModel;
 };
 
