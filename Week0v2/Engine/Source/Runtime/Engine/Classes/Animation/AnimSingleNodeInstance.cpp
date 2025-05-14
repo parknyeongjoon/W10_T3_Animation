@@ -9,7 +9,7 @@ UAnimSingleNodeInstance::UAnimSingleNodeInstance()
     ElapsedTime(0.f),
     PlayRate(1.f),
     bLooping(true),
-    bPlaying(true),
+    bPlaying(false),
     bReverse(false),
     PreviousTime(0.f),
     LoopStartFrame(0),
