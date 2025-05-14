@@ -148,7 +148,7 @@ void UTestAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOu
 }
 
 
-void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
+void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
 

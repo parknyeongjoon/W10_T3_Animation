@@ -1,11 +1,10 @@
-﻿#include "SkeletalPreviewUI.h"
+#include "SkeletalPreviewUI.h"
 #include "EditorPanel.h"
 
-#include "PropertyEditor/ControlEditorPanel.h"
+#include "PropertyEditor/AnimSequenceEditorPanel.h"
 #include "PropertyEditor/OutlinerEditorPanel.h"
 #include "PropertyEditor/PreviewControlEditorPanel.h"
 #include "PropertyEditor/PrimitiveDrawEditor.h"
-#include "PropertyEditor/PropertyEditorPanel.h"
 #include "PropertyEditor/SkeletalPreviewPropertyEditorPanel.h"
 
 void FSkeletalPreviewUI::Initialize(SLevelEditor* LevelEditor, float Width, float Height)
@@ -17,6 +16,7 @@ void FSkeletalPreviewUI::Initialize(SLevelEditor* LevelEditor, float Width, floa
     auto OutlinerPanel = std::make_shared<OutlinerEditorPanel>();
     OutlinerPanel->Initialize(Width, Height);
     Panels["OutlinerPanel"] = OutlinerPanel;
+    Panels["OutlinerPanel"]->bIsVisible = false;
     
     auto PropertyPanel = std::make_shared<SkeletalPreviewPropertyEditorPanel>();
     PropertyPanel->Initialize(Width, Height);   
@@ -24,13 +24,21 @@ void FSkeletalPreviewUI::Initialize(SLevelEditor* LevelEditor, float Width, floa
     
     auto PrimitiveDrawer = std::make_shared<PrimitiveDrawEditor>();
     Panels["PrimitiveDrawEditor"] = PrimitiveDrawer;
+
+    auto AnimSequencePanel = std::make_shared<AnimSequenceEditorPanel>();
+    AnimSequencePanel->Initialize(Width, Height);
+    Panels["AnimSequencePanel"] = AnimSequencePanel;
+    Panels["AnimSequencePanel"]->bIsVisible = true;
 }
 
 void FSkeletalPreviewUI::Render() const
 {
     for (const auto& Panel : Panels)
     {
-        Panel.Value->Render();
+        if(Panel.Value->bIsVisible)
+        {
+            Panel.Value->Render();
+        }
     }
 }
 
