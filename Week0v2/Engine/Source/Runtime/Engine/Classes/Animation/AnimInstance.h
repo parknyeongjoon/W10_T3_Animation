@@ -49,11 +49,10 @@ protected:
     float BlendTime = 0;
     float BlendDuration = 0.5f;
     bool bIsBlending = false;
-
+    float CurrentTime = 0;
 private:
     USkeleton* Skeleton;
     FBlendedCurve BlendedCurve;
-    float CurrentTime = 0;
 
 };
 

@@ -28,6 +28,7 @@ UTestAnimInstance::UTestAnimInstance()
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->IdleSequence;
             self->CurrentSequence->ResetNotifies();
+            self->CurrentTime = 0.0f;
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -44,6 +45,7 @@ UTestAnimInstance::UTestAnimInstance()
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->WalkSequence;
             self->CurrentSequence->ResetNotifies();
+            self->CurrentTime = 0.0f;
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -60,6 +62,7 @@ UTestAnimInstance::UTestAnimInstance()
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->DanceSequence;
             self->CurrentSequence->ResetNotifies();
+            self->CurrentTime = 0.0f;
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
