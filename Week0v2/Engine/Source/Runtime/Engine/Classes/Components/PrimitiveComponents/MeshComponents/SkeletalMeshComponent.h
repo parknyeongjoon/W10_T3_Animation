@@ -44,7 +44,8 @@ public:
 
 private:
     TArray<UStaticMeshComponent*> BoneComponents;
-    
+    bool bCPUSkinned = true;
+
     void SkinningVertex();
 
 protected:

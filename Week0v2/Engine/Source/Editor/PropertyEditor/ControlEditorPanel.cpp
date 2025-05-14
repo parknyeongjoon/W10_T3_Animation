@@ -29,6 +29,7 @@
 #include "Components/Mesh/StaticMesh.h"
 
 #include "Contents/AGPlayer.h"
+#include "GameFramework/Character.h"
 #include "ImGUI/imgui.h"
 #include "Renderer/Renderer.h"
 #include "UObject/ObjectTypes.h"
@@ -87,7 +88,7 @@ void ControlEditorPanel::Render()
     CreateShaderHotReloadButton(IconSize);
 
     ImGui::SameLine();
-
+    
     auto PIEIconSize = ImVec2(IconSize.x + 8, IconSize.y);
     ImGui::PushFont(IconFont);
     CreatePIEButton(PIEIconSize);
@@ -334,8 +335,8 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
             { "Shapes", "Capsule",         OBJ_CAPSULE },
             { "Shapes", "Car (Dodge)",     OBJ_CAR },
             { "Shapes", "SkySphere",       OBJ_SKYSPHERE},
-            { "Shapes", "Yeoul",           OBJ_YEOUL},
             { "Shapes", "SkeletalMesh",    OBJ_SKELETAL},
+            {"Shapes", "Character",           OBJ_CHARACTER},
 
             // ✨ 효과
             { "Effects", "Particle",       OBJ_PARTICLE },
@@ -455,6 +456,12 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                         SpawnedActor = SkeletalMeshActor;
                         break;
                     }
+                    case OBJ_CHARACTER:
+                        {
+                            ACharacter* Character = World->SpawnActor<ACharacter>();
+                            Character->SetActorLabel(TEXT("Character"));
+                            break;
+                        }
                     case OBJ_POINTLIGHT:
                     {
                         SpawnedActor = World->SpawnActor<APointLightActor>();
@@ -525,16 +532,6 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
                         UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                         FManagerOBJ::CreateStaticMesh("Assets/Dodge/Dodge.obj");
                         MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Dodge.obj"));
-                        SpawnedActor = TempActor;
-                        break;
-                    }
-                    case OBJ_YEOUL:
-                    {
-                        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                        TempActor->SetActorLabel(TEXT("OBJ_YEOUL"));
-                        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                        FManagerOBJ::CreateStaticMesh("Assets/Yeoul/yeoul.obj");
-                        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"yeoul.obj"));
                         SpawnedActor = TempActor;
                         break;
                     }
@@ -647,6 +644,35 @@ void ControlEditorPanel::CreateFlagButton() const
             ImGui::Checkbox(Items[ItemIndex], &bIsSelected[ItemIndex]);
         }
         ActiveViewport->SetShowFlag(ConvertSelectionToFlags(bIsSelected));
+        ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
+
+    const char* SkinningModeNames[] = { "CPU_Skinning", "GPU_Skinning" };
+    FString SelectSkinningControl = SkinningModeNames[static_cast<uint32>(GEngineLoop.Renderer.GetSkinningMode())];
+    const ImVec2 SkinningTextSize = ImGui::CalcTextSize(GetData(SelectSkinningControl));
+
+    if (ImGui::Button(GetData(SelectSkinningControl), ImVec2(30 + SkinningTextSize.x, 32)))
+    {
+        ImGui::OpenPopup("SkinningControl");
+    }
+
+    if (ImGui::BeginPopup("SkinningControl"))
+    {
+        for (int SkinningModeIndex = 0; SkinningModeIndex < IM_ARRAYSIZE(SkinningModeNames); SkinningModeIndex++)
+        {
+            const bool bIsSelected = (static_cast<uint32>(GEngineLoop.Renderer.GetSkinningMode()) == SkinningModeIndex);
+            if (ImGui::Selectable(SkinningModeNames[SkinningModeIndex], bIsSelected))
+            {
+                GEngineLoop.Renderer.SetSkinningMode(static_cast<ESkinningType>(SkinningModeIndex));
+            }
+
+            if (bIsSelected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
         ImGui::EndPopup();
     }
 }

@@ -16,8 +16,8 @@ enum EObjects
     OBJ_FOG,
     OBJ_CAR,
     OBJ_SKYSPHERE,
-    OBJ_YEOUL,
     OBJ_SKELETAL,
+    OBJ_CHARACTER,
     OBJ_END
 };
 enum EArrowDirection : uint8

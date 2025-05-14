@@ -14,8 +14,6 @@ public:
     UAnimationStateMachine() = default;
     UAnimationStateMachine(const UAnimationStateMachine& Other);
     virtual UObject* Duplicate(UObject* InOuter) override;
-    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
-    virtual void PostDuplicate() override;
 
     void AddState(TState StateName, StateCallback OnUpdate)
     {
@@ -60,6 +58,8 @@ public:
     {
         return CurrentState;
     }
+    
+    void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
 
 private:
     TState CurrentState;
@@ -93,9 +93,4 @@ inline void UAnimationStateMachine<TState>::DuplicateSubObjects(const UObject* S
     {
         Callback.Bind(Cast<UAnimInstance>(InOuter));
     }
-}
-
-template<typename TState>
-inline void UAnimationStateMachine<TState>::PostDuplicate()
-{
 }

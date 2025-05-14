@@ -19,6 +19,7 @@ UObject* UAnimInstance::Duplicate(UObject* InOuter)
     UAnimInstance* NewComp = FObjectFactory::ConstructObjectFrom<UAnimInstance>(this, InOuter);
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
+    NewComp->SetSkeleton(Cast<USkeletalMeshComponent>(InOuter)->GetSkeletalMesh()->GetSkeleton());
     return NewComp;
 }
 
@@ -27,10 +28,6 @@ void UAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
     Super::DuplicateSubObjects(Source, InOuter);
     this->CurrentSequence = FObjectFactory::ConstructObjectFrom(Cast<UAnimInstance>(Source)->CurrentSequence, this);
     this->PreviousSequence = FObjectFactory::ConstructObjectFrom(Cast<UAnimInstance>(Source)->PreviousSequence, this);
-}
-
-void UAnimInstance::PostDuplicate()
-{
 }
 
 AActor* UAnimInstance::GetOwningActor() const
@@ -86,19 +83,6 @@ void UAnimInstance::UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime
 
     USkeletalMeshComponent* SkeletalMeshComp = GetOwningComponent();
     USkeletalMesh* SkeletalMesh = SkeletalMeshComp->GetSkeletalMesh();
-
-    //for (const auto& Name : BoneNames)
-    //{   
-    //    FTransform Transform = DataModel->GetBoneTrackTransform(Name, CurrentTime);
-    //    FMatrix TransformMatrix = JungleMath::CreateModelMatrix(
-    //        Transform.GetLocation(),
-    //        Transform.GetRotation(),
-    //        Transform.GetScale()
-    //    );
-
-    //    int BoneIndex = SkeletalMesh->GetSkeleton()->GetRefSkeletal()->BoneNameToIndexMap[Name.ToString()];
-    //    SkeletalMesh->GetRenderData().Bones[BoneIndex].LocalTransform = TransformMatrix;
-    //}
 
 
     FPoseContext Pose;

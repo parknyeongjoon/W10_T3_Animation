@@ -3,6 +3,7 @@
 #include "Components/InputComponent.h"
 
 APawn::APawn(const APawn& other)
+    :AActor(other)
 {
 }
 

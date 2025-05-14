@@ -9,6 +9,16 @@
 #include "Engine/FLoaderOBJ.h"
 #include "UObject/Casts.h"
 
+
+USkeletalMesh::USkeletalMesh(const USkeletalMesh& Other)
+: UObject(Other)
+    , SkeletalMeshRenderData(Other.SkeletalMeshRenderData)
+    , Skeleton(Other.Skeleton)
+    , MaterialSlots(Other.MaterialSlots)
+{
+    
+}
+
 uint32 USkeletalMesh::GetMaterialIndex(FName MaterialSlotName) const
 {
     for (uint32 materialIndex = 0; materialIndex < MaterialSlots.Num(); materialIndex++) {
@@ -31,7 +41,7 @@ void USkeletalMesh::SetData(const FString& FilePath)
 {
     FSkeletalMeshRenderData SkeletalMeshRenderData = TestFBXLoader::GetCopiedSkeletalRenderData(FilePath);
     FRefSkeletal* RefSkeletal = TestFBXLoader::GetRefSkeletal(FilePath);
-    USkeleton* Skeleton = new USkeleton(); // TODO: Map에 저장하고 들고오기 
+    USkeleton* Skeleton = FObjectFactory::ConstructObject<USkeleton>(this); // TODO: Map에 저장하고 들고오기 
     Skeleton->SetRefSkeletal(RefSkeletal);
 
     SetData(SkeletalMeshRenderData, Skeleton);
@@ -187,13 +197,6 @@ void USkeletalMesh::ApplyRotationToBone(int BoneIndex, float DeltaAngleInDegrees
         rotationMatrix * SkeletalMeshRenderData.Bones[BoneIndex].LocalTransform;
 }
 
-USkeletalMesh::USkeletalMesh(const USkeletalMesh& Other):
-    SkeletalMeshRenderData(Other.SkeletalMeshRenderData),
-    Skeleton(Other.Skeleton),
-    MaterialSlots(Other.MaterialSlots)
-{
-}
-
 USkeletalMesh* USkeletalMesh::Duplicate(UObject* InOuter)
 {
     USkeletalMesh* NewObject = FObjectFactory::ConstructObjectFrom<USkeletalMesh>(this, InOuter);
@@ -203,11 +206,8 @@ USkeletalMesh* USkeletalMesh::Duplicate(UObject* InOuter)
 
 void USkeletalMesh::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    UObject::DuplicateSubObjects(Source, InOuter);
-    // TODO: SkeletalMeshRenderData 깊은 복사 수행.
-    SkeletalMeshRenderData = Cast<USkeletalMesh>(Source)->SkeletalMeshRenderData;
-    Skeleton = Cast<USkeletalMesh>(Source)->Skeleton;
-    MaterialSlots = Cast<USkeletalMesh>(Source)->MaterialSlots;
+    USkeletalMesh* Mesh = Cast<USkeletalMesh>(Source);
+    SkeletalMeshRenderData = FSkeletalMeshRenderData(Mesh->SkeletalMeshRenderData);
 }
 
 void USkeletalMesh::UpdateSkinnedVertices()

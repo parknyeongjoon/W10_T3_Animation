@@ -100,7 +100,8 @@ cbuffer FFlagConstants : register(b2)
 {
     uint IsLit;
     uint IsNormal;
-    float2 flagPad0;
+    uint IsVSM;
+    uint IsGPUSkinning;
 }
 
 cbuffer FCameraConstant : register(b3)
@@ -231,32 +232,39 @@ PS_INPUT mainVS(VS_INPUT input)
     PS_INPUT output;
 
     float4 weightedPos = float4(0,0,0,0);
-    for (int i = 0; i < 4; i++)
+    if (IsGPUSkinning)
     {
-        if (input.boneWeights[i] > 0.0)
+        for (int i = 0; i < 4; i++)
         {
-            weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices[i]]) * input.boneWeights[i];
+            if (input.boneWeights[i] > 0.0)
+            {
+                weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices[i]]) * input.boneWeights[i];
+            }
+        }
+
+        if (input.boneWeights.x > 0.0)
+        {
+            weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices.x]) * input.boneWeights.x;
+        }
+
+        if (input.boneWeights.y > 0.0)
+        {
+            weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices.y]) * input.boneWeights.y;
+        }
+
+        if (input.boneWeights.z > 0.0)
+        {
+            weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices.z]) * input.boneWeights.z;
+        }
+
+        if (input.boneWeights.w > 0.0)
+        {
+            weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices.w]) * input.boneWeights.w;
         }
     }
-
-    if (input.boneWeights.x > 0.0)
+    else
     {
-        weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices.x]) * input.boneWeights.x;
-    }
-
-    if (input.boneWeights.y > 0.0)
-    {
-        weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices.y]) * input.boneWeights.y;
-    }
-
-    if (input.boneWeights.z > 0.0)
-    {
-        weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices.z]) * input.boneWeights.z;
-    }
-
-    if (input.boneWeights.w > 0.0)
-    {
-        weightedPos += mul(input.position, BoneSkinningMatrices[input.boneIndices.w]) * input.boneWeights.w;
+        weightedPos = input.position;
     }
     
     float4 worldPos = mul(weightedPos, Model);

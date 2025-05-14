@@ -44,7 +44,6 @@ class UTestAnimInstance :
     DECLARE_CONTEXT_FUNC(StateCallback, void, float);
 public:
     UTestAnimInstance();
-    ~UTestAnimInstance();
     UTestAnimInstance(const UTestAnimInstance& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;

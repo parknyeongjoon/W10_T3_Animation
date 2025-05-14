@@ -1,5 +1,8 @@
 #pragma once
+#include "Animation/CustomAnimInstance/TestAnimInstance.h"
 #include "GameFramework/Actor.h"
+
+class USkeletalMeshComponent;
 
 class ASkeletalMeshActor : public AActor
 {
@@ -10,4 +13,8 @@ public:
     ASkeletalMeshActor(const ASkeletalMeshActor& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;
+    void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
+
+private:
+    USkeletalMeshComponent* SkeletalMeshComp;
 };

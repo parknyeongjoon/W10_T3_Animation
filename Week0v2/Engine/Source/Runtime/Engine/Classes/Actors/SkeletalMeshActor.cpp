@@ -3,7 +3,7 @@
 #include "Animation/CustomAnimInstance/TestAnimInstance.h"
 ASkeletalMeshActor::ASkeletalMeshActor()
 {
-    USkeletalMeshComponent* SkeletalMeshComp = AddComponent<USkeletalMeshComponent>(EComponentOrigin::Constructor);
+    SkeletalMeshComp = AddComponent<USkeletalMeshComponent>(EComponentOrigin::Constructor);
     RootComponent = SkeletalMeshComp;
     SkeletalMeshComp->SetData("Contents/FBX/Rumba_Dancing.fbx");
 
@@ -18,8 +18,15 @@ ASkeletalMeshActor::ASkeletalMeshActor(const ASkeletalMeshActor& Other)
 
 UObject* ASkeletalMeshActor::Duplicate(UObject* InOuter)
 {
-    ASkeletalMeshActor* NewComp = FObjectFactory::ConstructObjectFrom<ASkeletalMeshActor>(this, InOuter);
-    NewComp->DuplicateSubObjects(this, InOuter);
-    NewComp->PostDuplicate();
-    return NewComp;
+    ASkeletalMeshActor* ClonedActor = FObjectFactory::ConstructObjectFrom<ASkeletalMeshActor>(this, InOuter);
+    ClonedActor->DuplicateSubObjects(this, InOuter);
+    ClonedActor->PostDuplicate();
+    return ClonedActor;
+}
+
+void ASkeletalMeshActor::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
+{
+    ASkeletalMeshActor* ClonedActor = Cast<ASkeletalMeshActor>(Source);
+    SkeletalMeshComp = Cast<USkeletalMeshComponent>(ClonedActor->SkeletalMeshComp->Duplicate(this));
+    AddDuplicatedComponent(SkeletalMeshComp);
 }

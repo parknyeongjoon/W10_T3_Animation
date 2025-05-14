@@ -91,7 +91,6 @@ UTestAnimInstance::UTestAnimInstance()
     AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Idle, [&]() {
         return (GetAsyncKeyState('C') & 0x8000);
         });
-
     // 초기 상태 설정
     AnimStateMachine->SetState(ETestState::Idle);
     CurrentSequence = IdleSequence;
@@ -111,10 +110,6 @@ UTestAnimInstance::UTestAnimInstance()
     });
 }
 
-UTestAnimInstance::~UTestAnimInstance()
-{
-}
-
 UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 
     UAnimInstance(Other),
     IdleSequence(Other.IdleSequence),
@@ -131,6 +126,7 @@ UObject* UTestAnimInstance::Duplicate(UObject* InOuter)
     UTestAnimInstance* NewComp = FObjectFactory::ConstructObjectFrom<UTestAnimInstance>(this, InOuter);
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
+    NewComp->SetSkeleton(Cast<USkeletalMeshComponent>(InOuter)->GetSkeletalMesh()->GetSkeleton());
     return NewComp;
 }
 
@@ -146,9 +142,5 @@ void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
 
-    USkeletalMeshComponent* SkeletalMesh = GetOwningComponent();
-    AActor* OwnerPawn = SkeletalMesh->GetOwner();
-
     if (AnimStateMachine) AnimStateMachine->Update(DeltaSeconds);
-
 }

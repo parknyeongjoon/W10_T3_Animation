@@ -100,7 +100,8 @@ cbuffer FFlagConstants : register(b2)
 {
     uint IsLit;
     uint IsNormal;
-    float2 flagPad0;
+    uint IsVSM;
+    uint IsGPUSkinning;
 }
 
 cbuffer FCameraConstant : register(b3)

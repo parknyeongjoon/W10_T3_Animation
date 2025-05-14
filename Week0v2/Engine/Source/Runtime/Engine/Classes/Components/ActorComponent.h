@@ -12,6 +12,7 @@ enum class EComponentOrigin : uint8
     Editor,                 // 에디터에서 추가한 컴포넌트
     Runtime,                // 런타임에서 추가한 컴포넌트
     Serialized,            // 직렬화된 컴포넌트
+    Duplicated,
 };
 
 class UActorComponent : public UObject

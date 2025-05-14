@@ -21,11 +21,12 @@ public:
     UAnimInstance(const UAnimInstance& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;
-    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
-    virtual void PostDuplicate() override;
+    void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
+
     // APawn* TryGetPawnOwner() const;
     AActor* GetOwningActor() const;
     USkeletalMeshComponent* GetOwningComponent() const;
+    void SetSkeleton(USkeleton* InSkeleton) { Skeleton = InSkeleton; }
 
     bool IsPlayingSlotAnimation(const UAnimSequenceBase* Asset, FName SlotNodeName) const;
     void StopSlotAnimation(float InBlendOutTime = 0.25f, FName SlotNodeName = "Empty") const;
@@ -39,11 +40,12 @@ public:
     void UpdateCurveValues(float DeltaSeconds) const ;
 
     virtual void NativeUpdateAnimation(float DeltaSeconds) const;
+    
     void UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime);
     void BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* ToSequence,float DeltaTime);
 protected:
     UAnimSequence* CurrentSequence = nullptr;
-    UAnimSequence* PreviousSequence = nullptr;  
+    UAnimSequence* PreviousSequence = nullptr;
 
 
     float BlendTime = 0;

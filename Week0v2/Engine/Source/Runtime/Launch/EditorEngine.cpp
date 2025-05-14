@@ -158,13 +158,13 @@ void UEditorEngine::StartPIE() const
     // Logo Fade In/Out
     APlayerCameraManager* PlayerCameraManager = PIEWorldContext->GetWorld()->GetPlayerCameraManager();
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>(PlayerCameraManager);
-    CameraModifier->StartFadeIn(0.002f);
+    CameraModifier->StartFadeIn(0.001f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
     
     UE_LOG(LogLevel::Display, "Start PIE");
 }
 
-void UEditorEngine::PausedPIE() const
+void UEditorEngine::PausedPIE() const 
 {
     switch (PIEWorldContext->LevelType)
     {

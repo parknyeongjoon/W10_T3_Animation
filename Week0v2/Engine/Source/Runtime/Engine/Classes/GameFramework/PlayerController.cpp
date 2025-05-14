@@ -70,6 +70,7 @@ void APlayerController::UpdateCameraManager(float DeltaTime)
 void APlayerController::SetupInputComponent()
 {
     AController::SetupInputComponent();
+    
     SetupInputBindings();
 }
 

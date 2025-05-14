@@ -316,9 +316,7 @@ void FStaticMeshRenderPass::UpdateFlagConstant()
     FFlagConstants FlagConstant;
 
     FlagConstant.IsLit = GEngineLoop.Renderer.bIsLit;
-
     FlagConstant.IsNormal = GEngineLoop.Renderer.bIsNormal;
-
     FlagConstant.IsVSM = GEngineLoop.Renderer.GetShadowFilterMode();
 
     renderResourceManager->UpdateConstantBuffer(TEXT("FFlagConstants"), &FlagConstant);
