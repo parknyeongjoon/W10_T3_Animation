@@ -45,7 +45,7 @@ void UWorld::InitWorld()
     PreLoadResources();
     if (WorldType == EWorldType::Editor)
     {
-        CreateBaseObject(WorldType);
+        LoadScene("NewScene.scene");
     }
     else
     {

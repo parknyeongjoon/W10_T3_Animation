@@ -32,6 +32,7 @@ ACharacter::ACharacter()
     PlayAnimB.AddStatic(FGameManager::PlayAnimB);
     PlayAnimC.AddStatic(FGameManager::PlayAnimC);
 
+    FGameManager::Get().GameOverEvent.Clear();
     FGameManager::Get().GameOverEvent.AddLambda([this]{ Cast<UTestAnimInstance>(BodyMesh->GetAnimInstance())->SetState(ETestState::Defeated); });
 }
 

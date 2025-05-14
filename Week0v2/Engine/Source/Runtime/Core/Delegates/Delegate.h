@@ -440,6 +440,11 @@ public:
         }
     }
 
+    void Clear()
+    {
+        DelegateHandles.Empty();
+    }
+
     // 브로드캐스트 - 모든 함수 호출
     void Broadcast(ParamTypes... Params) const
     {

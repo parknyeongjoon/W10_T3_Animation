@@ -88,8 +88,8 @@ void FGameManager::StartTrack(float Duration, ETestState AnimState, EEventType E
             break;
         }
 
-        MinSuccessTime = AnimTime[3] - deltaTime * 0.2f; 
-        MaxSuccessTime = AnimTime[3] + deltaTime * 0.2f; 
+        MinSuccessTime = AnimTime[3] - deltaTime * 0.05f; 
+        MaxSuccessTime = AnimTime[3] + deltaTime * 0.05f; 
 
         CurrentAnimState = AnimState;
     }
