@@ -28,6 +28,7 @@
 #include "Components/Mesh/StaticMesh.h"
 
 #include "Contents/AGPlayer.h"
+#include "Font/IconDefs.h"
 #include "ImGUI/imgui.h"
 #include "Renderer/Renderer.h"
 #include "UnrealEd/EditorPlayer.h"
@@ -100,7 +101,7 @@ void PreviewControlEditorPanel::Render()
 void PreviewControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
 {
     ImGui::PushFont(IconFont);
-    if (ImGui::Button("\ue9ad", ButtonSize)) // Menu
+    if (ImGui::Button(ICON_MENU, ButtonSize)) // Menu
     {
         bOpenMenu = !bOpenMenu;
     }
@@ -153,7 +154,7 @@ void PreviewControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* Ic
     }
     
     ImGui::PushFont(IconFont);
-    if (ImGui::Button("\ue9c4", ButtonSize)) // Slider
+    if (ImGui::Button(ICON_SLIDER, ButtonSize)) // Slider
     {
         ImGui::OpenPopup("SliderControl");
     }
@@ -202,7 +203,7 @@ void PreviewControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* Ic
     ImGui::SameLine();
 
     ImGui::PushFont(IconFont);
-    if (ImGui::Button("\ue9c8", ButtonSize))
+    if (ImGui::Button(ICON_PLUS, ButtonSize))
     {
         ImGui::OpenPopup("ActorControl");
     }
@@ -252,7 +253,7 @@ void PreviewControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* Ic
                     ImGui::Separator(); // 카테고리 구분선
                 }
                 ImGui::PushFont(IconFont);
-                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), "\ue9a8"); // 헤더
+                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), ICON_PLAY); // 헤더
                 ImGui::PopFont();
                 ImGui::SameLine();
                 ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), "%s", actor.category); // 헤더
@@ -566,7 +567,7 @@ void PreviewControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
     if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
-        if (ImGui::Button("\ue9a8", ButtonSize)) // Play
+        if (ImGui::Button(ICON_PLAY, ButtonSize)) // Play
         {
             activeLevelEditor->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
         }
@@ -574,14 +575,14 @@ void PreviewControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
     }
     else if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Paused)
     {
-        if (ImGui::Button("\ue9a8", ButtonSize)) // Play
+        if (ImGui::Button(ICON_PLAY, ButtonSize)) // Play
         {
             activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Playing);
         }
     }
     else
     {
-        if (ImGui::Button("\ue99c", ButtonSize)) // Pause
+        if (ImGui::Button(ICON_PAUSE, ButtonSize)) // Pause
         {
             // TODO: PIE 일시정지
             activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Paused);
@@ -591,7 +592,7 @@ void PreviewControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
 
     if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
     {
-        if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+        if (ImGui::Button(ICON_STOP, ButtonSize)) // Stop
         {
             activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
         }
@@ -599,7 +600,7 @@ void PreviewControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
     else
     {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-        if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+        if (ImGui::Button(ICON_STOP, ButtonSize)) // Stop
         {
             activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
         }
@@ -627,7 +628,7 @@ void PreviewControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ActiveColor);
     }
-    if (ImGui::Button("\ue9bc", ButtonSize)) // Move
+    if (ImGui::Button(ICON_MOVE, ButtonSize)) // Move
     {
         LevelEditor->GetActiveViewportClientData().SetMode(CM_TRANSLATION);
     }
@@ -642,7 +643,7 @@ void PreviewControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ActiveColor);
     }
-    if (ImGui::Button("\ue9d3", ButtonSize)) // Rotate
+    if (ImGui::Button(ICON_ROTATE, ButtonSize)) // Rotate
     {
         LevelEditor->GetActiveViewportClientData().SetMode(CM_ROTATION);
     }
@@ -657,7 +658,7 @@ void PreviewControlEditorPanel::CreateSRTButton(ImVec2 ButtonSize) const
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ActiveColor);
     }
-    if (ImGui::Button("\ue9ab", ButtonSize)) // Scale
+    if (ImGui::Button(ICON_SCALE, ButtonSize)) // Scale
     {
         LevelEditor->GetActiveViewportClientData().SetMode(CM_SCALE);
     }
