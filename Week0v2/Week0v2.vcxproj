@@ -229,6 +229,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Contents\UI\GameUIPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\Script\LuaManagerBind.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\FBXLoader.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Character.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Controller.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Pawn.cpp" />
@@ -358,7 +359,6 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\FShaderProgram.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\GraphicDevice.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.cpp" />
-    <ClCompile Include="Engine\Source\TestFBXLoader.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\RawInput.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\WindowsCursor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\WindowsPlatformTime.cpp" />
@@ -462,6 +462,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.impl.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\FBXLoader.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Character.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Controller.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Pawn.h" />
@@ -620,7 +621,6 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\FShaderProgram.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\GraphicDevice.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\VertexShader.h" />
-    <ClInclude Include="Engine\Source\TestFBXLoader.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\RawInput.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\WindowsCursor.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\WindowsPlatformTime.h" />

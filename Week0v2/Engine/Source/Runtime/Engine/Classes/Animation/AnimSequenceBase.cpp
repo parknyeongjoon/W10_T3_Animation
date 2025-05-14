@@ -37,7 +37,7 @@ void UAnimSequenceBase::PostDuplicate()
 
 void UAnimSequenceBase::SetData(const FString& FilePath)
 {
-    SetData(TestFBXLoader::GetAnimData(FilePath));
+    SetData(FFBXLoader::GetAnimData(FilePath));
 }
 
 void UAnimSequenceBase::AddNotify(float Second, TDelegate<void()> OnNotify, float Duration)

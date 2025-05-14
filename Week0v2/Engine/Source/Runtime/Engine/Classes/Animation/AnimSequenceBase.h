@@ -3,6 +3,7 @@
 #include "AnimTypes.h"
 #include "TestFBXLoader.h"
 #include "Delegates/FFunctor.h"
+#include "Engine/FBXLoader.h"
 #include "UObject/ObjectMacros.h"
 
 class UAnimDataModel;

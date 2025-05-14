@@ -18,6 +18,7 @@
 #include "UnrealEd/EditorPlayer.h"
 #include "UObject/Casts.h"
 #include "Engine/AssetManager.h"
+#include "GameFramework/PlayerController.h"
 #include "UnrealEd/SkeletalPreviewUI.h"
 
 class ULevel;
@@ -156,7 +157,7 @@ void UEditorEngine::StartPIE() const
     }
 
     // Logo Fade In/Out
-    APlayerCameraManager* PlayerCameraManager = PIEWorldContext->GetWorld()->GetPlayerCameraManager();
+    APlayerCameraManager* PlayerCameraManager = PIEWorldContext->GetWorld()->GetPlayerController()->GetPlayerCameraManager();
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>(PlayerCameraManager);
     CameraModifier->StartFadeIn(0.001f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
