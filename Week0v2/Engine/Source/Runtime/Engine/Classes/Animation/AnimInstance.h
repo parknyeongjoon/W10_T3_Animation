@@ -39,7 +39,7 @@ public:
     void TriggerAnimNotifies(float DeltaSeconds) const;
     void UpdateCurveValues(float DeltaSeconds) const ;
 
-    virtual void NativeUpdateAnimation(float DeltaSeconds) const;
+    virtual void NativeUpdateAnimation(float DeltaSeconds);
     
     void UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime);
     void BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* ToSequence,float DeltaTime);

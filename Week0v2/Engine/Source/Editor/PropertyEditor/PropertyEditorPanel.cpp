@@ -1789,7 +1789,7 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
 
         // Mesh 및 Animation 설정
         USkeletalMeshComponent* SkeletalMeshComponent = Cast<USkeletalMeshComponent>(SkeletalMeshActor->GetRootComponent());
-        SkeletalMeshComponent->SetSkeletalMesh(TestFBXLoader::CreateSkeletalMesh(FilePath));
+        SkeletalMeshComponent->SetSkeletalMesh(FFBXLoader::CreateSkeletalMesh(FilePath));
 
         UAnimSingleNodeInstance* TestAnimInstance = FObjectFactory::ConstructObject<UAnimSingleNodeInstance>(SkeletalMeshComponent);
         TestAnimInstance->GetCurrentAsset()->SetData(FilePath+"\\mixamo.com");

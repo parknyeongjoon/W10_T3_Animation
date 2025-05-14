@@ -63,10 +63,6 @@ void UAnimSingleNodeInstance::SetAnimationAsset(UAnimSequence* NewAsset, bool bI
     ElapsedTime = 0.f;
 }
 
-void UAnimSingleNodeInstance::NativeInitializeAnimation()
-{
-}
-
 void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     UAnimInstance::NativeUpdateAnimation(DeltaSeconds);

@@ -11,8 +11,6 @@ public:
 public:
     virtual void SetAnimationAsset(UAnimSequence* NewAsset, bool bIsLooping = true, float InPlayRate = 1.f);
 
-    virtual void NativeInitializeAnimation() override;
-
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
     void SetPlaying(bool bIsPlaying)

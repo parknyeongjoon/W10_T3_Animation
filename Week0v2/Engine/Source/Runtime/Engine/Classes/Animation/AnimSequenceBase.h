@@ -1,7 +1,6 @@
 #pragma once
 #include "AnimationAsset.h"
 #include "AnimTypes.h"
-#include "TestFBXLoader.h"
 #include "Delegates/FFunctor.h"
 #include "Engine/FBXLoader.h"
 #include "UObject/ObjectMacros.h"
