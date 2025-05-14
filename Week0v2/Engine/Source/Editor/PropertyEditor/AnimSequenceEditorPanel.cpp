@@ -386,6 +386,8 @@ void AnimSequenceEditorPanel::CreateSequencerButton(ImVec2 ButtonSize) const
         {
             if (ImGui::Button(ICON_REVERSE, ButtonSize))
             {
+                SkeletalMeshComponent->SetPlaying(true);
+                SkeletalMeshComponent->SetReverse(true);
                 SkeletalMeshComponent->SetPlayRate(-1.0f);
             }
         }
@@ -415,6 +417,8 @@ void AnimSequenceEditorPanel::CreateSequencerButton(ImVec2 ButtonSize) const
         {
             if (ImGui::Button(ICON_PLAY, ButtonSize))
             {
+                SkeletalMeshComponent->SetPlaying(true);
+                SkeletalMeshComponent->SetReverse(false);
                 SkeletalMeshComponent->SetPlayRate(1.0f);
             }
         }
