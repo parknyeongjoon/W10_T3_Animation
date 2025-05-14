@@ -88,7 +88,7 @@ UTestAnimInstance::UTestAnimInstance()
     AnimStateMachine->AddTransition(ETestState::Walking, ETestState::Dancing, [&]() {
         ACharacter* Character = Cast<ACharacter>(GetOwningActor());
         printf("%f", Character->GetMovementComponent()->Velocity.Magnitude());
-        return Character->GetMovementComponent()->Velocity.Magnitude() < 0.01f;
+        return Character->GetMovementComponent()->Velocity.Magnitude() < 0.1f;
         });
 
     AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Walking, [&]() {
