@@ -110,12 +110,6 @@ void AnimSequenceEditorPanel::Render()
         SkeletalMeshComponent->SetLoopEndFrame(LoopEnd);
     }
 
-    float PlayRate = SkeletalMeshComponent->GetPlayRate();
-    bool bLooping = SkeletalMeshComponent->IsLooping();
-    bool bReverse = SkeletalMeshComponent->IsReverse();
-    bool bPlaying = SkeletalMeshComponent->IsPlaying();
-    bool bPlayAnimation = SkeletalMeshComponent->bIsAnimationEnabled();
-
     float Elapsed = SkeletalMeshComponent->GetElapsedTime();
     float TargetKeyFrame = Elapsed * static_cast<float>(FrameRate);
     int32 CurrentFrame = static_cast<int32>(TargetKeyFrame) % (LoopEnd + 1);

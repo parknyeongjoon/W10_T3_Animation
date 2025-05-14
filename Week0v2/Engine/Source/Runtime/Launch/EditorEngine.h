@@ -61,8 +61,8 @@ private:
 public:
     FContentsUI* ContentsUI = nullptr;
 
-    std::shared_ptr<FWorldContext> PIEWorldContext = nullptr;
     std::shared_ptr<FWorldContext> EditorWorldContext = nullptr;
+    std::shared_ptr<FWorldContext> PIEWorldContext = nullptr;
 private:
     UnrealEd* UnrealEditor = nullptr;
     FSkeletalPreviewUI* SkeletalPreviewUI = nullptr;
