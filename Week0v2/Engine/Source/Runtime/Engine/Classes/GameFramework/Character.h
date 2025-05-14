@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Pawn.h"
 
+class UProjectileMovementComponent;
 class USkeletalMeshComponent;
 class UCapsuleShapeComponent;
 
@@ -18,8 +19,14 @@ public:
 
     virtual void PossessedBy(AController* NewController) override;
     virtual void UnPossessed() override;
+    
+    UProjectileMovementComponent* GetMovementComponent() const { return MovementComponent; }
 
 protected:
     USkeletalMeshComponent* BodyMesh = nullptr;
     UCapsuleShapeComponent* CollisionCapsule = nullptr;
+    UProjectileMovementComponent* MovementComponent = nullptr;
+
+private:
+    FVector Velocity;
 };

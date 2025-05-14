@@ -126,10 +126,10 @@ FVector UProjectileMovementComponent::CalculateVelocity(FVector OldVelocity, flo
     constexpr float DragCoefficient = 0.1f; // 적절한 계수로 조절
     NewVelocity = NewVelocity * (1.0f - DragCoefficient * DeltaTime);
     
-    if (ShouldApplyGravity())
-    {
-        NewVelocity.Z += GetEffectiveGravityZ() * DeltaTime;
-    }
+    // if (ShouldApplyGravity())
+    // {
+    //     NewVelocity.Z += GetEffectiveGravityZ() * DeltaTime;
+    // }
     
     return LimitVelocity(NewVelocity);
 }
@@ -144,12 +144,12 @@ UObject* UProjectileMovementComponent::Duplicate(UObject* InOuter)
 
 void UProjectileMovementComponent::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
-    UMovementComponent::DuplicateSubObjects(Source, InOuter);
+    Super::DuplicateSubObjects(Source, InOuter);
 }
 
 void UProjectileMovementComponent::PostDuplicate()
 {
-    UMovementComponent::PostDuplicate();
+    Super::PostDuplicate();
 }
 
 std::unique_ptr<FActorComponentInfo> UProjectileMovementComponent::GetComponentInfo()

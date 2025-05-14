@@ -8,6 +8,7 @@
 #include "UObject/ObjectFactory.h"
 #include "UObject/ObjectMacros.h"
 
+class APlayerController;
 class FObjectFactory;
 class AActor;
 class UObject;
@@ -15,7 +16,6 @@ class UGizmoArrowComponent;
 class UCameraComponent;
 class USceneComponent;
 class UTransformGizmo;
-class APlayerCameraManager;
 class USkeletalMesh;
 
 class UWorld final : public UObject
@@ -86,17 +86,17 @@ private:
     /** Actor가 Spawn되었고, 아직 BeginPlay가 호출되지 않은 Actor들 */
     TSet<AActor*> SelectedActors;
     USceneComponent* pickingGizmo = nullptr;
+    APlayerController* PlayerController = nullptr;
     
-    APlayerCameraManager* PlayerCameraManager = nullptr;
 public:
     EWorldType::Type WorldType = EWorldType::None;
     const TArray<AActor*>& GetActors() const { return Level->GetActors(); }
     ULevel* GetLevel() const { return Level; }
     UTransformGizmo* LocalGizmo = nullptr;
-    APlayerCameraManager* GetPlayerCameraManager() const { return PlayerCameraManager; }
-    void SetPlayerCameraManager(APlayerCameraManager* InPlayerCameraManager)
+    APlayerController* GetPlayerController() const { return PlayerController; }
+    void SetPlayerCameraManager(APlayerController* InPlayerController)
     {
-        PlayerCameraManager = InPlayerCameraManager;
+        PlayerController = InPlayerController;
     }
     // EditorManager 같은데로 보내기
     TSet<AActor*>& GetSelectedActors() { return SelectedActors; }
