@@ -33,6 +33,8 @@ UTestAnimInstance::UTestAnimInstance()
             self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->StandingSequence;
+            self->CurrentSequence->ResetNotifies();
+            self->CurrentTime = 0.0f;
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -48,6 +50,8 @@ UTestAnimInstance::UTestAnimInstance()
             self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->JumpSequence;
+            self->CurrentSequence->ResetNotifies();
+            self->CurrentTime = 0.0f;
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -63,6 +67,8 @@ UTestAnimInstance::UTestAnimInstance()
             self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->DanceSequence;
+            self->CurrentSequence->ResetNotifies();
+            self->CurrentTime = 0.0f;
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -79,6 +85,8 @@ UTestAnimInstance::UTestAnimInstance()
             self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->DeafeatedSequence;
+            self->CurrentSequence->ResetNotifies();
+            self->CurrentTime = 0.0f;
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -120,6 +128,19 @@ UTestAnimInstance::UTestAnimInstance()
     AnimStateMachine->SetState(ETestState::Dance);
     CurrentSequence = DanceSequence;
     PreviousSequence = DanceSequence;
+    
+    IdleSequence->AddNotify(1.0f, []()
+    {
+        printf("AnimNotify: Idle\n");
+    });
+    WalkSequence->AddNotify(1.0f, []()
+    {
+        printf("AnimNotify: Walking\n");
+    });
+    DanceSequence->AddNotify(1.0f, []()
+    {
+        printf("AnimNotify: Dancing\n");
+    });
 }
 
 UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 
@@ -127,6 +148,7 @@ UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) :
     StandingSequence(Other.StandingSequence),
     JumpSequence(Other.JumpSequence),
     DanceSequence(Other.DanceSequence)
+    
 {
     StandingCallback.func = Other.StandingCallback.func;
     JumpCallback.func = Other.JumpCallback.func;
@@ -150,7 +172,7 @@ void UTestAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOu
 }
 
 
-void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds) const
+void UTestAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
 

@@ -38,6 +38,8 @@
 #include "Light/ShadowMapAtlas.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/FunctionRegistry.h"
+#include <Animation/CustomAnimInstance/TestAnimInstance.h>
+#include <Animation/AnimSingleNodeInstance.h>
 
 void PropertyEditorPanel::Initialize(float InWidth, float InHeight)
 {
@@ -639,7 +641,7 @@ void PropertyEditorPanel::Render()
 
     if (PickedActor && PickedComponent && PickedComponent->IsA<UBillboardComponent>())
     {
-        static const char* CurrentBillboardName = "Pawn";
+        static auto CurrentBillboardName = "Pawn";
         if (ImGui::TreeNodeEx("BillBoard", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
         {
             if (ImGui::BeginCombo("##", CurrentBillboardName, ImGuiComboFlags_None))
@@ -695,17 +697,17 @@ void PropertyEditorPanel::Render()
                 HeightFogComp->SetFogEnd(FogEnd);
 
                 // FogStart가 제한 범위 벗어났다면 자동 보정
-                float maxFogStart = FogEnd / 3.0f;
-                if (HeightFogComp->GetFogStart() > maxFogStart)
+                float MaxFogStart = FogEnd / 3.0f;
+                if (HeightFogComp->GetFogStart() > MaxFogStart)
                 {
-                    HeightFogComp->SetFogStart(maxFogStart);
+                    HeightFogComp->SetFogStart(MaxFogStart);
                 }
             }
 
             // FogStart 제한: 최대값은 항상 FogEnd / 3
             float FogStart = HeightFogComp->GetFogStart();
-            float maxFogStart = HeightFogComp->GetFogEnd() / 3.0f;
-            if (ImGui::SliderFloat("Fog Start", &FogStart, 0.0f, maxFogStart, "%.2f"))
+            float MaxFogStart = HeightFogComp->GetFogEnd() / 3.0f;
+            if (ImGui::SliderFloat("Fog Start", &FogStart, 0.0f, MaxFogStart, "%.2f"))
             {
                 HeightFogComp->SetFogStart(FogStart);
             }
@@ -727,7 +729,8 @@ void PropertyEditorPanel::Render()
             ImGui::Separator();
 
             // 안개 색상 편집
-            float FogColor[3] = {
+            float FogColor[3] =
+            {
                 HeightFogComp->GetFogColor().X,
                 HeightFogComp->GetFogColor().Y,
                 HeightFogComp->GetFogColor().Z,
@@ -778,9 +781,7 @@ void PropertyEditorPanel::Render()
             }
 
             ImGui::TreePop();
-        }
-
-        
+        }        
     }
 
     RenderShapeProperty(PickedActor);
@@ -792,15 +793,17 @@ void PropertyEditorPanel::DrawSceneComponentTree(USceneComponent* Component, UAc
 {
     if (!Component) return;
 
-    FString Label = *Component->GetName();
-    bool bSelected = (PickedComponent == Component);
+    const FString Label = *Component->GetName();
+    const bool bSelected = (PickedComponent == Component);
 
-    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow;
+    ImGuiTreeNodeFlags NodeFlags = ImGuiTreeNodeFlags_OpenOnArrow;
     if (bSelected)
-        nodeFlags |= ImGuiTreeNodeFlags_Selected;
+    {
+        NodeFlags |= ImGuiTreeNodeFlags_Selected;
+    }
 
     // 노드를 클릭 가능한 셀렉션으로 표시
-    bool bOpened = ImGui::TreeNodeEx(*Label, nodeFlags);
+    const bool bOpened = ImGui::TreeNodeEx(*Label, NodeFlags);
 
     // 클릭되었을 때 선택 갱신
     if (ImGui::IsItemClicked())
@@ -819,18 +822,23 @@ void PropertyEditorPanel::DrawSceneComponentTree(USceneComponent* Component, UAc
     }
 }
 
-void PropertyEditorPanel::DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent)
+void PropertyEditorPanel::DrawActorComponent(UActorComponent* Component, UActorComponent*& PickedComponent) const
 {
-    if (!Component) return;
+    if (!Component)
+    {
+        return;
+    }
 
-    FString Label = *Component->GetName();
-    bool bSelected = (PickedComponent == Component);
+    const FString Label = *Component->GetName();
+    const bool bSelected = (PickedComponent == Component);
 
-    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow;
+    ImGuiTreeNodeFlags NodeFlags = ImGuiTreeNodeFlags_OpenOnArrow;
     if (bSelected)
-        nodeFlags |= ImGuiTreeNodeFlags_Selected;
+    {
+        NodeFlags |= ImGuiTreeNodeFlags_Selected;
+    }
 
-    if (ImGui::Selectable(*Label, nodeFlags))
+    if (ImGui::Selectable(*Label, NodeFlags))
     {
         PickedComponent = Component;
     }
@@ -891,9 +899,9 @@ void PropertyEditorPanel::HSVToRGB(float h, float s, float v, float& r, float& g
     r += m;  g += m;  b += m;
 }
 
-void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshComp)
+void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshComponent) const
 {
-    if (StaticMeshComp->GetStaticMesh() == nullptr)
+    if (StaticMeshComponent->GetStaticMesh() == nullptr)
     {
         return;
     }
@@ -904,7 +912,7 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
         ImGui::Text("StaticMesh");
         ImGui::SameLine();
 
-        FString PreviewName = StaticMeshComp->GetStaticMesh()->GetRenderData()->DisplayName;
+        FString PreviewName = StaticMeshComponent->GetStaticMesh()->GetRenderData()->DisplayName;
         const TMap<FWString, UStaticMesh*> Meshes = FManagerOBJ::GetStaticMeshes();
         if (ImGui::BeginCombo("##StaticMesh", GetData(PreviewName), ImGuiComboFlags_None))
         {
@@ -912,7 +920,7 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
             {
                 if (ImGui::Selectable(GetData(Mesh.Value->GetRenderData()->DisplayName), false))
                 {
-                    StaticMeshComp->SetStaticMesh(Mesh.Value);
+                    StaticMeshComponent->SetStaticMesh(Mesh.Value);
                 }
             }
 
@@ -924,9 +932,9 @@ void PropertyEditorPanel::RenderForStaticMesh(UStaticMeshComponent* StaticMeshCo
     ImGui::PopStyleColor();
 }
 
-void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComp)
+void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* SkeletalMeshComponent) const
 {
-    if (SkeletalMeshComp->GetSkeletalMesh() == nullptr)
+    if (SkeletalMeshComponent->GetSkeletalMesh() == nullptr)
     {
         return;
     }
@@ -934,48 +942,52 @@ void PropertyEditorPanel::RenderForSkeletalMesh(USkeletalMeshComponent* Skeletal
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
     if (ImGui::TreeNodeEx("Skeletal Mesh", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::Text("Skeletal Mesh");
+        ImGui::Text("Skeletal Mesh Asset");
 
-        DrawSkeletalMeshPreviewButton(SkeletalMeshComp->GetSkeletalMesh()->GetRenderData().Name);
-        
-        FString PreviewName = SkeletalMeshComp->GetSkeletalMesh()->GetRenderData().Name;
-        if (ImGui::BeginCombo("SkeletalMesh##", GetData(PreviewName), ImGuiComboFlags_None))
+        FString PreviewName = SkeletalMeshComponent->GetSkeletalMesh()->GetRenderData().Name;
+        if (ImGui::BeginCombo("##", GetData(PreviewName), ImGuiComboFlags_None))
         {
             for (const auto& [key, mesh]: FFBXLoader::GetSkeletalMeshes())
             {
-                bool isSelected = (key == PreviewName);
-                if (ImGui::Selectable(GetData(key), isSelected))
+                const bool bIsSelected = (key == PreviewName);
+                if (ImGui::Selectable(GetData(key), bIsSelected))
                 {
-                    SkeletalMeshComp->LoadSkeletalMesh(key);
+                    SkeletalMeshComponent->LoadSkeletalMesh(key);
                 }
-                if (isSelected)
+                if (bIsSelected)
+                {
                     ImGui::SetItemDefaultFocus(); 
+                }
             }
             ImGui::EndCombo();
         }
+
+        DrawSkeletalMeshPreviewButton(SkeletalMeshComponent->GetSkeletalMesh()->GetRenderData().Name);
         
         ImGui::TreePop();
     }
     ImGui::PopStyleColor();
 }
 
-void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32 BoneIndex)
+void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, const int32 BoneIndex)
 {
     // 범위 체크
     if (BoneIndex < 0 || BoneIndex >= SkeletalMesh->GetRenderData().Bones.Num())
+    {
         return;
+    }
 
     // 본 이름 가져오기
-    const FString& boneName = SkeletalMesh->GetRenderData().Bones[BoneIndex].BoneName;
+    const FString& BoneName = SkeletalMesh->GetRenderData().Bones[BoneIndex].BoneName;
 
     // 트리 노드 플래그 설정
-    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+    ImGuiTreeNodeFlags Flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
     // 현재 선택된 본인지 확인
-    bool isSelected = (SelectedBoneIndex == BoneIndex);
-    if (isSelected)
+    const bool bIsSelected = (SelectedBoneIndex == BoneIndex);
+    if (bIsSelected)
     {
-        flags |= ImGuiTreeNodeFlags_Selected;
+        Flags |= ImGuiTreeNodeFlags_Selected;
         // 선택된 본의 배경색 변경
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.3f, 0.6f, 0.9f, 1.0f));         // 파란색 배경
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.7f, 1.0f, 1.0f));  // 마우스 오버 시 밝은 파란색
@@ -985,34 +997,33 @@ void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32
     // 자식이 없는 본은 리프 노드로 표시
     if (SkeletalMesh->GetSkeleton()->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices.Num() == 0)
     {
-        flags |= ImGuiTreeNodeFlags_Leaf;
+        Flags |= ImGuiTreeNodeFlags_Leaf;
     }
 
     // 회전 적용 여부에 따라 표시 이름 설정
     bool isModified = false;
-    FBoneRotation* foundRotation = BoneRotations.Find(BoneIndex);
-    if (foundRotation &&
-        (foundRotation->X != 0.0f || foundRotation->Y != 0.0f || foundRotation->Z != 0.0f))
+    const FBoneRotation* FoundRotation = BoneRotations.Find(BoneIndex);
+    if (FoundRotation && (FoundRotation->X != 0.0f || FoundRotation->Y != 0.0f || FoundRotation->Z != 0.0f))
     {
         isModified = true;
     }
 
     // 트리 노드 표시
-    bool isOpen = false;
+    bool bIsOpen = false;
     if (isModified)
     {
         // 수정된 본은 주황색 텍스트로 표시
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
-        isOpen = ImGui::TreeNodeEx((void*)(intptr_t)BoneIndex, flags, "%s [Modified]", GetData(boneName));
+        bIsOpen = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<intptr_t>(BoneIndex)), Flags, "%s [Modified]", GetData(BoneName));
         ImGui::PopStyleColor(); // Text 색상 복원
     }
     else
     {
-        isOpen = ImGui::TreeNodeEx((void*)(intptr_t)BoneIndex, flags, "%s", GetData(boneName));
+        bIsOpen = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<intptr_t>(BoneIndex)), Flags, "%s", GetData(BoneName));
     }
 
     // 선택된 본의 스타일 색상 복원
-    if (isSelected)
+    if (bIsSelected)
     {
         ImGui::PopStyleColor(3); // 스타일 색상 3개 복원 (Header, HeaderHovered, HeaderActive)
     }
@@ -1025,10 +1036,10 @@ void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32
     }
 
     // 트리 노드가 열려있으면 자식 노드들을 재귀적으로 렌더링
-    if (isOpen)
+    if (bIsOpen)
     {
         // 모든 자식 본 표시
-        for (int32 ChildIndex : SkeletalMesh->GetSkeleton()->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices)
+        for (const int32 ChildIndex : SkeletalMesh->GetSkeleton()->GetRefSkeletal()->BoneTree[BoneIndex].ChildIndices)
         {
             RenderBoneHierarchy(SkeletalMesh, ChildIndex);
         }
@@ -1038,7 +1049,7 @@ void PropertyEditorPanel::RenderBoneHierarchy(USkeletalMesh* SkeletalMesh, int32
 }
 
 // 뼈가 선택되었을 때 호출되는 함수
-void PropertyEditorPanel::OnBoneSelected(int BoneIndex)
+void PropertyEditorPanel::OnBoneSelected(const int BoneIndex)
 {
     SelectedBoneIndex = BoneIndex;
 }
@@ -1059,14 +1070,15 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
             {
                 if (ImGui::IsMouseDoubleClicked(0))
                 {
-                    std::cout << GetData(StaticMeshComp->GetMaterialSlotNames()[i].ToString()) << std::endl;
-                    SelectedMaterialIndex = i;
+                    std::cout << GetData(StaticMeshComp->GetMaterialSlotNames()[i].ToString()) << '\n';
+                    SelectedMaterialIndex = static_cast<int>(i);
                     SelectedStaticMeshComp = StaticMeshComp;
                 }
             }
         }
 
-        if (ImGui::Button("    +    ")) {
+        if (ImGui::Button("    +    "))
+        {
             IsCreateMaterial = true;
         }
 
@@ -1075,24 +1087,26 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
 
     if (ImGui::TreeNodeEx("SubMeshes", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
-        auto subsets = StaticMeshComp->GetStaticMesh()->GetRenderData()->MaterialSubsets;
-        for (uint32 i = 0; i < subsets.Num(); ++i)
+        const auto Subsets = StaticMeshComp->GetStaticMesh()->GetRenderData()->MaterialSubsets;
+        for (uint32 i = 0; i < Subsets.Num(); ++i)
         {
-            std::string temp = "subset " + std::to_string(i);
-            if (ImGui::Selectable(temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+            std::string Temp = "subset " + std::to_string(i);
+            if (ImGui::Selectable(Temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
             {
                 if (ImGui::IsMouseDoubleClicked(0))
                 {
-                    StaticMeshComp->SetselectedSubMeshIndex(i);
+                    StaticMeshComp->SetselectedSubMeshIndex(static_cast<int>(i));
                     SelectedStaticMeshComp = StaticMeshComp;
                 }
             }
         }
-        std::string temp = "clear subset";
-        if (ImGui::Selectable(temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+        const std::string Temp = "clear subset";
+        if (ImGui::Selectable(Temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
         {
             if (ImGui::IsMouseDoubleClicked(0))
+            {
                 StaticMeshComp->SetselectedSubMeshIndex(-1);
+            }
         }
 
         ImGui::TreePop();
@@ -1104,7 +1118,8 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
     {
         RenderMaterialView(SelectedStaticMeshComp->GetMaterial(SelectedMaterialIndex), true);
     }
-    if (IsCreateMaterial) {
+    if (IsCreateMaterial)
+    {
         RenderCreateMaterialView();
     }
 }
@@ -1125,14 +1140,15 @@ void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMesh
             {
                 if (ImGui::IsMouseDoubleClicked(0))
                 {
-                    std::cout << GetData(SkeletalMeshComp->GetMaterialSlotNames()[i].ToString()) << std::endl;
-                    SelectedMaterialIndex = i;
+                    std::cout << GetData(SkeletalMeshComp->GetMaterialSlotNames()[i].ToString()) << '\n';
+                    SelectedMaterialIndex = static_cast<int>(i);
                     SelectedSkeletalMeshComp = SkeletalMeshComp;
                 }
             }
         }
 
-        if (ImGui::Button("    +    ")) {
+        if (ImGui::Button("    +    "))
+        {
             IsCreateMaterial = true;
         }
 
@@ -1141,24 +1157,26 @@ void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMesh
 
     if (ImGui::TreeNodeEx("SubMeshes", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
-        auto subsets = SkeletalMeshComp->GetSkeletalMesh()->GetSkeleton()->GetRefSkeletal()->MaterialSubsets;
-        for (uint32 i = 0; i < subsets.Num(); ++i)
+        const auto Subsets = SkeletalMeshComp->GetSkeletalMesh()->GetSkeleton()->GetRefSkeletal()->MaterialSubsets;
+        for (uint32 i = 0; i < Subsets.Num(); ++i)
         {
-            std::string temp = "subset " + std::to_string(i);
-            if (ImGui::Selectable(temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+            std::string Temp = "subset " + std::to_string(i);
+            if (ImGui::Selectable(Temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
             {
                 if (ImGui::IsMouseDoubleClicked(0))
                 {
-                    SkeletalMeshComp->SetSelectedSubMeshIndex(i);
+                    SkeletalMeshComp->SetSelectedSubMeshIndex(static_cast<int>(i));
                     SelectedSkeletalMeshComp = SkeletalMeshComp;
                 }
             }
         }
-        std::string temp = "clear subset";
-        if (ImGui::Selectable(temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+        const std::string Temp = "clear subset";
+        if (ImGui::Selectable(Temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
         {
             if (ImGui::IsMouseDoubleClicked(0))
+            {
                 SkeletalMeshComp->SetSelectedSubMeshIndex(-1);
+            }
         }
 
         ImGui::TreePop();
@@ -1170,22 +1188,23 @@ void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMesh
     {
         RenderMaterialView(SelectedSkeletalMeshComp->GetMaterial(SelectedMaterialIndex), false);
     }
-    if (IsCreateMaterial) {
+    if (IsCreateMaterial)
+    {
         RenderCreateMaterialView();
     }
 }
 
-void PropertyEditorPanel::RenderMaterialView(UMaterial* Material, bool IsStaticMesh)
+void PropertyEditorPanel::RenderMaterialView(UMaterial* InMaterial, const bool IsStaticMesh)
 {
     ImGui::SetNextWindowSize(ImVec2(380, 400), ImGuiCond_Once);
-    ImGui::Begin("Material Viewer", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav);
+    ImGui::Begin("InMaterial Viewer", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav);
 
     static ImGuiSelectableFlags BaseFlag = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_None | ImGuiColorEditFlags_NoAlpha;
 
-    FVector MatDiffuseColor = Material->GetMaterialInfo().Diffuse;
-    FVector MatSpecularColor = Material->GetMaterialInfo().Specular;
-    FVector MatAmbientColor = Material->GetMaterialInfo().Ambient;
-    FVector MatEmissiveColor = Material->GetMaterialInfo().Emissive;
+    FVector MatDiffuseColor = InMaterial->GetMaterialInfo().Diffuse;
+    FVector MatSpecularColor = InMaterial->GetMaterialInfo().Specular;
+    FVector MatAmbientColor = InMaterial->GetMaterialInfo().Ambient;
+    FVector MatEmissiveColor = InMaterial->GetMaterialInfo().Emissive;
 
     float dr = MatDiffuseColor.X;
     float dg = MatDiffuseColor.Y;
@@ -1193,17 +1212,17 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material, bool IsStaticM
     float da = 1.0f;
     float DiffuseColorPick[4] = { dr, dg, db, da };
 
-    ImGui::Text("Material Name |");
+    ImGui::Text("InMaterial Name |");
     ImGui::SameLine();
-    ImGui::Text(*Material->GetMaterialInfo().MTLName);
+    ImGui::Text(*InMaterial->GetMaterialInfo().MTLName);
     ImGui::Separator();
 
     ImGui::Text("  Diffuse Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Diffuse##Color", (float*)&DiffuseColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Diffuse##Color", reinterpret_cast<float*>(&DiffuseColorPick), BaseFlag))
     {
         FVector NewColor = { DiffuseColorPick[0], DiffuseColorPick[1], DiffuseColorPick[2] };
-        Material->SetDiffuse(NewColor);
+        InMaterial->SetDiffuse(NewColor);
     }
 
     float sr = MatSpecularColor.X;
@@ -1214,10 +1233,10 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material, bool IsStaticM
 
     ImGui::Text("Specular Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Specular##Color", (float*)&SpecularColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Specular##Color", reinterpret_cast<float*>(&SpecularColorPick), BaseFlag))
     {
         FVector NewColor = { SpecularColorPick[0], SpecularColorPick[1], SpecularColorPick[2] };
-        Material->SetSpecular(NewColor);
+        InMaterial->SetSpecular(NewColor);
     }
 
 
@@ -1229,10 +1248,10 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material, bool IsStaticM
 
     ImGui::Text("Ambient Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Ambient##Color", (float*)&AmbientColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Ambient##Color", reinterpret_cast<float*>(&AmbientColorPick), BaseFlag))
     {
         FVector NewColor = { AmbientColorPick[0], AmbientColorPick[1], AmbientColorPick[2] };
-        Material->SetAmbient(NewColor);
+        InMaterial->SetAmbient(NewColor);
     }
 
 
@@ -1244,39 +1263,41 @@ void PropertyEditorPanel::RenderMaterialView(UMaterial* Material, bool IsStaticM
 
     ImGui::Text("Emissive Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Emissive##Color", (float*)&EmissiveColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Emissive##Color", reinterpret_cast<float*>(&EmissiveColorPick), BaseFlag))
     {
         FVector NewColor = { EmissiveColorPick[0], EmissiveColorPick[1], EmissiveColorPick[2] };
-        Material->SetEmissive(NewColor);
+        InMaterial->SetEmissive(NewColor);
     }
 
     ImGui::Spacing();
     ImGui::Separator();
 
-    ImGui::Text("Choose Material");
+    ImGui::Text("Choose InMaterial");
     ImGui::Spacing();
 
-    ImGui::Text("Material Slot Name |");
+    ImGui::Text("InMaterial Slot Name |");
     ImGui::SameLine();
-    TArray<FName> slotNames = IsStaticMesh ?  SelectedStaticMeshComp->GetMaterialSlotNames() : SelectedSkeletalMeshComp->GetMaterialSlotNames();
-    ImGui::Text(GetData(slotNames[SelectedMaterialIndex].ToString()));
+    TArray<FName> SlotNames = IsStaticMesh ?  SelectedStaticMeshComp->GetMaterialSlotNames() : SelectedSkeletalMeshComp->GetMaterialSlotNames();
+    ImGui::Text(GetData(SlotNames[SelectedMaterialIndex].ToString()));
 
-    ImGui::Text("Override Material |");
+    ImGui::Text("Override InMaterial |");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(160);
     // 메테리얼 이름 목록을 const char* 배열로 변환
-    std::vector<const char*> materialChars;
-    for (const auto& material : FManagerOBJ::GetMaterials()) {
-        materialChars.push_back(*material.Value->GetMaterialInfo().MTLName);
+    std::vector<const char*> MaterialChars;
+    for (const auto& Material : FManagerOBJ::GetMaterials())
+    {
+        MaterialChars.push_back(*Material.Value->GetMaterialInfo().MTLName);
     }
 
     //// 드롭다운 표시 (currentMaterialIndex가 범위를 벗어나지 않도록 확인)
     //if (currentMaterialIndex >= FManagerOBJ::GetMaterialNum())
     //    currentMaterialIndex = 0;
 
-    if (ImGui::Combo("##MaterialDropdown", &CurMaterialIndex, materialChars.data(), FManagerOBJ::GetMaterialNum())) {
-        UMaterial* material = FManagerOBJ::GetMaterial(materialChars[CurMaterialIndex]);
-        SelectedStaticMeshComp->SetMaterial(SelectedMaterialIndex, material);
+    if (ImGui::Combo("##MaterialDropdown", &CurMaterialIndex, MaterialChars.data(), FManagerOBJ::GetMaterialNum()))
+    {
+        UMaterial* Material = FManagerOBJ::GetMaterial(MaterialChars[CurMaterialIndex]);
+        SelectedStaticMeshComp->SetMaterial(SelectedMaterialIndex, Material);
     }
 
     if (ImGui::Button("Close"))
@@ -1297,11 +1318,12 @@ void PropertyEditorPanel::RenderCreateMaterialView()
 
     ImGui::Text("New Name");
     ImGui::SameLine();
-    static char materialName[256] = "New Material";
+    static char MaterialName[256] = "New Material";
     // 기본 텍스트 입력 필드
     ImGui::SetNextItemWidth(128);
-    if (ImGui::InputText("##NewName", materialName, IM_ARRAYSIZE(materialName))) {
-        tempMaterialInfo.MTLName = materialName;
+    if (ImGui::InputText("##NewName", MaterialName, IM_ARRAYSIZE(MaterialName)))
+    {
+        tempMaterialInfo.MTLName = MaterialName;
     }
 
     FVector MatDiffuseColor = tempMaterialInfo.Diffuse;
@@ -1320,7 +1342,7 @@ void PropertyEditorPanel::RenderCreateMaterialView()
 
     ImGui::Text("  Diffuse Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Diffuse##Color", (float*)&DiffuseColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Diffuse##Color", reinterpret_cast<float*>(&DiffuseColorPick), BaseFlag))
     {
         FVector NewColor = { DiffuseColorPick[0], DiffuseColorPick[1], DiffuseColorPick[2] };
         tempMaterialInfo.Diffuse = NewColor;
@@ -1334,7 +1356,7 @@ void PropertyEditorPanel::RenderCreateMaterialView()
 
     ImGui::Text("Specular Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Specular##Color", (float*)&SpecularColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Specular##Color", reinterpret_cast<float*>(&SpecularColorPick), BaseFlag))
     {
         FVector NewColor = { SpecularColorPick[0], SpecularColorPick[1], SpecularColorPick[2] };
         tempMaterialInfo.Specular = NewColor;
@@ -1349,7 +1371,7 @@ void PropertyEditorPanel::RenderCreateMaterialView()
 
     ImGui::Text("Ambient Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Ambient##Color", (float*)&AmbientColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Ambient##Color", reinterpret_cast<float*>(&AmbientColorPick), BaseFlag))
     {
         FVector NewColor = { AmbientColorPick[0], AmbientColorPick[1], AmbientColorPick[2] };
         tempMaterialInfo.Ambient = NewColor;
@@ -1364,7 +1386,7 @@ void PropertyEditorPanel::RenderCreateMaterialView()
 
     ImGui::Text("Emissive Color");
     ImGui::SameLine();
-    if (ImGui::ColorEdit4("Emissive##Color", (float*)&EmissiveColorPick, BaseFlag))
+    if (ImGui::ColorEdit4("Emissive##Color", reinterpret_cast<float*>(&EmissiveColorPick), BaseFlag))
     {
         FVector NewColor = { EmissiveColorPick[0], EmissiveColorPick[1], EmissiveColorPick[2] };
         tempMaterialInfo.Emissive = NewColor;
@@ -1385,41 +1407,42 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     ImGui::End();
 }
 
-void PropertyEditorPanel::RenderForLua(ULuaComponent* LuaComponent)
+void PropertyEditorPanel::RenderForLua(ULuaComponent* InLuaComponent) const
 {
-     ULuaComponent* LuaComp = Cast<ULuaComponent>(PickedComponent); // Lua 컴포넌트로 캐스팅
+     ULuaComponent* LuaComponent = Cast<ULuaComponent>(PickedComponent); // Lua 컴포넌트로 캐스팅
 
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.15f, 0.1f, 1.0f)); // Lua 컴포넌트용 색상 (예시)
     if (ImGui::TreeNodeEx("Lua Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
         // --- 스크립트 경로 표시 및 찾아보기 ---
-        char scriptPathBuffer[1024]; // ImGui InputText용 버퍼
+        char ScriptPathBuffer[1024]; // ImGui InputText용 버퍼
         // LuaComp->LuaScriptPath가 std::string 이라고 가정
-        errno_t err = strncpy_s(
-            scriptPathBuffer,                 // 1. 대상 버퍼 포인터
-            sizeof(scriptPathBuffer),         // 2. 대상 버퍼의 *전체 크기* (null 문자 포함)
-            *LuaComp->LuaScriptPath,   // 3. 원본 문자열 포인터
+        errno_t Err = strncpy_s(
+            ScriptPathBuffer,                 // 1. 대상 버퍼 포인터
+            sizeof(ScriptPathBuffer),         // 2. 대상 버퍼의 *전체 크기* (null 문자 포함)
+            *LuaComponent->LuaScriptPath,   // 3. 원본 문자열 포인터
             _TRUNCATE                         // 4. 복사할 최대 문자 수 (또는 _TRUNCATE)
                                               //    _TRUNCATE는 버퍼 크기에 맞게 복사하고 null 종료, 넘치면 잘라냄
         );
 
-        if (err != 0) {
+        if (Err != 0)
+        {
             // 오류 처리 (예: 버퍼가 너무 작거나 다른 문제 발생 시)
-            std::cerr << "strncpy_s failed with error code: " << err << std::endl;
-            scriptPathBuffer[0] = '\0'; // 안전하게 빈 문자열로 만듦
+            std::cerr << "strncpy_s failed with error code: " << Err << '\n';
+            ScriptPathBuffer[0] = '\0'; // 안전하게 빈 문자열로 만듦
         }
         ImGui::Text("Script Path:");
         ImGui::SameLine();
         // 경로를 InputText로 표시 (읽기 전용, 복사 가능)
         ImGui::PushItemWidth(-FLT_MIN); // 너비 최대로
-        ImGui::InputText("##LuaScriptPath", scriptPathBuffer, sizeof(scriptPathBuffer), ImGuiInputTextFlags_ReadOnly);
+        ImGui::InputText("##LuaScriptPath", ScriptPathBuffer, sizeof(ScriptPathBuffer), ImGuiInputTextFlags_ReadOnly);
         ImGui::PopItemWidth();
 
         if (ImGui::Button("Browse..."))
         {
             // tinyfd를 사용하여 Lua 스크립트 파일 열기 대화상자 표시
             char const* lFilterPatterns[1] = { "*.lua" };
-            const char* selectedFilePath = tinyfd_openFileDialog(
+            const char* SelectedFilePath = tinyfd_openFileDialog(
                 "Select Lua Script",                      // 대화상자 제목
                 *FLuaManager::Get().GetScriptsBasePath(), // 기본 경로 (스크립트 폴더)
                 1,                                       // 필터 개수
@@ -1428,43 +1451,49 @@ void PropertyEditorPanel::RenderForLua(ULuaComponent* LuaComponent)
                 0                                        // 다중 선택 비활성화
             );
             
-             if (selectedFilePath != nullptr) // 사용자가 파일을 선택했다면
-            {
+             if (SelectedFilePath != nullptr) // 사용자가 파일을 선택했다면
+             {
                 // 선택된 전체 경로
-                std::string selectedFullPath = selectedFilePath;
+                std::string SelectedFullPath = SelectedFilePath;
 
                 // (선택 사항) 스크립트 기본 경로 기준 상대 경로로 변환
-                std::string relativePathStr = selectedFullPath; // 기본값은 전체 경로
-                try {
-                    std::filesystem::path fullPath(selectedFullPath);
-                    std::filesystem::path absoluteBasePath = std::filesystem::absolute(FLuaManager::Get().GetScriptsBasePath());
+                std::string RelativePathStr = SelectedFullPath; // 기본값은 전체 경로
+                try
+                {
+                    std::filesystem::path FullPath(SelectedFullPath);
+                    std::filesystem::path AbsoluteBasePath = std::filesystem::absolute(FLuaManager::Get().GetScriptsBasePath());
 
-                    std::filesystem::path relativePath = std::filesystem::relative(fullPath, absoluteBasePath);
+                    std::filesystem::path RelativePath = std::filesystem::relative(FullPath, AbsoluteBasePath);
                     
-                    if (!relativePath.empty() && relativePath.native().find(L"..") != 0) { // L".." 은 Windows wchar_t 기준
+                    if (!RelativePath.empty() && RelativePath.native().find(L"..") != 0) // L".." 은 Windows wchar_t 기준
+                    {
                         // 성공적으로 상대 경로를 얻었고, 상위 경로가 아님
                         // generic_string()을 사용하여 플랫폼 독립적인 '/' 구분자로 변환
-                        relativePathStr = relativePath.generic_string();
-                        std::cout << "Calculated Relative Path: " << relativePathStr << std::endl;
-                    } else {
+                        RelativePathStr = RelativePath.generic_string();
+                        std::cout << "Calculated Relative Path: " << RelativePathStr << '\n';
+                    }
+                    else
+                    {
                         // 상대 경로가 비었거나 ".." 로 시작하는 경우 (즉, basePath 외부에 있음)
-                        std::cerr << "Warning: Selected script is outside the project's script base path hierarchy. Using absolute path." << std::endl;
+                        std::cerr << "Warning: Selected script is outside the project's script base path hierarchy. Using absolute path." << '\n';
                         // relativePathStr는 이미 selectedFullPath (절대 경로)로 초기화되어 있음
                         // 필요하다면 여기서 fullPath.generic_string() 등을 사용해 경로 형식을 통일할 수 있습니다.
-                        relativePathStr = fullPath.generic_string(); // 일관성을 위해 '/' 사용 절대 경로
+                        RelativePathStr = FullPath.generic_string(); // 일관성을 위해 '/' 사용 절대 경로
                     }
-                } catch (const std::exception& e) {
-                     std::cerr << "Error calculating relative path: " << e.what() << ". Using full path." << std::endl;
-                    relativePathStr = std::filesystem::path(selectedFullPath).generic_string();
+                }
+                 catch (const std::exception& e)
+                 {
+                     std::cerr << "Error calculating relative path: " << e.what() << ". Using full path." << '\n';
+                    RelativePathStr = std::filesystem::path(SelectedFullPath).generic_string();
                 }
 
 
-                LuaComp->LuaScriptPath = relativePathStr; // 선택된 경로(상대 또는 전체)로 업데이트
+                LuaComponent->LuaScriptPath = RelativePathStr; // 선택된 경로(상대 또는 전체)로 업데이트
 
                 // 중요: 스크립트 경로가 변경되었으므로 컴포넌트를 다시 초기화하거나
                 // 스크립트를 다시 로드하는 로직 호출 필요
                 // 예: LuaComp->ReloadScript(); 또는 LuaComp->InitializeComponent();
-                std::cout << "LuaComponent: Script path changed. Need to reload script: " << LuaComp->LuaScriptPath << std::endl; // 임시 로그
+                std::cout << "LuaComponent: Script path changed. Need to reload script: " << LuaComponent->LuaScriptPath << '\n'; // 임시 로그
             }
             // 사용자가 취소하면 selectedFilePath는 nullptr이므로 아무 작업도 하지 않음
         }
@@ -1478,72 +1507,83 @@ void PropertyEditorPanel::RenderForLua(ULuaComponent* LuaComponent)
         }
 
         // "Create Lua Script" 팝업 정의
-        if (ImGui::BeginPopupModal("Create Lua Script", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Create Lua Script", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            static char newScriptNameBuffer[128] = "NewActorScript";
-            ImGui::InputText("Script Name (.lua)", newScriptNameBuffer, sizeof(newScriptNameBuffer));
+            static char NewScriptNameBuffer[128] = "NewActorScript";
+            ImGui::InputText("Script Name (.lua)", NewScriptNameBuffer, sizeof(NewScriptNameBuffer));
             ImGui::Separator();
 
             if (ImGui::Button("Create", ImVec2(120, 0)))
             {
-                std::string filename = newScriptNameBuffer;
-                if (!filename.empty())
+                std::string Filename = NewScriptNameBuffer;
+                if (!Filename.empty())
                 {
                     // '.lua' 확장자 추가 (이미 있다면 중복 방지)
-                    if (filename.rfind(".lua") == std::string::npos) {
-                        filename += ".lua";
+                    if (Filename.rfind(".lua") == std::string::npos) {
+                        Filename += ".lua";
                     }
 
                     // 스크립트 저장 경로 조합
-                    FString scriptsBasePath = FLuaManager::Get().GetScriptsBasePath();
-                    FString templatePath = FLuaManager::Get().GetTemplateLuaPath();
-                    FString ScriptsReleativePath = scriptsBasePath + filename;
+                    FString ScriptsBasePath = FLuaManager::Get().GetScriptsBasePath();
+                    FString TemplatePath = FLuaManager::Get().GetTemplateLuaPath();
+                    FString ScriptsReleativePath = ScriptsBasePath + Filename;
 
                     // 파일이 이미 존재하는지 확인 (선택 사항)
-                    if (std::filesystem::exists(ScriptsReleativePath)) {
+                    if (std::filesystem::exists(ScriptsReleativePath))
+                    {
                          tinyfd_messageBox("Error", "A script with this name already exists!", "ok", "error", 1);
-                    } else {
+                    }
+                    else
+                    {
                         // 1. 템플릿 파일 복사
-                        bool copied = false;
-                        try {
-                            std::ifstream src(*templatePath, std::ios::binary);
-                            std::ofstream dst(*ScriptsReleativePath, std::ios::binary);
-                            if (src && dst) {
-                               dst << src.rdbuf();
-                               copied = true;
-                            } else {
-                                if (!src) std::cerr << "Error: Template file not found or couldn't be opened: " << templatePath << std::endl;
-                                if (!dst) std::cerr << "Error: Could not create destination file: " << ScriptsReleativePath << std::endl;
+                        bool Copied = false;
+                        try
+                        {
+                            std::ifstream Src(*TemplatePath, std::ios::binary);
+                            std::ofstream Dst(*ScriptsReleativePath, std::ios::binary);
+                            if (Src && Dst)
+                            {
+                               Dst << Src.rdbuf();
+                               Copied = true;
                             }
-                        } catch (const std::exception& e) {
-                             std::cerr << "Error copying template: " << e.what() << std::endl;
+                            else
+                            {
+                                if (!Src) std::cerr << "Error: Template file not found or couldn't be opened: " << TemplatePath << '\n';
+                                if (!Dst) std::cerr << "Error: Could not create destination file: " << ScriptsReleativePath << '\n';
+                            }
+                        }
+                        catch (const std::exception& e)
+                        {
+                             std::cerr << "Error copying template: " << e.what() << '\n';
                         }
                         
-                        if (copied)
+                        if (Copied)
                         {
-                            std::cout << "Created new script: " << ScriptsReleativePath << std::endl;
+                            std::cout << "Created new script: " << ScriptsReleativePath << '\n';
                             // 2. 컴포넌트의 경로 업데이트 (상대 경로로 저장)
-                            LuaComp->LuaScriptPath = filename;
-                            std::filesystem::path basePath(FLuaManager::Get().GetScriptsBasePath());
-                            std::filesystem::path absolutePath = std::filesystem::absolute(basePath / ScriptsReleativePath);
-                            std::string fullPath = absolutePath.string();
+                            LuaComponent->LuaScriptPath = Filename;
+                            std::filesystem::path BasePath(FLuaManager::Get().GetScriptsBasePath());
+                            std::filesystem::path AbsolutePath = std::filesystem::absolute(BasePath / ScriptsReleativePath);
+                            std::string FullPath = AbsolutePath.string();
 
                             // 3. 생성된 스크립트 편집기로 열기 (OpenExternalEditor 함수 사용)
-                            ShellExecuteA(NULL, "open", fullPath.c_str(), NULL, NULL, SW_SHOWNORMAL);
+                            ShellExecuteA(nullptr, "open", FullPath.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
                             
                             // 4. 중요: 컴포넌트 다시 초기화/스크립트 로드
                             // 예: LuaComp->ReloadScript(); 또는 LuaComp->InitializeComponent();
-                            std::cout << "LuaComponent: New script created. Need to reload script: " << LuaComp->LuaScriptPath << std::endl; // 임시 로그
+                            std::cout << "LuaComponent: New script created. Need to reload script: " << LuaComponent->LuaScriptPath << '\n'; // 임시 로그
 
                             ImGui::CloseCurrentPopup();
                         }
                         else
                         {
                             tinyfd_messageBox("Error", "Failed to create the script file. Check permissions or template file path.", "ok", "error", 1);
-                            std::cerr << "Failed to copy template Lua file from " << templatePath << " to " << ScriptsReleativePath << std::endl;
+                            std::cerr << "Failed to copy template Lua file from " << TemplatePath << " to " << ScriptsReleativePath << '\n';
                         }
                     }
-                } else {
+                }
+                else
+                {
                     tinyfd_messageBox("Warning", "Please enter a name for the script.", "ok", "warning", 1);
                 }
             }
@@ -1557,36 +1597,45 @@ void PropertyEditorPanel::RenderForLua(ULuaComponent* LuaComponent)
 
         // --- 스크립트 편집 ---
         // 스크립트 경로가 있을 때만 활성화
-        bool hasScript = !LuaComp->LuaScriptPath.IsEmpty();
-        ImGui::BeginDisabled(!hasScript); // 경로 없으면 비활성화 시작
+        bool bHasScript = !LuaComponent->LuaScriptPath.IsEmpty();
+        ImGui::BeginDisabled(!bHasScript); // 경로 없으면 비활성화 시작
 
         if (ImGui::Button("Edit Script"))
         {
             // 스크립트 전체 경로 계산 (상대 경로일 수 있으므로 기본 경로와 조합)
-            FString fullPath;
-            try {
+            FString FullPath;
+            try
+            {
                 // LuaScriptPath가 절대 경로인지 간단히 확인 (더 견고한 방법 필요할 수 있음)
-                std::filesystem::path scriptPathObj(LuaComp->LuaScriptPath);
-                if (scriptPathObj.is_absolute()) {
-                    fullPath = LuaComp->LuaScriptPath;
-                } else {
-                    // 상대 경로라면 기준 경로와 조합하여 절대 경로 생성
-                    std::filesystem::path basePath(FLuaManager::Get().GetScriptsBasePath());
-                    std::filesystem::path absolutePath = std::filesystem::absolute(basePath / scriptPathObj);
-                    fullPath = absolutePath.string();
+                std::filesystem::path ScriptPathObj(LuaComponent->LuaScriptPath);
+                if (ScriptPathObj.is_absolute())
+                {
+                    FullPath = LuaComponent->LuaScriptPath;
                 }
-            } catch(const std::exception& e) {
+                else
+                {
+                    // 상대 경로라면 기준 경로와 조합하여 절대 경로 생성
+                    std::filesystem::path BasePath(FLuaManager::Get().GetScriptsBasePath());
+                    std::filesystem::path AbsolutePath = std::filesystem::absolute(BasePath / ScriptPathObj);
+                    FullPath = AbsolutePath.string();
+                }
+            }
+            catch(const std::exception& e)
+            {
                  // 경로 오류 발생 시 fallback
-                 std::cerr << "Path error for Edit Script: " << e.what() << std::endl;
-                 fullPath = FLuaManager::Get().GetScriptsBasePath() + LuaComp->LuaScriptPath; // 기본 조합 시도
+                 std::cerr << "Path error for Edit Script: " << e.what() << '\n';
+                 FullPath = FLuaManager::Get().GetScriptsBasePath() + LuaComponent->LuaScriptPath; // 기본 조합 시도
             }
 
 
-            if (std::filesystem::exists(fullPath)) {
-                ShellExecuteA(NULL, "open", *fullPath, NULL, NULL, SW_SHOWNORMAL);
-            } else {
+            if (std::filesystem::exists(FullPath))
+            {
+                ShellExecuteA(nullptr, "open", *FullPath, nullptr, nullptr, SW_SHOWNORMAL);
+            }
+            else
+            {
                  tinyfd_messageBox("Error", "Script file not found at the specified path.", "ok", "error", 1);
-                 std::cerr << "Edit Script Error: File not found at " << fullPath << std::endl;
+                 std::cerr << "Edit Script Error: File not found at " << FullPath << '\n';
             }
         }
 
@@ -1601,7 +1650,7 @@ void PropertyEditorPanel::RenderForLua(ULuaComponent* LuaComponent)
     ImGui::PopStyleColor(); // 스타일 복원
 }
 
-void PropertyEditorPanel::RenderShapeProperty(AActor* PickedActor)
+void PropertyEditorPanel::RenderShapeProperty(const AActor* PickedActor) const
 {
     if (PickedActor && PickedComponent && PickedComponent->IsA<UBoxShapeComponent>())
     {
@@ -1643,11 +1692,11 @@ void PropertyEditorPanel::RenderShapeProperty(AActor* PickedActor)
 
         if (ImGui::TreeNodeEx("CapsuleShapeComponent", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
         {
-            float CapsuleRaidus = ShapeComp->GetRadius();
+            float CapsuleRadius = ShapeComp->GetRadius();
 
-            if (ImGui::SliderFloat("CapsuleRaidus", &CapsuleRaidus, 0.0f, 100.0f))
+            if (ImGui::SliderFloat("CapsuleRadius", &CapsuleRadius, 0.0f, 100.0f))
             {
-                ShapeComp->SetRadius(CapsuleRaidus);
+                ShapeComp->SetRadius(CapsuleRadius);
             }
 
             float CapsuleHalfHeight = ShapeComp->GetHalfHeight();
@@ -1663,7 +1712,7 @@ void PropertyEditorPanel::RenderShapeProperty(AActor* PickedActor)
 
 }
 
-void PropertyEditorPanel::RenderDelegate(ULevel* level)
+void PropertyEditorPanel::RenderDelegate(ULevel* Level) const
 {
     static AActor* SelectedActor = nullptr;
     FString SelectedActorName;
@@ -1671,7 +1720,7 @@ void PropertyEditorPanel::RenderDelegate(ULevel* level)
     
     if (ImGui::BeginCombo("Delegate Object", GetData(SelectedActorName), ImGuiComboFlags_None))
     {
-        for (const auto& Actor : level->GetActors())
+        for (const auto& Actor : Level->GetActors())
         {
             if (ImGui::Selectable(GetData(Actor->GetName()), false))
             {
@@ -1686,11 +1735,11 @@ void PropertyEditorPanel::RenderDelegate(ULevel* level)
     {
         if (ImGui::BeginCombo("Delegate Function", GetData(SelectedFunctionName), ImGuiComboFlags_None))
         {
-            for (const auto& function : SelectedActor->FunctionRegistry()->GetRegisteredFunctions())
+            for (const auto& Function : SelectedActor->FunctionRegistry()->GetRegisteredFunctions())
             {
-                if (ImGui::Selectable(GetData(function.Key.ToString()), false))
+                if (ImGui::Selectable(GetData(Function.Key.ToString()), false))
                 {
-                    SelectedFunctionName = function.Key.ToString();
+                    SelectedFunctionName = Function.Key.ToString();
                 }
             }
             ImGui::EndCombo();
@@ -1698,7 +1747,7 @@ void PropertyEditorPanel::RenderDelegate(ULevel* level)
     }
 }
 
-void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
+void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath) const
 {
     if (ImGui::Button("Preview##"))
     {
@@ -1710,6 +1759,7 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
         
         UWorld* World = EditorEngine->CreatePreviewWindow();
 
+        // @todo CreatePreviewWindow()에서 다른 액터들을 소환하는가? 아니라면 불필요해 보이는 검사
         const TArray<AActor*> CopiedActors = World->GetActors();
         for (AActor* Actor : CopiedActors)
         {
@@ -1721,29 +1771,36 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
             Actor->Destroy();
         }
         World->ClearSelectedActors();
-        
-        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-        TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
-        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+
+        // SkySphere 생성
+        AStaticMeshActor* SkySphereActor = World->SpawnActor<AStaticMeshActor>();
+        SkySphereActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
+        UStaticMeshComponent* MeshComp = SkySphereActor->GetStaticMeshComponent();
         FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
         MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
         MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetDiffuse(FVector::OneVector);
         MeshComp->GetStaticMesh()->GetMaterials()[0]->Material->SetEmissive(FVector::OneVector);
         MeshComp->SetWorldRotation(FRotator(0.0f, 0.0f, 90.0f));
-        TempActor->SetActorScale(FVector(1.0f, 1.0f, 1.0f));
+        SkySphereActor->SetActorScale(FVector(1.0f, 1.0f, 1.0f));
 
+        // SkeletalMeshActor 생성
         ASkeletalMeshActor* SkeletalMeshActor = World->SpawnActor<ASkeletalMeshActor>();
-        SkeletalMeshActor->SetActorLabel("SkeletalMesh");
-        USkeletalMeshComponent* SkeletalMeshComp = SkeletalMeshActor->GetComponentByClass<USkeletalMeshComponent>();
+        SkeletalMeshActor->SetActorLabel("PreviewSkeletalMeshActor");
 
-        SkeletalMeshComp->SetSkeletalMesh(FFBXLoader::CreateSkeletalMesh(FilePath));
+        // Mesh 및 Animation 설정
+        USkeletalMeshComponent* SkeletalMeshComponent = Cast<USkeletalMeshComponent>(SkeletalMeshActor->GetRootComponent());
+        SkeletalMeshComponent->SetSkeletalMesh(FFBXLoader::CreateSkeletalMesh(FilePath));
+
+        UAnimSingleNodeInstance* TestAnimInstance = FObjectFactory::ConstructObject<UAnimSingleNodeInstance>(SkeletalMeshComponent);
+        TestAnimInstance->GetCurrentAsset()->SetData(FilePath+"\\mixamo.com");
+        SkeletalMeshComponent->SetAnimInstance(TestAnimInstance);
     }
 }
 
-void PropertyEditorPanel::OnResize(HWND hWnd)
+void PropertyEditorPanel::OnResize(const HWND hWnd)
 {
-    RECT clientRect;
-    GetClientRect(hWnd, &clientRect);
-    Width = clientRect.right - clientRect.left;
-    Height = clientRect.bottom - clientRect.top;
+    RECT ClientRect;
+    GetClientRect(hWnd, &ClientRect);
+    Width = static_cast<float>(ClientRect.right - ClientRect.left);
+    Height = static_cast<float>(ClientRect.bottom - ClientRect.top);
 }
