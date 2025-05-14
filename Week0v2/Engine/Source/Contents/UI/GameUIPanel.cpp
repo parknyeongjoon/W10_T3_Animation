@@ -118,6 +118,17 @@ void FGameUIPanel::Render()
             ImGui::SetWindowFontScale(1.0f);
             ImGui::PopStyleColor();
 
+            // 2. 생명 표시
+            int Health = GameMgr.GetHealth();
+            ImGui::SetCursorPos(ImVec2(250, 60));
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+            ImGui::SetWindowFontScale(1.5f);
+            char HealthText[64];
+            sprintf_s(HealthText, "Health: %d", Health);
+            ImGui::Text(HealthText);
+            ImGui::SetWindowFontScale(1.0f);
+            ImGui::PopStyleColor();
+
             // 3. 크로스헤어 (기존 코드와 동일)
             // ImDrawList* drawList = ImGui::GetWindowDrawList();
             // ... (크로스헤어 그리는 로직) ...

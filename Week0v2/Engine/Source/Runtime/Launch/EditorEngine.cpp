@@ -161,7 +161,7 @@ void UEditorEngine::StartPIE() const
     // Logo Fade In/Out
     APlayerCameraManager* PlayerCameraManager = PIEWorldContext->GetWorld()->GetPlayerController()->GetPlayerCameraManager();
     UCameraFadeInOut* CameraModifier = FObjectFactory::ConstructObject<UCameraFadeInOut>(PlayerCameraManager);
-    CameraModifier->StartFadeIn(0.001f);
+    CameraModifier->StartFadeIn(0.002f);
     PlayerCameraManager->AddCameraModifier(CameraModifier);
 
     FGameManager::Get().NPCs.Empty();

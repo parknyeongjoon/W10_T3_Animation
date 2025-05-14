@@ -24,17 +24,21 @@ FGameManager& FGameManager::Get()
 void FGameManager::BeginPlay()
 {
     CurrentGameState = EGameState::Playing;
+    CurrentAnimState = ETestState::None;
 
     GameTimer = 0.0f;
     
     Score = 0;
     Health = 0;
     
-    CurrentAnimState = ETestState::None;
     bTrackProcess = false;
 
     MinSuccessTime = 0.0f;
     MaxSuccessTime = 0.0f;
+
+    bGetTrackScore = true;
+    bTrackProcess = false;
+    bGameOver = false;
 
     for (auto& Time : AnimTime)
     {
@@ -56,6 +60,7 @@ void FGameManager::StartTrack(float Duration, ETestState AnimState, EEventType E
 {
     if (bTrackProcess == false)
     {
+        bGetTrackScore = false;
         bTrackProcess = true;
         float deltaTime;
         switch (EventCase)
@@ -101,6 +106,10 @@ void FGameManager::StartTrack(float Duration, ETestState AnimState, EEventType E
     if (GameTimer > MaxSuccessTime + 2)
     {
         bTrackProcess = false;
+        if (bGetTrackScore == false)
+        {
+            LoseHealth();
+        }
     }
 }
 
@@ -109,48 +118,57 @@ void FGameManager::LoseHealth()
     Health--;
     if (Health <= 0)
     {
-        // EndGame();
-        printf("Lose Health");
+        bGameOver = true;
+        GameOverEvent.Broadcast();
+        EndGame();
     }
 }
 
 void FGameManager::PlayAnimA()
 {
-    printf("A");
-    if (CurrentAnimState == ETestState::Pose && MinSuccessTime < GameTimer && MaxSuccessTime < GameTimer)
+    if (bGetTrackScore == false)
     {
-        AddScore();
-    }
-    else
-    {
-        LoseHealth();
+        bGetTrackScore = true;
+        if (CurrentAnimState == ETestState::Pose && MinSuccessTime < GameTimer && MaxSuccessTime < GameTimer)
+        {
+            AddScore();
+        }
+        else
+        {
+            LoseHealth();
+        }
     }
 }
 
 void FGameManager::PlayAnimB()
 {
-    printf("B");
-    if (CurrentAnimState == ETestState::Jump && MinSuccessTime < GameTimer && MaxSuccessTime < GameTimer)
+    if (bGetTrackScore == false)
     {
-        AddScore();
-    }
-    else
-    {
-        LoseHealth();
-        
+        bGetTrackScore = true;
+        if (CurrentAnimState == ETestState::Jump && MinSuccessTime < GameTimer && MaxSuccessTime < GameTimer)
+        {
+            AddScore();
+        }
+        else
+        {
+            LoseHealth();
+        }
     }
 }
 
 void FGameManager::PlayAnimC()
 {
-    printf("C");
-    if (CurrentAnimState == ETestState::Dance && MinSuccessTime < GameTimer && MaxSuccessTime < GameTimer)
+    if (bGetTrackScore == false)
     {
-        AddScore();
-    }
-    else
-    {
-        LoseHealth();
+        bGetTrackScore = true;
+        if (CurrentAnimState == ETestState::Dance && MinSuccessTime < GameTimer && MaxSuccessTime < GameTimer)
+        {
+            AddScore();
+        }
+        else
+        {
+            LoseHealth();
+        }
     }
 }
 
@@ -186,7 +204,7 @@ void FGameManager::EndGame()
 void FGameManager::Tick(float DeltaTime)
 {
     UpdateGameTimer(DeltaTime);
-    if (CurrentGameState == EGameState::Playing && GameTimer > 1.0f)
+    if (CurrentGameState == EGameState::Playing && GameTimer > 3.0f && bGameOver == false)
     {
         ETestState AnimState = ETestState::None;
         EEventType EventCase = EEventType::None;

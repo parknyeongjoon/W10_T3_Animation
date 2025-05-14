@@ -31,6 +31,8 @@ ACharacter::ACharacter()
     PlayAnimA.AddStatic(FGameManager::PlayAnimA);
     PlayAnimB.AddStatic(FGameManager::PlayAnimB);
     PlayAnimC.AddStatic(FGameManager::PlayAnimC);
+
+    FGameManager::Get().GameOverEvent.AddLambda([this]{ Cast<UTestAnimInstance>(BodyMesh->GetAnimInstance())->SetState(ETestState::Defeated); });
 }
 
 ACharacter::ACharacter(const ACharacter& Other)

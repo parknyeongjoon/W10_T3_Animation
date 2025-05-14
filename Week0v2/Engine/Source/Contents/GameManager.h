@@ -4,6 +4,7 @@
 #include "Animation/CustomAnimInstance/TestAnimInstance.h"
 #include "Container/Array.h"
 #include "Container/String.h"
+#include "Delegates/DelegateCombination.h"
 #include "HAL/PlatformType.h"
 
 class ASkeletalMeshActor;
@@ -30,11 +31,10 @@ enum class EEventType : uint8
 
 class FGameManager 
 {
-    
+    DECLARE_MULTICAST_DELEGATE(GameOverEventDelegate)
 public:
     static FGameManager& Get();
-
-public:
+    
     float GetGameTimer() const { return GameTimer; }
     void SetGameTimer(float NewTime) { GameTimer = NewTime; }
     void ResetGameTimer() { GameTimer = 0.0f; }
@@ -57,6 +57,7 @@ public:
     void StartNPCAnimation(int index, ETestState AnimState);
     void StartTrack(float Duration, ETestState AnimState, EEventType EventCase);
 
+    static int GetHealth() { return Health; }
     static void LoseHealth();
     
     static void PlayAnimA();
@@ -64,11 +65,13 @@ public:
     static void PlayAnimC();
     
     TArray<ASkeletalMeshActor*> NPCs;
+    inline static GameOverEventDelegate GameOverEvent;
 private:
     // 싱글톤을 위한 정적 인스턴스
     static std::shared_ptr<FGameManager> Instance;
 
     inline static EGameState CurrentGameState = EGameState::None;
+
     
     inline static int Score = 0;
     inline static int Health = 3;
@@ -77,7 +80,11 @@ private:
     inline static float MaxSuccessTime = 0.0f;
     float AnimTime[4] = { 0.0f };
     inline static ETestState CurrentAnimState = ETestState::None;
+    inline static bool bGetTrackScore = true; 
+    inline static bool bGameOver = false;
     bool bTrackProcess = false;
+
+    
 };
 
 

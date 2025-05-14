@@ -166,10 +166,10 @@ void FEngineLoop::Render() const
             }
             else if (TargetWorld->WorldType == EWorldType::PIE)
             {
-                // EditorEngine->ContentsUI->Render();
-                EditorEngine->GetUnrealEditor()->RenderInPIE();
+                EditorEngine->ContentsUI->Render();
                 if (LevelEditor->GetEditorStateManager().GetEditorState() != EEditorState::Playing || EditorEngine->bForceEditorUI == true)
                 {
+                    EditorEngine->GetUnrealEditor()->RenderInPIE();
                 }
                 else
                 {
