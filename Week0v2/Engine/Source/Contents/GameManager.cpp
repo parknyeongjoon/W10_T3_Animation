@@ -29,7 +29,7 @@ void FGameManager::BeginPlay()
     GameTimer = 0.0f;
     
     Score = 0;
-    Health = 0;
+    Health = 3;
     
     bTrackProcess = false;
 
@@ -204,15 +204,14 @@ void FGameManager::EndGame()
 void FGameManager::Tick(float DeltaTime)
 {
     UpdateGameTimer(DeltaTime);
-    if (CurrentGameState == EGameState::Playing && GameTimer > 3.0f && bGameOver == false)
+    if (CurrentGameState == EGameState::Playing && GameTimer > 5.0f && bGameOver == false)
     {
-        ETestState AnimState = ETestState::None;
-        EEventType EventCase = EEventType::None;
-        
-        if (CurrentAnimState == ETestState::None) { AnimState = ETestState::Pose; EventCase = EEventType::Single; }
-        if (CurrentAnimState == ETestState::Pose) { AnimState = ETestState::Jump; EventCase = EEventType::Duo; }
-        if (CurrentAnimState == ETestState::Jump) { AnimState = ETestState::Dance; EventCase = EEventType::Squad; }
-        if (CurrentAnimState == ETestState::Dance) { AnimState = ETestState::Pose; EventCase = EEventType::Single; }
+        ETestState AnimState;
+        do 
+        {
+            AnimState = static_cast<ETestState>(FMath::RandRange(1, 3));
+        } while (AnimState == CurrentAnimState);
+        EEventType EventCase = static_cast<EEventType>(FMath::RandRange(1, 3));
         
         StartTrack(3, AnimState, EventCase);
     }
