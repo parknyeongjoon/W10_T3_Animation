@@ -30,11 +30,12 @@ UTestAnimInstance::UTestAnimInstance()
     {
         if (self->CurrentSequence != self->StandingSequence) {
             self->bIsBlending = true;
-            self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->StandingSequence;
             self->CurrentSequence->ResetNotifies();
             self->CurrentTime = 0.0f;
+            self->BlendTime = 0.0f;
+            self->CapturePose();
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -47,11 +48,12 @@ UTestAnimInstance::UTestAnimInstance()
     {
         if (self->CurrentSequence != self->JumpSequence) {
             self->bIsBlending = true;
-            self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->JumpSequence;
             self->CurrentSequence->ResetNotifies();
             self->CurrentTime = 0.0f;
+            self->BlendTime = 0.0f;
+            self->CapturePose();
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -64,11 +66,12 @@ UTestAnimInstance::UTestAnimInstance()
     {
         if (self->CurrentSequence != self->DanceSequence) {
             self->bIsBlending = true;
-            self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->DanceSequence;
             self->CurrentSequence->ResetNotifies();
             self->CurrentTime = 0.0f;
+            self->BlendTime = 0.0f;
+            self->CapturePose();
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -87,6 +90,7 @@ UTestAnimInstance::UTestAnimInstance()
             self->CurrentSequence = self->DeafeatedSequence;
             self->CurrentSequence->ResetNotifies();
             self->CurrentTime = 0.0f;
+            self->CapturePose();
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -129,22 +133,24 @@ UTestAnimInstance::UTestAnimInstance()
     CurrentSequence = DanceSequence;
     PreviousSequence = DanceSequence;
     
-    StandingSequence->AddNotify(1.0f, []()
+    StandingSequence->AddNotify(0, 1.0f, []()
     {
         printf("AnimNotify: Standing\n");
     });
-    JumpSequence->AddNotify(1.0f, []()
+    JumpSequence->AddNotify(0, 1.0f, []()
     {
         printf("AnimNotify: Jump\n");
     });
-    DanceSequence->AddNotify(1.0f, []()
+    DanceSequence->AddNotify(0, 1.0f, []()
     {
         printf("AnimNotify: Dancing\n");
     });
-    DeafeatedSequence->AddNotify(1.0f, []()
+    DeafeatedSequence->AddNotify(0, 1.0f, []()
 {
     printf("AnimNotify: Defeated\n");
 });
+
+    CurrentSequence->GetAnimationPose(CurrentPose, FAnimExtractContext(0.0f, true, false));
 }
 
 UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 
@@ -157,6 +163,8 @@ UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) :
     StandingCallback.func = Other.StandingCallback.func;
     JumpCallback.func = Other.JumpCallback.func;
     DanceCallback.func = Other.DanceCallback.func;
+
+    CurrentSequence->GetAnimationPose(CurrentPose, FAnimExtractContext(0.0f, true, false));
 }
 
 UObject* UTestAnimInstance::Duplicate(UObject* InOuter)

@@ -20,11 +20,6 @@ public:
     // 4x4 Matrix로 변환하는 함수
     FMatrix ToMatrixWithScale() const;
     FMatrix ToMatrixNoScale() const;
-    
-private:
-    FQuat Rotation;
-    FVector Location;
-    FVector Scale;
 };
 
 inline const FTransform FTransform::Identity = FTransform();

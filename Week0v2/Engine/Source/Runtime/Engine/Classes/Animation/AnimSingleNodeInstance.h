@@ -45,12 +45,12 @@ public:
 
     void SetElapsedTime(float InElapsedTime)
     {
-        ElapsedTime = InElapsedTime;
+        CurrentTime = InElapsedTime;
     }
 
     float GetElapsedTime() const
     {
-        return ElapsedTime;
+        return CurrentTime;
     }
 
     float GetPlayRate() const
@@ -93,21 +93,17 @@ public:
         CurrentKey = InCurrentKey;
     }
 
-    UAnimSequence* GetCurrentAsset() const
+    UAnimSequence* GetCurrentSequence() const
     {
-        return CurrentAsset;
+        return CurrentSequence;
     }
 
-    void SetCurrentAsset(UAnimSequence* InCurrentAsset)
+    void SetCurrentSequence(UAnimSequence* InCurrentSequence)
     {
-        CurrentAsset = InCurrentAsset;
+        CurrentSequence = InCurrentSequence;
     }
 
 private:
-    UAnimSequence* CurrentAsset;
-
-    float ElapsedTime;
-
     float PreviousTime;
 
     float PlayRate;

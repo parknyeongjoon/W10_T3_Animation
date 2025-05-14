@@ -72,7 +72,7 @@ void ULuaComponent::BeginPlay()
             LuaFunctionOnOverlap = ScriptTable["OnOverlap"];
             LuaFunctionEndPlay = ScriptTable["EndPlay"];
             LuaFunctionDestroyComponent = ScriptTable["DestroyComponent"];
-            
+            ScriptTable["this"] = this;
             // ...
 
             // // 컴포넌트의 LuaData 초기화

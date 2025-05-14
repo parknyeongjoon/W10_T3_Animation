@@ -79,24 +79,24 @@ public:
     void UninitializeComponents() const;
 
 public:
-    USceneComponent* GetRootComponent() const { return RootComponent; }
-    bool SetRootComponent(USceneComponent* NewRootComponent);
+    UFUNCTION_CONST(USceneComponent*, GetRootComponent);
+    UFUNCTION(bool, SetRootComponent, USceneComponent*);
 
-    AActor* GetOwner() const { return Owner; }
-    void SetOwner(AActor* NewOwner) { Owner = NewOwner; }
+    UFUNCTION_CONST(AActor*, GetOwner);
+    UFUNCTION(void, SetOwner, AActor*);
 
 public:
-    FVector GetActorLocation() const { return RootComponent ? RootComponent->GetWorldLocation() : FVector::ZeroVector; }
-    FRotator GetActorRotation() const { return RootComponent ? RootComponent->GetWorldRotation() : FRotator(); }
-    FVector GetActorScale() const { return RootComponent ? RootComponent->GetWorldScale() : FVector::ZeroVector; }
+    UFUNCTION_CONST(FVector, GetActorLocation);
+    UFUNCTION_CONST(FRotator, GetActorRotation);
+    UFUNCTION_CONST(FVector, GetActorScale);
 
-    FVector GetActorForwardVector() const { return RootComponent ? RootComponent->GetWorldForwardVector() : FVector::ForwardVector; }
-    FVector GetActorRightVector() const { return RootComponent ? RootComponent->GetWorldRightVector() : FVector::RightVector; }
-    FVector GetActorUpVector() const { return RootComponent ? RootComponent->GetWorldUpVector() : FVector::UpVector; }
+    UFUNCTION_CONST(FVector, GetActorForwardVector);
+    UFUNCTION_CONST(FVector, GetActorRightVector);
+    UFUNCTION_CONST(FVector, GetActorUpVector);
 
-    bool SetActorLocation(const FVector& NewLocation) const;
-    bool SetActorRotation(const FRotator& NewRotation) const;
-    bool SetActorScale(const FVector& NewScale) const;
+    UFUNCTION_CONST(bool, SetActorLocation, const FVector&);
+    UFUNCTION_CONST(bool, SetActorRotation, const FRotator&);
+    UFUNCTION_CONST(bool, SetActorScale, const FVector&);
 
     UObject* Duplicate(UObject* InOuter) override;
     void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;

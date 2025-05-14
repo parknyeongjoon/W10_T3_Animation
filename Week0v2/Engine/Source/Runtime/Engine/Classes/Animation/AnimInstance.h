@@ -43,10 +43,14 @@ public:
     
     void UpdateAnimation(UAnimSequence* AnimSequence, float DeltaTime);
     void BlendAnimations(UAnimSequence* FromSequence, UAnimSequence* ToSequence,float DeltaTime);
+    void CapturePose(); 
 protected:
     UAnimSequence* CurrentSequence = nullptr;
     UAnimSequence* PreviousSequence = nullptr;
 
+    FPoseContext OriginalPose;
+    FPoseContext TargetPose;
+    FPoseContext CurrentPose;
 
     float BlendTime = 0;
     float BlendDuration = 0.5f;
