@@ -20,6 +20,7 @@ public: \
     static UClass* StaticClass() { \
         static UClass ClassInfo{ TEXT(#TClass), static_cast<uint32>(sizeof(TClass)), static_cast<uint32>(alignof(TClass)), TSuperClass::StaticClass() }; \
         ClassInfo.Creator = [](UObject* InOuter) -> void* { return FObjectFactory::ConstructObject<TClass>(InOuter); }; \
+        ClassInfo.BindPropertiesToLua = TClass::BindPropertiesToLua; \
         return &ClassInfo; \
     } \
 private: \

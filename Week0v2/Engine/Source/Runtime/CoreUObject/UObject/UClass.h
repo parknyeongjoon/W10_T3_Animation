@@ -62,7 +62,12 @@ public:
         }
         return ClassDefaultObject;
     }
-
+    
+    /** Lua에 UPROPERTY를 Bind하는 함수.
+     *  DECLARE_CLASS에서 초기화됨
+     */
+    std::function<void(sol::state&)> BindPropertiesToLua;
+    
 protected:
     virtual UObject* CreateDefaultObject();
 

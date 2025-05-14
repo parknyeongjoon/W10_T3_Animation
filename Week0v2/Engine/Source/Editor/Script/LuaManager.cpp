@@ -60,6 +60,12 @@ void FLuaManager::Initialize()
         {
             std::cout << "[LuaLog] " << message << std::endl;
         };
+
+        LuaState.set_function("PrintObject", [](const sol::object& obj)
+        {
+            std::cout << LuaObjToString(obj) << std::endl;
+        });
+        
         // Lua 스크립트에 필요한 핵심 C++ 타입 바인딩
         BindCoreTypes();
 
@@ -151,7 +157,7 @@ sol::table FLuaManager::GetOrLoadScriptTable(const FString& ScriptPath) // FStri
         else
         {
             // 단계 8: 테이블이 아니면 오류 처리
-             std::cerr << "Error: Script '” << ScriptPath << ‘’ did not return a table after execution." << std::endl;
+             std::cerr << "Error: Script " << ScriptPath << " did not return a table after execution." << std::endl;
              return sol::lua_nil; // 유효하지 않은 테이블 반환
         }
 
@@ -196,16 +202,17 @@ void FLuaManager::BindCoreTypes()
     // Object Types
     // 부모 부터 바인딩 해야함
     //LuaTypes::FBindLua<ALuaActor>::Bind(Ns);
-    LuaTypes::FBindLua<UObject>::Bind(Ns);
-    LuaTypes::FBindLua<AActor>::Bind(Ns);
+    // LuaTypes::FBindLua<UObject>::Bind(Ns);
+    // LuaTypes::FBindLua<AActor>::Bind(Ns);
+    //
+    // LuaTypes::FBindLua<UActorComponent>::Bind(Ns);
+    // LuaTypes::FBindLua<USceneComponent>::Bind(Ns);
+    // LuaTypes::FBindLua<UStaticMeshComponent>::Bind(Ns);
 
-    
-    
-    LuaTypes::FBindLua<UActorComponent>::Bind(Ns);
-    LuaTypes::FBindLua<USceneComponent>::Bind(Ns);
-    LuaTypes::FBindLua<UStaticMeshComponent>::Bind(Ns);
-
-    
+    for (const auto& [name, meta]: UClassRegistry::Get().Registry)
+    {
+        meta->BindPropertiesToLua(LuaState);
+    }
 
 
     generateStubs(LuaState);
@@ -319,4 +326,72 @@ void FLuaManager::BindFStringToLua(sol::table& lua)
         // Printf 를 위한 대안 (Lua 측에서 처리)
         // Lua 스크립트에서: local formattedString = string.format("Hello %s %d", fstringInstance:ToString(), 123)
     );
+}
+
+std::string FLuaManager::LuaObjToString(const sol::object& obj, int depth, bool showHidden) {
+    if (obj.get_type() == sol::type::nil) {
+       return "nil";
+    } else if (obj.is<std::string>()) {
+        return "\"" + obj.as<std::string>() + "\"";
+    } else if (obj.is<int>()) {
+        return std::to_string(obj.as<int>());
+    } else if (obj.is<double>()) {
+        return std::to_string(obj.as<double>());
+    } else if (obj.is<bool>()) {
+        return obj.as<bool>() ? "true" : "false";
+    } else if (obj.get_type() == sol::type::table) {
+        std::string result = "{";
+        sol::table tbl = obj;
+        bool first = true;
+        for (auto& kv : tbl) {
+            if (!showHidden && kv.first.as<std::string>().starts_with("__"))
+                continue;
+            if (!first) result += ", ";
+            first = false;
+            result += LuaObjToString(kv.first, depth + 1, showHidden) + " : " + LuaObjToString(kv.second, depth + 1, showHidden);
+        }
+        result += "}";
+        return result;
+    } else  if (obj.get_type() == sol::type::userdata) {
+        sol::table tbl = obj;
+        sol::table metatable = tbl[sol::metatable_key];
+        std::string type = metatable["__type"]["name"];
+        if (obj.is<FVector>())
+        {
+            FVector vec = obj.as<FVector>();
+            std::string result = "[FVector](";
+            result += vec.X; result += ",";
+            result += vec.Y; result += ",";
+            result += vec.Z; result += ")";
+            return result;
+        }
+        else if (obj.is<FString>())
+        {
+            std::string result = "[FString]\"";
+            result += GetData(obj.as<FString>());
+            result += "\"";
+            return result;
+        }
+        else if (obj.is<FRotator>())
+        {
+            FRotator rot = obj.as<FRotator>();
+            std::string result = "[FRotator](";
+            result += rot.Pitch; result += ",";
+            result += rot.Yaw; result += ",";
+            result += rot.Roll; result += ")";
+            return result;
+        }
+        else
+        {
+            std::string result = "[";
+            result += metatable["__type"]["name"];
+            result += "]:";
+            result += LuaObjToString(metatable, depth + 1, false);
+            return result;
+        }
+    } else if (obj.get_type() == sol::type::function) {
+        return "[function]";
+    } else {
+        return "[unknown type]";
+    }
 }

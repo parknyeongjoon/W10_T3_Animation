@@ -65,8 +65,9 @@ void UEditorEngine::Tick(float DeltaTime)
     {
         WorldContext->GetWorld()->Tick(WorldContext->LevelType, DeltaTime);
     }
-    
-    CollisionManager.UpdateCollision(DeltaTime);
+
+    // TODO: 삭제된 오브젝트 참조하는 문제 수정하기
+    // CollisionManager.UpdateCollision(DeltaTime);
     
     Input();
     
