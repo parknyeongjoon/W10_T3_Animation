@@ -181,7 +181,7 @@ void AnimSequenceEditorPanel::Render()
                     if (ImGui::MenuItem("Add Notify"))
                     {
                         // @todo 테스트용 람다 작성 설정
-                        AnimSeqence->AddNotify(TrackIdx, Elapsed, []() {}, 0, "New Notify");
+                        AnimSeqence->AddNotify(TrackIdx, Elapsed, []() { printf("NO!!!!!!!!!!!!!!!!!\n"); }, 0, "New Notify");
                     }
                     ImGui::EndPopup();
                 }

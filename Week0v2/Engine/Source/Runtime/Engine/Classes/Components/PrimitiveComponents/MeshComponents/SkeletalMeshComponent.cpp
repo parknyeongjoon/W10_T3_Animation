@@ -202,14 +202,14 @@ void USkeletalMeshComponent::SetAnimSequence(UAnimSequence* NewAnimToPlay)
     }
     if (UAnimSingleNodeInstance* SingleNodeInstance = GetSingleNodeInstance())
     {
-        SingleNodeInstance->SetCurrentAsset(NewAnimToPlay);
+        SingleNodeInstance->SetCurrentSequence(NewAnimToPlay);
     }
 }
 
 UAnimSequence* USkeletalMeshComponent::GetAnimSequence() const
 {
 
-    return GetSingleNodeInstance()->GetCurrentAsset();
+    return GetSingleNodeInstance()->GetCurrentSequence();
 }
 
 void USkeletalMeshComponent::SkinningVertex()
