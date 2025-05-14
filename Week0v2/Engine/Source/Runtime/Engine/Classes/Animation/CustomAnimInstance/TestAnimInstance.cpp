@@ -27,11 +27,12 @@ UTestAnimInstance::UTestAnimInstance()
     {
         if (self->CurrentSequence != self->IdleSequence) {
             self->bIsBlending = true;
-            self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->IdleSequence;
             self->CurrentSequence->ResetNotifies();
             self->CurrentTime = 0.0f;
+            self->BlendTime = 0.0f;
+            self->CapturePose();
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -44,11 +45,12 @@ UTestAnimInstance::UTestAnimInstance()
     {
         if (self->CurrentSequence != self->WalkSequence) {
             self->bIsBlending = true;
-            self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->WalkSequence;
             self->CurrentSequence->ResetNotifies();
             self->CurrentTime = 0.0f;
+            self->BlendTime = 0.0f;
+            self->CapturePose();
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -61,11 +63,12 @@ UTestAnimInstance::UTestAnimInstance()
     {
         if (self->CurrentSequence != self->DanceSequence) {
             self->bIsBlending = true;
-            self->BlendTime = 0.0f;
             self->PreviousSequence = self->CurrentSequence;
             self->CurrentSequence = self->DanceSequence;
             self->CurrentSequence->ResetNotifies();
             self->CurrentTime = 0.0f;
+            self->BlendTime = 0.0f;
+            self->CapturePose();
         }
         if (self->bIsBlending) {
             self->BlendAnimations(self->PreviousSequence, self->CurrentSequence, DeltaTime);
@@ -126,6 +129,8 @@ UTestAnimInstance::UTestAnimInstance()
     {
         printf("AnimNotify: Dancing\n");
     });
+
+    CurrentSequence->GetAnimationPose(CurrentPose, FAnimExtractContext(0.0f, true, false));
 }
 
 UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 
@@ -137,6 +142,8 @@ UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) :
     IdleCallback.func = Other.IdleCallback.func;
     WalkCallback.func = Other.WalkCallback.func;
     DanceCallback.func = Other.DanceCallback.func;
+
+    CurrentSequence->GetAnimationPose(CurrentPose, FAnimExtractContext(0.0f, true, false));
 }
 
 UObject* UTestAnimInstance::Duplicate(UObject* InOuter)
