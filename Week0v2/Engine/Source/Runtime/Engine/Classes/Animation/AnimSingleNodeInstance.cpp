@@ -87,14 +87,22 @@ void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds)
     if (bPlaying)
     {
         float DeltaPlayTime = DeltaSeconds * PlayRate;
-        if (bReverse)
+
+        if (!bLooping)
         {
-            DeltaPlayTime *= -1.0f;
+            if (!bReverse&&ElapsedTime == EndTime)
+            {
+                ElapsedTime = StartTime;
+            }
+            else if (bReverse && ElapsedTime == StartTime)
+            {
+                ElapsedTime = EndTime;
+            }   
         }
 
         PreviousTime = ElapsedTime;
         ElapsedTime += DeltaPlayTime;
-
+        CurrentKey = static_cast<int32>(ElapsedTime * FrameRate);
         //CurrentAsset->EvaluateAnimNotify()
 
 
@@ -113,13 +121,20 @@ void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds)
         {
             if (!bReverse && ElapsedTime >= EndTime)
             {
-                ElapsedTime = StartTime;
+                ElapsedTime = EndTime;
+                bPlaying = false;
             }
             else if (bReverse && ElapsedTime <= StartTime)
             {
-                ElapsedTime = EndTime;
+                ElapsedTime = StartTime;
+                bPlaying = false;
             }
         }
+    }
+    else
+    {
+        PreviousTime = ElapsedTime;
+        ElapsedTime = static_cast<float>(CurrentKey) / static_cast<float>(FrameRate);
     }
 
     FPoseContext Pose;
@@ -136,5 +151,4 @@ void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds)
         );
         SkeletalMesh->GetRenderData().Bones[i].LocalTransform = TransformMatrix;
     }
-
 }
