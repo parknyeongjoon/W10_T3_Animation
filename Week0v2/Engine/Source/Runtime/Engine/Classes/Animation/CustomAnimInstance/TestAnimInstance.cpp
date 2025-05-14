@@ -88,19 +88,27 @@ UTestAnimInstance::UTestAnimInstance()
         });
 
     AnimStateMachine->AddTransition(ETestState::Idle, ETestState::Dancing, [&]() { 
-    return (GetAsyncKeyState('Z') & 0x8000);
+    return (GetAsyncKeyState('X') & 0x8000);
     });
 
-    AnimStateMachine->AddTransition(ETestState::Walking, ETestState::Dancing, [&]() {
-        ACharacter* Character = Cast<ACharacter>(GetOwningActor());
-        printf("%f", Character->GetMovementComponent()->Velocity.Magnitude());
-        return Character->GetMovementComponent()->Velocity.Magnitude() < 0.1f;
+    AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Walking, [&]() {
+        return (GetAsyncKeyState('C') & 0x8000);
         });
 
-    AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Walking, [&]() {
-        ACharacter* Character = Cast<ACharacter>(GetOwningActor());
-        return Character->GetMovementComponent()->Velocity.Magnitude() >= 0.1f;
+    AnimStateMachine->AddTransition(ETestState::Walking, ETestState::Idle, [&]() {
+        return (GetAsyncKeyState('V') & 0x8000);
         });
+
+    //AnimStateMachine->AddTransition(ETestState::Walking, ETestState::Dancing, [&]() {
+    //    ACharacter* Character = Cast<ACharacter>(GetOwningActor());
+    //    printf("%f", Character->GetMovementComponent()->Velocity.Magnitude());
+    //    return Character->GetMovementComponent()->Velocity.Magnitude() < 0.1f;
+    //    });
+
+    //AnimStateMachine->AddTransition(ETestState::Dancing, ETestState::Walking, [&]() {
+    //    ACharacter* Character = Cast<ACharacter>(GetOwningActor());
+    //    return Character->GetMovementComponent()->Velocity.Magnitude() >= 0.1f;
+    //    });
     // 초기 상태 설정
     AnimStateMachine->SetState(ETestState::Dancing);
     CurrentSequence = DanceSequence;
