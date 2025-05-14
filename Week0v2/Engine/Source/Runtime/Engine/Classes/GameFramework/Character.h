@@ -15,6 +15,8 @@ public:
     UObject* Duplicate(UObject* InOuter) override;
     void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
 
+    void Tick(float DeltaTime) override;
+
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
     virtual void PossessedBy(AController* NewController) override;

@@ -325,6 +325,7 @@ void UWorld::BeginPlay()
         {
             ACharacter* Character = SpawnActor<ACharacter>();
             PlayerController->Possess(Character);
+            Character->SetActorScale(FVector(0.2f, 0.2f, 0.2f));
         }
         
         APlayerCameraManager* PlayerCameraManager = SpawnActor<APlayerCameraManager>();
