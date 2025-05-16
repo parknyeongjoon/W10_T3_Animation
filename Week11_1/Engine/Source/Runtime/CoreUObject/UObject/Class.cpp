@@ -85,6 +85,17 @@ bool UClass::IsChildOf(const UClass* SomeBase) const
     return false;
 }
 
+
+UObject* UClass::GetDefaultObject() const
+{
+    if (!ClassDefaultObject)
+    {
+        const_cast<UClass*>(this)->CreateDefaultObject();
+    }
+    return ClassDefaultObject;
+}
+
+
 void UClass::RegisterProperty(FProperty* Prop)
 {
     /* 왠지 모르겠지만 TArray(std::vector)를 사용하면 Debug모드에서 Iterator검사를 하게 되는데,

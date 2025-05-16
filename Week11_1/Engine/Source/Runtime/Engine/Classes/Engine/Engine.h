@@ -30,7 +30,7 @@ private:
 
 class UEngine : public UObject
 {
-    DECLARE_CLASS(UEngine, UObject)
+    DECLARE_ABSTRACT_CLASS(UEngine, UObject)
 
 public:
     UEngine() = default;

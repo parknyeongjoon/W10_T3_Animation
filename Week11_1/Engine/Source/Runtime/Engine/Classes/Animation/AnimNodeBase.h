@@ -1,6 +1,8 @@
 #pragma once
 #include "Container/Array.h"
 #include "Math/Transform.h"
+#include "CoreUObject/UObject/NameTypes.h"
+#include "Container/Map.h"
 
 struct FCompactPose
 {

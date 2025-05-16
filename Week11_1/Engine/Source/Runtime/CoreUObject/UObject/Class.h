@@ -6,6 +6,7 @@
 #include "ThirdParty/sol/sol.hpp"
 #include "Property.h"
 
+//struct FProperty;
 /**
  * UObject의 RTTI를 가지고 있는 클래스
  */
@@ -79,14 +80,14 @@ public:
         return SuperClass;
     }
 
-    UObject* GetDefaultObject() const
-    {
-        if (!ClassDefaultObject)
-        {
-            const_cast<UClass*>(this)->CreateDefaultObject();
-        }
-        return ClassDefaultObject;
-    }
+    UObject* GetDefaultObject() const;
+
+    template <typename T>
+        requires std::derived_from<T, UObject>
+    T* GetDefaultObject() const;
+
+    const TArray<FProperty*>& GetProperties() const { return Properties; }
+
 
     /** Lua에 UPROPERTY를 Bind하는 함수.
      *  DECLARE_CLASS에서 초기화됨
@@ -140,3 +141,12 @@ public:
 
     TMap<FName, UClass*> Registry;
 };
+
+template <typename T>
+    requires std::derived_from<T, UObject>
+T* UClass::GetDefaultObject() const
+{
+    UObject* Ret = GetDefaultObject();
+    assert(Ret->IsA<T>());
+    return static_cast<T*>(Ret);
+}

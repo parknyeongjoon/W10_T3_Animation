@@ -1,7 +1,7 @@
 #pragma once
 #include "EngineStatics.h"
-#include "Object.h"
 #include "Class.h"
+#include "Object.h"
 #include "UObjectArray.h"
 #include "UserInterface/Console.h"
 

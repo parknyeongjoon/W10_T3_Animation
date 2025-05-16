@@ -1,7 +1,6 @@
 #pragma once
 #include "Quat.h"
 #include "Vector.h"
-#include "UObject/ObjectMacros.h"
 #include "Rotator.h"
 
 class FTransform

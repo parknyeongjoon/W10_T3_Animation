@@ -8,7 +8,18 @@ extern UEngine* GEngine;
 
 UClass* UObject::StaticClass()
 {
-    static UClass ClassInfo{ TEXT("UObject"), sizeof(UObject), alignof(UObject), nullptr };
+    static UClass ClassInfo{
+        "UObject",
+        sizeof(UObject),
+        alignof(UObject),
+        nullptr,
+        []() -> UObject*
+        {
+            void* RawMemory = FPlatformMemory::Malloc<EAT_Object>(sizeof(UObject));
+            ::new (RawMemory) UObject;
+            return static_cast<UObject*>(RawMemory);
+        }
+    };
     return &ClassInfo;
 }
 
