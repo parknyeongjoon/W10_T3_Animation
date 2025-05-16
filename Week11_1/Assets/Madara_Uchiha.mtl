@@ -1,0 +1,72 @@
+# Blender 3.6.21 MTL File: 'Madara_Uchiha.blend'
+# www.blender.org
+
+newmtl Blender_Render_Madara_Eyes.001
+Ns 96.078453
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.160000 0.160000 0.160000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd Sharingan_texture.jpg
+
+newmtl Blender_Render_Madara_Eyes_NONE
+Ns 96.078453
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.160000 0.160000 0.160000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd Sharingan_texture.jpg
+
+newmtl Blender_Render_Madara_Material
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.004573 0.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Blender_Render_Madara_Material.001
+Ns 96.078453
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd _Madara_texture_main_mAIN.png
+
+newmtl Blender_Render_Madara_Material_NONE
+Ns 96.078453
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd _Madara_texture_main_mAIN.png
+
+newmtl None
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.800000 0.800000 0.800000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Outline
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2

@@ -1,0 +1,158 @@
+#pragma kernel TileCulling
+
+#define MAX_POINTLIGHT_COUNT 16
+
+struct FDirectionalLight
+{
+    float3 Direction;
+    float Intensity;
+    float4 Color;
+};
+
+struct FPointLight
+{
+    float3 Position;
+    float Radius;
+    
+    float4 Color;
+    
+    float Intensity;
+    float AttenuationFalloff;
+    float2 pad;
+};
+
+struct FSpotLight
+{
+    float3 Position;
+    float Intensity;
+    
+    float4 Color;
+    
+    float3 Direction;
+    float InnerAngle;
+    
+    float OuterAngle;
+    float3 pad;
+};
+
+cbuffer FComputeConstants : register(b0){
+    row_major matrix InverseView;
+    row_major matrix InverseProj;
+    float screenWidth;
+    float screenHeight;
+    int numTilesX;
+    int numTilesY;
+}
+
+cbuffer FLightingConstants : register(b1)
+{
+    uint NumPointLights;
+    uint NumSpotLights;
+    float pad;
+
+    FDirectionalLight DirLights;
+    FPointLight PointLights[16];
+    FSpotLight SpotLights[8];
+};
+
+// 출력 버퍼: 타일별 영향받는 광원 인덱스 리스트
+RWStructuredBuffer<uint> TileLightIndices : register(u0);
+
+
+bool IntersectRaySphere(float3 rayOrigin, float3 rayDir, float3 sphereCenter, float radius)
+{
+    float3 OriginToCenter = sphereCenter - rayOrigin;
+    
+    if (dot(OriginToCenter, OriginToCenter) < radius * radius)
+    {
+        return true;
+    }
+    
+    if (dot(rayDir, OriginToCenter) < 0)
+    {
+        return false;
+    }
+    
+    float3 oc = rayOrigin - sphereCenter;
+    float a = dot(rayDir, rayDir);
+    float b = 2.0 * dot(oc, rayDir);
+    float c = dot(oc, oc) - radius * radius;
+
+    float discriminant = b * b - 4.0 * a * c;
+    return discriminant >= 0.0;
+}
+
+// 타일 크기 설정
+static const uint TILE_SIZE_X = 16;
+static const uint TILE_SIZE_Y = 16;
+
+// 쓰레드 그룹 크기 설정
+[numthreads(TILE_SIZE_X, TILE_SIZE_Y, 1)]
+void mainCS (uint3 tid : SV_DispatchThreadID, uint3 gid : SV_GroupID) {
+    // 타일 ID 계산
+    uint tileIndex = gid.y * numTilesX + gid.x;
+    float2 tileMin = float2(gid.x * TILE_SIZE_X, gid.y * TILE_SIZE_Y);
+    float2 tileMax = tileMin + float2(TILE_SIZE_X, TILE_SIZE_Y);
+    float2 screenSize = float2(screenWidth, screenHeight);
+
+    // 1. 타일 NDC 코너 계산
+    float2 tileCorners[4];
+    tileCorners[0] = tileMin;
+    tileCorners[1] = float2(tileMax.x, tileMin.y);
+    tileCorners[2] = float2(tileMin.x, tileMax.y);
+    tileCorners[3] = tileMax;
+
+    float3 rayOrigin[4];
+    float3 rayDir[4];
+    
+    for (int c = 0; c < 4; ++c)
+    {
+        float2 uv = tileCorners[c] / screenSize;
+        float2 ndc = uv * 2.0 - 1.0;
+        ndc.y *= -1.0;
+
+        // Near/Far
+        float4 ndcNear = float4(ndc, 0, 1);
+        float4 ndcFar = float4(ndc, 1, 1);
+
+        float4 viewNear = mul(ndcNear, InverseProj);
+        float4 viewFar = mul(ndcFar, InverseProj);
+        viewNear /= viewNear.w;
+        viewFar /= viewFar.w;
+
+        float4 worldNear = mul(viewNear, InverseView);
+        float4 worldFar = mul(viewFar, InverseView);
+
+        rayOrigin[c] = worldNear.xyz;
+        rayDir[c] = normalize(worldFar.xyz - worldNear.xyz);
+    }
+    // 타일별 광원 충돌 체크 (코너 4개에서 정면 레이)
+    uint tileOffset = tileIndex * MAX_POINTLIGHT_COUNT;
+    uint lightCount = 0;
+
+    [unroll]
+    for (uint k = 0; k < MAX_POINTLIGHT_COUNT; ++k)
+    {
+        TileLightIndices[tileOffset + k] = 0xFFFFFFFF;
+    }
+    
+    for (uint i = 0; i < NumPointLights; ++i)
+    {
+        bool anyHit = false;
+
+        for (int c=0;c<4;c++)
+        {
+            if (IntersectRaySphere(rayOrigin[c], rayDir[c], PointLights[i].Position, PointLights[i].Radius))
+            {
+                anyHit = true;
+                break;
+            }
+        }
+        
+        if (anyHit)
+        {
+            TileLightIndices[tileOffset + lightCount] = i;
+            ++lightCount;
+        }
+    }
+}

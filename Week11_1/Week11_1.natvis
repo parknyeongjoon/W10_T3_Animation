@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+	<!-- FName Visualizer -->
+	<Type Name="FName" Priority="High">
+		<DisplayString Condition="DisplayIndex == 0">"None"</DisplayString>
+		<DisplayString Condition="DisplayIndex != 0">{*ToString()}</DisplayString>
+		<Expand>
+			<Item Name="DisplayIndex">DisplayIndex</Item>
+			<Item Name="ComparisonIndex">ComparisonIndex</Item>
+		</Expand>
+	</Type>
+
+</AutoVisualizer>

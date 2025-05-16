@@ -1,0 +1,15 @@
+# Visual Studio가 C++ 설정을 사용하여 .editorconfig 파일을 생성했습니다.
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+tab_width = 4
+trim_trailing_whitespace = false
+max_line_length = 150
+
+# ReSharper properties
+resharper_cpp_keep_user_linebreaks = true
+resharper_cpp_wrap_before_colon = true
+resharper_cpp_line_break_before_comma_in_member_initializer_lists = true

@@ -1,0 +1,13 @@
+# Blender 4.3.2 MTL File: 'None'
+# www.blender.org
+
+newmtl MatID_1.001
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd Castle_Wall_sbxuw_Low_1K_BaseColor.jpg
+map_Ns Castle_Wall_sbxuw_Low_1K_Roughness.jpg
+map_Bump -bm 1.000000 Castle_Wall_sbxuw_Low_1K_Normal.jpg
