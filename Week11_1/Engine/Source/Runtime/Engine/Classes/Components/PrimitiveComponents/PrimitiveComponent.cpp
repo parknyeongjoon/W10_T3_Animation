@@ -12,13 +12,6 @@ UPrimitiveComponent::UPrimitiveComponent()
 }
 
 
-UPrimitiveComponent::UPrimitiveComponent(const UPrimitiveComponent& Other)
-    : USceneComponent(Other)
-    , VBIBTopologyMappingName(Other.VBIBTopologyMappingName)
-{
-}
-
-
 UPrimitiveComponent::~UPrimitiveComponent()
 {
 }
@@ -115,7 +108,7 @@ bool UPrimitiveComponent::IntersectRayTriangle(const FVector& rayOrigin, const F
 
 UObject* UPrimitiveComponent::Duplicate(UObject* InOuter)
 {
-    UPrimitiveComponent* NewComp = FObjectFactory::ConstructObjectFrom<UPrimitiveComponent>(this, InOuter);
+    UPrimitiveComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

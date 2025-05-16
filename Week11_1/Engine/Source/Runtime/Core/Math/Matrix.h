@@ -7,6 +7,44 @@ struct FVector;
 struct FRotator;
 struct FQuat;
 
+namespace EAxis
+{
+    enum Type
+    {
+        None,
+        X,
+        Y,
+        Z,
+    };
+}
+
+
+// Extended axis enum for more specialized usage
+namespace EAxisList
+{
+    enum Type
+    {
+        None = 0,
+        X = 1,
+        Y = 2,
+        Z = 4,
+
+        Screen = 8,
+        XY = X | Y,
+        XZ = X | Z,
+        YZ = Y | Z,
+        XYZ = X | Y | Z,
+        All = XYZ | Screen,
+
+        //alias over Axis YZ since it isn't used when the z-rotation widget is being used
+        ZRotation = YZ,
+
+        // alias over Screen since it isn't used when the 2d translate rotate widget is being used
+        Rotate2D = Screen,
+    };
+}
+
+
 // 4x4 행렬 연산
 struct alignas(16) FMatrix
 {
@@ -26,11 +64,21 @@ public:
     float* operator[](int row);
     const float* operator[](int row) const;
 	
+    FVector ExtractScaling(float Tolerance = SMALL_NUMBER);
+    FVector GetOrigin() const;
+    float Determinant() const;
+
+    void SetAxis(int32 i, const FVector& Axis);
+    FVector GetScaledAxis(EAxis::Type InAxis) const;
+
     // 유틸리티 함수
     static FMatrix Transpose(const FMatrix& Mat);
     static FMatrix Inverse(const FMatrix& Mat);
     static FMatrix CreateRotationMatrix(float roll, float pitch, float yaw);
+    static FMatrix CreateRotationMatrix(const FRotator& rot);
+    static FMatrix CreateRotationMatrix(const FQuat& quat);
     static FMatrix CreateScaleMatrix(float scaleX, float scaleY, float scaleZ);
+    static FMatrix CreateScaleMatrix(const FVector& scale);
     static FVector TransformVector(const FVector& v, const FMatrix& m);
     static FVector4 TransformVector(const FVector4& v, const FMatrix& m);
     static FMatrix CreateTranslationMatrix(const FVector& position);

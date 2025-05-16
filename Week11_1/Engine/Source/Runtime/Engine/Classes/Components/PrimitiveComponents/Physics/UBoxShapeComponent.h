@@ -26,7 +26,6 @@ class UBoxShapeComponent : public UShapeComponent
 
 public:
     UBoxShapeComponent();
-    UBoxShapeComponent(const UBoxShapeComponent& Other);
     virtual ~UBoxShapeComponent() override;
 
     void InitializeComponent() override;

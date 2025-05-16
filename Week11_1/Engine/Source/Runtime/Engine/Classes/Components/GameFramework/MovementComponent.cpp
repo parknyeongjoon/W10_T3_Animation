@@ -15,16 +15,6 @@ UMovementComponent::UMovementComponent()
     bInInitializeComponent = false;
 }
 
-UMovementComponent::UMovementComponent(const UMovementComponent& Other)
-    : UActorComponent(Other)
-    , Velocity(Other.Velocity)
-    , bUpdateOnlyIfRendered(Other.bUpdateOnlyIfRendered)
-    , bAutoUpdateTickRegistration(Other.bAutoUpdateTickRegistration)
-    , bAutoRegisterUpdatedComponent(Other.bAutoRegisterUpdatedComponent)
-    , bInInitializeComponent(Other.bInInitializeComponent)
-{
-}
-
 float UMovementComponent::GetGravityZ() const
 {
     return -0.981f; // Todo: Get gravity after physics volume work. 
@@ -75,7 +65,7 @@ bool UMovementComponent::MoveComponent(const FVector& Delta)
 
 UObject* UMovementComponent::Duplicate(UObject* InOuter)
 {
-    UMovementComponent* NewComp = FObjectFactory::ConstructObjectFrom<UMovementComponent>(this, InOuter);
+    UMovementComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

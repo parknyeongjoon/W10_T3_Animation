@@ -9,7 +9,6 @@ class USkySphereComponent : public UStaticMeshComponent
 
 public:
     USkySphereComponent();
-    USkySphereComponent(const USkySphereComponent& Other);
     virtual ~USkySphereComponent() override;
 
     virtual void InitializeComponent() override;

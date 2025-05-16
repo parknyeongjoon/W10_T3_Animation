@@ -1,6 +1,6 @@
 #pragma once
 #include "HAL/PlatformType.h"
-#include "UObject/UClass.h"
+#include "UObject/Class.h"
 
 
 template <typename T>

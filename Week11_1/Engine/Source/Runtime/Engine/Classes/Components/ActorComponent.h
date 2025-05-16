@@ -26,7 +26,6 @@ private:
 public:
     UActorComponent();
     ~UActorComponent() override = default;
-    UActorComponent(const UActorComponent& Other);
 
     /** AActor가 World에 Spawn되어 BeginPlay이전에 호출됩니다. */
     virtual void InitializeComponent();
@@ -63,10 +62,10 @@ public:
     bool HasBeenInitialized() const { return bHasBeenInitialized; }
 
     /** Component가 현재 활성화 중인지 여부를 반환합니다. */
-    UFUNCTION_CONST(bool, IsActive);
+    bool IsActive() const { return bIsActive; }
 
-    UFUNCTION(void, Activate);
-    UFUNCTION(void, Deactivate);
+    void Activate() { bIsActive = true; }
+    void Deactivate() { bIsActive = false; }
 
     bool IsComponentTickEnabled() const { return bTickEnabled; }
     void SetComponentTickEnabled(const bool bEnabled) { bTickEnabled = bEnabled; }

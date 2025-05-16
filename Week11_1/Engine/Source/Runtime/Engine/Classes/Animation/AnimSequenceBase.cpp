@@ -9,17 +9,9 @@ UAnimSequenceBase::UAnimSequenceBase()
     AddNotifyTrack("0");
 }
 
-UAnimSequenceBase::UAnimSequenceBase(const UAnimSequenceBase& Other)
-    :UAnimationAsset(Other),
-    Notifies(Other.Notifies),
-    RateScale(Other.RateScale),
-    DataModel(Other.DataModel)
-{
-}
-
 UObject* UAnimSequenceBase::Duplicate(UObject* InOuter)
 {
-    UAnimSequenceBase* NewComp = FObjectFactory::ConstructObjectFrom<UAnimSequenceBase>(this, InOuter);
+    UAnimSequenceBase* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

@@ -1,31 +1,33 @@
 #pragma once
-#include <concepts>
-
 #include "EngineStatics.h"
 #include "Object.h"
+#include "Class.h"
 #include "UObjectArray.h"
-#include "HAL/PlatformType.h"
 #include "UserInterface/Console.h"
 
 class FObjectFactory
 {
 public:
-    template <typename T>
-        requires std::derived_from<T, UObject>
-    static T* ConstructObject(UObject* InOuter)
+    static UObject* ConstructObject(UClass* InClass, UObject* InOuter, FName InName = NAME_None)
     {
-        uint32 id = UEngineStatics::GenUUID();
-        FString Name = T::StaticClass()->GetName() + "_" + std::to_string(id);
+        const uint32 Id = UEngineStatics::GenUUID();
+        FName Name = FString::Printf(TEXT("%s_%d"), *InClass->GetName(), Id);
 
-        T* Obj = new T; // TODO: FPlatformMemory::Malloc으로 변경, placement new 사용시 Free방법 생각하기
-        Obj->ClassPrivate = T::StaticClass();
+        if (InName != NAME_None)
+        {
+            Name = InName;
+        }
+
+        UObject* Obj = InClass->ClassCTOR();
+        Obj->UUID = Id;
         Obj->NamePrivate = Name;
+        Obj->ClassPrivate = InClass;
         Obj->OuterPrivate = InOuter;
-        Obj->UUID = id;
 
         GUObjectArray.AddObject(Obj);
 
-        UE_LOG(LogLevel::Display, "Created New Object : %s", *Name);
+        UE_LOG(LogLevel::Display, "Created Object: %s, Size: %d", *Obj->GetName(), InClass->GetClassSize());
+
         return Obj;
     }
     template <typename T>
@@ -45,5 +47,19 @@ public:
 
         UE_LOG(LogLevel::Display, "Cloned Object : %s", *Name);
         return Obj;
+    }
+
+    template<typename T>
+        requires std::derived_from<T, UObject>
+    static T* ConstructObject(UObject* InOuter)
+    {
+        return static_cast<T*>(ConstructObject(T::StaticClass(), InOuter));
+    }
+
+    template<typename T>
+        requires std::derived_from<T, UObject>
+    static T* ConstructObject(UObject* InOuter, FName InName)
+    {
+        return static_cast<T*>(ConstructObject(T::StaticClass(), InOuter, InName));
     }
 };

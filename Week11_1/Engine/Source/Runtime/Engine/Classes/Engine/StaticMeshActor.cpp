@@ -1,4 +1,4 @@
-﻿#include "StaticMeshActor.h"
+#include "StaticMeshActor.h"
 
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 
@@ -9,7 +9,3 @@ AStaticMeshActor::AStaticMeshActor()
     RootComponent = StaticMeshComponent;
 }
 
-AStaticMeshActor::AStaticMeshActor(const AStaticMeshActor& Other)
-    : Super(Other)
-{
-}

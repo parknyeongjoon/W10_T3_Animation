@@ -1,17 +1,12 @@
 #include "UCapsuleShapeComponent.h"
 #include "Math/JungleMath.h"
+#include "CoreUObject/UObject/ObjectFactory.h"
+#include "CoreUObject/UObject/Casts.h"
 
 UCapsuleShapeComponent::UCapsuleShapeComponent()
     : UShapeComponent()
     , CapsuleHalfHeight(0.5f) // Default capsule half height
     , CapsuleRadius(0.5f)     // Default capsule radius
-{
-}
-
-UCapsuleShapeComponent::UCapsuleShapeComponent(const UCapsuleShapeComponent& Other)
-    : UShapeComponent(Other)
-    , CapsuleHalfHeight(Other.CapsuleHalfHeight)
-    , CapsuleRadius(Other.CapsuleRadius)
 {
 }
 
@@ -21,7 +16,7 @@ UCapsuleShapeComponent::~UCapsuleShapeComponent()
 
 UObject* UCapsuleShapeComponent::Duplicate(UObject* InOuter)
 {
-    UCapsuleShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<UCapsuleShapeComponent>(this, InOuter);
+    UCapsuleShapeComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

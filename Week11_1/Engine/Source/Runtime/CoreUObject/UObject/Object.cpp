@@ -8,7 +8,7 @@ extern UEngine* GEngine;
 
 UClass* UObject::StaticClass()
 {
-    static UClass ClassInfo{TEXT("UObject"), sizeof(UObject), alignof(UObject), nullptr};
+    static UClass ClassInfo{ TEXT("UObject"), sizeof(UObject), alignof(UObject), nullptr };
     return &ClassInfo;
 }
 
@@ -20,7 +20,7 @@ FFunctionRegistry* UObject::FunctionRegistry()
 
 UObject* UObject::Duplicate(UObject* InOuter)
 {
-    const auto NewObject = new UObject();
+    const auto NewObject = FObjectFactory::ConstructObject(GetClass(), InOuter);
     NewObject->DuplicateSubObjects(this, InOuter);       // 깊은 복사 수행
     return NewObject;
 }
@@ -78,4 +78,10 @@ void UObject::operator delete(void* Ptr, const size_t Size)
 {
     UE_LOG(LogLevel::Display, "UObject Deleted : %d", Size);
     FPlatformMemory::Free<EAT_Object>(Ptr, Size);
+}
+
+
+void UObject::MarkAsGarbage()
+{
+    GUObjectArray.MarkRemoveObject(this);
 }

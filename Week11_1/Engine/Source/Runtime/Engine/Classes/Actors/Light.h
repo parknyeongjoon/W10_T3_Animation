@@ -9,7 +9,6 @@ class ALight : public AActor
     DECLARE_CLASS(ALight, AActor)
 public:
     ALight();
-    ALight(const ALight& Other);
     virtual ~ALight() override;
     void BeginPlay() override;
     void Tick(float DeltaTime) override;

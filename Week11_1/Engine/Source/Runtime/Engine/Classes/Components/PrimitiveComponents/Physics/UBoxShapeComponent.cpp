@@ -2,19 +2,13 @@
 #include "Math/JungleMath.h"
 #include "USphereShapeComponent.h"
 #include "UCapsuleShapeComponent.h"
+#include "CoreUObject/UObject/ObjectFactory.h"
+#include "CoreUObject/UObject/Casts.h"
 
 UBoxShapeComponent::UBoxShapeComponent()
     : UShapeComponent()
     , ShapeInfo()
     , BoxExtent(FVector::OneVector * 0.5f) // Default box extent
-{
-}
-
-UBoxShapeComponent::UBoxShapeComponent(const UBoxShapeComponent& Other)
-    : UShapeComponent(Other)
-    , ShapeInfo(Other.ShapeInfo)
-    , PrevExtent(Other.PrevExtent)
-    , BoxExtent(Other.BoxExtent)
 {
 }
 
@@ -43,7 +37,7 @@ void UBoxShapeComponent::TickComponent(float DeltaTime)
 
 UObject* UBoxShapeComponent::Duplicate(UObject* InOuter)
 {
-    UBoxShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<UBoxShapeComponent>(this, InOuter);
+    UBoxShapeComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
 

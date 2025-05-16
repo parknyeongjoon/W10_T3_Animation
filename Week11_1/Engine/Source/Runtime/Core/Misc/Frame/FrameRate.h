@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "FrameTime.h"
 #include "HAL/PlatformType.h"
 #include "Runtime/Serialization/Archive.h"

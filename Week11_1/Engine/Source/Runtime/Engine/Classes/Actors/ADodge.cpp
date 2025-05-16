@@ -1,4 +1,4 @@
-﻿#include "ADodge.h"
+#include "ADodge.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Engine/World.h"
@@ -15,10 +15,6 @@ ADodge::ADodge()
     FunctionRegistry()->RegisterMemberFunction<ThisClass>("TestTranslate", &ADodge::TestTranslate);
 }
 
-ADodge::ADodge(const ADodge& Other)
-    : Super(Other)
-{
-}
 
 void ADodge::BeginPlay()
 {
@@ -67,7 +63,7 @@ void ADodge::TestRotate()
 
 UObject* ADodge::Duplicate(UObject* InOuter)
 {
-    ADodge* NewActor = FObjectFactory::ConstructObjectFrom<ADodge>(this, InOuter);
+    ADodge* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewActor->DuplicateSubObjects(this, InOuter);
     return NewActor;
 }

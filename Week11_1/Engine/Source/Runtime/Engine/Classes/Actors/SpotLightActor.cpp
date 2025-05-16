@@ -10,6 +10,3 @@ ASpotLightActor::ASpotLightActor()
     BillboardComponent->SetTexture(L"Assets/Texture/SpotLight_64x.png");
 }
      
-ASpotLightActor::ASpotLightActor(const ASpotLightActor& Other)
-{
-}

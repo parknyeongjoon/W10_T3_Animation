@@ -13,13 +13,6 @@ ULightComponentBase::ULightComponentBase()
     LightColor = { 1,1,1,1 };
 }
 
-ULightComponentBase::ULightComponentBase(const ULightComponentBase& Other)
-    : Super(Other)
-    , LightColor(Other.LightColor)
-    , Intensity(Other.Intensity)
-    , ShadowResource(Other.ShadowResource)
-{
-}
 
 ULightComponentBase::~ULightComponentBase()
 {
@@ -43,7 +36,7 @@ FVector4 ULightComponentBase::GetColor() const
 
 UObject* ULightComponentBase::Duplicate(UObject* InOuter)
 {
-    ULightComponentBase* NewComp = FObjectFactory::ConstructObjectFrom<ULightComponentBase>(this, InOuter);
+    ULightComponentBase* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     //NewComp->InitializeLight();
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();

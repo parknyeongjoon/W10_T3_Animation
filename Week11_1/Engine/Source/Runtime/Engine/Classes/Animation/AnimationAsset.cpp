@@ -1,12 +1,9 @@
 #include "AnimationAsset.h"
-
-UAnimationAsset::UAnimationAsset(const UAnimationAsset& Other): UObject(Other)
-{
-}
+#include "CoreUObject/UObject/Casts.h"
 
 UObject* UAnimationAsset::Duplicate(UObject* InOuter)
 {
-    UAnimationAsset* NewComp = FObjectFactory::ConstructObjectFrom<UAnimationAsset>(this, InOuter);
+    UAnimationAsset* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

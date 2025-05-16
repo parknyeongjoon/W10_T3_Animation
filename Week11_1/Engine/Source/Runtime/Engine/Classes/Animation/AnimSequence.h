@@ -9,7 +9,6 @@ class UAnimSequence : public UAnimSequenceBase
     DECLARE_CLASS(UAnimSequence, UAnimSequenceBase)
 public:
     UAnimSequence() = default;
-    UAnimSequence(const UAnimSequence& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;
     virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;

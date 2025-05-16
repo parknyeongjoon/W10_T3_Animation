@@ -1,14 +1,9 @@
 #include "AnimSequence.h"
-
-UAnimSequence::UAnimSequence(const UAnimSequence& Other)
-    :UAnimSequenceBase(Other),
-    InterpolationType(Other.InterpolationType)
-{
-}
+#include "CoreUObject/UObject/Casts.h"
 
 UObject* UAnimSequence::Duplicate(UObject* InOuter)
 {
-    UAnimSequence* NewComp = FObjectFactory::ConstructObjectFrom<UAnimSequence>(this, InOuter);
+    UAnimSequence* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

@@ -38,7 +38,6 @@ class ULightComponent : public ULightComponentBase
     DECLARE_CLASS(ULightComponent, ULightComponentBase)
 public:
     ULightComponent();
-    ULightComponent(const ULightComponent& Other);
     virtual ~ULightComponent() override;
     
     void UninitializeComponent() override;

@@ -20,7 +20,6 @@ public:
     virtual void Tick(float DeltaTime) override;
 public:
     APlayerCameraManager();
-    APlayerCameraManager(const APlayerCameraManager& Other);
     virtual ~APlayerCameraManager() override {};
 
     UObject* Duplicate(UObject* InOuter) override;

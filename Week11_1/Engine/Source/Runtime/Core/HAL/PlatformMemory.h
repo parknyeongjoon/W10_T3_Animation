@@ -30,6 +30,14 @@ private:
     static void DecrementStats(size_t Size);
 
 public:
+    static void* Memcpy(void* Dest, const void* Src, uint64 Length)
+    {
+        return std::memcpy(Dest, Src, Length);
+    }
+
+    template <typename T>
+    static void Memcpy(T& Dest, const T& Src);
+
     template <EAllocationType AllocType>
     static void* Malloc(size_t Size);
 
@@ -93,6 +101,12 @@ void FPlatformMemory::DecrementStats(size_t Size)
     {
         //static_assert(false, "Unknown allocation type");
     }
+}
+
+template <typename T>
+void FPlatformMemory::Memcpy(T& Dest, const T& Src)
+{
+    Memcpy(&Dest, &Src, sizeof(T));
 }
 
 template <EAllocationType AllocType>

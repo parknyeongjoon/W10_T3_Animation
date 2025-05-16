@@ -23,7 +23,7 @@ public:
 
     UWorld* GetWorld() const { return World; }
     void SetWorld(UWorld* InWorld) { World = InWorld; }
-    
+
 private:
     UWorld* World;
 };
@@ -45,7 +45,7 @@ public:
 
     static inline UINT GFrameCount = 0;
 
-    std::shared_ptr<FWorldContext> GetWorldContextByKey(FName Key);
+    //std::shared_ptr<FWorldContext> GetWorldContextByKey(FName Key);
 
 protected:
     TMap<uint32, std::shared_ptr<FWorldContext>> WorldContexts;

@@ -6,22 +6,6 @@ USpringArmComponent::USpringArmComponent()
 {
 }
 
-USpringArmComponent::USpringArmComponent(const USpringArmComponent& Other)
-    : USceneComponent(Other)
-    , TargetArmLength(Other.TargetArmLength)
-    , SocketOffset(Other.SocketOffset)
-    , TargetOffset(Other.TargetOffset)
-    , bUseCollisionTest(Other.bUseCollisionTest)
-    , ProbeSize(Other.ProbeSize)
-    , bActiveCameraLag(Other.bActiveCameraLag)
-    , CameraLagSpeed(Other.CameraLagSpeed)
-    , CameraLagMaxDistance(Other.CameraLagMaxDistance)
-    , bActiveCameraRotationLag(Other.bActiveCameraRotationLag)
-    , CameraRotationLagSpeed(Other.CameraRotationLagSpeed)
-    , CameraRotationLagMaxAngle(Other.CameraRotationLagMaxAngle)
-{
-}
-
 USpringArmComponent::~USpringArmComponent()
 {
 }
@@ -90,7 +74,7 @@ void USpringArmComponent::DestroyComponent()
 UObject* USpringArmComponent::Duplicate(UObject* InOuter)
 {
     Super::Duplicate(InOuter);
-    USpringArmComponent* NewComp = FObjectFactory::ConstructObjectFrom<USpringArmComponent>(this, InOuter);
+    USpringArmComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

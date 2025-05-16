@@ -6,7 +6,8 @@
 #include "ContainerAllocator.h"
 #include "Core/HAL/PlatformType.h"
 #include "Serialization/Archive.h"
-
+#include "StringConv.h"
+#include "Core/Misc/CoreMiscDefines.h"
 /*
 # TCHAR가 ANSICHAR인 경우
 1. const ANSICHAR* 로 FString 생성
@@ -45,8 +46,6 @@
 //     // 다른 라이브러리(iconv, ICU 등) 사용 로직 구현...
 // }
 // #endif
-
-enum : int8 { INDEX_NONE = -1 };
 
 /** Determines case sensitivity options for string comparisons. */
 namespace ESearchCase
@@ -156,46 +155,25 @@ public:
     }
 #endif
 
+
+    FORCEINLINE std::string ToAnsiString() const
+    {
 #if USE_WIDECHAR
-	FORCEINLINE std::string ToAnsiString() const
-	{
-		// Wide 문자열을 UTF-8 기반의 narrow 문자열로 변환
-		if (PrivateString.empty())
-		{
-			return std::string();
-		}
-		int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, PrivateString.c_str(), -1, nullptr, 0, nullptr, nullptr);
-		if (sizeNeeded <= 0)
-		{
-			return std::string();
-		}
-		std::string result(sizeNeeded, 0);
-		WideCharToMultiByte(CP_UTF8, 0, PrivateString.c_str(), -1, &result[0], sizeNeeded, nullptr, nullptr);
-		return result;
-	}
+        return WStringToString(std::wstring(PrivateString));
 #else
-	FORCEINLINE std::wstring ToWideString() const
-	{
+        return std::string(PrivateString);
+#endif
+    }
+
+    FORCEINLINE std::wstring ToWideString() const
+    {
 #if USE_WIDECHAR
-		return PrivateString;
+        return std::wstring(PrivateString);
 #else
-        // Narrow 문자열을 UTF-8로 가정하고 wide 문자열로 변환
-        if (PrivateString.empty())
-        {
-            return std::wstring();
-        }
-        int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, PrivateString.c_str(), -1, nullptr, 0);
-        if (sizeNeeded <= 0)
-        {
-            return std::wstring();
-        }
-        // sizeNeeded에는 널 문자를 포함한 길이가 들어 있음
-        std::wstring wstr(sizeNeeded - 1, 0); // 널 문자를 제외한 크기로 초기화
-        MultiByteToWideChar(CP_UTF8, 0, PrivateString.c_str(), -1, wstr.data(), sizeNeeded);
-        return wstr;
+        return StringToWString(std::string(PrivateString));
 #endif
-	}
-#endif
+    }
+
 	template <typename Number>
 		requires std::is_arithmetic_v<Number>
     static FString FromInt(Number Num);

@@ -1,4 +1,4 @@
-﻿#include "Character.h"
+#include "Character.h"
 
 #include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
 #include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
@@ -36,14 +36,10 @@ ACharacter::ACharacter()
     FGameManager::Get().GameOverEvent.AddLambda([this]{ Cast<UTestAnimInstance>(BodyMesh->GetAnimInstance())->SetState(ETestState::Defeated); });
 }
 
-ACharacter::ACharacter(const ACharacter& Other)
-    : APawn(Other)
-{
-}
 
 UObject* ACharacter::Duplicate(UObject* InOuter)
 {
-    ACharacter* ClonedActor = FObjectFactory::ConstructObjectFrom<ACharacter>(this, InOuter);
+    ACharacter* ClonedActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;

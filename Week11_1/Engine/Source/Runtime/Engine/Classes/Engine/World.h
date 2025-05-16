@@ -24,7 +24,6 @@ class UWorld final : public UObject
 
 public:
     UWorld() = default;
-    UWorld(const UWorld& Other);
 
     void InitWorld();
     void LoadLevel(const FString& LevelName);
@@ -51,27 +50,7 @@ public:
         requires std::derived_from<T, AActor>
     T* SpawnActor();
 
-    AActor* SpawnActorByClass(UClass* ActorClass, UObject* InOuter, bool bCallBeginPlay)
-    {
-        if (ActorClass == nullptr)
-            return nullptr;
-
-        AActor* Actor = ActorClass->CreateObject<AActor>(InOuter);
-        if (Actor == nullptr)
-            return nullptr;
-
-
-        if (bCallBeginPlay)
-        {
-            Level->PendingBeginPlayActors.Add(Actor);
-        }
-        else
-        {
-            Level->GetActors().Add(Actor);
-        }
-
-        return Actor;
-    }
+    AActor* SpawnActorByClass(UClass* ActorClass, UObject* InOuter, bool bCallBeginPlay);
 
     void DuplicateSelectedActors();
     void DuplicateSelectedActorsOnLocation();

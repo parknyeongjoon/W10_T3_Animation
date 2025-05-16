@@ -2,6 +2,8 @@
 
 #include "LaunchEngineLoop.h"
 #include "Renderer/Renderer.h"
+#include "CoreUObject/UObject/ObjectFactory.h"
+#include "CoreUObject/UObject/Casts.h"
 
 
 UParticleSubUVComp::UParticleSubUVComp()
@@ -9,16 +11,6 @@ UParticleSubUVComp::UParticleSubUVComp()
     bIsLoop = true;
 }
 
-UParticleSubUVComp::UParticleSubUVComp(const UParticleSubUVComp& other)
-    : UBillboardComponent(other)
-    , bIsLoop(other.bIsLoop)
-    , indexU(other.indexU)
-    , indexV(other.indexV)
-    , second(other.second)
-    , CellsPerColumn(other.CellsPerColumn)
-    , CellsPerRow(other.CellsPerRow)
-{
-}
 
 UParticleSubUVComp::~UParticleSubUVComp()
 {
@@ -77,7 +69,7 @@ void UParticleSubUVComp::TickComponent(float DeltaTime)
 
 UObject* UParticleSubUVComp::Duplicate(UObject* InOuter)
 {
-    UParticleSubUVComp* Cloned = FObjectFactory::ConstructObjectFrom(this, InOuter);
+    UParticleSubUVComp* Cloned = Cast<ThisClass>(Super::Duplicate(InOuter));
     Cloned->DuplicateSubObjects(this, InOuter);
     return Cloned;
 }

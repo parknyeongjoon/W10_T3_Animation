@@ -1,11 +1,7 @@
-﻿#include "Pawn.h"
+#include "Pawn.h"
 #include "PlayerController.h"
 #include "Components/InputComponent.h"
 
-APawn::APawn(const APawn& other)
-    :AActor(other)
-{
-}
 
 void APawn::BeginPlay()
 {
@@ -45,7 +41,7 @@ void APawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 UObject* APawn::Duplicate(UObject* InOuter)
 {
-    APawn* ClonedActor = FObjectFactory::ConstructObjectFrom<APawn>(this, InOuter);
+    APawn* ClonedActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;

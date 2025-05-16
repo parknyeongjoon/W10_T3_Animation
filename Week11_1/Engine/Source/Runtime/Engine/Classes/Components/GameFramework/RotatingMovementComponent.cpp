@@ -8,11 +8,6 @@ URotatingMovementComponent::URotatingMovementComponent()
 {
 }
 
-URotatingMovementComponent::URotatingMovementComponent(const URotatingMovementComponent& other)
-    : RotationRate(other.RotationRate)
-{
-    
-}
 
 void URotatingMovementComponent::TickComponent(float DeltaTime)
 {
@@ -25,7 +20,7 @@ void URotatingMovementComponent::TickComponent(float DeltaTime)
 
 UObject* URotatingMovementComponent::Duplicate(UObject* InOuter)
 {
-    URotatingMovementComponent* NewComp = FObjectFactory::ConstructObjectFrom<URotatingMovementComponent>(this, InOuter);
+    URotatingMovementComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

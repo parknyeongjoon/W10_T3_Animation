@@ -4,17 +4,9 @@
 #include "UObject/ObjectFactory.h"
 #include "ActorComponentInfo.h"
 //#include "Math/Matrix.h"
+#include "CoreUObject/UObject/Casts.h"
 
 USceneComponent::USceneComponent() :RelativeLocation(FVector(0.f, 0.f, 0.f)), RelativeRotation(FVector(0.f, 0.f, 0.f)), RelativeScale(FVector(1.f, 1.f, 1.f))
-{
-}
-USceneComponent::USceneComponent(const USceneComponent& Other)
-    : UActorComponent(Other),
-      AttachParent(nullptr), // 복제 시 복원
-      RelativeLocation(Other.RelativeLocation),
-      RelativeRotation(Other.RelativeRotation),
-      RelativeScale(Other.RelativeScale),
-      AABB(Other.AABB)
 {
 }
 USceneComponent::~USceneComponent()
@@ -124,7 +116,7 @@ void USceneComponent::SetAttachParent(USceneComponent* InParent)
 
 UObject* USceneComponent::Duplicate(UObject* InOuter)
 {
-    USceneComponent* NewComp = FObjectFactory::ConstructObjectFrom<USceneComponent>(this, InOuter);
+    USceneComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

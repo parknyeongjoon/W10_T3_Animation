@@ -5,7 +5,6 @@ class ADirectionalLightActor : public ALight
     DECLARE_CLASS(ADirectionalLightActor, ALight)
 public:
     ADirectionalLightActor();
-    ADirectionalLightActor(const ADirectionalLightActor& Other);
     virtual ~ADirectionalLightActor() override = default;
     void BeginPlay() override;
     void Tick(float DeltaTime) override;

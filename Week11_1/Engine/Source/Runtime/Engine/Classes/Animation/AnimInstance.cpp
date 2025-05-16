@@ -9,16 +9,10 @@
 #include "Animation/Skeleton.h"
 #include "Animation/AnimationRuntime.h"
 #include "Container/Array.h"
-UAnimInstance::UAnimInstance(const UAnimInstance& Other) 
-    :UObject(Other),
-    CurrentSequence(Other.CurrentSequence),
-    PreviousSequence(Other.PreviousSequence)
-{
-}
 
 UObject* UAnimInstance::Duplicate(UObject* InOuter)
 {
-    UAnimInstance* NewComp = FObjectFactory::ConstructObjectFrom<UAnimInstance>(this, InOuter);
+    UAnimInstance* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     NewComp->SetSkeleton(Cast<USkeletalMeshComponent>(InOuter)->GetSkeletalMesh()->GetSkeleton());
@@ -28,8 +22,8 @@ UObject* UAnimInstance::Duplicate(UObject* InOuter)
 void UAnimInstance::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
     Super::DuplicateSubObjects(Source, InOuter);
-    this->CurrentSequence = FObjectFactory::ConstructObjectFrom(Cast<UAnimInstance>(Source)->CurrentSequence, this);
-    this->PreviousSequence = FObjectFactory::ConstructObjectFrom(Cast<UAnimInstance>(Source)->PreviousSequence, this);
+    this->CurrentSequence = Cast<UAnimSequence>(this->CurrentSequence->Duplicate(this->CurrentSequence->GetOuter()));
+    this->PreviousSequence = Cast<UAnimSequence>(this->PreviousSequence->Duplicate(this->PreviousSequence->GetOuter()));
 }
 
 AActor* UAnimInstance::GetOwningActor() const

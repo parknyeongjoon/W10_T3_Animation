@@ -13,11 +13,6 @@ UCubeComp::UCubeComp()
 
 }
 
-UCubeComp::UCubeComp(UCubeComp& Other)
-    : Super(Other)
-{
-}
-
 UCubeComp::~UCubeComp()
 {
 }

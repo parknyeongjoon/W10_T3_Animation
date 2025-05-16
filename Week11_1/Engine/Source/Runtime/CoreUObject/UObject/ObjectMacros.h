@@ -1,63 +1,102 @@
 // ReSharper disable CppClangTidyBugproneMacroParentheses
+// ReSharper disable CppClangTidyClangDiagnosticPedantic
 #pragma once
-#include "UClass.h"
-#include "ObjectFactory.h"
-//#include "GameFramework/Actor.h"
+#include "Class.h"
+#include "UObjectHash.h"
+#include "Templates/TypeUtilities.h"
 
 // name을 문자열화 해주는 매크로
 #define INLINE_STRINGIFY(name) #name
 
 
-// RTTI를 위한 클래스 매크로
-#define DECLARE_CLASS(TClass, TSuperClass) \
+// 공통 클래스 정의 부분
+#define __DECLARE_COMMON_CLASS_BODY__(TClass, TSuperClass) \
 private: \
+    TClass(const TClass&) = delete; \
     TClass& operator=(const TClass&) = delete; \
     TClass(TClass&&) = delete; \
     TClass& operator=(TClass&&) = delete; \
+    inline static struct TClass##_StaticClassRegistrar_PRIVATE \
+    { \
+        TClass##_StaticClassRegistrar_PRIVATE() \
+        { \
+            UClass::GetClassMap().Add(#TClass, ThisClass::StaticClass()); \
+            AddClassToChildListMap(ThisClass::StaticClass()); \
+        } \
+    } TClass##_StaticClassRegistrar_PRIVATE{}; \
 public: \
     using Super = TSuperClass; \
-    using ThisClass = TClass; \
+    using ThisClass = TClass;
+
+
+// RTTI를 위한 클래스 매크로
+#define DECLARE_CLASS(TClass, TSuperClass) \
+    __DECLARE_COMMON_CLASS_BODY__(TClass, TSuperClass) \
     static UClass* StaticClass() { \
-        static UClass ClassInfo{ TEXT(#TClass), static_cast<uint32>(sizeof(TClass)), static_cast<uint32>(alignof(TClass)), TSuperClass::StaticClass() }; \
+        static UClass ClassInfo{ \
+            #TClass, \
+            static_cast<uint32>(sizeof(TClass)), \
+            static_cast<uint32>(alignof(TClass)), \
+            TSuperClass::StaticClass(), \
+            []() -> UObject* { \
+                void* RawMemory = FPlatformMemory::AlignedMalloc<EAT_Object>(sizeof(TClass), alignof(TClass)); \
+                ::new (RawMemory) TClass; \
+                return static_cast<UObject*>(RawMemory); \
+            } \
         ClassInfo.Creator = [](UObject* InOuter) -> void* { return FObjectFactory::ConstructObject<TClass>(InOuter); }; \
         ClassInfo.BindPropertiesToLua = TClass::BindPropertiesToLua; \
+        }; \
         return &ClassInfo; \
-    } \
-private: \
-    struct FAutoRegister_##TClass { \
-        FAutoRegister_##TClass() { \
-            UClassRegistry::Get().RegisterClass(TClass::StaticClass()); \
+    }
+
+// RTTI를 위한 추상 클래스 매크로
+#define DECLARE_ABSTRACT_CLASS(TClass, TSuperClass) \
+    __DECLARE_COMMON_CLASS_BODY__(TClass, TSuperClass) \
+    static UClass* StaticClass() { \
+        static UClass ClassInfo{ \
+            #TClass, \
+            static_cast<uint32>(sizeof(TClass)), \
+            static_cast<uint32>(alignof(TClass)), \
+            TSuperClass::StaticClass(), \
+            []() -> UObject* { return nullptr; } \
+        }; \
+        return &ClassInfo; \
+    }
+
+#define DECLARE_ACTORCOMPONENT_INFO(T) \
+    struct T##FactoryRegister { \
+        T##FactoryRegister() {\
+            GetFactoryMap()[#T] = []() -> std::unique_ptr<FActorComponentInfo> {\
+                return std::make_unique<T>(); \
+            }; \
         } \
     }; \
-public: \
-    static inline FAutoRegister_##TClass AutoRegister_##TClass_Instance; \
-private: \
-    static TMap<FString, std::function<void(sol::usertype<TClass>)>>& GetBindFunctions() { \
-        static TMap<FString, std::function<void(sol::usertype<TClass>)>> _binds; \
-        return _binds; \
-    } \
-public: \
-    using InheritTypes = SolTypeBinding::InheritList<TClass, TSuperClass>::type; \
-    static sol::usertype<TClass> GetLuaUserType(sol::state& lua) { \
-        static sol::usertype<TClass> usertype = lua.new_usertype<TClass>( \
-            #TClass, \
-            sol::base_classes, \
-            SolTypeBinding::TypeListToBases<typename SolTypeBinding::InheritList<TClass, TSuperClass>::base_list>::Get() \
-        ); \
-        return usertype; \
-    } \
-    static void BindPropertiesToLua(sol::state& lua) { \
-        sol::usertype<TClass> table = GetLuaUserType(lua); \
-        for (const auto [name, bind] : GetBindFunctions()) \
-        { \
-            bind(table); \
-        } \
-        SolTypeBinding::RegisterGetComponentByClass<TClass>(lua, #TClass); \
-        lua.set_function(std::string("As") + #TClass, [](UObject* obj)->TClass* { \
-            return dynamic_cast<TClass*>(obj); \
-        }); \
-    } \
+    static inline T##FactoryRegister Global_##T##_FactoryRegister; \
 
+
+// ---------- UProperty 관련 매크로 ----------
+#define GET_FIRST_ARG(First, ...) First
+#define FIRST_ARG(...) GET_FIRST_ARG(__VA_ARGS__, )
+
+#define UPROPERTY_WITH_FLAGS(InFlags, InType, InVarName, ...) \
+    InType InVarName FIRST_ARG(__VA_ARGS__); \
+    inline static struct InVarName##_PropRegistrar_PRIVATE \
+    { \
+        InVarName##_PropRegistrar_PRIVATE() \
+        { \
+            constexpr int64 Offset = offsetof(ThisClass, InVarName); \
+            constexpr EPropertyFlags Flags = InFlags; \
+            ThisClass::StaticClass()->RegisterProperty( \
+                PropertyFactory::Private::MakeProperty<InType, Flags>(ThisClass::StaticClass(), #InVarName, Offset) \
+            ); \
+        } \
+    } InVarName##_PropRegistrar_PRIVATE{};
+
+#define UPROPERTY_DEFAULT(InType, InVarName, ...) \
+    UPROPERTY_WITH_FLAGS(EPropertyFlags::PropertyNone, InType, InVarName, __VA_ARGS__)n
+
+#define EXPAND_PROPERTY_MACRO(x) x
+#define GET_OVERLOADED_PROPERTY_MACRO(_1, _2, _3, _4, NAME, ...) NAME
 
 
 #define DECLARE_ACTORCOMPONENT_INFO(T) \
@@ -71,35 +110,24 @@ public: \
     static inline T##FactoryRegister Global_##T##_FactoryRegister; \
 
 
+/**
+ * UClass에 Property를 등록합니다.
+ * @param Type 선언할 타입
+ * @param VarName 변수 이름
+ * @param ... 기본값
+ *
+ * ----- Example Code -----
+ * 
+ * UPROPERTY(int, Value)
+ * 
+ * UPROPERTY(int, Value, = 10)
+ * 
+ * UPROPERTY(EPropertyFlags::EditAnywhere, int, Value, = 10) // Flag를 지정하면 기본값은 필수
+ */
+#define UPROPERTY(...) \
+    EXPAND_PROPERTY_MACRO(GET_OVERLOADED_PROPERTY_MACRO(__VA_ARGS__, UPROPERTY_WITH_FLAGS, UPROPERTY_DEFAULT, UPROPERTY_DEFAULT)(__VA_ARGS__))
 
 
-// #define PROPERTY(Type, VarName, DefaultValue) \
-// private: \
-//     Type VarName DefaultValue; \
-// public: \
-//     Type Get##VarName() const { return VarName; } \
-//     void Set##VarName(const Type& New##VarName) { VarName = New##VarName; }
-
-// Getter & Setter 생성
-#define PROPERTY(type, name) \
-private: \
-    type name; \
-public: \
-    void Set##name(const type& value) { name = value; } \
-    type Get##name() const { return name; } \
-
-#define UPROPERTY(type, name) \
-    PROPERTY(type, name) \
-private: \
-    inline static struct name##_PropRegister \
-    { \
-        name##_PropRegister() \
-        { \
-            GetBindFunctions().Add(#name, [](sol::usertype<ThisClass> table) { \
-                table[#name] = &ThisClass::name; \
-            }); \
-        } \
-    } name##_PropRegister_{}; \
 
 #define UFUNCTION(Type, FuncName, ...) \
     Type FuncName (__VA_ARGS__); \
@@ -125,4 +153,4 @@ private: \
         } \
     } FuncName##_PropRegister_{}; \
 
-    
+

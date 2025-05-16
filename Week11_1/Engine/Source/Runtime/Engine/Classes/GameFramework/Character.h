@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Pawn.h"
 
 class UProjectileMovementComponent;
@@ -13,7 +13,6 @@ class ACharacter : public APawn
     DECLARE_MULTICAST_DELEGATE(PlayAnimCEvent);
 public:
     ACharacter();
-    ACharacter(const ACharacter& Other);
 
     UObject* Duplicate(UObject* InOuter) override;
     void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;

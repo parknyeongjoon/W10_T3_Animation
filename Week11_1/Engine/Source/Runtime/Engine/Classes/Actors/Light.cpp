@@ -1,15 +1,11 @@
 #include "Light.h"
 #include "Components/PrimitiveComponents/UBillboardComponent.h"
+#include "Components/LightComponents/LightComponent.h"
 
 ALight::ALight()
     : Super()
 {
     BillboardComponent = AddComponent<UBillboardComponent>(EComponentOrigin::Constructor);
-}
-
-ALight::ALight(const ALight& Other)
-    : Super(Other)
-{
 }
 
 ALight::~ALight()
@@ -43,7 +39,7 @@ bool ALight::Destroy()
 
 UObject* ALight::Duplicate(UObject* InOuter)
 {
-    ALight* NewActor = FObjectFactory::ConstructObjectFrom<ALight>(this, InOuter);
+    ALight* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewActor->DuplicateSubObjects(this, InOuter);
     NewActor->PostDuplicate();
     return NewActor;
@@ -52,11 +48,9 @@ UObject* ALight::Duplicate(UObject* InOuter)
 void ALight::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
     Super::DuplicateSubObjects(Source, InOuter);
-    const ALight* SourceLightActor = FObjectFactory::ConstructObjectFrom<ALight>(this, InOuter);
-    if (SourceLightActor == nullptr) return;
 
-    LightComponent = Cast<ULightComponentBase>(SourceLightActor->LightComponent);
-    BillboardComponent = Cast<UBillboardComponent>(SourceLightActor->BillboardComponent);
+    LightComponent = Cast<ULightComponentBase>(LightComponent->Duplicate(LightComponent->GetOuter()));
+    BillboardComponent = Cast<UBillboardComponent>(BillboardComponent->Duplicate(BillboardComponent->GetOuter()));
 }
 
 void ALight::PostDuplicate()

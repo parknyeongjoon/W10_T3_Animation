@@ -14,20 +14,6 @@ UHeightFogComponent::UHeightFogComponent()
 {
 }
 
-UHeightFogComponent::UHeightFogComponent(const UHeightFogComponent& Other)
-    : Super(Other)
-    , FogColor(Other.GetFogColor())
-    , FogDensity(Other.GetFogDensity())
-    , FogStart(Other.GetFogStart())
-    , FogEnd(Other.GetFogEnd())
-    , FogBaseHeight(Other.GetFogBaseHeight())
-    , HeightFallOff(Other.GetHeightFallOff())
-    , bIsHeightFog(Other.IsHeightFog())
-    , MaxOpacity(Other.GetMaxOpacity())
-    , LightShaftDensity(Other.GetLightShaftDensity())
-{
-}
-
 void UHeightFogComponent::SetFogColor(const FVector& InColor) { FogColor = InColor; }
 void UHeightFogComponent::SetFogDensity(float InDensity) { FogDensity = InDensity; }
 void UHeightFogComponent::SetFogStart(float InStart) { FogStart = InStart; }

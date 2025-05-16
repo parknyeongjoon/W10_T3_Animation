@@ -1,4 +1,4 @@
-﻿#include "PlayerController.h"
+#include "PlayerController.h"
 #include "Character.h"
 #include "PlayerCameraManager.h"
 #include "PlayerInput.h"
@@ -6,9 +6,6 @@
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Engine/World.h"
 
-APlayerController::APlayerController(const APlayerController& other)
-{
-}
 
 void APlayerController::BeginPlay()
 {
@@ -56,7 +53,7 @@ void APlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 UObject* APlayerController::Duplicate(UObject* InOuter)
 {
-    APlayerController* ClonedActor = FObjectFactory::ConstructObjectFrom<APlayerController>(this, InOuter);
+    APlayerController* ClonedActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;

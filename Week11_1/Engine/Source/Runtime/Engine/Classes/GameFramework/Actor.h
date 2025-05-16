@@ -21,7 +21,6 @@ class AActor : public UObject
 public:
     AActor() = default;
     ~AActor() override = default;
-    AActor(const AActor& Other);
     /** Actor가 게임에 배치되거나 스폰될 때 호출됩니다. */
     virtual void BeginPlay();
 
@@ -78,25 +77,26 @@ public:
     void InitializeComponents() const;
     void UninitializeComponents() const;
 
-public:
-    UFUNCTION_CONST(USceneComponent*, GetRootComponent);
-    UFUNCTION(bool, SetRootComponent, USceneComponent*);
-
-    UFUNCTION_CONST(AActor*, GetOwner);
-    UFUNCTION(void, SetOwner, AActor*);
 
 public:
-    UFUNCTION_CONST(FVector, GetActorLocation);
-    UFUNCTION_CONST(FRotator, GetActorRotation);
-    UFUNCTION_CONST(FVector, GetActorScale);
+    USceneComponent* GetRootComponent() const { return RootComponent; }
+    bool SetRootComponent(USceneComponent* NewRootComponent);
 
-    UFUNCTION_CONST(FVector, GetActorForwardVector);
-    UFUNCTION_CONST(FVector, GetActorRightVector);
-    UFUNCTION_CONST(FVector, GetActorUpVector);
+    AActor* GetOwner() const { return Owner; }
+    void SetOwner(AActor* NewOwner) { Owner = NewOwner; }
 
-    UFUNCTION_CONST(bool, SetActorLocation, const FVector&);
-    UFUNCTION_CONST(bool, SetActorRotation, const FRotator&);
-    UFUNCTION_CONST(bool, SetActorScale, const FVector&);
+public:
+    FVector GetActorLocation() const;
+    FRotator GetActorRotation() const;
+    FVector GetActorScale() const;
+
+    FVector GetActorForwardVector() const;
+    FVector GetActorRightVector() const;
+    FVector GetActorUpVector() const;
+
+    bool SetActorLocation(const FVector& NewLocation) const;
+    bool SetActorRotation(const FRotator& NewRotation) const;
+    bool SetActorScale(const FVector& NewScale) const;
 
     UObject* Duplicate(UObject* InOuter) override;
     void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;

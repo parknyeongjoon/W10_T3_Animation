@@ -26,7 +26,6 @@ class UShapeComponent : public UPrimitiveComponent
 
 public:
     UShapeComponent();
-    UShapeComponent(const UShapeComponent& Other);
     ~UShapeComponent() override;
 
     void InitializeComponent() override;

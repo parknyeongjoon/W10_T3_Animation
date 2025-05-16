@@ -8,7 +8,6 @@ class AExponentialHeightFogActor : public AActor
     DECLARE_CLASS(AExponentialHeightFogActor, AActor)
 public:
     AExponentialHeightFogActor();
-    AExponentialHeightFogActor(const AExponentialHeightFogActor& Other);
     virtual ~AExponentialHeightFogActor() override;
     void BeginPlay() override; 
     void Tick(float DeltaTime) override;

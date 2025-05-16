@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "GameFramework/Actor.h"
 
 class UFireBallComponent;
@@ -10,7 +10,6 @@ class AFireBall: public AActor
     DECLARE_CLASS(AFireBall, AActor)
 public:
     AFireBall();
-    AFireBall(const AFireBall& Other);
     virtual ~AFireBall() override = default;
     
     void BeginPlay() override;

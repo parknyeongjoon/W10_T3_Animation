@@ -365,3 +365,13 @@ void TArray<T, Allocator>::AppendArray(const T* array, SizeType count)
 }
 
 template <typename T, typename Allocator = FDefaultAllocator<T>> class TArray;
+
+template <typename T> constexpr bool TIsTArray_V = false;
+
+template <typename InElementType, typename InAllocatorType> constexpr bool TIsTArray_V<               TArray<InElementType, InAllocatorType>> = true;
+template <typename InElementType, typename InAllocatorType> constexpr bool TIsTArray_V<const          TArray<InElementType, InAllocatorType>> = true;
+template <typename InElementType, typename InAllocatorType> constexpr bool TIsTArray_V<      volatile TArray<InElementType, InAllocatorType>> = true;
+template <typename InElementType, typename InAllocatorType> constexpr bool TIsTArray_V<const volatile TArray<InElementType, InAllocatorType>> = true;
+
+template <typename T>
+concept TIsTArray = TIsTArray_V<T>;

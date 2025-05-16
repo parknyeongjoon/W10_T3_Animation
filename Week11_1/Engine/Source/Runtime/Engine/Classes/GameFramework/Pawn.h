@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Actor.h"
 
 class UInputComponent;
@@ -10,7 +10,6 @@ class APawn : public AActor
     DECLARE_CLASS(APawn, AActor)
 public:
     APawn() = default;
-    APawn(const APawn& other);
     
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;

@@ -5,7 +5,6 @@
 #include "Core/Container/Map.h"
 
 #include "Core/Container/Array.h"
-
 #include "UObject/Object.h"
 
 #define FUNC_DECLARE_DELEGATE(DelegateName, ReturnType, ...) \

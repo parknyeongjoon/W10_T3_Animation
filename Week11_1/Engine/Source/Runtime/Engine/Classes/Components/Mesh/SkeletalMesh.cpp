@@ -1,4 +1,4 @@
-﻿#include "SkeletalMesh.h"
+#include "SkeletalMesh.h"
 
 #include "Renderer/RenderResourceManager.h"
 #include "LaunchEngineLoop.h"
@@ -10,14 +10,6 @@
 #include "UObject/Casts.h"
 
 
-USkeletalMesh::USkeletalMesh(const USkeletalMesh& Other)
-: UObject(Other)
-    , SkeletalMeshRenderData(Other.SkeletalMeshRenderData)
-    , Skeleton(Other.Skeleton)
-    , MaterialSlots(Other.MaterialSlots)
-{
-    
-}
 
 uint32 USkeletalMesh::GetMaterialIndex(FName MaterialSlotName) const
 {
@@ -199,7 +191,7 @@ void USkeletalMesh::ApplyRotationToBone(int BoneIndex, float DeltaAngleInDegrees
 
 USkeletalMesh* USkeletalMesh::Duplicate(UObject* InOuter)
 {
-    USkeletalMesh* NewObject = FObjectFactory::ConstructObjectFrom<USkeletalMesh>(this, InOuter);
+    USkeletalMesh* NewObject = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewObject->DuplicateSubObjects(this, InOuter);       // 깊은 복사 수행
     return NewObject;
 }

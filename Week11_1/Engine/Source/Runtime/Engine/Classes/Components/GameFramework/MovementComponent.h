@@ -48,7 +48,6 @@ class UMovementComponent : public UActorComponent
 
 public:
     UMovementComponent();
-    UMovementComponent(const UMovementComponent& Other);
     
 public:
     /** If true, skips TickComponent() if UpdatedComponent was not recently rendered. */

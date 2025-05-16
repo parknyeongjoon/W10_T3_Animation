@@ -5,7 +5,6 @@ class UAnimSingleNodeInstance : public UAnimInstance
     DECLARE_CLASS(UAnimSingleNodeInstance, UAnimInstance)
 public:
     UAnimSingleNodeInstance();
-    UAnimSingleNodeInstance(const UAnimSingleNodeInstance& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;
 public:

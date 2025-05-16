@@ -1,12 +1,12 @@
 #pragma once
 #include "Components/PrimitiveComponents/PrimitiveComponent.h"
+#include "Components/Material/Material.h"
 
 class UMeshComponent : public UPrimitiveComponent
 {
     DECLARE_CLASS(UMeshComponent, UPrimitiveComponent)
 public:
     UMeshComponent() = default;
-    UMeshComponent(const UMeshComponent& Other);
 
 #pragma region Material
     virtual uint32 GetNumMaterials() const { return 0; }

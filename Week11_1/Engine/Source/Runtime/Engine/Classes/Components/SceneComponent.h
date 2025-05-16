@@ -58,7 +58,6 @@ class USceneComponent : public UActorComponent
 
 public:
     USceneComponent();
-    USceneComponent(const USceneComponent& Other);
     virtual ~USceneComponent() override;
 
     virtual void InitializeComponent() override;

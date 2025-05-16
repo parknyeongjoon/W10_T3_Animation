@@ -14,7 +14,6 @@ class UAnimationStateMachine : public UObject
     using StateCallback = FFunctorWithContext<UAnimInstance, void, float>;
 public:
     UAnimationStateMachine() = default;
-    UAnimationStateMachine(const UAnimationStateMachine& Other);
     virtual UObject* Duplicate(UObject* InOuter) override;
 
     void AddState(TState StateName, StateCallback OnUpdate)
@@ -69,19 +68,11 @@ private:
     TMap<TPair<TState, TState>, std::function<bool()>> Transitions;
 };
 
-template<typename TState>
-inline UAnimationStateMachine<TState>::UAnimationStateMachine(const UAnimationStateMachine& Other)
-    :UObject(Other),
-    CurrentState(Other.CurrentState),
-    States(Other.States),
-    Transitions(Other.Transitions)
-{
-}
 
 template<typename TState>
 inline UObject* UAnimationStateMachine<TState>::Duplicate(UObject* InOuter)
 {
-    UAnimationStateMachine<TState>* NewComp = FObjectFactory::ConstructObjectFrom<UAnimationStateMachine<TState>>(this, InOuter);
+    UAnimationStateMachine<TState>* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

@@ -1095,7 +1095,7 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
             {
                 if (ImGui::IsMouseDoubleClicked(0))
                 {
-                    StaticMeshComp->SetselectedSubMeshIndex(static_cast<int>(i));
+                    StaticMeshComp->SelectedSubMeshIndex = static_cast<int>(i);
                     SelectedStaticMeshComp = StaticMeshComp;
                 }
             }
@@ -1105,7 +1105,7 @@ void PropertyEditorPanel::RenderForMaterial(UStaticMeshComponent* StaticMeshComp
         {
             if (ImGui::IsMouseDoubleClicked(0))
             {
-                StaticMeshComp->SetselectedSubMeshIndex(-1);
+                StaticMeshComp->SelectedSubMeshIndex = -1;
             }
         }
 
@@ -1165,7 +1165,7 @@ void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMesh
             {
                 if (ImGui::IsMouseDoubleClicked(0))
                 {
-                    SkeletalMeshComp->SetSelectedSubMeshIndex(static_cast<int>(i));
+                    SkeletalMeshComp->SelectedSubMeshIndex = static_cast<int>(i);
                     SelectedSkeletalMeshComp = SkeletalMeshComp;
                 }
             }
@@ -1175,7 +1175,7 @@ void PropertyEditorPanel::RenderForMaterial(USkeletalMeshComponent* SkeletalMesh
         {
             if (ImGui::IsMouseDoubleClicked(0))
             {
-                SkeletalMeshComp->SetSelectedSubMeshIndex(-1);
+                SkeletalMeshComp->SelectedSubMeshIndex = -1;
             }
         }
 

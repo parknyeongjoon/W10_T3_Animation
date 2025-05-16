@@ -16,8 +16,6 @@ public:
     virtual void DuplicateSubObjects(const UObject* SourceObj, UObject* InOuter) override;
     virtual void PostDuplicate() override;
     
-    ULevel(const ULevel& Other);
-
 private:
     TArray<AActor*> Actors;
     /*

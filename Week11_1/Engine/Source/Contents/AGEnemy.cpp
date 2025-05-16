@@ -1,4 +1,4 @@
-﻿#include "AGEnemy.h"
+#include "AGEnemy.h"
 
 #include <random>
 #include "GameManager.h"
@@ -34,10 +34,6 @@ AGEnemy::AGEnemy()
     }
     
     ChangeColor(FVector(0,0.7,0.4));
-}
-
-AGEnemy::AGEnemy(const AGEnemy& Other)
-{
 }
 
 void AGEnemy::BeginPlay()
@@ -82,7 +78,7 @@ void AGEnemy::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 UObject* AGEnemy::Duplicate(UObject* InOuter)
 {
-    AGEnemy* NewActor = FObjectFactory::ConstructObjectFrom<AGEnemy>(this, InOuter);
+    AGEnemy* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewActor->DuplicateSubObjects(this, InOuter);
     return NewActor;
 }

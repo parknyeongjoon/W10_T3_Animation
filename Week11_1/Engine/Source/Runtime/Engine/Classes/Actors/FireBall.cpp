@@ -1,4 +1,4 @@
-﻿#include "FireBall.h"
+#include "FireBall.h"
 
 #include "Components/GameFramework/ProjectileMovementComponent.h"
 #include "Components/LightComponents/PointLightComponent.h"
@@ -15,11 +15,6 @@ AFireBall::AFireBall()
     ProjMovementComp = AddComponent<UProjectileMovementComponent>(EComponentOrigin::Constructor);
     BillboardComponent = AddComponent<UBillboardComponent>(EComponentOrigin::Constructor);
     BillboardComponent->SetTexture(L"Assets/Texture/spotLight.png");
-}
-
-AFireBall::AFireBall(const AFireBall& Other)
-    : Super(Other)
-{
 }
 
 void AFireBall::BeginPlay()
@@ -49,7 +44,7 @@ bool AFireBall::Destroy()
 
 UObject* AFireBall::Duplicate(UObject* InOuter)
 {
-    AFireBall* NewActor = FObjectFactory::ConstructObjectFrom<AFireBall>(this, InOuter);
+    AFireBall* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewActor->DuplicateSubObjects(this, InOuter);
     NewActor->PostDuplicate();
     return NewActor;

@@ -18,16 +18,6 @@ AGBullet::AGBullet()
 
 }
 
-AGBullet::AGBullet(const AGBullet& Other)
-    : Super(Other)
-    , Position(Other.Position)
-    , Velocity(Other.Velocity)
-    , Acceleration(Other.Acceleration)
-    , bFired(Other.bFired)
-    , DragCoefficient(Other.DragCoefficient)
-{
-}
-
 AGBullet::~AGBullet()
 {}
 
@@ -111,7 +101,7 @@ void AGBullet::OnHit(const UPrimitiveComponent* Other)
 
 UObject* AGBullet::Duplicate(UObject* InOuter)
 {
-    AGBullet* NewActor = FObjectFactory::ConstructObjectFrom<AGBullet>(this, InOuter);
+    AGBullet* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewActor->DuplicateSubObjects(this, InOuter);
     return NewActor;
 }

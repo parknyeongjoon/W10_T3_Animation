@@ -8,20 +8,6 @@ UActorComponent::UActorComponent()
 {
 }
 
-UActorComponent::UActorComponent(const UActorComponent& Other)
-    : UObject(Other)
-    , bCanEverTick(Other.bCanEverTick)
-    , bRegistered(Other.bRegistered)
-    , bWantsInitializeComponent(Other.bWantsInitializeComponent)
-    , bIsBeingDestroyed(Other.bIsBeingDestroyed)
-    , bIsActive(Other.bIsActive)
-    , bTickEnabled(Other.bTickEnabled)
-    , bAutoActive(Other.bAutoActive)
-    , ComponentID(FGuid::NewGuid())
-    , ComponentOrigin(Other.ComponentOrigin)
-{
-    // Owner는 복제 시점에 AActor가 직접 지정
-}
 
 void UActorComponent::InitializeComponent()
 {
@@ -97,23 +83,6 @@ void UActorComponent::DestroyComponent()
     GUObjectArray.MarkRemoveObject(this);
 }
 
-bool UActorComponent::IsActive() const
-{
-    return bIsActive;
-}
-
-void UActorComponent::Activate()
-{
-    // TODO: Tick 다시 재생
-    bIsActive = true;
-}
-
-void UActorComponent::Deactivate()
-{
-    // TODO: Tick 멈추기
-    bIsActive = false;
-}
-
 void UActorComponent::OnRegister()
 {
     // Hook: Called by RegisterComponent()
@@ -184,7 +153,7 @@ void UActorComponent::UnregisterComponent()
 }
 UObject* UActorComponent::Duplicate(UObject* InOuter)
 {
-    UActorComponent* NewComp = FObjectFactory::ConstructObjectFrom<UActorComponent>(this, InOuter);
+    UActorComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

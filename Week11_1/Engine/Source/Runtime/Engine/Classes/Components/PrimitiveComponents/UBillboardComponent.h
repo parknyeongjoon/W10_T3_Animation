@@ -38,7 +38,6 @@ class UBillboardComponent : public UPrimitiveComponent
 public:
     UBillboardComponent();
     virtual ~UBillboardComponent() override;
-    UBillboardComponent(const UBillboardComponent& other);
 
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;

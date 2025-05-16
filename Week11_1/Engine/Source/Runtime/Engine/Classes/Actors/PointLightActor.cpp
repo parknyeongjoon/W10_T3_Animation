@@ -10,11 +10,6 @@ APointLightActor::APointLightActor()
     BillboardComponent->SetTexture(L"Assets/Texture/S_LightPoint.png");
 }
 
-APointLightActor::APointLightActor(const APointLightActor& Other)
-    : Super(Other)
-{
-}
-
 void APointLightActor::BeginPlay()
 {
     Super::BeginPlay();
@@ -42,7 +37,7 @@ bool APointLightActor::Destroy()
 
 UObject* APointLightActor::Duplicate(UObject* InOuter)
 {
-    APointLightActor* NewActor = FObjectFactory::ConstructObjectFrom<APointLightActor>(this, InOuter);
+    APointLightActor* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewActor->DuplicateSubObjects(this, InOuter);
     NewActor->PostDuplicate();
     return NewActor;

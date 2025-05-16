@@ -3,20 +3,45 @@
 #include "Object.h"
 #include "Container/Map.h"
 #include "NameTypes.h"
+#include "ThirdParty/sol/sol.hpp"
+#include "Property.h"
+
 /**
  * UObject의 RTTI를 가지고 있는 클래스
  */
-class UClass : public UObject
+    class UClass : public UObject
 {
+
+    using ClassConstructorType = UObject * (*)();
+
 public:
     UClass(const char* InClassName, uint32 InClassSize, uint32 InAlignment, UClass* InSuperClass);
-    virtual ~UClass() override = default;
+    UClass(
+        const char* InClassName,
+        uint32 InClassSize,
+        uint32 InAlignment,
+        UClass* InSuperClass,
+        ClassConstructorType InCTOR
+    );
+    virtual ~UClass() override;
 
     // 복사 & 이동 생성자 제거
     UClass(const UClass&) = delete;
     UClass& operator=(const UClass&) = delete;
     UClass(UClass&&) = delete;
     UClass& operator=(UClass&&) = delete;
+
+    static TMap<FName, UClass*>& GetClassMap();
+    static UClass* FindClass(const FName& ClassName);
+
+    /** 컴파일 타임에 알 수 없는 프로퍼티 타입을 런타임에 검사합니다. */
+    static void ResolvePendingProperties();
+
+private:
+    /** 컴파일 타임에 알 수 없는 프로퍼티 목록들 */
+    static TArray<FProperty*>& GetUnresolvedProperties();
+
+public:
 
     uint32 GetClassSize() const { return ClassSize; }
     uint32 GetClassAlignment() const { return ClassAlignment; }
@@ -62,14 +87,21 @@ public:
         }
         return ClassDefaultObject;
     }
-    
+
     /** Lua에 UPROPERTY를 Bind하는 함수.
      *  DECLARE_CLASS에서 초기화됨
      */
     std::function<void(sol::state&)> BindPropertiesToLua;
-    
+
+    void RegisterProperty(FProperty* Prop);
+
+    TArray<FProperty*> Properties;
+
 protected:
     virtual UObject* CreateDefaultObject();
+
+public:
+    ClassConstructorType ClassCTOR;
 
 private:
     [[maybe_unused]]

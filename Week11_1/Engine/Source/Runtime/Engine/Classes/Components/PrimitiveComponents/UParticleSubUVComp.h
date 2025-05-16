@@ -35,7 +35,6 @@ class UParticleSubUVComp : public UBillboardComponent
 
 public:
     UParticleSubUVComp();
-    UParticleSubUVComp(const UParticleSubUVComp& other);
     virtual ~UParticleSubUVComp() override;
 
     virtual void InitializeComponent() override;

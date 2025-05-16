@@ -36,8 +36,7 @@ class USpotLightComponent : public ULightComponentBase
 {
     DECLARE_CLASS(USpotLightComponent, ULightComponentBase)
 public:
-    USpotLightComponent();
-    USpotLightComponent(const USpotLightComponent& Other);
+    USpotLightComponent() {};
     virtual ~USpotLightComponent() override;
 protected:
     //angle은 내부적으로 radian
