@@ -391,8 +391,6 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\UTexture.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\UTextUUID.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\ResourceManager.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowResource.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\ADodge.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBall.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\IEnumerator.h" />
@@ -490,6 +488,22 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\FFunctor.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\AnimSequenceEditorPanel.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\FBXLoader.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Paritcles\ParticleHelper.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Paritcles\ParticleEmitterInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowResource.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ParticleSystemComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModule.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleRequired.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleSpawn.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleLifetime.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleLocation.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleVelocity.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleColor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleSize.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -560,7 +574,6 @@
     <FxCompile Include="Shaders\UberLitVertexShader.hlsl" />
     <FxCompile Include="Shaders\EditorVertexShader.hlsl" />
     <FxCompile Include="Shaders\EditorPixelShader.hlsl" />
-    <FxCompile Include="Shaders\TileLightCulling.compute" />
     <FxCompile Include="Shaders\ShadowVertexShader.hlsl" />
     <FxCompile Include="Shaders\ShadowPixelShader.hlsl" />
     <FxCompile Include="Shaders\LightDepthPixelShader.hlsl" />
@@ -632,8 +645,6 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\UTexture.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\UTextUUID.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\ResourceManager.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowResource.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\FCollisionManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UShapeComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\Physics\UBoxShapeComponent.cpp" />
@@ -727,6 +738,8 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerInput.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\AnimSequenceEditorPanel.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\FBXLoader.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowResource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />
