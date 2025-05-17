@@ -25,10 +25,10 @@ void FUObjectArray::ProcessPendingDestroyObjects()
     {
         const UClass* Class = Object->GetClass();
         std::string ObjectName = *Object->GetName();
-        const uint32 ObjectSize = Class->GetClassSize();
+        const uint32 ObjectSize = Class->GetStructSize();
 
         std::destroy_at(Object);
-        FPlatformMemory::AlignedFree<EAT_Object>(Object, ObjectSize);
+        FPlatformMemory::Free<EAT_Object>(Object, ObjectSize);
 
         UE_LOG(LogLevel::Display, "Deleted Object: %s, Size: %d", ObjectName.c_str(), ObjectSize);
     }

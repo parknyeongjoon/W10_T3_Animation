@@ -1,15 +1,14 @@
 #include "Property.h"
 
 #include "Class.h"
+#include "ScriptStruct.h"
 #include "UObjectHash.h"
 #include "Editor/UnrealEd/ImGuiWidget.h"
 #include "Math/NumericLimits.h"
 #include "Template/SubclassOf.h"
+#include "CoreUObject/UObject/ObjectUtils.h"
 
 #include "ImGui/imgui.h"
-
-#include "Math/Rotator.h"
-#include "CoreUObject/UObject/ObjectUtils.h"
 
 template <typename Type, typename... Types>
 concept TIsAnyOf = (std::same_as<Type, Types> || ...);
@@ -30,15 +29,15 @@ struct FPropertyUIHelper
         constexpr NumType Max = TNumericLimits<NumType>::Max();
 
         ImGuiDataType DataType;
-        if constexpr (std::same_as<NumType, int8>)        { DataType = ImGuiDataType_S8;     }
-        else if constexpr (std::same_as<NumType, int16>)  { DataType = ImGuiDataType_S16;    }
-        else if constexpr (std::same_as<NumType, int32>)  { DataType = ImGuiDataType_S32;    }
-        else if constexpr (std::same_as<NumType, int64>)  { DataType = ImGuiDataType_S64;    }
-        else if constexpr (std::same_as<NumType, uint8>)  { DataType = ImGuiDataType_U8;     }
-        else if constexpr (std::same_as<NumType, uint16>) { DataType = ImGuiDataType_U16;    }
-        else if constexpr (std::same_as<NumType, uint32>) { DataType = ImGuiDataType_U32;    }
-        else if constexpr (std::same_as<NumType, uint64>) { DataType = ImGuiDataType_U64;    }
-        else if constexpr (std::same_as<NumType, float>)  { DataType = ImGuiDataType_Float;  }
+        if constexpr (std::same_as<NumType, int8>) { DataType = ImGuiDataType_S8; }
+        else if constexpr (std::same_as<NumType, int16>) { DataType = ImGuiDataType_S16; }
+        else if constexpr (std::same_as<NumType, int32>) { DataType = ImGuiDataType_S32; }
+        else if constexpr (std::same_as<NumType, int64>) { DataType = ImGuiDataType_S64; }
+        else if constexpr (std::same_as<NumType, uint8>) { DataType = ImGuiDataType_U8; }
+        else if constexpr (std::same_as<NumType, uint16>) { DataType = ImGuiDataType_U16; }
+        else if constexpr (std::same_as<NumType, uint32>) { DataType = ImGuiDataType_U32; }
+        else if constexpr (std::same_as<NumType, uint64>) { DataType = ImGuiDataType_U64; }
+        else if constexpr (std::same_as<NumType, float>) { DataType = ImGuiDataType_Float; }
         else if constexpr (std::same_as<NumType, double>) { DataType = ImGuiDataType_Double; }
         else { static_assert(TAlwaysFalse<NumType>); }
 
@@ -66,7 +65,7 @@ void FProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) 
 
 void FNumericProperty::DisplayInImGui(UObject* Object) const
 {
-    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
         FProperty::DisplayInImGui(Object);
     }
@@ -145,7 +144,7 @@ void FDoubleProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
 
 void FBoolProperty::DisplayInImGui(UObject* Object) const
 {
-    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
         FProperty::DisplayInImGui(Object);
     }
@@ -161,7 +160,7 @@ void FBoolProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataP
 
 void FStrProperty::DisplayInImGui(UObject* Object) const
 {
-    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
         FProperty::DisplayInImGui(Object);
     }
@@ -205,7 +204,7 @@ void FNameProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataP
 
 void FVector2DProperty::DisplayInImGui(UObject* Object) const
 {
-    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
         FProperty::DisplayInImGui(Object);
     }
@@ -221,7 +220,7 @@ void FVector2DProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* D
 
 void FVectorProperty::DisplayInImGui(UObject* Object) const
 {
-    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
         FProperty::DisplayInImGui(Object);
     }
@@ -237,7 +236,7 @@ void FVectorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
 
 void FVector4Property::DisplayInImGui(UObject* Object) const
 {
-    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
         FProperty::DisplayInImGui(Object);
     }
@@ -253,7 +252,7 @@ void FVector4Property::DisplayRawDataInImGui(const char* PropertyLabel, void* Da
 
 void FRotatorProperty::DisplayInImGui(UObject* Object) const
 {
-    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
         FProperty::DisplayInImGui(Object);
     }
@@ -269,7 +268,7 @@ void FRotatorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Da
 
 void FQuatProperty::DisplayInImGui(UObject* Object) const
 {
-    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
         FProperty::DisplayInImGui(Object);
     }
@@ -289,10 +288,10 @@ void FTransformProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* 
 
     if (ImGui::TreeNode(PropertyLabel))
     {
-        ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+        ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
         {
             FTransform* Data = static_cast<FTransform*>(DataPtr);
-            FRotator Rotation = Data->Rotation.Rotator();
+            FRotator Rotation = Data->Rotator();
 
             FImGuiWidget::DrawVec3Control("Location", Data->Location);
             FImGuiWidget::DrawRot3Control("Rotation", Rotation);
@@ -315,7 +314,7 @@ void FMatrixProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
         bool bChanged = false;
         FMatrix* Data = static_cast<FMatrix*>(DataPtr);
 
-        ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+        ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
         {
             FTransform Transform = FTransform(*Data);
             FRotator Rotation = Transform.Rotator();
@@ -327,7 +326,7 @@ void FMatrixProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
             if (bChanged)
             {
                 *Data =
-                    FMatrix::CreateScaleMatrix(Transform.Scale.X, Transform.Scale.Y, Transform.Scale.Z)
+                    FMatrix::CreateScaleMatrix(Transform.Scale)
                     * FMatrix::CreateRotationMatrix(Rotation.ToQuaternion())
                     * FMatrix::CreateTranslationMatrix(Transform.Location);
             }
@@ -336,7 +335,7 @@ void FMatrixProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
 
         if (ImGui::TreeNode("Advanced"))
         {
-            ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+            ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
             {
                 ImGui::DragFloat4("##1", Data->M[0], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
                 ImGui::DragFloat4("##2", Data->M[1], 0.01f, -FLT_MAX, FLT_MAX, "%.3f");
@@ -353,7 +352,7 @@ void FMatrixProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
 
 void FColorProperty::DisplayInImGui(UObject* Object) const
 {
-    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
         FProperty::DisplayInImGui(Object);
     }
@@ -383,7 +382,7 @@ void FColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Data
 
 void FLinearColorProperty::DisplayInImGui(UObject* Object) const
 {
-    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
         FProperty::DisplayInImGui(Object);
     }
@@ -409,7 +408,7 @@ void FLinearColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void
 
 void FSubclassOfProperty::DisplayInImGui(UObject* Object) const
 {
-    ImGui::BeginDisabled(HasFlag(Flags, EPropertyFlags::VisibleAnywhere));
+    ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
     {
         FProperty::DisplayInImGui(Object);
     }
@@ -457,7 +456,7 @@ void FSubclassOfProperty::DisplayRawDataInImGui(const char* PropertyLabel, void*
     }
 }
 
-void FObjectBaseProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
+void FObjectProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
 
@@ -467,13 +466,13 @@ void FObjectBaseProperty::DisplayRawDataInImGui(const char* PropertyLabel, void*
 
         if (const UClass* ObjectClass = IsValid(*Object) ? (*Object)->GetClass() : nullptr)
         {
-            // 포인터가 가리키는것을 수정할 때, 보통 UObject의 인스턴스
-            if (HasFlag(Flags, EPropertyFlags::EditAnywhere))
+            // 포인터가 가리키는 객체를 수정, 여기서는 UObject의 인스턴스
+            if (HasAnyFlags(Flags, EPropertyFlags::EditAnywhere))
             {
                 TArray<UObject*> ChildObjects;
                 GetObjectsOfClass(ObjectClass, ChildObjects, true);
 
-                if (ImGui::BeginCombo(std::format("##{}", PropertyLabel).c_str(), ObjectClass->GetName().ToAnsiString().c_str()))
+                if (ImGui::BeginCombo(std::format("##{}", PropertyLabel).c_str(), (*Object)->GetName().ToAnsiString().c_str()))
                 {
                     for (UObject* ChildObject : ChildObjects)
                     {
@@ -482,7 +481,7 @@ void FObjectBaseProperty::DisplayRawDataInImGui(const char* PropertyLabel, void*
                         if (ImGui::Selectable(ObjectName.c_str(), bIsSelected))
                         {
                             // TODO: 나중에 수정, 지금은 목록만 보여주고, 설정은 안함
-                            // *Object = ChildObject;
+                            *Object = ChildObject;
                         }
                         if (bIsSelected)
                         {
@@ -493,11 +492,15 @@ void FObjectBaseProperty::DisplayRawDataInImGui(const char* PropertyLabel, void*
                     ImGui::EndCombo();
                 }
             }
-            else if (HasFlag(Flags, EPropertyFlags::VisibleAnywhere))
+            else if (HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere))
             {
-                for (const FProperty* Prop : ObjectClass->GetProperties())
+                const UClass* ChildClass = ObjectClass;
+                for (; ChildClass; ChildClass = ChildClass->GetSuperClass())
                 {
-                    Prop->DisplayInImGui(*Object);
+                    for (const FProperty* Prop : ChildClass->GetProperties())
+                    {
+                        Prop->DisplayInImGui(*Object);
+                    }
                 }
             }
         }
@@ -505,10 +508,29 @@ void FObjectBaseProperty::DisplayRawDataInImGui(const char* PropertyLabel, void*
     }
 }
 
+void FStructProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
+{
+    FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
+
+    if (UScriptStruct* const* StructType = std::get_if<UScriptStruct*>(&TypeSpecificData))
+    {
+        if (ImGui::TreeNodeEx(PropertyLabel, ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            for (const FProperty* Property : (*StructType)->GetProperties())
+            {
+                void* Data = static_cast<std::byte*>(DataPtr) + Property->Offset;
+                Property->DisplayRawDataInImGui(Property->Name, Data);
+            }
+            ImGui::TreePop();
+        }
+    }
+}
+
 void FUnresolvedPtrProperty::DisplayInImGui(UObject* Object) const
 {
-    if (Type == EPropertyType::Object)
+    if (Type == EPropertyType::Unknown)
     {
-        FObjectBaseProperty::DisplayInImGui(Object);
+        return;
     }
+    ResolvedProperty->DisplayInImGui(Object);
 }

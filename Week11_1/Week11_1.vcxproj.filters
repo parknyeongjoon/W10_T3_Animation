@@ -522,6 +522,9 @@
     <ClInclude Include="Engine\Source\ThirdParty\magic_enum\magic_enum_switch.hpp" />
     <ClInclude Include="Engine\Source\ThirdParty\magic_enum\magic_enum_utility.hpp" />
     <ClInclude Include="Engine\Source\Runtime\Serialization\Archive.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\FunctionRegistry.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -762,6 +765,8 @@
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectGlobals.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectUtils.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Serialization\Archive.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

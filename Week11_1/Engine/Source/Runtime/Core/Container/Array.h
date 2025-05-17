@@ -7,14 +7,16 @@
 #include "Serialization/Archive.h"
 
 
-template <typename T, typename Allocator>
+template <typename T, typename AllocatorType = FDefaultAllocator<T>>
 class TArray
 {
 public:
-    using SizeType = typename Allocator::SizeType;
+    using SizeType = typename AllocatorType::SizeType;
+    using ElementType = T;
+    using ArrayType = std::vector<ElementType, AllocatorType>;
 
 private:
-    std::vector<T, Allocator> ContainerPrivate;
+    ArrayType ContainerPrivate;
 
 public:
     // Iterator를 사용하기 위함
@@ -110,7 +112,68 @@ public:
         requires std::is_invocable_r_v<bool, Compare, const T&, const T&>
     void Sort(const Compare& CompFn);
 
+
+    /**
+ * 다른 TArray의 모든 요소를 이 배열의 끝에 추가합니다.
+ * @param Source 다른 TArray 객체
+ */
+    void Append(const TArray& Source);
+
+    /**
+     * InitList에 있는 요소들을 InIndex 위치에 삽입합니다.
+     * @param InitList 삽입할 요소들의 초기화 리스트
+     * @param InIndex 삽입 시작 위치의 인덱스
+     * @return 삽입된 첫 번째 요소의 인덱스
+     */
+    SizeType Insert(std::initializer_list<ElementType> InitList, SizeType InIndex);
+
+    /**
+     * 다른 TArray의 요소들을 현재 배열의 특정 위치에 삽입합니다.
+     *
+     * @param Items 삽입할 요소들이 포함된 TArray
+     * @param InIndex 요소들을 삽입할 인덱스 위치
+     * @return 삽입된 첫 번째 요소의 인덱스
+     */
+    template <typename OtherAllocatorType>
+    SizeType Insert(const TArray<ElementType, OtherAllocatorType>& Items, SizeType InIndex);
+
+    /**
+     * 하나의 요소를 특정 인덱스 위치에 삽입합니다.
+     *
+     * @param Item 삽입할 요소
+     * @param InIndex 삽입 위치의 인덱스
+     * @return 삽입된 요소의 인덱스
+     */
+    SizeType Insert(const ElementType& Item, SizeType InIndex);
+
+    /**
+     * 포인터가 가리키는 C-스타일 배열의 요소들을 이 배열의 끝에 추가합니다.
+     * @param Ptr 추가할 요소 배열의 시작 포인터
+     * @param Count 추가할 요소의 개수
+     */
+    void Append(const ElementType* Ptr, SizeType Count);
+
+
     void AppendArray(const T* array, SizeType count);
+
+    /**
+ * Count만큼 초기화되지 않은 공간을 확장합니다.
+ * @warning std::vector의 한계로, 실제로는 AddDefaulted와 동작이 같습니다.
+ */
+    SizeType AddUninitialized(SizeType Count);
+
+    /**
+     * 배열 끝에 기본 생성된 요소 1개를 추가합니다.
+     * @return 추가된 요소의 인덱스
+     */
+    SizeType AddDefaulted();
+
+    /**
+     * 배열 끝에 기본 생성된 요소를 Count개 만큼 추가합니다.
+     * @param Count 추가할 요소의 개수
+     * @return 추가된 첫 번째 요소의 인덱스. Count가 0 이하라면 현재 Num()을 반환할 수 있습니다.
+     */
+    SizeType AddDefaulted(SizeType Count);
 
     bool IsValidIndex(uint32 ElementIndex) const {
         if (ElementIndex < 0 || ElementIndex >= Num()) return false;
@@ -347,6 +410,89 @@ void TArray<T, Allocator>::Sort()
     std::sort(ContainerPrivate.begin(), ContainerPrivate.end());
 }
 
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::Append(const TArray& Source)
+{
+    // 추가할 요소가 없으면 바로 반환
+    if (Source.IsEmpty())
+    {
+        return;
+    }
+
+    // 최적화: 필요한 경우 미리 메모리를 할당하여 여러 번의 재할당 방지
+    const SizeType OldSize = Num();
+    const SizeType NumToAdd = Source.Num();
+    const SizeType NewSize = OldSize + NumToAdd;
+    if (Len() < NewSize)
+    {
+        Reserve(NewSize); // 필요한 만큼 (또는 그 이상) 용량 확보
+    }
+
+    // std::vector::insert를 사용하여 Source의 모든 요소를 현재 벡터의 끝(end())에 삽입
+    ContainerPrivate.insert(
+        ContainerPrivate.end(),          // 삽입 위치: 현재 벡터의 끝
+        Source.ContainerPrivate.begin(), // 복사할 시작 이터레이터
+        Source.ContainerPrivate.end()    // 복사할 끝 이터레이터
+    );
+}
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Insert(std::initializer_list<ElementType> InitList, const SizeType InIndex)
+{
+    auto InsertPosIter = ContainerPrivate.begin() + InIndex;
+    ContainerPrivate.insert(InsertPosIter, InitList);
+    return InIndex;
+}
+
+template <typename T, typename AllocatorType>
+template <typename OtherAllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Insert(
+    const TArray<ElementType, OtherAllocatorType>& Items, const SizeType InIndex
+)
+{
+    auto InsertPosIter = ContainerPrivate.begin() + InIndex;
+    ContainerPrivate.insert(InsertPosIter, Items.begin(), Items.end());
+    return InIndex;
+}
+
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::Insert(const ElementType& Item, SizeType InIndex)
+{
+    auto InsertPosIter = ContainerPrivate.begin() + InIndex;
+    ContainerPrivate.insert(InsertPosIter, Item);
+    return InIndex;
+}
+
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::Append(const ElementType* Ptr, SizeType Count)
+{
+    // 추가할 요소가 없거나 포인터가 유효하지 않으면 바로 반환
+    if (Count <= 0)
+    {
+        return;
+    }
+    // Count가 0보다 클 때 Ptr이 nullptr이면 문제가 발생하므로 확인 (assert 또는 예외 처리 등)
+    assert(Ptr != nullptr && "TArray::Append trying to append from null pointer with Count > 0");
+    if (Ptr == nullptr) {
+        // 실제 엔진이라면 로그를 남기거나 할 수 있음
+        return;
+    }
+
+
+    // 최적화: 필요한 경우 미리 메모리를 할당
+    const SizeType OldSize = Num();
+    const SizeType NewSize = OldSize + Count;
+    if (Len() < NewSize)
+    {
+        Reserve(NewSize);
+    }
+
+    // std::vector::insert는 포인터를 이터레이터처럼 사용할 수 있음
+    ContainerPrivate.insert(
+        ContainerPrivate.end(), // 삽입 위치: 현재 벡터의 끝
+        Ptr,                  // 복사할 시작 포인터 (이터레이터 역할)
+        Ptr + Count           // 복사할 끝 포인터 (이터레이터 역할)
+    );
+}
 template <typename T, typename Allocator>
 template <typename Compare>
     requires std::is_invocable_r_v<bool, Compare, const T&, const T&>
@@ -364,7 +510,52 @@ void TArray<T, Allocator>::AppendArray(const T* array, SizeType count)
     }
 }
 
-template <typename T, typename Allocator = FDefaultAllocator<T>> class TArray;
+
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::AddUninitialized(SizeType Count)
+{
+    if (Count <= 0)
+    {
+        return ContainerPrivate.size();
+    }
+
+    // 기존 크기 저장
+    SizeType StartIndex = ContainerPrivate.size();
+
+    // 메모리를 확장
+    ContainerPrivate.resize(StartIndex + Count);
+
+    // 새 크기를 반환
+    return StartIndex;
+}
+
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::AddDefaulted()
+{
+    // 새 요소들이 시작될 인덱스 (현재 크기)
+    const SizeType StartIndex = Num();
+    ContainerPrivate.emplace_back();
+    return StartIndex;
+}
+
+template <typename T, typename AllocatorType>
+typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::AddDefaulted(SizeType Count)
+{
+    if (Count <= 0)
+    {
+        return Num();
+    }
+
+    // 새 요소들이 시작될 인덱스 (현재 크기)
+    const SizeType StartIndex = Num();
+
+    // resize를 사용하여 Count만큼 크기를 늘립니다.
+    ContainerPrivate.resize(StartIndex + Count);
+
+    // 추가된 첫 번째 요소의 인덱스 반환
+    return StartIndex;
+}
+
 
 template <typename T> constexpr bool TIsTArray_V = false;
 

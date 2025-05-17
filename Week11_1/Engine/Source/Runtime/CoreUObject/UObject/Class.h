@@ -1,6 +1,6 @@
 #pragma once
 #include <concepts>
-#include "Object.h"
+#include "Struct.h"
 #include "Container/Map.h"
 #include "NameTypes.h"
 #include "ThirdParty/sol/sol.hpp"
@@ -10,13 +10,14 @@
 /**
  * UObject의 RTTI를 가지고 있는 클래스
  */
-    class UClass : public UObject
+    class UClass : public UStruct
 {
-
+        using Super = UStruct;
+        using ThisClass = UClass;
     using ClassConstructorType = UObject * (*)();
 
 public:
-    UClass(const char* InClassName, uint32 InClassSize, uint32 InAlignment, UClass* InSuperClass);
+    //UClass(const char* InClassName, uint32 InClassSize, uint32 InAlignment, UClass* InSuperClass);
     UClass(
         const char* InClassName,
         uint32 InClassSize,
@@ -35,18 +36,7 @@ public:
     static TMap<FName, UClass*>& GetClassMap();
     static UClass* FindClass(const FName& ClassName);
 
-    /** 컴파일 타임에 알 수 없는 프로퍼티 타입을 런타임에 검사합니다. */
-    static void ResolvePendingProperties();
-
-private:
-    /** 컴파일 타임에 알 수 없는 프로퍼티 목록들 */
-    static TArray<FProperty*>& GetUnresolvedProperties();
-
 public:
-
-    uint32 GetClassSize() const { return ClassSize; }
-    uint32 GetClassAlignment() const { return ClassAlignment; }
-
     template <typename T>
     T* CreateObject(UObject* InOuter)
     {
@@ -72,9 +62,9 @@ public:
      *
      * @note AActor::StaticClass()->GetSuperClass() == UObject::StaticClass()
      */
-    UClass* GetSuperClass() const
+    FORCEINLINE UClass* GetSuperClass() const
     {
-        return SuperClass;
+        return static_cast<UClass*>(SuperStruct);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
     }
 
     UObject* GetDefaultObject() const;
@@ -84,9 +74,6 @@ public:
     T* GetDefaultObject() const;
 
     const TArray<FProperty*>& GetProperties() const { return Properties; }
-
-    void RegisterProperty(FProperty* Prop);
-
 protected:
     virtual UObject* CreateDefaultObject();
 
@@ -94,17 +81,7 @@ public:
     ClassConstructorType ClassCTOR;
 
 private:
-    [[maybe_unused]]
-    uint32 ClassSize;
-
-    [[maybe_unused]]
-    uint32 ClassAlignment;
-
-    UClass* SuperClass = nullptr;
-
     UObject* ClassDefaultObject = nullptr;
-
-    TArray<FProperty*> Properties;
 
 public:
     using ObjectCreator = void* (*)(UObject*);

@@ -1,15 +1,16 @@
 #include "Property.h"
 #include "Class.h"
+#include "ScriptStruct.h"
 #include "UserInterface/Console.h"
+
 
 void FProperty::Resolve()
 {
-    // TODO: 커스텀 구조체도 가능하게 만들기
 }
 
 void FUnresolvedPtrProperty::Resolve()
 {
-    FObjectBaseProperty::Resolve();
+    FProperty::Resolve();
 
     if (Type == EPropertyType::Object)
     {
@@ -21,17 +22,28 @@ void FUnresolvedPtrProperty::Resolve()
         if (std::holds_alternative<FName>(TypeSpecificData))
         {
             const FName& TypeName = std::get<FName>(TypeSpecificData);
-            if (UClass** FoundClass = UClass::GetClassMap().Find(TypeName))
+
+            // ClassMap에서 먼저 검사
+            if (UClass* FoundClass = UClass::FindClass(TypeName))
             {
                 Type = EPropertyType::Object;
-                TypeSpecificData = *FoundClass;
+                TypeSpecificData = FoundClass;
+                ResolvedProperty = new FObjectProperty{ OwnerStruct, Name, Size, Offset, Flags };
+                return;
+            }
+
+            // StructMap에서 검사
+            if (UScriptStruct* FoundStruct = UScriptStruct::FindScriptStruct(TypeName))
+            {
+                Type = EPropertyType::Struct;
+                TypeSpecificData = FoundStruct;
+                ResolvedProperty = new FStructProperty{ OwnerStruct, Name, Size, Offset, Flags };
                 return;
             }
         }
-        return;
     }
 
     Type = EPropertyType::Unknown;
     TypeSpecificData = std::monostate{};
-    UE_LOG(LogLevel::Error, "Unknown Property Type : %s", Name);
+    UE_LOG(LogLevel::Error, "Unknown Property Type: %s", Name);
 }

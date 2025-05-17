@@ -107,6 +107,7 @@ private:
     friend class FObjectFactory;
     friend class FSceneMgr;
     friend class UClass;
+    friend class UStruct;
 
     uint32 UUID;
     uint32 InternalIndex; // Index of GUObjectArray
@@ -149,9 +150,9 @@ public:
     void MarkAsGarbage();
 
 public:
-    void* operator new(size_t Size);
+    //void* operator new(size_t Size);
 
-    void operator delete(void* Ptr, size_t Size);
+    //void operator delete(void* Ptr, size_t Size);
 public:
     // Serialize
 

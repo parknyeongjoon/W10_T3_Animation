@@ -2,8 +2,8 @@
 #include "ObjectFactory.h"
 #include "Class.h"
 #include "UObjectHash.h"
-#include "Templates/TypeUtilities.h"
 #include "ThirdParty/sol/sol.hpp"
+#include "ScriptStruct.h"
 
 // 문자열화 매크로
 #define INLINE_STRINGIFY(name) #name
@@ -64,7 +64,7 @@ public: \
             static_cast<uint32>(alignof(TClass)), \
             TSuperClass::StaticClass(), \
             []() -> UObject* { \
-                void* RawMemory = FPlatformMemory::AlignedMalloc<EAT_Object>(sizeof(TClass), alignof(TClass)); \
+                void* RawMemory = FPlatformMemory::Malloc<EAT_Object>(sizeof(TClass)); \
                 ::new (RawMemory) TClass; \
                 return static_cast<UObject*>(RawMemory); \
             } \
@@ -91,6 +91,55 @@ public: \
         return &ClassInfo; \
     }
 
+
+// ---------- DECLARE_STRUCT 관련 매크로 ----------
+#define DECLARE_COMMON_STRUCT_BODY(TStruct, TSuperStruct) \
+private: \
+    inline static struct Z_##TStruct##_StructRegistrar_PRIVATE \
+    { \
+        Z_##TStruct##_StructRegistrar_PRIVATE() \
+        { \
+            UScriptStruct::GetScriptStructMap().Add(FName(INLINE_STRINGIFY(TStruct)), TStruct::StaticStruct()); \
+        } \
+    } Z_##TStruct##_StructRegistrar_Instance_PRIVATE{}; \
+public: \
+    using Super = TSuperStruct; \
+    using ThisClass = TStruct;
+
+#define DECLARE_STRUCT_WITH_SUPER(TStruct, TSuperStruct) \
+    DECLARE_COMMON_STRUCT_BODY(TStruct, TSuperStruct) \
+    static UScriptStruct* StaticStruct() \
+    { \
+        static UScriptStruct StructInfo{ \
+            INLINE_STRINGIFY(TStruct), \
+            static_cast<uint32>(sizeof(TStruct)), \
+            static_cast<uint32>(alignof(TStruct)), \
+            TSuperStruct::StaticStruct() \
+        }; \
+        return &StructInfo; \
+    }
+
+#define DECLARE_STRUCT_NO_SUPER(TStruct) \
+    DECLARE_COMMON_STRUCT_BODY(TStruct, TStruct) \
+    static UScriptStruct* StaticStruct() \
+    { \
+        static UScriptStruct StructInfo{ \
+            INLINE_STRINGIFY(TStruct), \
+            static_cast<uint32>(sizeof(TStruct)), \
+            static_cast<uint32>(alignof(TStruct)), \
+            nullptr \
+        }; \
+        return &StructInfo; \
+    }
+
+#define GET_OVERLOADED_STRUCT_MACRO(_1, _2, MACRO, ...) MACRO
+
+#define EXPAND_MACRO(x) x
+#define DECLARE_STRUCT(...) \
+    EXPAND_MACRO(GET_OVERLOADED_STRUCT_MACRO(__VA_ARGS__, DECLARE_STRUCT_WITH_SUPER, DECLARE_STRUCT_NO_SUPER)(__VA_ARGS__))
+
+
+
 // ---------- UProperty 관련 매크로 ----------
 #define GET_FIRST_ARG(First, ...) First
 #define FIRST_ARG(...) GET_FIRST_ARG(__VA_ARGS__, )
@@ -103,19 +152,16 @@ public: \
         { \
             constexpr int64 Offset = offsetof(ThisClass, InVarName); \
             constexpr EPropertyFlags Flags = InFlags; \
-            ThisClass::StaticClass()->RegisterProperty( \
-                PropertyFactory::Private::MakeProperty<InType, Flags>(ThisClass::StaticClass(), #InVarName, Offset) \
+            UStruct* StructPtr = GetStructHelper<ThisClass>(); \
+            StructPtr->AddProperty( \
+                PropertyFactory::Private::MakeProperty<InType, Flags>(StructPtr, #InVarName, Offset) \
             ); \
-            GetBindFunctions().Add(#InVarName, [](sol::usertype<ThisClass> table) { \
-                table[#InVarName] = &ThisClass::InVarName; \
-            }); \
         } \
     } InVarName##_PropRegistrar_PRIVATE{};
 
 #define UPROPERTY_DEFAULT(InType, InVarName, ...) \
     UPROPERTY_WITH_FLAGS(EPropertyFlags::PropertyNone, InType, InVarName, __VA_ARGS__)
 
-#define EXPAND_PROPERTY_MACRO(x) x
 #define GET_OVERLOADED_PROPERTY_MACRO(_1, _2, _3, _4, NAME, ...) NAME
 
 /**
@@ -133,23 +179,32 @@ public: \
  * UPROPERTY(EPropertyFlags::EditAnywhere, int, Value, = 10) // Flag를 지정하면 기본값은 필수
  */
 #define UPROPERTY(...) \
-    EXPAND_PROPERTY_MACRO(GET_OVERLOADED_PROPERTY_MACRO(__VA_ARGS__, UPROPERTY_WITH_FLAGS, UPROPERTY_DEFAULT, UPROPERTY_DEFAULT)(__VA_ARGS__))
+    EXPAND_MACRO(GET_OVERLOADED_PROPERTY_MACRO(__VA_ARGS__, UPROPERTY_WITH_FLAGS, UPROPERTY_DEFAULT, UPROPERTY_DEFAULT)(__VA_ARGS__))
 
-// UFUNCTION 자동 Lua 바인딩 + 선언
-#define UFUNCTION(Type, FuncName, ...) \
-    Type FuncName (__VA_ARGS__); \
-    inline static struct FuncName##_PropRegister \
-    { \
-        FuncName##_PropRegister() \
-        { \
-            GetBindFunctions().Add(#FuncName, [](sol::usertype<ThisClass> table) { \
-                table[#FuncName] = &ThisClass::FuncName; \
-            }); \
-        } \
-    } FuncName##_PropRegister_{};
+/*
+예시
+UFUNCTION(
+bool, IsActive, () const;
+)
 
-#define UFUNCTION_CONST(Type, FuncName, ...) \
-    Type FuncName (__VA_ARGS__) const; \
+UFUNCTION(
+void, Activate, ();
+)
+
+UFUNCTION(
+void, Deactivate, ();
+)
+
+UFUNCTION(
+bool, TestFunc, () const,
+{
+  return true;
+}
+)
+
+*/
+#define UFUNCTION(Type, FuncName, Args, Stmt) \
+    Type FuncName Args Stmt \
     inline static struct FuncName##_PropRegister \
     { \
         FuncName##_PropRegister() \

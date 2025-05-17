@@ -11,7 +11,7 @@
 ACharacter::ACharacter()
 {
     BodyMesh = AddComponent<USkeletalMeshComponent>(EComponentOrigin::Constructor);
-    BodyMesh->SetData("Contents/FBX/Y_Bot.fbx");
+    BodyMesh->SetData("Contents/fbx/NyeongFBX.fbx");
     UTestAnimInstance* TestAnimInstance = FObjectFactory::ConstructObject<UTestAnimInstance>(BodyMesh);
     BodyMesh->SetAnimInstance(TestAnimInstance);
     RootComponent = BodyMesh;

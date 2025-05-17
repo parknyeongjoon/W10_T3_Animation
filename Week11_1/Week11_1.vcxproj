@@ -192,6 +192,8 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectUtils.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Property.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\PropertyDisplay.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimationRuntime.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNodeBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify\AnimNotify.cpp" />
@@ -422,10 +424,13 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Template\IsTSubclassOf.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Template\SubclassOf.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Class.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\FunctionRegistry.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectGlobals.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectUtils.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Property.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\PropertyTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\WeakObjectPtr.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Container\Queue.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Container\StringConv.h" />

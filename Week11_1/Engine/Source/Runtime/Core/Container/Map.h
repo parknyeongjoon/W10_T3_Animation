@@ -5,12 +5,15 @@
 #include "Serialization/Archive.h"
 
 
-template <typename KeyType, typename ValueType, typename Allocator = FDefaultAllocator<std::pair<const KeyType, ValueType>>>
+template <typename InKeyType, typename InValueType, typename Allocator = FDefaultAllocator<std::pair<const InKeyType, InValueType>>>
 class TMap
 {
 public:
-    using PairType = TPair<const KeyType, ValueType>;
-    using MapType = std::unordered_map<KeyType, ValueType, std::hash<KeyType>, std::equal_to<KeyType>, Allocator>;
+    using KeyType = InKeyType;
+    using ValueType = InValueType;
+
+    using PairType = TPair<const KeyType, InValueType>;
+    using MapType = std::unordered_map<KeyType, InValueType, std::hash<KeyType>, std::equal_to<>, Allocator>;
     using SizeType = typename MapType::size_type;
 
 private:

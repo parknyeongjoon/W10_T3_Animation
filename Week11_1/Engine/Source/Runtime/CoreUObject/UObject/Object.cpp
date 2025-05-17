@@ -71,25 +71,25 @@ bool UObject::IsA(const UClass* SomeBase) const
     return ThisClass->IsChildOf(SomeBase);
 }
 
-void* UObject::operator new(const size_t Size)
-{
-    UE_LOG(LogLevel::Display, "UObject Created : %d", Size);
-
-    void* RawMemory = FPlatformMemory::Malloc<EAT_Object>(Size);
-    UE_LOG(
-        LogLevel::Display,
-        "TotalAllocationBytes : %d, TotalAllocationCount : %d",
-        FPlatformMemory::GetAllocationBytes<EAT_Object>(),
-        FPlatformMemory::GetAllocationCount<EAT_Object>()
-    );
-    return RawMemory;
-}
-
-void UObject::operator delete(void* Ptr, const size_t Size)
-{
-    UE_LOG(LogLevel::Display, "UObject Deleted : %d", Size);
-    FPlatformMemory::Free<EAT_Object>(Ptr, Size);
-}
+//void* UObject::operator new(const size_t Size)
+//{
+//    UE_LOG(LogLevel::Display, "UObject Created : %d", Size);
+//
+//    void* RawMemory = FPlatformMemory::Malloc<EAT_Object>(Size);
+//    UE_LOG(
+//        LogLevel::Display,
+//        "TotalAllocationBytes : %d, TotalAllocationCount : %d",
+//        FPlatformMemory::GetAllocationBytes<EAT_Object>(),
+//        FPlatformMemory::GetAllocationCount<EAT_Object>()
+//    );
+//    return RawMemory;
+//}
+//
+//void UObject::operator delete(void* Ptr, const size_t Size)
+//{
+//    UE_LOG(LogLevel::Display, "UObject Deleted : %d", Size);
+//    FPlatformMemory::Free<EAT_Object>(Ptr, Size);
+//}
 
 
 void UObject::MarkAsGarbage()
