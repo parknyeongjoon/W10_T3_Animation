@@ -256,6 +256,19 @@ public:
 	    return *this;
     }
 
+    // void*와 size_t를 받아서 serialize (쓰기)
+    FArchive& WriteRaw(const void* Data, size_t Size)
+    {
+        Stream.write(reinterpret_cast<const char*>(Data), Size);
+        return *this;
+    }
+
+    // void*와 size_t를 받아서 deserialize (읽기)
+    FArchive& ReadRaw(void* Data, size_t Size)
+    {
+        Stream.read(reinterpret_cast<char*>(Data), Size);
+        return *this;
+    }
 
 #pragma endregion
 };

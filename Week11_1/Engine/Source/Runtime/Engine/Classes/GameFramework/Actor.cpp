@@ -7,14 +7,6 @@
 
 extern UEngine* GEngine;
 
-AActor::AActor(const AActor& Other)
-    : UObject(Other),
-      bTickInEditor(Other.bTickInEditor),
-      bActorIsBeingDestroyed(Other.bActorIsBeingDestroyed),
-      ActorLabel(Other.ActorLabel)
-{
-}
-
 void AActor::BeginPlay()
 {
 
@@ -125,11 +117,6 @@ void AActor::UninitializeComponents() const
     }
 }
 
-USceneComponent* AActor::GetRootComponent() const
-{
-    return RootComponent;
-}
-
 bool AActor::SetRootComponent(USceneComponent* NewRootComponent)
 {
     if (NewRootComponent == nullptr || NewRootComponent->GetOwner() == this)
@@ -147,16 +134,6 @@ bool AActor::SetRootComponent(USceneComponent* NewRootComponent)
         return true;
     }
     return false;
-}
-
-AActor* AActor::GetOwner() const
-{
-    return Owner;
-}
-
-void AActor::SetOwner(AActor* NewOwner)
-{
-    Owner = NewOwner;
 }
 
 FVector AActor::GetActorLocation() const
@@ -282,7 +259,7 @@ void AActor::AddComponent(UActorComponent* Component)
 
 UObject* AActor::Duplicate(UObject* InOuter)
 {
-    AActor* ClonedActor = FObjectFactory::ConstructObjectFrom<AActor>(this, InOuter);
+    AActor* ClonedActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
 

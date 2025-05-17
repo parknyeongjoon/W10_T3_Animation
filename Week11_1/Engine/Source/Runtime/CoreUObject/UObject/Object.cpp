@@ -8,7 +8,18 @@ extern UEngine* GEngine;
 
 UClass* UObject::StaticClass()
 {
-    static UClass ClassInfo{TEXT("UObject"), sizeof(UObject), alignof(UObject), nullptr};
+    static UClass ClassInfo{
+        "UObject",
+        sizeof(UObject),
+        alignof(UObject),
+        nullptr,
+        []() -> UObject*
+        {
+            void* RawMemory = FPlatformMemory::Malloc<EAT_Object>(sizeof(UObject));
+            ::new (RawMemory) UObject;
+            return static_cast<UObject*>(RawMemory);
+        }
+    };
     return &ClassInfo;
 }
 
@@ -20,7 +31,7 @@ FFunctionRegistry* UObject::FunctionRegistry()
 
 UObject* UObject::Duplicate(UObject* InOuter)
 {
-    const auto NewObject = new UObject();
+    const auto NewObject = FObjectFactory::ConstructObject(GetClass(), InOuter);
     NewObject->DuplicateSubObjects(this, InOuter);       // 깊은 복사 수행
     return NewObject;
 }
@@ -60,22 +71,28 @@ bool UObject::IsA(const UClass* SomeBase) const
     return ThisClass->IsChildOf(SomeBase);
 }
 
-void* UObject::operator new(const size_t Size)
-{
-    UE_LOG(LogLevel::Display, "UObject Created : %d", Size);
+//void* UObject::operator new(const size_t Size)
+//{
+//    UE_LOG(LogLevel::Display, "UObject Created : %d", Size);
+//
+//    void* RawMemory = FPlatformMemory::Malloc<EAT_Object>(Size);
+//    UE_LOG(
+//        LogLevel::Display,
+//        "TotalAllocationBytes : %d, TotalAllocationCount : %d",
+//        FPlatformMemory::GetAllocationBytes<EAT_Object>(),
+//        FPlatformMemory::GetAllocationCount<EAT_Object>()
+//    );
+//    return RawMemory;
+//}
+//
+//void UObject::operator delete(void* Ptr, const size_t Size)
+//{
+//    UE_LOG(LogLevel::Display, "UObject Deleted : %d", Size);
+//    FPlatformMemory::Free<EAT_Object>(Ptr, Size);
+//}
 
-    void* RawMemory = FPlatformMemory::Malloc<EAT_Object>(Size);
-    UE_LOG(
-        LogLevel::Display,
-        "TotalAllocationBytes : %d, TotalAllocationCount : %d",
-        FPlatformMemory::GetAllocationBytes<EAT_Object>(),
-        FPlatformMemory::GetAllocationCount<EAT_Object>()
-    );
-    return RawMemory;
-}
 
-void UObject::operator delete(void* Ptr, const size_t Size)
+void UObject::MarkAsGarbage()
 {
-    UE_LOG(LogLevel::Display, "UObject Deleted : %d", Size);
-    FPlatformMemory::Free<EAT_Object>(Ptr, Size);
+    GUObjectArray.MarkRemoveObject(this);
 }

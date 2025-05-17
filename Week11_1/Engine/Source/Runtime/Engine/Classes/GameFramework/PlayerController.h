@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Controller.h"
 #include "InputCore/InputCoreTypes.h"
 
@@ -10,7 +10,6 @@ class APlayerController : public AController
     DECLARE_CLASS(APlayerController, AController)
 public:
     APlayerController() = default;
-    APlayerController(const APlayerController& other);
 
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;

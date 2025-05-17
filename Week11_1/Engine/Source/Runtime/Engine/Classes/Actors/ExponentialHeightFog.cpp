@@ -7,10 +7,6 @@ AExponentialHeightFogActor::AExponentialHeightFogActor()
     FogComponent = AddComponent<UHeightFogComponent>(EComponentOrigin::Constructor);
 }
 
-AExponentialHeightFogActor::AExponentialHeightFogActor(const AExponentialHeightFogActor& Other)
-    :Super(Other)
-{
-}
 
 AExponentialHeightFogActor::~AExponentialHeightFogActor()
 {
@@ -43,7 +39,7 @@ bool AExponentialHeightFogActor::Destroy()
 
 UObject* AExponentialHeightFogActor::Duplicate(UObject* InOuter)
 {
-    AExponentialHeightFogActor* NewActor = FObjectFactory::ConstructObjectFrom<AExponentialHeightFogActor>(this, InOuter);
+    AExponentialHeightFogActor* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewActor->DuplicateSubObjects(this, InOuter);
     NewActor->PostDuplicate();
     return NewActor;
@@ -52,7 +48,7 @@ UObject* AExponentialHeightFogActor::Duplicate(UObject* InOuter)
 void AExponentialHeightFogActor::DuplicateSubObjects(const UObject* Source, UObject* InOuter)
 {
     Super::DuplicateSubObjects(Source, InOuter);
-    const AExponentialHeightFogActor* SourceHeightFogActor = FObjectFactory::ConstructObjectFrom<AExponentialHeightFogActor>(this, InOuter);
+    const AExponentialHeightFogActor* SourceHeightFogActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     if (SourceHeightFogActor == nullptr) return;
     FogComponent = Cast<UHeightFogComponent>(SourceHeightFogActor->FogComponent);
 }

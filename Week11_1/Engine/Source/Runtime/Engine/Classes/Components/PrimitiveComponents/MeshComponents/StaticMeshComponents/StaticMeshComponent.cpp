@@ -6,13 +6,8 @@
 #include "UnrealEd/PrimitiveBatch.h"
 #include "Classes/Engine/FLoaderOBJ.h"
 #include "Components/Mesh/StaticMesh.h"
+#include "CoreUObject/UObject/Casts.h"
 
-UStaticMeshComponent::UStaticMeshComponent(const UStaticMeshComponent& Other)
-    : UMeshComponent(Other)
-    , staticMesh(Other.staticMesh)
-    , selectedSubMeshIndex(Other.selectedSubMeshIndex)
-{
-}
 uint32 UStaticMeshComponent::GetNumMaterials() const
 {
     if (staticMesh == nullptr) return 0;
@@ -154,7 +149,7 @@ void UStaticMeshComponent::LoadAndConstruct(const FActorComponentInfo& Info)
 }
 UObject* UStaticMeshComponent::Duplicate(UObject* InOuter)
 {
-    UStaticMeshComponent* NewComp = FObjectFactory::ConstructObjectFrom<UStaticMeshComponent>(this, InOuter);
+    UStaticMeshComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

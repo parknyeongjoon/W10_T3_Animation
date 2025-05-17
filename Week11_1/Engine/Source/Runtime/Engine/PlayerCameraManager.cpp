@@ -21,16 +21,6 @@ APlayerCameraManager::APlayerCameraManager()
     RootComponent = SceneComp;
 }
 
-APlayerCameraManager::APlayerCameraManager(const APlayerCameraManager& Other)
-    : AActor(Other)
-    // CameraModifiers(Other.CameraModifiers),
-    // ViewTarget(Other.ViewTarget),
-    // PostProcessBlendCache(Other.PostProcessBlendCache),
-    // PostProcessBlendCacheWeights(Other.PostProcessBlendCacheWeights),
-    // PostProcessBlendCacheOrders(Other.PostProcessBlendCacheOrders)
-{
-    //GetWorld()->SetPlayerCameraManager(this);
-}
 
 void APlayerCameraManager::SetViewTarget(AActor* NewViewTarget)
 {
@@ -47,7 +37,7 @@ void APlayerCameraManager::AddCameraModifier(UCameraModifier* Modifier)
 
 UObject* APlayerCameraManager::Duplicate(UObject* InOuter)
 {
-    APlayerCameraManager* ClonedActor = FObjectFactory::ConstructObjectFrom<APlayerCameraManager>(this, InOuter);
+    APlayerCameraManager* ClonedActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;

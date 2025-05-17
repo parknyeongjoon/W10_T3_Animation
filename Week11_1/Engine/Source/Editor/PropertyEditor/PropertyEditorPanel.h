@@ -1,8 +1,8 @@
 #pragma once
 #include "Define.h"
 #include "UnrealEd/EditorPanel.h"
+#include "GameFramework/Actor.h"
 
-class AActor;
 class USkeletalMeshComponent;
 class UActorComponent;
 class UStaticMeshComponent;
@@ -50,6 +50,10 @@ private:
     
     void DrawSkeletalMeshPreviewButton(const FString& FilePath) const;
     
+	template<typename T>
+		requires std::derived_from<T, UActorComponent>
+	T* GetTargetComponent(AActor* SelectedActor, USceneComponent* SelectedComponent);
+
 private:
     float Width = 0, Height = 0;
     
@@ -75,3 +79,19 @@ private:
     TMap<int, FBoneRotation> BoneRotations;
 
 };
+
+template <typename T> requires std::derived_from<T, UActorComponent>
+T* PropertyEditorPanel::GetTargetComponent(AActor* SelectedActor, USceneComponent* SelectedComponent)
+{
+	T* ResultComp = nullptr;
+	if (SelectedComponent != nullptr)
+	{
+		ResultComp = Cast<T>(SelectedComponent);
+	}
+	else if (SelectedActor != nullptr)
+	{
+		ResultComp = SelectedActor->GetComponentByClass<T>();
+	}
+
+	return ResultComp;
+}

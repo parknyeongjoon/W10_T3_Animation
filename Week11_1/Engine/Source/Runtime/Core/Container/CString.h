@@ -99,15 +99,25 @@ public:
         }
     }
 
-    /** 문자열 src에서 최대 count개의 문자를 dest에 복사합니다. */
+    template <typename CharType>
     static CharType* Strncpy(CharType* dest, const CharType* src, std::size_t count)
     {
         if (!dest || !src || count == 0) return dest; // Null/Zero 체크
-        if constexpr (std::is_same_v<CharType, char>) { return std::strncpy(dest, src, count); }
-        else if constexpr (std::is_same_v<CharType, wchar_t>) { return std::wcsncpy(dest, src, count); }
+
+        if constexpr (std::is_same_v<CharType, char>)
+        {
+            // strncpy_s는 반환값이 errno_t(0이 성공), dest를 반환하려면 직접 반환
+            strncpy_s(dest, count, src, _TRUNCATE);
+            return dest;
+        }
+        else if constexpr (std::is_same_v<CharType, wchar_t>)
+        {
+            wcsncpy_s(dest, count, src, _TRUNCATE);
+            return dest;
+        }
         else
         {
-            /* static_assert(false, "Unsupported character type!"); */
+            static_assert(std::is_same_v<CharType, void>, "Unsupported character type!");
             return nullptr;
         }
     }

@@ -7,6 +7,8 @@ class FString;
 
 enum :uint16 { NAME_SIZE = 256 };
 
+enum ENameNone : uint8 { NAME_None = 0 };
+
 class FName
 {
     friend struct FNameHelper;
@@ -16,6 +18,7 @@ class FName
 
 public:
     FName() : DisplayIndex(0), ComparisonIndex(0) {}
+    FName(ENameNone) : DisplayIndex(NAME_None), ComparisonIndex(NAME_None) {}
     FName(const WIDECHAR* Name);
     FName(const ANSICHAR* Name);
     FName(const FString& Name);

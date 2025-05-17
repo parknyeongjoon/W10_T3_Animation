@@ -1,16 +1,9 @@
 #include "LightComponent.h"
+#include "CoreUObject/UObject/ObjectFactory.h"
+#include "CoreUObject/UObject/Casts.h"
 
 ULightComponent::ULightComponent()
     : Super()
-{
-}
-
-ULightComponent::ULightComponent(const ULightComponent& Other)
-    : Super(Other)
-    , ShadowResolutionScale(Other.ShadowResolutionScale)
-    , ShadowBias(Other.ShadowBias)
-    , ShadowSlopeBias(Other.ShadowSlopeBias)
-    , ShadowSharpen(Other.ShadowSharpen)
 {
 }
 
@@ -70,7 +63,7 @@ void ULightComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 UObject* ULightComponent::Duplicate(UObject* InOuter)
 {
-    ULightComponentBase* NewComp = FObjectFactory::ConstructObjectFrom<ULightComponentBase>(this, InOuter);
+    ULightComponentBase* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

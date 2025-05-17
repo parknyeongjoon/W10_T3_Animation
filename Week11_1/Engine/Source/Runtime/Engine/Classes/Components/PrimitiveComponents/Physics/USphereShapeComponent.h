@@ -30,7 +30,6 @@ class USphereShapeComponent : public UShapeComponent
 
 public:
     USphereShapeComponent();
-    USphereShapeComponent(const USphereShapeComponent& Other);
     virtual ~USphereShapeComponent() override;
 
     void InitializeComponent() override;

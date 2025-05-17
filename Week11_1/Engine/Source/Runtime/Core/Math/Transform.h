@@ -1,17 +1,33 @@
-﻿#pragma once
+#pragma once
 #include "Quat.h"
 #include "Vector.h"
-#include "UObject/ObjectMacros.h"
+#include "Rotator.h"
 
 class FTransform
 {
 public:
     FTransform() : Rotation(FQuat::Identity), Location(FVector::ZeroVector), Scale(FVector::OneVector) {}
     FTransform(FQuat InRotation, FVector InLocation, FVector InScale) : Rotation(InRotation), Location(InLocation), Scale(InScale) {}
-    
-    PROPERTY(FQuat, Rotation);
-    PROPERTY(FVector, Location);
-    PROPERTY(FVector, Scale);
+    FTransform(const FMatrix& InMatrix);
+
+    FQuat Rotation;
+    FVector Location;
+    FVector Scale;
+
+    FVector GetLocation() const { return Location; }
+    FQuat GetRotation() const { return Rotation; }
+    FVector GetScale() const { return Scale; }
+
+    void SetRotation(const FQuat& InRotation) { Rotation = InRotation; }
+    void SetRotation(const FRotator& InRotation) { Rotation = InRotation.ToQuaternion(); }
+    void SetLocation(const FVector& InLocation) { Location = InLocation; }
+    void SetScale(const FVector& InScale) { Scale = InScale; }
+    void SetFromMatrix(const FMatrix& InMatrix);
+
+    FRotator Rotator() const
+    {
+        return FRotator(Rotation);
+    }
 
     const static FTransform Identity;
 
@@ -20,16 +36,57 @@ public:
     // 4x4 Matrix로 변환하는 함수
     FMatrix ToMatrixWithScale() const;
     FMatrix ToMatrixNoScale() const;
+
+    inline friend FArchive& operator<<(FArchive& Ar, FTransform& Transform)
+    {
+        return Ar << Transform.Location
+            << Transform.Rotation
+            << Transform.Scale;
+    }
+
 };
 
 inline const FTransform FTransform::Identity = FTransform();
+
+inline FTransform::FTransform(const FMatrix& InMatrix)
+{
+    SetFromMatrix(InMatrix);
+}
+
+inline void FTransform::SetFromMatrix(const FMatrix& InMatrix)
+{
+    // 행렬 복사본 생성
+    FMatrix M = InMatrix;
+
+    // 스케일 추출
+    Scale = M.ExtractScaling();
+
+    // 음수 스케일링 처리
+    if (InMatrix.Determinant() < 0.f)
+    {
+        // 음수 행렬식은 음수 스케일이 있다는 의미입니다.
+        // X축을 따라 음수 스케일이 있다고 가정하고 변환을 수정합니다.
+        // 어떤 축을 선택하든 '외관'은 동일합니다.
+        Scale.X = -Scale.X;
+
+        // X축 방향 반전
+        M.SetAxis(0, -M.GetScaledAxis(EAxis::X));
+    }
+
+    // 스케일이 제거된 행렬에서 회전값 추출
+    Rotation = FQuat(M);
+    Rotation.Normalize();
+
+    // 이동값 추출
+    Location = InMatrix.GetOrigin();
+}
 
 inline FTransform FTransform::Blend(const FTransform& Atom1, const FTransform& Atom2, float Alpha)
 {
     FTransform Result;
 
     Result.Rotation = FQuat::Slerp(Atom1.Rotation, Atom2.Rotation, Alpha);
-    Result.Location = FMath::Lerp(Atom1.GetLocation(), Atom2.GetLocation(), Alpha);
+    Result.Location = FMath::Lerp(Atom1.Location, Atom2.Location, Alpha);
     Result.Scale = FMath::Lerp(Atom1.Scale, Atom2.Scale, Alpha);
 
     return Result;

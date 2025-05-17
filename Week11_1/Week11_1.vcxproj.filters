@@ -162,12 +162,6 @@
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectFactory.h">
       <Filter>Engine\Source\Runtime\CoreUObject\UObject</Filter>
     </ClInclude>
-    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\UClass.cpp">
-      <Filter>Engine\Source\Runtime\CoreUObject\UObject</Filter>
-    </ClCompile>
-    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\UClass.h">
-      <Filter>Engine\Source\Runtime\CoreUObject\UObject</Filter>
-    </ClInclude>
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraComponent.cpp">
       <Filter>Engine\Source\Runtime\Engine\Camera</Filter>
     </ClCompile>
@@ -339,9 +333,7 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Color.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\AssetDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Color.h" />
-    <ClInclude Include="Engine\Source\Runtime\Serialization\Archive.h" />
-    <ClInclude Include="Engine\Source\Runtime\Serialization\FWindowsBinHelper.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\ActorInfo.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Serialization\FWindowsBinHelper.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ActorComponentInfo.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\MovementComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\ProjectileMovementComponent.h" />
@@ -412,7 +404,6 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\FireBall.h" />
     <ClInclude Include="Engine\Source\Contents\AGEnemy.h" />
     <ClInclude Include="Engine\Source\Contents\AGBullet.h" />
-    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\FunctionRegistry.h" />
     <ClInclude Include="Engine\Source\Contents\AGPlayer.h" />
     <ClInclude Include="Engine\Source\Contents\GameManager.h" />
     <ClInclude Include="Engine\Source\Contents\UI\ContentsUI.h" />
@@ -504,6 +495,36 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleVelocity.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleColor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleSize.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Misc\Optional.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Templates\IsArray.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Templates\IsCharType.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Templates\TemplateUtilities.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Templates\TypeUtilities.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Template\IsTSubclassOf.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Template\SubclassOf.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Property.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\PropertyTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Class.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectGlobals.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectUtils.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\WeakObjectPtr.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Container\Queue.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Misc\CoreMiscDefines.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\NumericLimits.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Container\StringConv.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\magic_enum.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\magic_enum_all.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\magic_enum_containers.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\magic_enum_flags.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\magic_enum_format.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\magic_enum_fuse.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\magic_enum_iostream.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\magic_enum_switch.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\magic_enum\magic_enum_utility.hpp" />
+    <ClInclude Include="Engine\Source\Runtime\Serialization\Archive.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\FunctionRegistry.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -540,7 +561,7 @@
     <ClInclude Include="Engine\Source\Editor\UnrealEd\UnrealEd.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\UnrealEdEventRouter.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorPanel.h" />
-    <ClInclude Include="Engine\Source\Runtime\Serialization\Serializer.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Serialization\Serializer.h" />
     <ClInclude Include="Engine\Source\Runtime\SlateCore\Widgets\SWindow.h" />
     <ClInclude Include="Engine\Source\Runtime\Slate\Widgets\Layout\SSplitter.h" />
     <ClInclude Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.h" />
@@ -598,7 +619,6 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\DirectionalLightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\PointLightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Color.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Serialization\Archive.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\MovementComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\ProjectileMovementComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\GameFramework\RotatingMovementComponent.cpp" />
@@ -669,7 +689,6 @@
     <ClCompile Include="Engine\Source\Editor\Script\LuaManagerBind.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Misc\Guid.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\ActorInfo.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\CameraShakeBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraShake\GunRecoilShake.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.cpp" />
@@ -740,6 +759,14 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\FBXLoader.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowResource.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Property.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\PropertyDisplay.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Class.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectGlobals.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectUtils.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Serialization\Archive.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

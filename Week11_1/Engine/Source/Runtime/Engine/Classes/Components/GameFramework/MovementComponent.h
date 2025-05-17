@@ -41,14 +41,13 @@ class UMovementComponent : public UActorComponent
     DECLARE_CLASS(UMovementComponent, UActorComponent)
 
     /** The component we move and update. */
-    class UPrimitiveComponent* UpdatedComponent;
+    class UPrimitiveComponent* UpdatedComponent = nullptr;
 
     /** Current Velocity of moved component. */
     FVector Velocity;
 
 public:
     UMovementComponent();
-    UMovementComponent(const UMovementComponent& Other);
     
 public:
     /** If true, skips TickComponent() if UpdatedComponent was not recently rendered. */

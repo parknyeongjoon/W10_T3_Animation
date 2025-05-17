@@ -6,7 +6,6 @@ class UCurveBase : public UObject
     DECLARE_CLASS(UCurveBase, UObject)
 public:
     UCurveBase(){}
-    UCurveBase(const UCurveBase&){}
 
     virtual float GetStartTime() const { return 0.f; }
     virtual float GetEndTime() const { return 1.f; }

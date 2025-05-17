@@ -8,7 +8,6 @@ class AGBullet :public AStaticMeshActor
 
 public:
     AGBullet();
-    AGBullet(const AGBullet& Other);
     virtual ~AGBullet() override;
 
     void BeginPlay() override;

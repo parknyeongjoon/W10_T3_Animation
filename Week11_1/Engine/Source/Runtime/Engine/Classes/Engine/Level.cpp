@@ -12,11 +12,6 @@ ULevel::~ULevel()
 {
 }
 
-ULevel::ULevel(const ULevel& Other)
-    : UObject(Other)  // UObject 기반 클래스 복사
-{
-}
-
 void ULevel::PostLoad()
 {
     // 1. 모든 SceneComponent를 빠르게 찾기 위한 맵 생성 (로드 중에 미리 만들어 둘 수도 있음)
@@ -57,7 +52,7 @@ void ULevel::PostLoad()
 
 UObject* ULevel::Duplicate(UObject* InOuter)
 {
-    ULevel* CloneLevel = FObjectFactory::ConstructObjectFrom<ULevel>(this, InOuter);
+    ULevel* CloneLevel = Cast<ThisClass>(Super::Duplicate(InOuter));
     CloneLevel->DuplicateSubObjects(this, InOuter);
     CloneLevel->PostDuplicate();
     return CloneLevel;

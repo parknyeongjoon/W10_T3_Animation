@@ -1,10 +1,7 @@
-﻿#include "Controller.h"
+#include "Controller.h"
 #include "Pawn.h"
 #include "Components/InputComponent.h"
 
-AController::AController(const AController& other)
-{
-}
 
 void AController::BeginPlay()
 {
@@ -28,7 +25,7 @@ void AController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 UObject* AController::Duplicate(UObject* InOuter)
 {
-    AController* ClonedActor = FObjectFactory::ConstructObjectFrom<AController>(this, InOuter);
+    AController* ClonedActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;

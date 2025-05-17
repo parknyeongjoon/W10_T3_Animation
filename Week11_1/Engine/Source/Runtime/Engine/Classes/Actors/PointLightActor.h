@@ -5,7 +5,6 @@ class APointLightActor : public ALight
     DECLARE_CLASS(APointLightActor, ALight)
 public:
     APointLightActor();
-    APointLightActor(const APointLightActor& Other);
     virtual ~APointLightActor() override = default;
     void BeginPlay() override;
     void Tick(float DeltaTime) override;

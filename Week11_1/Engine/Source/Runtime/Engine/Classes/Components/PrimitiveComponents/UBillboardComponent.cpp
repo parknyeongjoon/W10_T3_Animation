@@ -23,11 +23,6 @@ UBillboardComponent::~UBillboardComponent()
 
 }
 
-UBillboardComponent::UBillboardComponent(const UBillboardComponent& other)
-    : UPrimitiveComponent(other), finalIndexU(other.finalIndexU), finalIndexV(other.finalIndexV), Texture(other.Texture),
-bOnlyForEditor(other.bOnlyForEditor)
-{
-}
 
 void UBillboardComponent::InitializeComponent()
 {
@@ -102,7 +97,7 @@ FMatrix UBillboardComponent::CreateBillboardMatrix()
 
 UObject* UBillboardComponent::Duplicate(UObject* InOuter)
 {
-    UBillboardComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UBillboardComponent>(this, InOuter);
+    UBillboardComponent* ClonedActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;

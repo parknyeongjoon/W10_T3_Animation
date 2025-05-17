@@ -5,12 +5,15 @@
 #include "Serialization/Archive.h"
 
 
-template <typename KeyType, typename ValueType, typename Allocator = FDefaultAllocator<std::pair<const KeyType, ValueType>>>
+template <typename InKeyType, typename InValueType, typename Allocator = FDefaultAllocator<std::pair<const InKeyType, InValueType>>>
 class TMap
 {
 public:
-    using PairType = TPair<const KeyType, ValueType>;
-    using MapType = std::unordered_map<KeyType, ValueType, std::hash<KeyType>, std::equal_to<KeyType>, Allocator>;
+    using KeyType = InKeyType;
+    using ValueType = InValueType;
+
+    using PairType = TPair<const KeyType, InValueType>;
+    using MapType = std::unordered_map<KeyType, InValueType, std::hash<KeyType>, std::equal_to<>, Allocator>;
     using SizeType = typename MapType::size_type;
 
 private:
@@ -181,3 +184,13 @@ public:
         ContainerPrivate = MapType(TempMap.begin(), TempMap.end());
     }
 };
+
+template <typename T> constexpr bool TIsTMap_V = false;
+
+template <typename KeyType, typename ValueType, typename Allocator> constexpr bool TIsTMap_V<               TMap<KeyType, ValueType, Allocator>> = true;
+template <typename KeyType, typename ValueType, typename Allocator> constexpr bool TIsTMap_V<const          TMap<KeyType, ValueType, Allocator>> = true;
+template <typename KeyType, typename ValueType, typename Allocator> constexpr bool TIsTMap_V<      volatile TMap<KeyType, ValueType, Allocator>> = true;
+template <typename KeyType, typename ValueType, typename Allocator> constexpr bool TIsTMap_V<const volatile TMap<KeyType, ValueType, Allocator>> = true;
+
+template <typename T>
+concept TIsTMap = TIsTMap_V<T>;

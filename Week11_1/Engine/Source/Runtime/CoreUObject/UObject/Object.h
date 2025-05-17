@@ -57,19 +57,20 @@ namespace SolTypeBinding
     // for Register to AActor::GetComponentByClass
     template <typename T>
     constexpr bool IsCompleteType_v = requires { sizeof(T); };
-    
+
     // Register to AActor::GetComponentByClass
     template <typename T>
     void RegisterGetComponentByClass(sol::state& lua, std::string className)
     {
-        if constexpr ( IsCompleteType_v<AActor> && IsCompleteType_v<UActorComponent> && std::derived_from<T, UActorComponent> )
+        if constexpr (IsCompleteType_v<AActor> && IsCompleteType_v<UActorComponent> && std::derived_from<T, UActorComponent>)
         {
             // 암시적 형변환에서 AActor가 완전한 타입임을 요구해서 명시적으로 형변환.
-            using FuncType = T* (AActor::*)();
+            using FuncType = T * (AActor::*)();
             auto funcPtr = static_cast<FuncType>(&AActor::template GetComponentByClass<T>);
             AActor::GetLuaUserType(lua)["Get" + className] = funcPtr;
             std::cout << "Register AActor::Get" << className << std::endl;
-        } else
+        }
+        else
         {
             std::cout << "Failed Register AActor::Get" << className << std::endl;
         }
@@ -100,12 +101,13 @@ public:
 
     virtual UObject* Duplicate(UObject* InOuter);
 
-    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter){} // 하위 클래스에서 override
-    virtual void PostDuplicate(){};
+    virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) {} // 하위 클래스에서 override
+    virtual void PostDuplicate() {};
 private:
     friend class FObjectFactory;
     friend class FSceneMgr;
     friend class UClass;
+    friend class UStruct;
 
     uint32 UUID;
     uint32 InternalIndex; // Index of GUObjectArray
@@ -145,11 +147,12 @@ public:
     {
         return IsA(T::StaticClass());
     }
+    void MarkAsGarbage();
 
 public:
-    void* operator new(size_t Size);
+    //void* operator new(size_t Size);
 
-    void operator delete(void* Ptr, size_t Size);
+    //void operator delete(void* Ptr, size_t Size);
 public:
     // Serialize
 

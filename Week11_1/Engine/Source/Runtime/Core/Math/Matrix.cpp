@@ -70,6 +70,117 @@ const float* FMatrix::operator[](int row) const
     return M[row];
 }
 
+FVector FMatrix::ExtractScaling(float Tolerance)
+{
+    FVector Scale3D(0, 0, 0);
+
+    // For each row, find magnitude, and if its non-zero re-scale so its unit length.
+    const float SquareSum0 = (M[0][0] * M[0][0]) + (M[0][1] * M[0][1]) + (M[0][2] * M[0][2]);
+    const float SquareSum1 = (M[1][0] * M[1][0]) + (M[1][1] * M[1][1]) + (M[1][2] * M[1][2]);
+    const float SquareSum2 = (M[2][0] * M[2][0]) + (M[2][1] * M[2][1]) + (M[2][2] * M[2][2]);
+
+    if (SquareSum0 > Tolerance)
+    {
+        float Scale0 = FMath::Sqrt(SquareSum0);
+        Scale3D[0] = Scale0;
+        float InvScale0 = 1.f / Scale0;
+        M[0][0] *= InvScale0;
+        M[0][1] *= InvScale0;
+        M[0][2] *= InvScale0;
+    }
+    else
+    {
+        Scale3D[0] = 0;
+    }
+
+    if (SquareSum1 > Tolerance)
+    {
+        float Scale1 = FMath::Sqrt(SquareSum1);
+        Scale3D[1] = Scale1;
+        float InvScale1 = 1.f / Scale1;
+        M[1][0] *= InvScale1;
+        M[1][1] *= InvScale1;
+        M[1][2] *= InvScale1;
+    }
+    else
+    {
+        Scale3D[1] = 0;
+    }
+
+    if (SquareSum2 > Tolerance)
+    {
+        float Scale2 = FMath::Sqrt(SquareSum2);
+        Scale3D[2] = Scale2;
+        float InvScale2 = 1.f / Scale2;
+        M[2][0] *= InvScale2;
+        M[2][1] *= InvScale2;
+        M[2][2] *= InvScale2;
+    }
+    else
+    {
+        Scale3D[2] = 0;
+    }
+
+    return Scale3D;
+}
+
+FVector FMatrix::GetOrigin() const
+{
+    return FVector{ M[3][0], M[3][1], M[3][2] };
+}
+
+float FMatrix::Determinant() const
+{
+    return	M[0][0] * (
+        M[1][1] * (M[2][2] * M[3][3] - M[2][3] * M[3][2]) -
+        M[2][1] * (M[1][2] * M[3][3] - M[1][3] * M[3][2]) +
+        M[3][1] * (M[1][2] * M[2][3] - M[1][3] * M[2][2])
+        ) -
+        M[1][0] * (
+            M[0][1] * (M[2][2] * M[3][3] - M[2][3] * M[3][2]) -
+            M[2][1] * (M[0][2] * M[3][3] - M[0][3] * M[3][2]) +
+            M[3][1] * (M[0][2] * M[2][3] - M[0][3] * M[2][2])
+            ) +
+        M[2][0] * (
+            M[0][1] * (M[1][2] * M[3][3] - M[1][3] * M[3][2]) -
+            M[1][1] * (M[0][2] * M[3][3] - M[0][3] * M[3][2]) +
+            M[3][1] * (M[0][2] * M[1][3] - M[0][3] * M[1][2])
+            ) -
+        M[3][0] * (
+            M[0][1] * (M[1][2] * M[2][3] - M[1][3] * M[2][2]) -
+            M[1][1] * (M[0][2] * M[2][3] - M[0][3] * M[2][2]) +
+            M[2][1] * (M[0][2] * M[1][3] - M[0][3] * M[1][2])
+            );
+}
+
+void FMatrix::SetAxis(int32 i, const FVector& Axis)
+{
+    if (0 <= i && i <= 2)
+    {
+        M[i][0] = Axis.X;
+        M[i][1] = Axis.Y;
+        M[i][2] = Axis.Z;
+    }
+}
+
+FVector FMatrix::GetScaledAxis(EAxis::Type InAxis) const
+{
+    switch (InAxis)
+    {
+    case EAxis::X:
+        return FVector{ M[0][0], M[0][1], M[0][2] };
+
+    case EAxis::Y:
+        return FVector{ M[1][0], M[1][1], M[1][2] };
+
+    case EAxis::Z:
+        return FVector{ M[2][0], M[2][1], M[2][2] };
+
+    default:
+        return FVector::ZeroVector;
+    }
+}
+
 // 전치 행렬
 FMatrix FMatrix::Transpose(const FMatrix& Mat) {
     FMatrix Result;
@@ -205,6 +316,57 @@ FMatrix FMatrix::CreateRotationMatrix(float roll, float pitch, float yaw)
     return rotationX * rotationY * rotationZ;  // 이렇게 하면  오른쪽 부터 적용됨
 }
 
+FMatrix FMatrix::CreateRotationMatrix(const FRotator& rot)
+{
+    return CreateRotationMatrix(rot.Roll, rot.Pitch, rot.Yaw);
+}
+
+FMatrix FMatrix::CreateRotationMatrix(const FQuat& Q)
+{
+    FMatrix Result;
+    FQuat NormalizedQ = Q; // 복사본 생성
+    NormalizedQ.Normalize(); // 정규화된 쿼터니언 사용
+
+    const float X = NormalizedQ.X;
+    const float Y = NormalizedQ.Y;
+    const float Z = NormalizedQ.Z;
+    const float W = NormalizedQ.W;
+
+    const float XX = X * X;
+    const float XY = X * Y;
+    const float XZ = X * Z;
+    const float XW = X * W;
+
+    const float YY = Y * Y;
+    const float YZ = Y * Z;
+    const float YW = Y * W;
+
+    const float ZZ = Z * Z;
+    const float ZW = Z * W;
+
+    Result.M[0][0] = 1.0f - 2.0f * (YY + ZZ);
+    Result.M[0][1] = 2.0f * (XY - ZW);
+    Result.M[0][2] = 2.0f * (XZ + YW);
+    Result.M[0][3] = 0.0f;
+
+    Result.M[1][0] = 2.0f * (XY + ZW);
+    Result.M[1][1] = 1.0f - 2.0f * (XX + ZZ);
+    Result.M[1][2] = 2.0f * (YZ - XW);
+    Result.M[1][3] = 0.0f;
+
+    Result.M[2][0] = 2.0f * (XZ - YW);
+    Result.M[2][1] = 2.0f * (YZ + XW);
+    Result.M[2][2] = 1.0f - 2.0f * (XX + YY);
+    Result.M[2][3] = 0.0f;
+
+    Result.M[3][0] = 0.0f;
+    Result.M[3][1] = 0.0f;
+    Result.M[3][2] = 0.0f;
+    Result.M[3][3] = 1.0f;
+
+    return Result;
+}
+
 
 // 스케일 행렬 생성
 FMatrix FMatrix::CreateScaleMatrix(float scaleX, float scaleY, float scaleZ)
@@ -215,6 +377,11 @@ FMatrix FMatrix::CreateScaleMatrix(float scaleX, float scaleY, float scaleZ)
         { 0, 0, scaleZ, 0 },
         { 0, 0, 0, 1 }
     } };
+}
+
+FMatrix FMatrix::CreateScaleMatrix(const FVector& scale)
+{
+    return CreateScaleMatrix(scale.X, scale.Y, scale.Z);
 }
 
 FMatrix FMatrix::CreateTranslationMatrix(const FVector& position)

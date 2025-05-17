@@ -1,7 +1,7 @@
-﻿#include "UObjectHash.h"
+#include "UObjectHash.h"
 #include <cassert>
 #include "Object.h"
-#include "UClass.h"
+#include "Class.h"
 #include "Container/Map.h"
 #include "Container/Set.h"
 
@@ -10,6 +10,16 @@
  */
 struct FUObjectHashTables
 {
+private:
+    FUObjectHashTables() = default;
+    ~FUObjectHashTables() = default;
+
+public:
+    FUObjectHashTables(const FUObjectHashTables&) = delete;
+    FUObjectHashTables& operator=(const FUObjectHashTables&) = delete;
+    FUObjectHashTables(FUObjectHashTables&&) = delete;
+    FUObjectHashTables& operator=(FUObjectHashTables&&) = delete;
+    
     static FUObjectHashTables& Get()
     {
         static FUObjectHashTables Singleton;
@@ -44,7 +54,7 @@ static void RecursivelyPopulateDerivedClasses(FUObjectHashTables& ThreadHash, co
 
         if (SearchIndex < OutAllDerivedClass.Num())
         {
-            SearchClass = OutAllDerivedClass[SearchIndex];			
+            SearchClass = OutAllDerivedClass[SearchIndex];            
         }
         else
         {
@@ -61,13 +71,8 @@ void AddToClassMap(UObject* Object)
     UClass* Class = Object->GetClass();
     HashTable.ClassToObjectListMap.FindOrAdd(Class).Add(Object);
 
-    for (UClass* SuperClass = Class->GetSuperClass(); SuperClass;)
-    {
-        HashTable.ClassToChildListMap.FindOrAdd(SuperClass).Add(Class);
-    
-        Class = SuperClass;
-        SuperClass = SuperClass->GetSuperClass();
-    }
+    // Ensure child class mappings are updated
+    AddClassToChildListMap(Class);
 }
 
 void RemoveFromClassMap(UObject* Object)
@@ -82,6 +87,23 @@ void RemoveFromClassMap(UObject* Object)
     {
         HashTable.ClassToObjectListMap.Remove(Object->GetClass());
     }
+}
+
+void GetChildOfClass(UClass* ClassToLookFor, TArray<UClass*>& Results)
+{
+    Results.Add(ClassToLookFor);
+
+    FUObjectHashTables& ThreadHash = FUObjectHashTables::Get();
+    RecursivelyPopulateDerivedClasses(ThreadHash, ClassToLookFor, Results);
+}
+
+uint32 GetNumOfObjectsByClass(UClass* ClassToLookFor)
+{
+    if (const TSet<UObject*>* ObjectSet = FUObjectHashTables::Get().ClassToObjectListMap.Find(ClassToLookFor))
+    {
+        return ObjectSet->Num();
+    }
+    return 0;
 }
 
 void GetObjectsOfClass(const UClass* ClassToLookFor, TArray<UObject*>& Results, bool bIncludeDerivedClasses)
@@ -107,5 +129,19 @@ void GetObjectsOfClass(const UClass* ClassToLookFor, TArray<UObject*>& Results, 
                 Results.Add(Object);
             }
         }
+    }
+}
+
+void AddClassToChildListMap(UClass* InClass)
+{
+    FUObjectHashTables& HashTable = FUObjectHashTables::Get();
+    UClass* CurrentClass = InClass;
+
+    for (UClass* SuperClass = CurrentClass->GetSuperClass(); SuperClass;)
+    {
+        HashTable.ClassToChildListMap.FindOrAdd(SuperClass).Add(CurrentClass);
+
+        CurrentClass = SuperClass;
+        SuperClass = SuperClass->GetSuperClass();
     }
 }

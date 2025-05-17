@@ -31,7 +31,6 @@ class UDirectionalLightComponent : public ULightComponent
     DECLARE_CLASS(UDirectionalLightComponent, ULightComponent)
 public:
     UDirectionalLightComponent();
-    UDirectionalLightComponent(const UDirectionalLightComponent& Other);
     virtual ~UDirectionalLightComponent() override;
 private:
     FVector Direction = FVector(0.0f, 0.0f, -1.0f);

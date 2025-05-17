@@ -21,14 +21,6 @@ UTextComponent::~UTextComponent()
 
 }
 
-UTextComponent::UTextComponent(const UTextComponent& other)
-    : UBillboardComponent(other)
-    , vertexTextureArr(other.vertexTextureArr)
-    , text(other.text)
-    , quad(other.quad)
-{
-}
-
 void UTextComponent::InitializeComponent()
 {
     Super::InitializeComponent();
@@ -78,7 +70,7 @@ int UTextComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirecti
 
 UObject* UTextComponent::Duplicate(UObject* InOuter)
 {
-    UTextComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UTextComponent>(this, InOuter);
+    UTextComponent* ClonedActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;

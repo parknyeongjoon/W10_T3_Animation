@@ -35,7 +35,6 @@ class UStaticMeshComponent : public UMeshComponent
 
 public:
     UStaticMeshComponent() = default;
-    UStaticMeshComponent(const UStaticMeshComponent& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;
     virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
@@ -58,7 +57,7 @@ public:
     virtual void SaveComponentInfo(FActorComponentInfo& OutInfo) override;
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
-    UPROPERTY(int, selectedSubMeshIndex);
+    int SelectedSubMeshIndex = 0;
 protected:
     UStaticMesh* staticMesh = nullptr;
 private:

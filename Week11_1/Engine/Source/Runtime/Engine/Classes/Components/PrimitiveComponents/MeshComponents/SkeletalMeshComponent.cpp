@@ -19,12 +19,6 @@
 #include "Animation/AnimSingleNodeInstance.h"
 #include "Animation/CustomAnimInstance/TestAnimInstance.h"
 
-USkeletalMeshComponent::USkeletalMeshComponent(const USkeletalMeshComponent& Other)
-    : UMeshComponent(Other)
-    , SkeletalMesh(Other.SkeletalMesh)
-    , SelectedSubMeshIndex(Other.SelectedSubMeshIndex)
-{
-}
 uint32 USkeletalMeshComponent::GetNumMaterials() const
 {
     if (SkeletalMesh == nullptr) return 0;
@@ -252,7 +246,7 @@ void USkeletalMeshComponent::SkinningVertex()
 
 UObject* USkeletalMeshComponent::Duplicate(UObject* InOuter)
 {
-    USkeletalMeshComponent* NewComp = FObjectFactory::ConstructObjectFrom<USkeletalMeshComponent>(this, InOuter);
+    USkeletalMeshComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

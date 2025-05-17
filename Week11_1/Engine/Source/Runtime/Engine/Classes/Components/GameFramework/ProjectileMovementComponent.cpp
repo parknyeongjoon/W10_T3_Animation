@@ -15,16 +15,6 @@ UProjectileMovementComponent::UProjectileMovementComponent()
     bWantsInitializeComponent = true;
 }
 
-UProjectileMovementComponent::UProjectileMovementComponent(const UProjectileMovementComponent& Other)
-    : UMovementComponent(Other)
-    , InitialSpeed(Other.InitialSpeed)
-    , MaxSpeed(Other.MaxSpeed)
-    , bRotationFollowsVelocity(Other.bRotationFollowsVelocity)
-    , bInitialVelocityInLocalSpace(Other.bInitialVelocityInLocalSpace)
-    , ProjectileGravityScale(Other.ProjectileGravityScale)
-{
-}
-
 
 void UProjectileMovementComponent::InitializeComponent()
 {
@@ -136,7 +126,7 @@ FVector UProjectileMovementComponent::CalculateVelocity(FVector OldVelocity, flo
 
 UObject* UProjectileMovementComponent::Duplicate(UObject* InOuter)
 {
-    UProjectileMovementComponent* NewComp = FObjectFactory::ConstructObjectFrom<UProjectileMovementComponent>(this, InOuter);
+    UProjectileMovementComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

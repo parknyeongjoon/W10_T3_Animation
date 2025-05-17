@@ -10,7 +10,6 @@ class AGPlayer :
     DECLARE_CLASS(AGPlayer,AActor)
 public:
     AGPlayer();
-    AGPlayer(const AGPlayer& Other);
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

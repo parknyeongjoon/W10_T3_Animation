@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Components/PrimitiveComponents/UBillboardComponent.h"
 #include "Components/PrimitiveComponents/Physics/UCapsuleShapeComponent.h"
 #include "Engine/StaticMeshActor.h"
@@ -10,7 +10,6 @@ class AGEnemy : public AActor
     DECLARE_MULTICAST_DELEGATE(OnDeadEvent)
 public:
     AGEnemy();
-    AGEnemy(const AGEnemy& Other);
     virtual ~AGEnemy() override = default;
     
     void BeginPlay() override;

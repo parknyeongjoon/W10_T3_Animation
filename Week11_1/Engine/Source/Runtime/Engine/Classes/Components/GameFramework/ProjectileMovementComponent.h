@@ -49,7 +49,6 @@ class UProjectileMovementComponent : public UMovementComponent
     
 public:
     UProjectileMovementComponent();
-    UProjectileMovementComponent(const UProjectileMovementComponent& Other);
 
     void TickComponent(float DeltaTime) override;
 

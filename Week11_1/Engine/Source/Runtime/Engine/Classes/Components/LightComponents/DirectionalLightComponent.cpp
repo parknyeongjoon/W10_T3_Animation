@@ -23,21 +23,6 @@ UDirectionalLightComponent::UDirectionalLightComponent()
     }
 }
 
-UDirectionalLightComponent::UDirectionalLightComponent(const UDirectionalLightComponent& Other)
-    : Super(Other)
-    , Direction(Other.Direction)
-{
-    // deepcopy
-    ShadowResource = new FShadowResource[CASCADE_COUNT];
-    for (int i = 0; i < CASCADE_COUNT; i++)
-    {
-        UINT temp = pow(2, 4 - i);
-        FShadowResource* resource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::DirectionalLight, 256 * temp, false);
-        ShadowResource[i] = *resource;
-        ShadowResources.Add(resource);
-    }
-
-}
 
 UDirectionalLightComponent::~UDirectionalLightComponent()
 {
@@ -175,7 +160,7 @@ FMatrix UDirectionalLightComponent::GetCascadeProjectionMatrix(UINT CascadeIndex
 
 UObject* UDirectionalLightComponent::Duplicate(UObject* InOuter)
 {
-    UDirectionalLightComponent* NewComp = FObjectFactory::ConstructObjectFrom<UDirectionalLightComponent>(this, InOuter);
+    UDirectionalLightComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
 

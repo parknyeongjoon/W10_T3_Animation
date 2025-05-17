@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Engine/StaticMeshActor.h"
 #include "Core/Delegates/DelegateCombination.h"
 #include "UObject/FunctionRegistry.h"
@@ -11,7 +11,6 @@ class ADodge : public AStaticMeshActor
     DECLARE_MULTICAST_DELEGATE(TEST_DELIGATE)
 public:
     ADodge();
-    ADodge(const ADodge& Other);
     virtual ~ADodge() override = default;
     
     void BeginPlay() override;

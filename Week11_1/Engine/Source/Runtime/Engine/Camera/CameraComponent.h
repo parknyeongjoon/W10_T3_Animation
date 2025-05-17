@@ -7,8 +7,6 @@ class UCameraComponent : public USceneComponent
 
 public:
     UCameraComponent();
-    UCameraComponent(const UCameraComponent& Other);
-    virtual ~UCameraComponent() override;
 
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;

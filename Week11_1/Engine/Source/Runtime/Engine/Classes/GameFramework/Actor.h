@@ -11,6 +11,45 @@
 #include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "Core/Delegates/DelegateCombination.h"
 
+enum class ETestEnum : uint8
+{
+    Test1,
+    Test2,
+    Test3
+};
+
+
+struct FTestStruct
+{
+    DECLARE_STRUCT(FTestStruct)
+
+    UPROPERTY(
+        EditAnywhere,
+        float, TestValue, = 0.0f;
+    )
+
+    UPROPERTY(
+        EditAnywhere,
+        ETestEnum, TestEnum, = ETestEnum::Test1;
+    )
+};
+
+struct FChildStruct : public FTestStruct
+{
+    DECLARE_STRUCT(FChildStruct, FTestStruct)
+
+    UPROPERTY(
+        EditAnywhere,
+        bool, bIsTrue, = true;
+    )
+
+    UPROPERTY(
+        EditAnywhere,
+        TArray<FTestStruct>, TestStruct, {};
+    )
+};
+
+
 class UActorComponent;
 
 class AActor : public UObject
@@ -21,7 +60,6 @@ class AActor : public UObject
 public:
     AActor() = default;
     ~AActor() override = default;
-    AActor(const AActor& Other);
     /** Actor가 게임에 배치되거나 스폰될 때 호출됩니다. */
     virtual void BeginPlay();
 
@@ -41,6 +79,17 @@ public:
     sol::protected_function LuaFunctionEndPlay;
 
 public:
+public:
+    UPROPERTY(
+        EditAnywhere,
+        FTestStruct, Struct1, {};
+    )
+
+    UPROPERTY(
+        EditAnywhere,
+        FChildStruct, Struct2, {}
+    )
+
     /** 이 Actor를 제거합니다. */
     virtual bool Destroy();
 
@@ -73,30 +122,41 @@ public:
 
     template<typename T>
         requires std::derived_from<T, UActorComponent>
-    T* GetComponentByClass() const;
+    T* GetComponentByClass() const
+    {
+        for (UActorComponent* Component : OwnedComponents)
+        {
+            if (T* CastedComponent = Cast<T>(Component))
+            {
+                return CastedComponent;
+            }
+        }
+        return nullptr;
+    }
 
     void InitializeComponents() const;
     void UninitializeComponents() const;
 
-public:
-    UFUNCTION_CONST(USceneComponent*, GetRootComponent);
-    UFUNCTION(bool, SetRootComponent, USceneComponent*);
-
-    UFUNCTION_CONST(AActor*, GetOwner);
-    UFUNCTION(void, SetOwner, AActor*);
 
 public:
-    UFUNCTION_CONST(FVector, GetActorLocation);
-    UFUNCTION_CONST(FRotator, GetActorRotation);
-    UFUNCTION_CONST(FVector, GetActorScale);
+    USceneComponent* GetRootComponent() const { return RootComponent; }
+    bool SetRootComponent(USceneComponent* NewRootComponent);
 
-    UFUNCTION_CONST(FVector, GetActorForwardVector);
-    UFUNCTION_CONST(FVector, GetActorRightVector);
-    UFUNCTION_CONST(FVector, GetActorUpVector);
+    AActor* GetOwner() const { return Owner; }
+    void SetOwner(AActor* NewOwner) { Owner = NewOwner; }
 
-    UFUNCTION_CONST(bool, SetActorLocation, const FVector&);
-    UFUNCTION_CONST(bool, SetActorRotation, const FRotator&);
-    UFUNCTION_CONST(bool, SetActorScale, const FVector&);
+public:
+    FVector GetActorLocation() const;
+    FRotator GetActorRotation() const;
+    FVector GetActorScale() const;
+
+    FVector GetActorForwardVector() const;
+    FVector GetActorRightVector() const;
+    FVector GetActorUpVector() const;
+
+    bool SetActorLocation(const FVector& NewLocation) const;
+    bool SetActorRotation(const FRotator& NewRotation) const;
+    bool SetActorScale(const FVector& NewScale) const;
 
     UObject* Duplicate(UObject* InOuter) override;
     void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
@@ -207,7 +267,13 @@ public:
 #pragma endregion Event Delegate
 
 protected:
-    USceneComponent* RootComponent = nullptr;
+    UPROPERTY(
+        VisibleAnywhere,
+        USceneComponent*,
+        RootComponent,
+        = nullptr
+    )
+    //USceneComponent* RootComponent = nullptr;
 
 private:
     /** 이 Actor를 소유하고 있는 다른 Actor의 정보 */
@@ -296,15 +362,3 @@ void AActor::AddDuplicatedComponent(T* Component, EComponentOrigin Origin)
 }
 
 
-template <typename T> requires std::derived_from<T, UActorComponent>
-T* AActor::GetComponentByClass() const
-{
-    for (UActorComponent* Component : OwnedComponents)
-    {
-        if (T* CastedComponent = Cast<T>(Component))
-        {
-            return CastedComponent;
-        }
-    }
-    return nullptr;
-}

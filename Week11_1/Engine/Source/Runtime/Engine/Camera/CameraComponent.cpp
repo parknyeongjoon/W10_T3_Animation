@@ -12,16 +12,6 @@ UCameraComponent::UCameraComponent()
 {
 }
 
-UCameraComponent::UCameraComponent(const UCameraComponent& Other)
-    :Super(Other),
-    FOV(Other.FOV), nearClip(Other.nearClip), farClip(Other.farClip)
-{
-}
-
-UCameraComponent::~UCameraComponent()
-{
-}
-
 void UCameraComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
@@ -38,7 +28,7 @@ void UCameraComponent::TickComponent(float DeltaTime)
 
 UObject* UCameraComponent::Duplicate(UObject* InOuter)
 {
-    UCameraComponent* NewComp = FObjectFactory::ConstructObjectFrom<UCameraComponent>(this, InOuter);
+    UCameraComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
 

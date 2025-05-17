@@ -27,14 +27,6 @@
 #include "UObject/UObjectArray.h"
 #include "UnrealEd/PrimitiveBatch.h"
 
-UWorld::UWorld(const UWorld& Other): UObject(Other)
-                                   , defaultMapName(Other.defaultMapName)
-                                   , Level(Other.Level)
-                                   , WorldType(Other.WorldType)
-                                   , LocalGizmo(nullptr)
-{
-}
-
 void UWorld::InitWorld()
 {
     // TODO: Load Scene
@@ -163,7 +155,7 @@ void UWorld::ClearScene()
 
 UObject* UWorld::Duplicate(UObject* InOuter)
 {
-    UWorld* CloneWorld = FObjectFactory::ConstructObjectFrom<UWorld>(this, InOuter);
+    UWorld* CloneWorld = Cast<ThisClass>(Super::Duplicate(InOuter));
     CloneWorld->DuplicateSubObjects(this, InOuter);
     CloneWorld->PostDuplicate();
     return CloneWorld;
@@ -194,6 +186,28 @@ void UWorld::LoadScene(const FString& FileName)
     FWindowsBinHelper::LoadFromBin(FileName, ar);
 
     ar >> *this;
+}
+
+AActor* UWorld::SpawnActorByClass(UClass* ActorClass, UObject* InOuter, bool bCallBeginPlay)
+{
+    if (ActorClass == nullptr)
+        return nullptr;
+
+    AActor* Actor = Cast<AActor>(ActorClass->GetDefaultObject());
+    if (Actor == nullptr)
+        return nullptr;
+
+
+    if (bCallBeginPlay)
+    {
+        Level->PendingBeginPlayActors.Add(Actor);
+    }
+    else
+    {
+        Level->GetActors().Add(Actor);
+    }
+
+    return Actor;
 }
 
 void UWorld::DuplicateSelectedActors()

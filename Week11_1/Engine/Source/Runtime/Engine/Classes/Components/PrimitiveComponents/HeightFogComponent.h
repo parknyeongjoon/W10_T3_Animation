@@ -53,7 +53,6 @@ class UHeightFogComponent : public UPrimitiveComponent
     DECLARE_CLASS(UHeightFogComponent, UPrimitiveComponent)
 public:
     UHeightFogComponent();
-    UHeightFogComponent(const UHeightFogComponent& Other);
 
     FVector GetFogColor() const { return FogColor; }
     float GetFogDensity() const { return FogDensity; }

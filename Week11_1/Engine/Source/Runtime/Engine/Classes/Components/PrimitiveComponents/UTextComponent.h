@@ -35,7 +35,6 @@ class UTextComponent : public UBillboardComponent
 public:
     UTextComponent();
     virtual ~UTextComponent() override;
-    UTextComponent(const UTextComponent& other);
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
     void ClearText();

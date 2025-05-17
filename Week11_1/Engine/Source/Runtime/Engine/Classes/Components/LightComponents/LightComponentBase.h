@@ -44,7 +44,6 @@ class ULightComponentBase : public USceneComponent
 
 public:
     ULightComponentBase();
-    ULightComponentBase(const ULightComponentBase& Other);
     virtual ~ULightComponentBase() override;
 
     virtual void TickComponent(float DeltaTime) override;

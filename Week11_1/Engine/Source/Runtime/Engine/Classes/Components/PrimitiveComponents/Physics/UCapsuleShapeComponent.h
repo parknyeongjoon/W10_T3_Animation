@@ -31,7 +31,6 @@ class UCapsuleShapeComponent : public UShapeComponent
 
 public:
     UCapsuleShapeComponent();
-    UCapsuleShapeComponent(const UCapsuleShapeComponent& Other);
     ~UCapsuleShapeComponent() override;
 
     UObject* Duplicate(UObject* InOuter) override;

@@ -10,7 +10,6 @@ class AStaticMeshActor : public AActor
 
 public:
     AStaticMeshActor();
-    AStaticMeshActor(const AStaticMeshActor& Other);
 
     UStaticMeshComponent* GetStaticMeshComponent() const { return StaticMeshComponent; }
 

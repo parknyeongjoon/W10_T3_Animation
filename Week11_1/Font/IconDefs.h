@@ -36,6 +36,7 @@
 
 #define FEATHER_REWIND         0xE9D2  // <<
 #define FEATHER_FAST_FORWARD   0xE96A  // >>
+#define ICON_TRASHBIN2         0xE9F6
 
 // ICON FONT UNICODE :: FEATHER_EX FONT
 #define ICON_MOVE              "\ue9bc"

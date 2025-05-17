@@ -6,65 +6,7 @@
 #include "EditorEngine.h"
 #include "LaunchEngineLoop.h"
 
-USpotLightComponent::USpotLightComponent()
-    : Super()
-{
-    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::SpotLight, 1024);
-    // FGraphicsDevice& Graphics = GEngine->graphicDevice;
-    //
-    // LightMap = new FTexture(nullptr, nullptr, 0, 0, L"");
-    //
-    // D3D11_TEXTURE2D_DESC textureDesc = {};
-    // textureDesc.Width = FShadowResource::ShadowResolution;
-    // textureDesc.Height = FShadowResource::ShadowResolution;
-    // textureDesc.MipLevels = 1;
-    // textureDesc.ArraySize = 1;
-    // textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    // textureDesc.SampleDesc.Count = 1;
-    // textureDesc.Usage = D3D11_USAGE_DEFAULT;
-    // textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-    //
-    // HRESULT hr = Graphics.Device->CreateTexture2D(&textureDesc, nullptr, &LightMap->Texture);
-    // if (FAILED(hr))
-    // {
-    //     assert(TEXT("SceneColorBuffer creation failed"));
-    //     return;
-    // }
-    //
-    // D3D11_RENDER_TARGET_VIEW_DESC SceneColorRTVDesc = {};
-    // SceneColorRTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;      // 색상 포맷
-    // SceneColorRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
-    //
-    // hr = Graphics.Device->CreateRenderTargetView(LightMap->Texture, &SceneColorRTVDesc, &LightRTV);
-    // if (FAILED(hr))
-    // {
-    //     assert(TEXT("SceneColorBuffer creation failed"));
-    //     return;
-    // }
-    //
-    // D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    // srvDesc = {};
-    // srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    // srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    // srvDesc.Texture2D.MostDetailedMip = 0;
-    // srvDesc.Texture2D.MipLevels = 1;
-    //
-    // hr = Graphics.Device->CreateShaderResourceView(LightMap->Texture, &srvDesc, &LightMap->TextureSRV);
-    // if (FAILED(hr))
-    // {
-    //     assert(TEXT("SceneColorBuffer creation failed"));
-    //     return;
-    // }
-}
 
-USpotLightComponent::USpotLightComponent(const USpotLightComponent& Other)
-    : Super(Other)
-    , InnerConeAngle(Other.InnerConeAngle)
-    , OuterConeAngle(Other.OuterConeAngle)
-    , Direction(Other.Direction)
-{
-    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::SpotLight, 1024);
-}
 
 USpotLightComponent::~USpotLightComponent()
 {
@@ -85,7 +27,7 @@ void USpotLightComponent::SetOuterConeAngle(float Angle)
 
 UObject* USpotLightComponent::Duplicate(UObject* InOuter)
 {
-    USpotLightComponent* NewComp = FObjectFactory::ConstructObjectFrom<USpotLightComponent>(this, InOuter);
+    USpotLightComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
 

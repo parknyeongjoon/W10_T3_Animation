@@ -1214,7 +1214,7 @@ void SkeletalPreviewPropertyEditorPanel::RenderForMaterial(UStaticMeshComponent*
             {
                 if (ImGui::IsMouseDoubleClicked(0))
                 {
-                    StaticMeshComp->SetselectedSubMeshIndex(i);
+                    StaticMeshComp->SelectedSubMeshIndex = i;
                     SelectedStaticMeshComp = StaticMeshComp;
                 }
             }
@@ -1223,7 +1223,7 @@ void SkeletalPreviewPropertyEditorPanel::RenderForMaterial(UStaticMeshComponent*
         if (ImGui::Selectable(temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
         {
             if (ImGui::IsMouseDoubleClicked(0))
-                StaticMeshComp->SetselectedSubMeshIndex(-1);
+                StaticMeshComp->SelectedSubMeshIndex = -1;
         }
 
         ImGui::TreePop();
@@ -1280,7 +1280,7 @@ void SkeletalPreviewPropertyEditorPanel::RenderForMaterial(USkeletalMeshComponen
             {
                 if (ImGui::IsMouseDoubleClicked(0))
                 {
-                    SkeletalMeshComp->SetSelectedSubMeshIndex(i);
+                    SkeletalMeshComp->SelectedSubMeshIndex = i;
                     SelectedSkeletalMeshComp = SkeletalMeshComp;
                 }
             }
@@ -1289,7 +1289,7 @@ void SkeletalPreviewPropertyEditorPanel::RenderForMaterial(USkeletalMeshComponen
         if (ImGui::Selectable(temp.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
         {
             if (ImGui::IsMouseDoubleClicked(0))
-                SkeletalMeshComp->SetSelectedSubMeshIndex(-1);
+                SkeletalMeshComp->SelectedSubMeshIndex = -1;
         }
 
         ImGui::TreePop();

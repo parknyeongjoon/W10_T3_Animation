@@ -9,7 +9,6 @@ class USpringArmComponent : public USceneComponent
 
 public:
     USpringArmComponent();
-    USpringArmComponent(const USpringArmComponent& Other);
     virtual ~USpringArmComponent() override;
 
     void InitializeComponent() override;

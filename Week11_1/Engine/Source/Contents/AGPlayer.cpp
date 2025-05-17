@@ -26,19 +26,6 @@ AGPlayer::AGPlayer()
     //AddComponent<USphereShapeComponent>(EComponentOrigin::Constructor);
 }
 
-AGPlayer::AGPlayer(const AGPlayer& Other)
-    : Super(Other)
-    , bLeftMouseDown(Other.bLeftMouseDown)
-    , bRightMouseDown(Other.bRightMouseDown)
-    , bShowCursor(Other.bShowCursor)
-    , bSpacePressedLastFrame(Other.bSpacePressedLastFrame)
-    , lastMousePos(Other.lastMousePos)
-    , YawSpeed(Other.YawSpeed)
-    , PitchSpeed(Other.PitchSpeed)
-    , MoveSpeed(Other.MoveSpeed)
-{
-}
-
 void AGPlayer::BeginPlay()
 {
     Super::BeginPlay();
@@ -101,7 +88,7 @@ void AGPlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 UObject* AGPlayer::Duplicate(UObject* InOuter)
 {
-    AGPlayer* NewActor = FObjectFactory::ConstructObjectFrom<AGPlayer>(this, InOuter);
+    AGPlayer* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewActor->DuplicateSubObjects(this, InOuter);
     return NewActor;
 }

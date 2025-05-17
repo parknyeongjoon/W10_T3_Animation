@@ -21,7 +21,6 @@ class USkeletalMeshComponent : public UMeshComponent
 
 public:
     USkeletalMeshComponent() = default;
-    USkeletalMeshComponent(const USkeletalMeshComponent& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;
     virtual void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;
@@ -50,7 +49,7 @@ public:
     void CreateBoneComponents();
     void UpdateBoneHierarchy();
 
-    UPROPERTY(int, SelectedSubMeshIndex);
+    int SelectedSubMeshIndex = -1;
 
 public:
     void PlayAnimation(UAnimSequence* NewAnimToPlay, bool bLooping);

@@ -2,6 +2,7 @@
 #include "Launch/EditorEngine.h"
 #include "Components/SceneComponent.h"
 #include "Physics/FCollisionManager.h"
+#include "CoreUObject/UObject/Casts.h"
 
 UShapeComponent::UShapeComponent()
     : ShapeColor(FLinearColor::Green)
@@ -12,15 +13,6 @@ UShapeComponent::UShapeComponent()
 {
 }
 
-UShapeComponent::UShapeComponent(const UShapeComponent& Other)
-    : UPrimitiveComponent(Other)
-    , ShapeColor(Other.ShapeColor)
-    , bDrawOnlyIfSelected(Other.bDrawOnlyIfSelected)
-    , PrevLocation(Other.GetPrevLocation())
-    , PrevRotation(Other.GetPrevRotation())
-    , PrevScale(Other.GetPrevScale())
-{
-}
 
 UShapeComponent::~UShapeComponent()
 {
@@ -66,7 +58,7 @@ void UShapeComponent::DestroyComponent()
 
 UObject* UShapeComponent::Duplicate(UObject* InOuter)
 {
-    UShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<UShapeComponent>(this, InOuter);
+    UShapeComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
 

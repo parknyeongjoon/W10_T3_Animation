@@ -18,7 +18,6 @@ class UAnimInstance : public UObject
     DECLARE_CLASS(UAnimInstance, UObject)
 public:
     UAnimInstance() = default;
-    UAnimInstance(const UAnimInstance& Other);
 
     virtual UObject* Duplicate(UObject* InOuter) override;
     void DuplicateSubObjects(const UObject* Source, UObject* InOuter) override;

@@ -35,7 +35,6 @@ class UPointLightComponent : public ULightComponentBase
     DECLARE_CLASS(UPointLightComponent, ULightComponentBase)
 public:
     UPointLightComponent();
-    UPointLightComponent(const UPointLightComponent& Other);
     virtual ~UPointLightComponent() override = default;
 protected:
     float Radius = 1.0f;

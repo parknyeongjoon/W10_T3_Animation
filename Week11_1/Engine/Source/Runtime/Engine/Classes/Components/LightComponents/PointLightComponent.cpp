@@ -12,18 +12,9 @@ UPointLightComponent::UPointLightComponent()
     Intensity = 5.f;
 }
 
-UPointLightComponent::UPointLightComponent(const UPointLightComponent& Other)
-    : Super(Other)
-    , Radius(Other.Radius)
-    , AttenuationFalloff(Other.AttenuationFalloff)
-{
-    // deepcopy
-    ShadowResource = FShadowResourceFactory::CreateShadowResource(GEngineLoop.GraphicDevice.Device, ELightType::PointLight, 1024);
-}
-
 UObject* UPointLightComponent::Duplicate(UObject* InOuter)
 {
-    UPointLightComponent* NewComp = FObjectFactory::ConstructObjectFrom<UPointLightComponent>(this, InOuter);
+    UPointLightComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
 

@@ -33,7 +33,6 @@ class URotatingMovementComponent : public UMovementComponent
     
 public:
     URotatingMovementComponent();
-    URotatingMovementComponent(const URotatingMovementComponent& other);
     ~URotatingMovementComponent() override = default;
 
     /**

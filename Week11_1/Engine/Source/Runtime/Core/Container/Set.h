@@ -4,17 +4,18 @@
 #include "ContainerAllocator.h"
 #include "Serialization/Archive.h"
 
-
 template <typename T, typename Hasher = std::hash<T>, typename Allocator = FDefaultAllocator<T>>
+    requires
+    requires(T) { Hasher{}(std::declval<T>()); } // std::hash가 구현이 된 타입만 들어올 수 있음
 class TSet
 {
 private:
     using SetType = std::unordered_set<T, Hasher, std::equal_to<>, Allocator>;
+
     SetType ContainerPrivate;
 
-	friend struct FNamePool;
-
 public:
+    using ElementType = T;
     using SizeType = typename Allocator::SizeType;
     using Iterator = typename SetType::iterator;
     using ConstIterator = typename SetType::const_iterator;
@@ -39,10 +40,10 @@ public:
      * @return 새로 추가된 Element의 Index, 이미 존재하는 경우 기존 Element의 Index를 반환
      */
     template<typename ArgsType = T>
-    int32 Emplace(ArgsType&& Args) 
-    { 
+    int32 Emplace(ArgsType&& Args)
+    {
         auto iter = ContainerPrivate.emplace(std::forward<ArgsType>(Args));
-    	return std::distance(ContainerPrivate.begin(), iter.first);
+        return std::distance(ContainerPrivate.begin(), iter.first);
     }
 
     // Num (개수)
@@ -52,8 +53,8 @@ public:
     Iterator Find(const T& Item) { return ContainerPrivate.find(Item); }
     ConstIterator Find(const T& Item) const { return ContainerPrivate.find(Item); }
 
-	// Contains
-	bool Contains(const T& Item) const { return ContainerPrivate.contains(Item); }
+    // Contains
+    bool Contains(const T& Item) const { return ContainerPrivate.contains(Item); }
 
     // Array (TArray로 반환)
     TArray<T, Allocator> Array() const
@@ -87,3 +88,15 @@ public:
         ar >> ContainerPrivate;
     }
 };
+
+
+
+template <typename T> constexpr bool TIsTSet_V = false;
+
+template <typename T, typename Hasher, typename Allocator> constexpr bool TIsTSet_V<               TSet<T, Hasher, Allocator>> = true;
+template <typename T, typename Hasher, typename Allocator> constexpr bool TIsTSet_V<const          TSet<T, Hasher, Allocator>> = true;
+template <typename T, typename Hasher, typename Allocator> constexpr bool TIsTSet_V<      volatile TSet<T, Hasher, Allocator>> = true;
+template <typename T, typename Hasher, typename Allocator> constexpr bool TIsTSet_V<const volatile TSet<T, Hasher, Allocator>> = true;
+
+template <typename T>
+concept TIsTSet = TIsTSet_V<T>;

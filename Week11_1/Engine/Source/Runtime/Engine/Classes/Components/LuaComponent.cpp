@@ -8,19 +8,13 @@ ULuaComponent::ULuaComponent()
 {
 }
 
-ULuaComponent::ULuaComponent(const ULuaComponent& Other)
-    : Super(Other),
-    LuaScriptPath(Other.LuaScriptPath)
-{
-}
-
 ULuaComponent::~ULuaComponent()
 {
 }
 
 UObject* ULuaComponent::Duplicate(UObject* InOuter)
 {
-    ULuaComponent* NewComp = FObjectFactory::ConstructObjectFrom<ULuaComponent>(this, InOuter);
+    ULuaComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

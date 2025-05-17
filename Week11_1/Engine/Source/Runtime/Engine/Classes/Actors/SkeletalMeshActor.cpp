@@ -10,14 +10,10 @@ ASkeletalMeshActor::ASkeletalMeshActor()
     RootComponent = SkeletalMeshComp;
 }
 
-ASkeletalMeshActor::ASkeletalMeshActor(const ASkeletalMeshActor& Other)
-    :AActor(Other)
-{
-}
 
 UObject* ASkeletalMeshActor::Duplicate(UObject* InOuter)
 {
-    ASkeletalMeshActor* ClonedActor = FObjectFactory::ConstructObjectFrom<ASkeletalMeshActor>(this, InOuter);
+    ASkeletalMeshActor* ClonedActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     ClonedActor->DuplicateSubObjects(this, InOuter);
     ClonedActor->PostDuplicate();
     return ClonedActor;

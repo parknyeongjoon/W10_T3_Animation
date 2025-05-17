@@ -1,11 +1,6 @@
-﻿#include "FireBallComponent.h"
+#include "FireBallComponent.h"
 
 #include "GameFramework/Actor.h"
-
-UFireBallComponent::UFireBallComponent(const UFireBallComponent& Other)
-    : Super(Other)
-{
-}
 
 UFireBallComponent::~UFireBallComponent()
 {
@@ -24,7 +19,7 @@ void UFireBallComponent::TickComponent(float DeltaTime)
 
 UObject* UFireBallComponent::Duplicate(UObject* InOuter)
 {
-    UFireBallComponent* NewComponent = FObjectFactory::ConstructObjectFrom<UFireBallComponent>(this, InOuter);
+    UFireBallComponent* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComponent->DuplicateSubObjects(this, InOuter);
     NewComponent->PostDuplicate();
     return NewComponent;

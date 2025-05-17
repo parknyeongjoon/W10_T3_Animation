@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Actor.h"
 
 class UInputComponent;
@@ -9,7 +9,6 @@ class AController : public AActor
     DECLARE_CLASS(AController, AActor)
 public:
     AController()  = default;
-    AController(const AController& other);
 
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;

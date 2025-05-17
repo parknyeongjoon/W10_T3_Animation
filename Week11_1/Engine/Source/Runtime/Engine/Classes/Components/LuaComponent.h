@@ -45,7 +45,6 @@ class ULuaComponent : public UActorComponent
 public:
 
     ULuaComponent();
-    ULuaComponent(const ULuaComponent& Other);
     virtual ~ULuaComponent() override;
 
     virtual UObject* Duplicate(UObject* InOuter) override;

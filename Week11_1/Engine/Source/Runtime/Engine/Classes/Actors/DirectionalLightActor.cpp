@@ -11,12 +11,6 @@ ADirectionalLightActor::ADirectionalLightActor()
     BillboardComponent->SetTexture(L"Assets/Texture/S_LightDirectional.png");
 }
 
-ADirectionalLightActor::ADirectionalLightActor(const ADirectionalLightActor& Other)
-    : Super(Other)
-{
-    
-}
-
 void ADirectionalLightActor::BeginPlay()
 {
     Super::BeginPlay();
@@ -44,7 +38,7 @@ bool ADirectionalLightActor::Destroy()
 
 UObject* ADirectionalLightActor::Duplicate(UObject* InOuter)
 {
-    ALight* NewActor = FObjectFactory::ConstructObjectFrom<ALight>(this, InOuter);
+    ALight* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewActor->DuplicateSubObjects(this, InOuter);
     NewActor->PostDuplicate();
     return NewActor;

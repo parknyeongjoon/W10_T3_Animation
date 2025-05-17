@@ -3,6 +3,7 @@
 #include "Animation/AnimSequence.h"
 #include "Animation/AnimData/AnimDataModel.h"
 #include <Math/JungleMath.h>
+#include "CoreUObject/UObject/Casts.h"
 
 UAnimSingleNodeInstance::UAnimSingleNodeInstance()
     :PlayRate(1.f),
@@ -17,22 +18,9 @@ UAnimSingleNodeInstance::UAnimSingleNodeInstance()
     CurrentSequence = FObjectFactory::ConstructObject<UAnimSequence>(this);
 }
 
-UAnimSingleNodeInstance::UAnimSingleNodeInstance(const UAnimSingleNodeInstance& Other)
-    :UAnimInstance(Other),
-    PreviousTime(Other.PreviousTime),
-    PlayRate(Other.PlayRate),
-    bLooping(Other.bLooping),
-    bPlaying(Other.bPlaying),
-    bReverse(Other.bReverse),
-    LoopStartFrame(Other.LoopStartFrame),
-    LoopEndFrame(Other.LoopEndFrame),
-    CurrentKey(Other.CurrentKey)
-{
-}
-
 UObject* UAnimSingleNodeInstance::Duplicate(UObject* InOuter)
 {
-    UAnimSingleNodeInstance* NewComp = FObjectFactory::ConstructObjectFrom<UAnimSingleNodeInstance>(this, InOuter);
+    UAnimSingleNodeInstance* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     return NewComp;

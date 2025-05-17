@@ -23,14 +23,14 @@ public:
 
     UWorld* GetWorld() const { return World; }
     void SetWorld(UWorld* InWorld) { World = InWorld; }
-    
+
 private:
     UWorld* World;
 };
 
 class UEngine : public UObject
 {
-    DECLARE_CLASS(UEngine, UObject)
+    DECLARE_ABSTRACT_CLASS(UEngine, UObject)
 
 public:
     UEngine() = default;
@@ -45,7 +45,7 @@ public:
 
     static inline UINT GFrameCount = 0;
 
-    std::shared_ptr<FWorldContext> GetWorldContextByKey(FName Key);
+    //std::shared_ptr<FWorldContext> GetWorldContextByKey(FName Key);
 
 protected:
     TMap<uint32, std::shared_ptr<FWorldContext>> WorldContexts;

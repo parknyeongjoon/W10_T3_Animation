@@ -38,7 +38,6 @@ class UPrimitiveComponent : public USceneComponent
 
 public:
     UPrimitiveComponent();
-    UPrimitiveComponent(const UPrimitiveComponent& Other);
     virtual ~UPrimitiveComponent() override;
 
     virtual void InitializeComponent() override;

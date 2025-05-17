@@ -2,6 +2,8 @@
 #include "Math/JungleMath.h"
 #include "UBoxShapeComponent.h"
 #include "UCapsuleShapeComponent.h"
+#include "CoreUObject/UObject/ObjectFactory.h"
+#include "CoreUObject/UObject/Casts.h"
 
 USphereShapeComponent::USphereShapeComponent()
     : UShapeComponent()
@@ -10,13 +12,6 @@ USphereShapeComponent::USphereShapeComponent()
 {
 }
 
-USphereShapeComponent::USphereShapeComponent(const USphereShapeComponent& Other)
-    : UShapeComponent(Other)
-    , ShapeInfo(Other.ShapeInfo)
-    , PrevRadius(Other.PrevRadius)
-    , Radius(Other.Radius)
-{
-}
 
 USphereShapeComponent::~USphereShapeComponent()
 {
@@ -43,7 +38,7 @@ void USphereShapeComponent::TickComponent(float DeltaTime)
 
 UObject* USphereShapeComponent::Duplicate(UObject* InOuter)
 {
-    USphereShapeComponent* NewComp = FObjectFactory::ConstructObjectFrom<USphereShapeComponent>(this, InOuter);
+    USphereShapeComponent* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
 

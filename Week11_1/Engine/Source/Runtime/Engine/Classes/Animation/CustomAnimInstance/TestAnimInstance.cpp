@@ -153,23 +153,9 @@ UTestAnimInstance::UTestAnimInstance()
     CurrentSequence->GetAnimationPose(CurrentPose, FAnimExtractContext(0.0f, true, false));
 }
 
-UTestAnimInstance::UTestAnimInstance(const UTestAnimInstance& Other) : 
-    UAnimInstance(Other),
-    StandingSequence(Other.StandingSequence),
-    JumpSequence(Other.JumpSequence),
-    DanceSequence(Other.DanceSequence),
-    DeafeatedSequence(Other.DeafeatedSequence)
-{
-    StandingCallback.func = Other.StandingCallback.func;
-    JumpCallback.func = Other.JumpCallback.func;
-    DanceCallback.func = Other.DanceCallback.func;
-
-    CurrentSequence->GetAnimationPose(CurrentPose, FAnimExtractContext(0.0f, true, false));
-}
-
 UObject* UTestAnimInstance::Duplicate(UObject* InOuter)
 {
-    UTestAnimInstance* NewComp = FObjectFactory::ConstructObjectFrom<UTestAnimInstance>(this, InOuter);
+    UTestAnimInstance* NewComp = Cast<ThisClass>(Super::Duplicate(InOuter));
     NewComp->DuplicateSubObjects(this, InOuter);
     NewComp->PostDuplicate();
     NewComp->SetSkeleton(Cast<USkeletalMeshComponent>(InOuter)->GetSkeletalMesh()->GetSkeleton());

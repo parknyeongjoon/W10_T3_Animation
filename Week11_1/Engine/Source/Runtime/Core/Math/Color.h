@@ -107,6 +107,12 @@ struct FLinearColor
     constexpr FLinearColor(const FColor& InColor)
         : R(InColor.R / 255.0f), G(InColor.G / 255.0f), B(InColor.B / 255.0f), A(InColor.A / 255.0f) {
     }
+
+    static float LinearToSRGB(float InC);
+
+    FColor ToColorSRGB() const;
+
+    FColor ToColorRawRGB8() const;
     
     FLinearColor operator+(const FLinearColor& ColorB) const
     {
