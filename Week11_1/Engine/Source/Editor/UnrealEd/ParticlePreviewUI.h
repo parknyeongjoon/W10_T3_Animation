@@ -6,17 +6,17 @@
 class SLevelEditor;
 class UEditorPanel;
 
-class FSkeletalPreviewUI
+class FParticlePreviewUI
 {
 public:
-    FSkeletalPreviewUI() = default;
-    ~FSkeletalPreviewUI() = default;
+    FParticlePreviewUI() = default;
+    ~FParticlePreviewUI() = default;
     void Initialize(SLevelEditor* LevelEditor, float Width, float Height);
-    
+
     void Render() const;
     void OnResize(HWND hWnd) const;
     void SetWorld(UWorld* InWorld);
-    
+
     void AddEditorPanel(const FString& PanelId, const std::shared_ptr<UEditorPanel>& EditorPanel);
     std::shared_ptr<UEditorPanel> GetEditorPanel(const FString& PanelId);
 

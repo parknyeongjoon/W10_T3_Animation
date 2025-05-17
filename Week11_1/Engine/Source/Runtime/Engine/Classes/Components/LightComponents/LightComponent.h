@@ -13,7 +13,7 @@ struct FLightComponentInfo : public FLightComponentBaseInfo
     FLightComponentInfo()
         : FLightComponentBaseInfo()
         , ShadowResolutionScale(0.0f)
-        , ShadowBias(0.0f)
+        , ShadowBias(0.0f) 
         , ShadowSlopeBias(0.0f)
         , ShadowSharpen(0.0f)
     {
@@ -22,7 +22,7 @@ struct FLightComponentInfo : public FLightComponentBaseInfo
     }
 
     virtual void Serialize(FArchive& ar) const override
-    {
+    {   
         FLightComponentBaseInfo::Serialize(ar);
         ar << ShadowResolutionScale << ShadowBias << ShadowSlopeBias << ShadowSharpen;
     }

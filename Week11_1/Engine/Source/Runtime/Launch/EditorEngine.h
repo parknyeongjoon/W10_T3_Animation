@@ -1,8 +1,10 @@
 #pragma once
 #include "Engine/Engine.h"
 #include "Coroutine/CoroutineManager.h"
+#include "CoreUObject/UObject/ObjectTypes.h"
 
 class FSkeletalPreviewUI;
+class FParticlePreviewUI;
 class FCollisionManager;
 class FRenderer;
 class UEditorPlayer;
@@ -36,7 +38,7 @@ public:
     UWorld* CreateWorld(EWorldType::Type WorldType, ELevelTick LevelTick);
     void RemoveWorld(UWorld* World);
 
-    UWorld* CreatePreviewWindow(const FString& Name = TEXT("Preview"));
+    UWorld* CreatePreviewWindow(EViewportClientType Type, const FString& Name = FString());
 
 public:
     static FCollisionManager CollisionManager;
@@ -48,9 +50,9 @@ public:
     bool bForceEditorUI = false;
 public:
     SLevelEditor* GetLevelEditor() const { return LevelEditor; }
-    UnrealEd* GetUnrealEditor() const { return UnrealEditor; }
-    FSkeletalPreviewUI* GetSkeletalPreviewUI() const { return SkeletalPreviewUI; }    
-
+    UnrealEd* GetUnrealEditor() const { return UnrealEditor; } // 메인 에디터
+    FSkeletalPreviewUI* GetSkeletalPreviewUI() const { return SkeletalPreviewUI; } // 스켈레탈 + 애니메이션 에디터
+    FParticlePreviewUI* GetParticlePreviewUI() const { return ParticlePreviewUI; } // 파티클 에디터
 
     float testBlurStrength;
 
@@ -59,7 +61,7 @@ private:
 
     // TODO 임시 Public 바꿔잇
 public:
-    FContentsUI* ContentsUI = nullptr;
+    FContentsUI* ContentsUI = nullptr; // 파이/게임 전용
 
     std::shared_ptr<FWorldContext> EditorWorldContext = nullptr;
     std::shared_ptr<FWorldContext> PIEWorldContext = nullptr;
@@ -68,7 +70,8 @@ public:
 private:
     UnrealEd* UnrealEditor = nullptr;
     FSkeletalPreviewUI* SkeletalPreviewUI = nullptr;
-    
+    FParticlePreviewUI* ParticlePreviewUI = nullptr;
+
     SLevelEditor* LevelEditor = nullptr;
     UEditorPlayer* EditorPlayer = nullptr;
 };

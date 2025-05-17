@@ -22,6 +22,7 @@
 #include "Engine/AssetManager.h"
 #include "GameFramework/PlayerController.h"
 #include "UnrealEd/SkeletalPreviewUI.h"
+#include "UnrealEd/ParticlePreviewUI.h"
 
 class ULevel;
 
@@ -36,6 +37,7 @@ void UEditorEngine::Init()
     UnrealEditor = new UnrealEd();
     ContentsUI = new FContentsUI();
     SkeletalPreviewUI = new FSkeletalPreviewUI();
+    ParticlePreviewUI = new FParticlePreviewUI();
 
     UWorld* EditorWorld = CreateWorld(EWorldType::Editor, LEVELTICK_ViewportsOnly);
     EditorWorldContext = CreateNewWorldContext(EditorWorld, EWorldType::Editor, LEVELTICK_ViewportsOnly);
@@ -45,6 +47,8 @@ void UEditorEngine::Init()
 
     UnrealEditor->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
     SkeletalPreviewUI->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
+    ParticlePreviewUI->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
+
     ContentsUI->Initialize();
     CollisionManager.Initialize();  
     FLuaManager::Get().Initialize();    
@@ -280,12 +284,52 @@ void UEditorEngine::RemoveWorld(UWorld* World)
     WorldContexts.Remove(World->GetUUID());
 }
 
-UWorld* UEditorEngine::CreatePreviewWindow(const FString& Name)
+UWorld* UEditorEngine::CreatePreviewWindow(EViewportClientType Type, const FString& Name)
 {
-    WCHAR EnginePreviewWindowClass[] = L"PreviewWindowClass";
+    std::wstring wClassName;
+    std::wstring wTitleName;
+
+    // 기본값을 지정해줌
+    if (Name.IsEmpty())
+    {
+        switch (Type)
+        {
+        case Game:
+            wClassName = L"GameWindowClass";
+            wTitleName = L"Game";
+            break;
+        case Editor:
+            wClassName = L"EditorWindowClass";
+            wTitleName = L"Editor";
+            break;
+        case EditorPreviewSkeletal:
+            wClassName = L"EditorPreviewSkeletalWindowClass";
+            wTitleName = L"Editor Preview Skeletal";
+            break;
+        case EditorPreviewParticle:
+            wClassName = L"EditorPreviewParticleWindowClass";
+            wTitleName = L"Editor Preview Particle";
+            break;
+        }
+        int Count = GetLevelEditor()->GetNumViewportClientByType(Type);
+        if (Count > 0)
+        {
+            wClassName += std::to_wstring(Count);
+            wTitleName += std::to_wstring(Count);
+        }
+    }
+    else
+    {
+        wClassName = Name.ToWideString() + L"WindowClass";
+        wTitleName = Name.ToWideString();
+    }
+
+    WCHAR EnginePreviewWindowClass[256];  
+    wcscpy_s(EnginePreviewWindowClass, wClassName.c_str());
 
     // @todo Name 사용하도록 변경
-    WCHAR EnginePreviewTitle[256] = L"Preview";
+    WCHAR EnginePreviewTitle[256];
+    wcscpy_s(EnginePreviewTitle, wTitleName.c_str());
 
     HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(GEngineLoop.GetDefaultWindow(), GWLP_HINSTANCE));
     HWND AppWnd = GEngineLoop.CreateEngineWindow(hInstance, EnginePreviewWindowClass, EnginePreviewTitle);
@@ -300,7 +344,7 @@ UWorld* UEditorEngine::CreatePreviewWindow(const FString& Name)
     PreviewWorldContexts.Add(PreviewWorldCounter++, PreviewWorldContext);
         
     // 뷰포트 클라이언트 생성 및 설정
-    std::shared_ptr<FEditorViewportClient> EditorViewportClient = GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, NewPreviewWorld);
+    std::shared_ptr<FEditorViewportClient> EditorViewportClient = GetLevelEditor()->AddViewportClient<FEditorViewportClient>(AppWnd, NewPreviewWorld, Type);
     EditorViewportClient->SetViewMode(VMI_Unlit);
 
     return NewPreviewWorld;

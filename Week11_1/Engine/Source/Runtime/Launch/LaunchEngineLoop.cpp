@@ -10,6 +10,7 @@
 #include "PropertyEditor/ViewportTypePanel.h"
 #include "Renderer/Renderer.h"
 #include "UnrealEd/SkeletalPreviewUI.h"
+#include "UnrealEd/ParticlePreviewUI.h"
 #include "UnrealEd/UnrealEd.h"
 #include "UObject/Casts.h"
 
@@ -150,7 +151,6 @@ void FEngineLoop::Render() const
             // TODO 다른 방법으로 World 구하기
             UWorld* TargetWorld = ViewportClients[0]->GetWorld();
             EditorEngine->GetUnrealEditor()->SetWorld(TargetWorld);
-            EditorEngine->GetSkeletalPreviewUI()->SetWorld(TargetWorld);
             EditorEngine->ContentsUI->SetWorld(TargetWorld);
             if (TargetWorld->WorldType == EWorldType::Editor)
             {
@@ -177,13 +177,26 @@ void FEngineLoop::Render() const
             }
             else if (TargetWorld->WorldType == EWorldType::EditorPreview)
             {
-                EditorEngine->GetSkeletalPreviewUI()->Render();
+                EViewportClientType Type = LevelEditor->GetViewportClientData(AppWindow).ViewportClientType;
+                switch(Type)
+                {
+                case EViewportClientType::EditorPreviewSkeletal:
+                    EditorEngine->GetSkeletalPreviewUI()->SetWorld(TargetWorld);
+                    EditorEngine->GetSkeletalPreviewUI()->Render();
+                    break;
+                case EViewportClientType::EditorPreviewParticle:
+                    EditorEngine->GetParticlePreviewUI()->SetWorld(TargetWorld);
+                    EditorEngine->GetParticlePreviewUI()->Render();
+                    break;
+                default:
+                    assert(false);
+                }
             }
         }
         ImGuiManager::Get().EndFrame(AppWindow);
     
         // Pending 처리된 오브젝트 제거
-        //GUObjectArray.ProcessPendingDestroyObjects();
+        GUObjectArray.ProcessPendingDestroyObjects();
         GraphicDevice.SwapBuffer(AppWindow);
     }
     LevelEditor->FocusViewportClient(OriginalWindow, OriginalIndex);
