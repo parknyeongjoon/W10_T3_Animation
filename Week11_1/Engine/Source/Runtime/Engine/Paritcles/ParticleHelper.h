@@ -3,6 +3,7 @@
 #include "Math/Color.h"
 #include "Math/Vector4.h"
 
+class UMaterial;
 /**
  * Per-particle data sent to the GPU.
  */
@@ -112,7 +113,7 @@ struct FDynamicEmitterReplayDataBase
 
 struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBase
 {
-    UMaterialInterface* MaterialInterface;
+    UMaterial* MaterialInterface;
     struct FParticleRequiredModule* RequiredModule;
     
 };

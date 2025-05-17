@@ -65,7 +65,7 @@ public:
     bool IsActive() const { return bIsActive; }
 
     void Activate() { bIsActive = true; }
-    void Deactivate() { bIsActive = false; }
+    virtual void Deactivate() { bIsActive = false; }
 
     bool IsComponentTickEnabled() const { return bTickEnabled; }
     void SetComponentTickEnabled(const bool bEnabled) { bTickEnabled = bEnabled; }
