@@ -495,7 +495,7 @@ void FObjectBaseProperty::DisplayRawDataInImGui(const char* PropertyLabel, void*
             }
             else if (HasFlag(Flags, EPropertyFlags::VisibleAnywhere))
             {
-                for (const FProperty* Prop : ObjectClass->Properties)
+                for (const FProperty* Prop : ObjectClass->GetProperties())
                 {
                     Prop->DisplayInImGui(*Object);
                 }

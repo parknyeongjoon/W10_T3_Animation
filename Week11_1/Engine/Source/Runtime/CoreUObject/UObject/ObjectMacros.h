@@ -20,34 +20,13 @@ private: \
         TClass##_StaticClassRegistrar_PRIVATE() \
         { \
             UClass::GetClassMap().Add(#TClass, ThisClass::StaticClass()); \
+            AddClassToChildListMap(ThisClass::StaticClass()); \
             UClassRegistry::Get().RegisterClass(ThisClass::StaticClass()); \
         } \
     } TClass##_StaticClassRegistrar_PRIVATE{}; \
 public: \
     using Super = TSuperClass; \
-    using ThisClass = TClass;
-
-// RTTI를 위한 클래스 매크로
-#define DECLARE_CLASS(TClass, TSuperClass) \
-    __DECLARE_COMMON_CLASS_BODY__(TClass, TSuperClass) \
-    static UClass* StaticClass() { \
-        static UClass ClassInfo{ \
-            #TClass, \
-            static_cast<uint32>(sizeof(TClass)), \
-            static_cast<uint32>(alignof(TClass)), \
-            TSuperClass::StaticClass(), \
-            []() -> UObject* { \
-                void* RawMemory = FPlatformMemory::AlignedMalloc<EAT_Object>(sizeof(TClass), alignof(TClass)); \
-                ::new (RawMemory) TClass; \
-                return static_cast<UObject*>(RawMemory); \
-            } \
-        }; \
-        ClassInfo.Creator = [](UObject* InOuter) -> void* { \
-            return FObjectFactory::ConstructObject<TClass>(InOuter); \
-        }; \
-        ClassInfo.BindPropertiesToLua = TClass::BindPropertiesToLua; \
-        return &ClassInfo; \
-    } \
+    using ThisClass = TClass; \
 private: \
     static TMap<FString, std::function<void(sol::usertype<TClass>)>>& GetBindFunctions() { \
         static TMap<FString, std::function<void(sol::usertype<TClass>)>> _binds; \
@@ -75,6 +54,28 @@ public: \
         }); \
     }
 
+// RTTI를 위한 클래스 매크로
+#define DECLARE_CLASS(TClass, TSuperClass) \
+    __DECLARE_COMMON_CLASS_BODY__(TClass, TSuperClass) \
+    static UClass* StaticClass() { \
+        static UClass ClassInfo{ \
+            #TClass, \
+            static_cast<uint32>(sizeof(TClass)), \
+            static_cast<uint32>(alignof(TClass)), \
+            TSuperClass::StaticClass(), \
+            []() -> UObject* { \
+                void* RawMemory = FPlatformMemory::AlignedMalloc<EAT_Object>(sizeof(TClass), alignof(TClass)); \
+                ::new (RawMemory) TClass; \
+                return static_cast<UObject*>(RawMemory); \
+            } \
+        }; \
+        ClassInfo.Creator = [](UObject* InOuter) -> void* { \
+            return FObjectFactory::ConstructObject<TClass>(InOuter); \
+        }; \
+        ClassInfo.BindPropertiesToLua = TClass::BindPropertiesToLua; \
+        return &ClassInfo; \
+    } 
+
 // RTTI를 위한 추상 클래스 매크로
 #define DECLARE_ABSTRACT_CLASS(TClass, TSuperClass) \
     __DECLARE_COMMON_CLASS_BODY__(TClass, TSuperClass) \
@@ -86,6 +87,7 @@ public: \
             TSuperClass::StaticClass(), \
             []() -> UObject* { return nullptr; } \
         }; \
+        ClassInfo.BindPropertiesToLua = TClass::BindPropertiesToLua; \
         return &ClassInfo; \
     }
 
@@ -132,14 +134,6 @@ public: \
  */
 #define UPROPERTY(...) \
     EXPAND_PROPERTY_MACRO(GET_OVERLOADED_PROPERTY_MACRO(__VA_ARGS__, UPROPERTY_WITH_FLAGS, UPROPERTY_DEFAULT, UPROPERTY_DEFAULT)(__VA_ARGS__))
-
- // Getter & Setter 생성
-#define PROPERTY(type, name) \
-private: \
-    type name; \
-public: \
-    void Set##name(const type& value) { name = value; } \
-    type Get##name() const { return name; }
 
 // UFUNCTION 자동 Lua 바인딩 + 선언
 #define UFUNCTION(Type, FuncName, ...) \

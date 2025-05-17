@@ -72,7 +72,17 @@ public:
 
     template<typename T>
         requires std::derived_from<T, UActorComponent>
-    T* GetComponentByClass() const;
+    T* GetComponentByClass() const
+    {
+        for (UActorComponent* Component : OwnedComponents)
+        {
+            if (T* CastedComponent = Cast<T>(Component))
+            {
+                return CastedComponent;
+            }
+        }
+        return nullptr;
+    }
 
     void InitializeComponents() const;
     void UninitializeComponents() const;
@@ -296,15 +306,3 @@ void AActor::AddDuplicatedComponent(T* Component, EComponentOrigin Origin)
 }
 
 
-template <typename T> requires std::derived_from<T, UActorComponent>
-T* AActor::GetComponentByClass() const
-{
-    for (UActorComponent* Component : OwnedComponents)
-    {
-        if (T* CastedComponent = Cast<T>(Component))
-        {
-            return CastedComponent;
-        }
-    }
-    return nullptr;
-}

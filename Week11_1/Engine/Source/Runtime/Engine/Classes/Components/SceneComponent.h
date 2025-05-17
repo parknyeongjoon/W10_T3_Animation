@@ -70,9 +70,14 @@ public:
     virtual void PostDuplicate() {};
 
 protected:
-    FVector RelativeLocation;
-    FRotator RelativeRotation;
-    FVector RelativeScale;
+    UPROPERTY
+    (EPropertyFlags::EditAnywhere, FVector, RelativeLocation, = FVector::ZeroVector)
+
+    UPROPERTY
+    (EPropertyFlags::EditAnywhere, FRotator, RelativeRotation, = FRotator::ZeroRotator)
+
+    UPROPERTY
+    (EPropertyFlags::EditAnywhere, FVector, RelativeScale, = FVector::ZeroVector)
 
     USceneComponent* AttachParent = nullptr;
     TArray<USceneComponent*> AttachChildren;

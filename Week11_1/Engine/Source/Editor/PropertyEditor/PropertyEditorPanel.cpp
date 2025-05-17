@@ -786,6 +786,47 @@ void PropertyEditorPanel::Render()
 
     RenderShapeProperty(PickedActor);
 
+    if (PickedActor)
+    {
+        ImGui::Separator();
+        const UClass* Class = PickedActor->GetClass();
+
+        for (; Class; Class = Class->GetSuperClass())
+        {
+            const TArray<FProperty*>& Properties = Class->GetProperties();
+            if (!Properties.IsEmpty())
+            {
+                ImGui::SeparatorText(*Class->GetName());
+            }
+
+            for (const FProperty* Prop : Properties)
+            {
+                Prop->DisplayInImGui(PickedActor);
+            }
+        }
+    }
+
+    if (Cast<USceneComponent>(PickedComponent))
+    {
+        ImGui::Separator();
+        const UClass* Class = GetTargetComponent<USceneComponent>(PickedActor, Cast<USceneComponent>(PickedComponent))->GetClass();
+
+        for (; Class; Class = Class->GetSuperClass())
+        {
+            const TArray<FProperty*>& Properties = Class->GetProperties();
+            if (!Properties.IsEmpty())
+            {
+                ImGui::SeparatorText(*Class->GetName());
+            }
+
+            for (const FProperty* Prop : Properties)
+            {
+                Prop->DisplayInImGui(Cast<USceneComponent>(PickedComponent));
+            }
+        }
+    }
+
+
     ImGui::End();
 }
 

@@ -99,28 +99,28 @@ protected:
     virtual void SaveComponentInfo(FActorComponentInfo& OutInfo);
     
     /** Tick을 지원하는 컴포넌트인지 여부 */
-    uint8 bCanEverTick : 1;
+    uint8 bCanEverTick : 1 = 0;
 
     /** 컴포넌트가 Actor에 정상적으로 등록되었는지 여부 */
-    uint8 bRegistered : 1;
+    uint8 bRegistered : 1 = 0;
 
     /** 생성 직후 InitializeComponent()를 자동 호출할지 여부 */
-    uint8 bWantsInitializeComponent : 1;
+    uint8 bWantsInitializeComponent : 1 = 0;
 
 private:
-    AActor* Owner;
+    AActor* Owner = nullptr;
 
     /** InitializeComponent가 호출 되었는지 여부 */
-    uint8 bHasBeenInitialized : 1;
+    uint8 bHasBeenInitialized : 1 = 0;
 
     /** BeginPlay가 호출 되었는지 여부 */
-    uint8 bHasBegunPlay : 1;
+    uint8 bHasBegunPlay : 1 = 0;
 
     /** 현재 컴포넌트가 삭제 처리중인지 여부 */
-    uint8 bIsBeingDestroyed : 1;
+    uint8 bIsBeingDestroyed : 1 = 0;
 
     /** Component가 현재 활성화 중인지 여부 */
-    uint8 bIsActive : 1;
+    uint8 bIsActive : 1 = 0;
     /** Tick 함수를 실행할지 여부*/
     bool bTickEnabled = true;
 

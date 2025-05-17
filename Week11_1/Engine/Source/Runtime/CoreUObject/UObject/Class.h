@@ -47,9 +47,6 @@ public:
     uint32 GetClassSize() const { return ClassSize; }
     uint32 GetClassAlignment() const { return ClassAlignment; }
 
-    using ObjectCreator = void* (*)(UObject*);
-    ObjectCreator Creator = nullptr;
-
     template <typename T>
     T* CreateObject(UObject* InOuter)
     {
@@ -88,15 +85,7 @@ public:
 
     const TArray<FProperty*>& GetProperties() const { return Properties; }
 
-
-    /** Lua에 UPROPERTY를 Bind하는 함수.
-     *  DECLARE_CLASS에서 초기화됨
-     */
-    std::function<void(sol::state&)> BindPropertiesToLua;
-
     void RegisterProperty(FProperty* Prop);
-
-    TArray<FProperty*> Properties;
 
 protected:
     virtual UObject* CreateDefaultObject();
@@ -114,6 +103,17 @@ private:
     UClass* SuperClass = nullptr;
 
     UObject* ClassDefaultObject = nullptr;
+
+    TArray<FProperty*> Properties;
+
+public:
+    using ObjectCreator = void* (*)(UObject*);
+    ObjectCreator Creator = nullptr;
+
+    /** Lua에 UPROPERTY를 Bind하는 함수.
+     *  DECLARE_CLASS에서 초기화됨
+     */
+    std::function<void(sol::state&)> BindPropertiesToLua;
 };
 
 class UClassRegistry
