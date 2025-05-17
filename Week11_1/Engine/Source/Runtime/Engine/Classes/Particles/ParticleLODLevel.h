@@ -1,7 +1,10 @@
 #pragma once
 #include "Container/Array.h"
 #include "CoreUObject/UObject/Object.h"
-#include "ParticleModuleRequired.h"
+
+class UParticleModule;
+class UParticleModuleRequired;
+struct UParticleModuleTypeDataBase;
 
 class UParticleLODLevel : public UObject
 {

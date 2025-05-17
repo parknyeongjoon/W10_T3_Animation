@@ -6,7 +6,6 @@
 #include "ContainerAllocator.h"
 #include "Serialization/Archive.h"
 
-
 template <typename T, typename AllocatorType = FDefaultAllocator<T>>
 class TArray
 {
@@ -180,7 +179,16 @@ public:
 
         return true;
     }
+    
+    /**
+    * 지정된 요소 개수로 배열 크기를 조정합니다. 새로 늘어난 요소는 0으로 초기화됩니다.
+    * @param NewNum 새 크기
+    * @param AllowShrinking 메모리 축소를 허용할지 여부
+    */
+    void SetNumZeroed(SizeType NewNum);
 
+
+    
     void Serialize(FArchive& Ar) const
     {
         Ar << ContainerPrivate;
@@ -556,6 +564,31 @@ typename TArray<T, AllocatorType>::SizeType TArray<T, AllocatorType>::AddDefault
     return StartIndex;
 }
 
+template <typename T, typename AllocatorType>
+void TArray<T, AllocatorType>::SetNumZeroed(SizeType NewNum)
+{
+    SizeType Current = ContainerPrivate.size();
+    if (NewNum > Current)
+    {
+        SizeType ToAdd = NewNum - Current;
+        // 기본 생성자 호출 후, POD 타입은 0으로 초기화
+        for (SizeType i = 0; i < ToAdd; ++i)
+        {
+            ContainerPrivate.emplace_back();
+        }
+    }
+    else if (NewNum < Current)
+    {
+        // 인덱스 NewNum 이후의 모든 요소 제거
+        ContainerPrivate.erase(
+            ContainerPrivate.begin() + static_cast<ptrdiff_t>(NewNum),
+            ContainerPrivate.end()
+        );
+        ContainerPrivate.shrink_to_fit();
+    }
+    // NewNum == Current인 경우 아무 동작도 하지 않음
+}
+
 
 template <typename T> constexpr bool TIsTArray_V = false;
 
@@ -566,3 +599,12 @@ template <typename InElementType, typename InAllocatorType> constexpr bool TIsTA
 
 template <typename T>
 concept TIsTArray = TIsTArray_V<T>;
+
+template <typename T, typename AllocatorType> inline void* operator new(size_t Size, TArray<T, AllocatorType>& Array);
+
+template <typename T, typename AllocatorType> void* operator new(size_t Size, TArray<T, AllocatorType>& Array)
+{
+    const auto Index = Array.AddUninitialized(Size);
+    return &Array[Index];
+}
+
