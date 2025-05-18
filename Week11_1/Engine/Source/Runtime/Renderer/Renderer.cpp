@@ -307,6 +307,12 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
         GizmoRenderPass->Prepare(ActiveViewportClient);
         GizmoRenderPass->Execute(ActiveViewportClient);
     }
+
+    // if (ActiveViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Particle))
+    {
+        
+    }
+
     
     LetterBoxRenderPass->Prepare(ActiveViewportClient);
     LetterBoxRenderPass->Execute(ActiveViewportClient);
