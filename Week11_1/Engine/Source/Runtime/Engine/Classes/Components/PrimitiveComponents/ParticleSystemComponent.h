@@ -366,6 +366,7 @@ public:
     bool bIsViewRelevanceDirty;
 
     bool bAutoDestroy;
+
 private:
     /** 컴포넌트의 변환(transform)이 변경되어 업데이트가 필요한지 여부 */
     bool bIsTransformDirty;
@@ -376,7 +377,24 @@ private:
     /** AsyncComponentToWorld 등의 비동기 데이터 복사가 유효한지 여부 */
     bool bAsyncDataCopyIsValid;
 
+    //0 [ManagerHandle] 30[bPendingManagerAdd] 31[bPendingManagerRemove]
+    /** FParticleSystemWorldManager에 대한 핸들입니다. 관리되는 틱이 없으면 INDEX_NONE을 가집니다. */
+    int32 ManagerHandle : 30;
+    /** 현재 매니저에 추가 대기 중임을 나타내는 플래그입니다. */
+    int32 bPendingManagerAdd : 1;
+    /** 언레지스터되어 매니저 배열에서 제거 대기 중임을 나타내는 플래그입니다. */
+    int32 bPendingManagerRemove : 1;
+    
 public:
+
+    FORCEINLINE bool IsTickManaged()const { return ManagerHandle != INDEX_NONE && !IsPendingManagerRemove(); }
+    FORCEINLINE int32 GetManagerHandle()const { return ManagerHandle; }
+    FORCEINLINE void SetManagerHandle(const int32 InHandle) { ManagerHandle = InHandle; }
+
+    FORCEINLINE int32 IsPendingManagerAdd()const { return bPendingManagerAdd; }
+    FORCEINLINE void SetPendingManagerAdd(const bool bValue) { bPendingManagerAdd = bValue; }
+    FORCEINLINE int32 IsPendingManagerRemove()const { return bPendingManagerRemove; }
+    FORCEINLINE void SetPendingManagerRemove(const bool bValue) { bPendingManagerRemove = bValue; }
     
     FParticleSystemWorldManager* GetWorldManager() const;
 
@@ -506,6 +524,12 @@ private:
 public:
     virtual void TickComponent(float DeltaTime) override;
 
+    void SetComponentTickEnabled(bool bEnabled) override;
+    bool IsComponentTickEnabled() const override;
+
+    virtual void OnRegister() override;
+    virtual void OnUnregister() override;
+
     void ComputeTickComponent_Concurrent();
     void FinalizeTickComponent();
 
@@ -516,8 +540,11 @@ public:
     virtual UMaterial* GetMaterial(int32 ElementIndex) const;
     virtual void SetMaterial(int32 ElementIndex, UMaterial* Material);
 
+    // 이걸 호출 해야 파티클 동작, 아마 Particle Emmiter Spawn 후, 바로 이거 호출하면 될 듯?
     virtual void Activate(bool bReset=false);
+    // 이걸 호출 해야 파티클 정지, 아마 Particle Emmiter DeSpawn 할 때, 호출하면 될 듯?
     void Deactivate() override;
+    
     void Complete();
     virtual void DeactivateImmediate();
 
@@ -526,6 +553,7 @@ public:
     /** Activate the system */
     virtual void ActivateSystem(bool bFlagAsJustAttached = false);
     /** Deactivate the system */
+
     void DeactivateSystem();
 protected:
 

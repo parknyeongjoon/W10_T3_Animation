@@ -30,6 +30,8 @@ public:
     }
 public:
     FParticleSystemWorldManager(UWorld* InWorld);
+    ~FParticleSystemWorldManager();
+    void Cleanup();
 
     bool RegisterComponent(UParticleSystemComponent* PSC);
     void UnregisterComponent(UParticleSystemComponent* PSC);

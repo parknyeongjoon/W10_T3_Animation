@@ -8,8 +8,35 @@
 bool GIsAllowingParticles = true;
 
 UParticleSystemComponent::UParticleSystemComponent()
+    : Super()
 {
+    bCanEverTick = true;
+    bTickInEditor = true;
+    MaxTimeBeforeForceUpdateTransform = 5.0f;
+    bResetOnDetach = false;
+    bOldPositionValid = false;
+    OldPosition = FVector::ZeroVector;
+    PartSysVelocity = FVector::ZeroVector;
 
+    WarmupTime = 0.0f;
+    SecondsBeforeInactive = 1.0f;
+    bIsTransformDirty = false;
+    bSkipUpdateDynamicDataDuringTick = false;
+    bIsViewRelevanceDirty = true;
+    CustomTimeDilation = 1.0f;
+    bWasActive = false;
+    SetGenerateOverlapEvents(false);
+    
+    SavedAutoAttachRelativeScale3D = FVector(1.f, 1.f, 1.f);
+    TimeSinceLastTick = 0;
+    LastSignificantTime = 0.0f;
+    bIsManagingSignificance = 0;
+    bWasManagingSignificance = 0;
+    bIsDuringRegister = 0;
+
+    ManagerHandle = INDEX_NONE;
+    bPendingManagerAdd = false;
+    bPendingManagerRemove = false;
 }
 
 FParticleSystemWorldManager* UParticleSystemComponent::GetWorldManager() const
@@ -19,6 +46,7 @@ FParticleSystemWorldManager* UParticleSystemComponent::GetWorldManager() const
 
 void UParticleSystemComponent::TickComponent(float DeltaTime)
 {
+    Super::TickComponent(DeltaTime);
     if (Template == nullptr || Template->Emitters.Num() == 0)
     {
         // Disable our tick here, will be enabled when activating
@@ -104,6 +132,77 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
     // 동기 업데이트
     ComputeTickComponent_Concurrent();
     FinalizeTickComponent();
+}
+
+void UParticleSystemComponent::SetComponentTickEnabled(bool bEnabled)
+{
+    bEnabled &= IsRegistered();
+    
+    if (GetWorld() == nullptr)
+        return;
+
+    bool bIsTickManaged = IsTickManaged();
+    
+    FParticleSystemWorldManager* PSCMan = bIsTickManaged ?  GetWorldManager() : nullptr; 
+
+
+    if (bIsTickManaged && PSCMan == nullptr)
+    {
+        Super::SetComponentTickEnabled(bEnabled);
+        return;
+    }
+
+    Super::SetComponentTickEnabled(false); //Ensure we're not ticking via task graph.
+    if (bEnabled)
+    {
+        if (!PSCMan->RegisterComponent(this))
+        {
+            UE_LOG(LogLevel::Warning, TEXT("Failed to register with the PSC world manager"));
+        }
+    }
+    else if (bIsTickManaged)
+    {
+        PSCMan->UnregisterComponent(this);
+    }
+}
+
+bool UParticleSystemComponent::IsComponentTickEnabled() const
+{
+    //As far as anyone else is concerned, a tick managed component is ticking. The shouldn't know or care how.
+    return Super::IsComponentTickEnabled() || IsTickManaged();
+}
+
+void UParticleSystemComponent::OnRegister()
+{
+    UWorld* World = GetWorld();
+    if (World == nullptr)
+        return;
+    
+    SavedAutoAttachRelativeLocation = GetRelativeLocation();
+    SavedAutoAttachRelativeRotation = GetRelativeRotation();
+    SavedAutoAttachRelativeScale3D = GetRelativeScale();
+    
+    Super::OnRegister();
+
+    // If we were active before but are not now, activate us
+    if (bWasActive && !IsActive())
+    {
+        Activate(true);
+    }
+}
+
+void UParticleSystemComponent::OnUnregister()
+{
+    bWasActive = IsActive() && !bWasDeactivated;
+
+    UWorld* World = GetWorld();
+    if (World == nullptr)
+        return;
+
+    SetComponentTickEnabled(false);
+    
+    ResetParticles(true);
+    Super::OnUnregister();
 }
 
 void UParticleSystemComponent::ComputeTickComponent_Concurrent()
@@ -239,6 +338,8 @@ void UParticleSystemComponent::SetMaterial(int32 ElementIndex, UMaterial* Materi
 
 void UParticleSystemComponent::Activate(bool bReset)
 {
+    Super::Activate();
+    
     if (Template != nullptr)
     {
         bDeactivateTriggered = false;
@@ -252,6 +353,8 @@ void UParticleSystemComponent::Activate(bool bReset)
 
 void UParticleSystemComponent::Deactivate()
 {
+    Super::Deactivate();
+    
     if (ShouldActivate()==false)
     {
         DeactivateSystem();
