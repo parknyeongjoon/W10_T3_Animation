@@ -9,7 +9,6 @@ void ParticlesCurveEditorPanel::Initialize(SLevelEditor* LevelEditor, float InWi
 
 void ParticlesCurveEditorPanel::Render()
 {
-    ImGui::PushID(PanelIndex);
     /* Pre Setup */
     ImGuiIO& io = ImGui::GetIO();
 
@@ -27,8 +26,6 @@ void ParticlesCurveEditorPanel::Render()
 
     ImGui::Begin("Curves", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
     ImGui::End();
-    ImGui::ShowDemoWindow();
-    ImGui::PopID();
 }
 
 void ParticlesCurveEditorPanel::OnResize(HWND hWnd)

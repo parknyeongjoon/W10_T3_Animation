@@ -1,4 +1,7 @@
 #include "ParticlesDetailsPanel.h"
+#include "UnrealEd/ParticlePreviewUI.h"
+#include "Classes/Particles/ParticleEmitter.h"
+#include "Classes/Particles/ParticleModule.h"
 
 void ParticlesDetailsPanel::Initialize(SLevelEditor* LevelEditor, float InWidth, float InHeight)
 {
@@ -9,7 +12,6 @@ void ParticlesDetailsPanel::Initialize(SLevelEditor* LevelEditor, float InWidth,
 
 void ParticlesDetailsPanel::Render()
 {
-    ImGui::PushID(PanelIndex);
     /* Pre Setup */
     ImGuiIO& io = ImGui::GetIO();
 
@@ -25,10 +27,44 @@ void ParticlesDetailsPanel::Render()
     /* Panel Size */
     ImGui::SetNextWindowSize(ImVec2(PanelWidth, PanelHeight), ImGuiCond_Always);
 
+    if (!ParticlePreviewUI->GetSelectedParticleInstance() || 
+        !ParticlePreviewUI->GetSelectedParticleInstance()->SpriteTemplate || 
+        ParticlePreviewUI->GetSelectedParticleInstance()->SpriteTemplate->LODLevels.Num() == 0)
+    {
+        return;
+    }
+    UParticleEmitter* SelectedEmitter = ParticlePreviewUI->GetSelectedParticleInstance()->SpriteTemplate;
+    UParticleLODLevel* LODLevel = SelectedEmitter->LODLevels[0];
+    if (LODLevel == nullptr)
+    {
+        return;
+    }
+    
     ImGui::Begin("Details", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+
+    int SelectedModuleIndex = ParticlePreviewUI->GetSelectedModuleIndex();
+    if (SelectedModuleIndex >= 0 && SelectedModuleIndex < LODLevel->Modules.Num())
+    {
+        if (UParticleModule* SelectedModule = LODLevel->Modules[SelectedModuleIndex])
+        {
+            const UClass* Class = SelectedModule->GetClass();
+            for (; Class; Class = Class->GetSuperClass())
+            {
+                const TArray<FProperty*>& Properties = Class->GetProperties();
+                if (!Properties.IsEmpty())
+                {
+                    ImGui::SeparatorText(*Class->GetName());
+                }
+
+                for (const FProperty* Prop : Properties)
+                {
+                    Prop->DisplayInImGui(SelectedModule);
+                }
+            }
+        }
+    }
+
     ImGui::End();
-    ImGui::ShowDemoWindow();
-    ImGui::PopID();
 }
 
 void ParticlesDetailsPanel::OnResize(HWND hWnd)

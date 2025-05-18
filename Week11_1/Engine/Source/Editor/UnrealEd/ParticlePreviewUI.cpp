@@ -12,15 +12,19 @@ void FParticlePreviewUI::Initialize(SLevelEditor* LevelEditor, float Width, floa
     auto ControlPanel = std::make_shared<ParticlesMenuBar>();
     ControlPanel->Initialize(LevelEditor, Width, Height);
     Panels["PreviewControlPanel"] = ControlPanel;
+    ControlPanel->BindUI(this);
     auto DetailsPanel = std::make_shared<ParticlesDetailsPanel>();
     DetailsPanel->Initialize(LevelEditor, Width, Height);
     Panels["DetailsPanel"] = DetailsPanel;
+    DetailsPanel->BindUI(this);
     auto EmitterPanel = std::make_shared<ParticlesEmitterPanel>();
     EmitterPanel->Initialize(LevelEditor, Width, Height);
     Panels["EmitterPanel"] = EmitterPanel;
+    EmitterPanel->BindUI(this);
     auto CurvePanel = std::make_shared<ParticlesCurveEditorPanel>();
     CurvePanel->Initialize(LevelEditor, Width, Height);
     Panels["CurvePanel"] = CurvePanel;
+    CurvePanel->BindUI(this);
 }
 
 void FParticlePreviewUI::Render() const
@@ -32,6 +36,8 @@ void FParticlePreviewUI::Render() const
             Panel.Value->Render();
         }
     }
+
+    ImGui::ShowDemoWindow();
 }
 
 void FParticlePreviewUI::OnResize(HWND hWnd) const

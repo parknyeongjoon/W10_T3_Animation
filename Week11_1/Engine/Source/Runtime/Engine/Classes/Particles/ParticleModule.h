@@ -1,8 +1,13 @@
 #pragma once
 #include "CoreUObject/UObject/Object.h"
+#include "CoreUObject/UObject/ObjectMacros.h"
 
 class UParticleModule : public UObject
 {
+    DECLARE_ABSTRACT_CLASS(UParticleModule, UObject)
+
+public:
+    UParticleModule() {}
 };
 
 /*

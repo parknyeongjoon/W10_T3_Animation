@@ -1,8 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #pragma once
 #include "Core/HAL/PlatformType.h"
 #include "ParticleHelper.h"
+#include "CoreUObject/UObject/ObjectMacros.h"
+#include "Classes/Particles/ParticleEmitter.h"
 
 class UParticleEmitter;
 class UParticleSystemComponent;
@@ -10,11 +12,18 @@ class UParticleLODLevel;
 
 struct FParticleEmitterInstance
 {
+    DECLARE_STRUCT(FParticleEmitterInstance);
+
+    UPROPERTY(
+        FName,
+        EmitterName
+    )
+
     UParticleEmitter* SpriteTemplate;
 
     // Owner
     UParticleSystemComponent* Component;
-
+    
     int32 CurrentLODLevelIndex;
     UParticleLODLevel* CurrentLODLevel;
 

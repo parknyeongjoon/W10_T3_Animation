@@ -4,4 +4,6 @@
 
 class UParticleModuleRequired : public UParticleModule
 {
+    DECLARE_CLASS(UParticleModuleRequired, UParticleModule);
+    UParticleModuleRequired() {}
 };

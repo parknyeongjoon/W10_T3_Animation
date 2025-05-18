@@ -1,4 +1,5 @@
 #include "ParticlesMenuBar.h"
+#include "UnrealEd/ParticlePreviewUI.h"
 
 void ParticlesMenuBar::Initialize(SLevelEditor* LevelEditor, float InWidth, float InHeight)
 {
@@ -10,7 +11,7 @@ void ParticlesMenuBar::Initialize(SLevelEditor* LevelEditor, float InWidth, floa
 void ParticlesMenuBar::Render()
 {
     /* Pre Setup */
-        ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui::GetIO();
     ImFont* IconFont = io.Fonts->Fonts[FEATHER_FONT];
     ImVec2 IconSize = ImVec2(32, 32);
 
@@ -63,29 +64,33 @@ void ParticlesMenuBar::Render()
         tab_bar_flags |= ImGuiTabBarFlags_NoCloseWithMiddleMouseButton;
         tab_bar_flags |= ImGuiTabBarFlags_FittingPolicyScroll;
 
-        static TArray<FString> Particles;
-        static int num = 0;
-        char buf[8];
+        //static TArray<FString> Particles;
+        //static int num = 0;
+        //char buf[8];
+
+        const TArray<FParticleEmitterInstance*> ParticleEmitterInstances = ParticlePreviewUI->GetParticleEmitterInstances();
 
         if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
         {
             if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip))
             {
-                _itoa_s(num++, buf, 10);
-                Particles.Add(FString(buf)); // Add new tab
+                //_itoa_s(num++, buf, 10);
+                //Particles.Add(FString(buf)); // Add new tab
+                ParticlePreviewUI->CreateEmptyParticleEmitterInstance();
             }
 
-            for (int n = 0; n < Particles.Num(); n++)
+            for (int n = 0; n < ParticleEmitterInstances.Num(); n++)
             {
                 bool open = true;
-                if (ImGui::BeginTabItem(*Particles[n], &open, ImGuiTabItemFlags_None))
+                FString InstanceName = ParticleEmitterInstances[n]->EmitterName.ToString();
+                if (ImGui::BeginTabItem(*InstanceName, &open, ImGuiTabItemFlags_None))
                 {
-                    ImGui::Text("This is the %s tab!", *Particles[n]);
+                    ImGui::Text("This is the %s tab!", *InstanceName);
                     ImGui::EndTabItem();
                 }
                 if (!open)
                 {
-                    Particles.RemoveAt(n);
+                    ParticlePreviewUI->RemoveParticleEmitterInstance(n);
                 }
             }
             ImGui::EndTabBar();
@@ -94,7 +99,6 @@ void ParticlesMenuBar::Render()
         ImGui::EndMainMenuBar();
     }
 
-        ImGui::ShowDemoWindow();
 }
 
 void ParticlesMenuBar::OnResize(HWND hWnd)
