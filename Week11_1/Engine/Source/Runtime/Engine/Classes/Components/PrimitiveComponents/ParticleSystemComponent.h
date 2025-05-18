@@ -445,6 +445,9 @@ public:
     */
     float EmitterDelay;
 
+    /** Scales DeltaTime in UParticleSystemComponent::Tick(...) */
+    float CustomTimeDilation;
+
     /** 이 PSysComp에서 발생한 Spawn 이벤트들입니다. */
     TArray<struct FParticleEventSpawnData> SpawnEvents;
 
@@ -503,6 +506,9 @@ private:
 public:
     virtual void TickComponent(float DeltaTime) override;
 
+    void ComputeTickComponent_Concurrent();
+    void FinalizeTickComponent();
+
 protected:
     virtual bool ShouldActivate() const;
 public:
@@ -514,6 +520,8 @@ public:
     void Deactivate() override;
     void Complete();
     virtual void DeactivateImmediate();
+
+    void ForceReset();
 
     /** Activate the system */
     virtual void ActivateSystem(bool bFlagAsJustAttached = false);

@@ -12,7 +12,7 @@ void FParticleSystemWorldManager::OnWorldInit(UWorld* World)
     WorldManagers.Add(World, NewWorldMan);
 }
 
-void FParticleSystemWorldManager::OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources)
+void FParticleSystemWorldManager::OnWorldCleanup(UWorld* World)
 {
     if (FParticleSystemWorldManager** WorldMan = WorldManagers.Find(World))
     {

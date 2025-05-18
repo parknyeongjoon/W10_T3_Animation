@@ -13,11 +13,12 @@ class FParticleSystemWorldManager
 private:
     static TMap<UWorld*, FParticleSystemWorldManager*> WorldManagers;
     
+public: 
     static void OnWorldInit(UWorld* World);
-    static void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources);
+    static void OnWorldCleanup(UWorld* World);
     static void OnPreWorldFinishDestroy(UWorld* World);
     static void OnWorldBeginTearDown(UWorld* World);
-public:
+
     FORCEINLINE static FParticleSystemWorldManager* Get(UWorld* World)
     {
         FParticleSystemWorldManager** Ret =  WorldManagers.Find(World);

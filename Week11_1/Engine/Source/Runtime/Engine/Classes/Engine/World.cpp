@@ -23,6 +23,7 @@
 #include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 #include "GameFramework//PlayerController.h"
 #include "GameFramework/Character.h"
+#include "Particles/ParticleSystemWorldManager.h"
 #include "Script/LuaManager.h"
 #include "UObject/UObjectArray.h"
 #include "UnrealEd/PrimitiveBatch.h"
@@ -43,6 +44,8 @@ void UWorld::InitWorld()
     {
         CreateBaseObject(WorldType);
     }
+
+    FParticleSystemWorldManager::OnWorldInit(this);
 }
 
 void UWorld::LoadLevel(const FString& LevelName)
@@ -106,10 +109,15 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
 
         FGameManager::Get().Tick(deltaSeconds);
     }
+
+    
+    FParticleSystemWorldManager::Get(this)->Tick(deltaSeconds, tickType);
 }
 
 void UWorld::Release()
 {
+    FParticleSystemWorldManager::OnWorldCleanup(this);
+    
     if (WorldType == EWorldType::Editor)
     {
         SaveScene("Assets/Scenes/AutoSave.Scene");
@@ -131,8 +139,6 @@ void UWorld::Release()
 
 	pickingGizmo = nullptr;
 	ReleaseBaseObject();
-
-    
 }
 
 void UWorld::ClearScene()

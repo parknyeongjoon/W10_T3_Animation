@@ -19,7 +19,167 @@ FParticleSystemWorldManager* UParticleSystemComponent::GetWorldManager() const
 
 void UParticleSystemComponent::TickComponent(float DeltaTime)
 {
-    UPrimitiveComponent::TickComponent(DeltaTime);
+    if (Template == nullptr || Template->Emitters.Num() == 0)
+    {
+        // Disable our tick here, will be enabled when activating
+        SetComponentTickEnabled(false);
+        return;
+    }
+
+    if (TimeSinceLastTick + static_cast<uint32>(DeltaTime*1000.0f) < Template->MinTimeBetweenTicks)
+    {
+        TimeSinceLastTick += static_cast<uint32>(DeltaTime*1000.0f);
+        return;
+    }
+
+    DeltaTime += TimeSinceLastTick / 1000.0f;
+    TimeSinceLastTick = 0;
+
+    if (bDeactivateTriggered)
+    {
+        DeactivateSystem();
+    }
+    
+    if ((IsActive() == false))
+    {
+        // Disable our tick here, will be enabled when activating
+        SetComponentTickEnabled(false);
+        return;
+    }
+    
+    DeltaTimeTick = DeltaTime;
+
+    UWorld* World = GetWorld();
+    
+    bool bRequiresReset = bResetTriggered;
+    bResetTriggered = false;
+
+    if (bRequiresReset)
+    {
+        ForceReset();
+    }
+
+    if (bWarmingUp == false)
+    {
+    }
+
+    bForcedInActive = false;
+
+    DeltaTime *= CustomTimeDilation;
+    DeltaTimeTick = DeltaTime;
+    if (FMath::IsNearlyZero(DeltaTimeTick))
+    {
+        return;
+    }
+
+    AccumTickTime += DeltaTime;
+
+    for (auto Instance : EmitterInstances)
+    {
+        if (Instance)
+        {
+            //Instance->LastTickDurationMs = 0.0f;
+        }
+    }
+
+    // Orient the Z axis toward the camera
+    if (Template->bOrientZAxisTowardCamera)
+    {
+        //OrientZAxisTowardCamera();
+    }
+
+    // // 고정 시간 업데이트 모드
+    // if (Template->SystemUpdateMode == EPSUM_FixedTime)
+    // {
+    //     DeltaTime = Template->UpdateTime_Delta;
+    // }
+
+    // Clear out the events.
+    SpawnEvents.Empty();
+    DeathEvents.Empty();
+    CollisionEvents.Empty();
+    BurstEvents.Empty();
+    TotalActiveParticles = 0;
+
+    // 동기 업데이트
+    ComputeTickComponent_Concurrent();
+    FinalizeTickComponent();
+}
+
+void UParticleSystemComponent::ComputeTickComponent_Concurrent()
+{
+    // 전체 활성 파티클 수 누적 변수
+    TotalActiveParticles = 0;
+
+    // 각 이터미터 인스턴스마다 시뮬레이션 실행
+    for (auto& Emitter : EmitterInstances)
+    {
+
+    }
+}
+
+void UParticleSystemComponent::FinalizeTickComponent()
+{
+    // 3) 이벤트 처리
+    for (auto& instance : EmitterInstances)
+    {
+        // if (instance->IsEnabled())
+        // {
+        //     instance->ProcessParticleEvents(DeltaTimeTick, bSuppressSpawning);
+        // }
+    }
+    // if (auto* mgr = GetWorld().getevent)
+    // {
+    //     if (!SpawnEvents.empty())     mgr->HandleParticleSpawnEvents(this, SpawnEvents);
+    //     if (!DeathEvents.empty())     mgr->HandleParticleDeathEvents(this, DeathEvents);
+    //     if (!CollisionEvents.empty()) mgr->HandleParticleCollisionEvents(this, CollisionEvents);
+    //     if (!BurstEvents.empty())     mgr->HandleParticleBurstEvents(this, BurstEvents);
+    // }
+    // KismetEvents.clear();
+
+    // 4) 시스템 완료 및 중요도(Significance) 갱신
+    // float currTime = WorldContext->GetTimeSeconds();
+    // if (IsActive() && bIsManagingSignificance && NumSignificantEmitters == 0
+    //     && currTime >= LastSignificantTime + InsignificanceDelay)
+    // {
+    //     OnSignificanceChanged(false);
+    // }
+    // else
+    // {
+    //     LastSignificantTime = currTime;
+    //     bool isCompleted = HasCompleted();
+    //     if (isCompleted && !bWasCompleted)
+    //     {
+    //         Complete();
+    //     }
+    //     bWasCompleted = isCompleted;
+    // }
+    
+    if (bIsTransformDirty)
+    {
+        //UpdateComponentToWorld();
+        TimeSinceLastForceUpdateTransform = 0.0f;
+        bIsTransformDirty = false;
+    }
+
+    // 6) 파티클 시스템 속도 계산
+    if (bOldPositionValid)
+    {
+        float invDT = DeltaTimeTick > 0.0f ? 1.0f / DeltaTimeTick : 0.0f;
+        PartSysVelocity = (GetWorldLocation() - OldPosition) * invDT;
+    }
+    else
+    {
+        PartSysVelocity = FVector(0.0f);
+        bOldPositionValid = true;
+    }
+    OldPosition = GetWorldLocation();
+
+    // 7) 렌더 동적 데이터 갱신 플래그
+    if (!bSkipUpdateDynamicDataDuringTick)
+    {
+
+    }
 }
 
 bool UParticleSystemComponent::ShouldActivate() const
@@ -111,6 +271,26 @@ void UParticleSystemComponent::Complete()
 void UParticleSystemComponent::DeactivateImmediate()
 {
     Complete();
+}
+
+void UParticleSystemComponent::ForceReset()
+{
+    //If we're resetting in the editor, cached emitter values may now be invalid.
+    if (Template != nullptr)
+    {
+        Template->UpdateAllModuleLists();
+    }
+
+    bool bOldActive = IsActive();
+    ResetParticles(true);
+    if (bOldActive)
+    {
+        ActivateSystem();
+    }
+    else
+    {
+        InitializeSystem();
+    }
 }
 
 void UParticleSystemComponent::ActivateSystem(bool bFlagAsJustAttached)
