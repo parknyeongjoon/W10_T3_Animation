@@ -1,3 +1,5 @@
+﻿#pragma once
+
 #pragma once
 #include "Core/HAL/PlatformType.h"
 #include "ParticleHelper.h"
@@ -49,7 +51,7 @@ struct FParticleEmitterInstance
 
             // for (int32 ModuleIndex = 0; ModuleIndex < LODLevel->SpawnModules.Num(); ModuleIndex++)
             // {
-            //     
+                //LODLevel->SpawnModules[ModuleIndex]->Spawn();
             // }
 
             //PostSpawn(Particle, Interp, SpawnTime);
