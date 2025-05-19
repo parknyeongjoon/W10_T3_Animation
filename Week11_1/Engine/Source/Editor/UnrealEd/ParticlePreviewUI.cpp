@@ -1,5 +1,7 @@
 #include "ParticlePreviewUI.h"
 #include "EditorPanel.h"
+#include "CoreUObject/UObject/Casts.h"
+#include "SlateCore/Layout/SlateRect.h"
 
 #include "PropertyEditor/Particles/ParticlesMenuBar.h"
 #include "PropertyEditor/Particles/ParticlesDetailsPanel.h"
@@ -62,7 +64,7 @@ void FParticlePreviewUI::Initialize(SLevelEditor* LevelEditor, float Width, floa
             NewEmitter->LODLevels.Add(NewLODLevel);
             NewParticleSystem->Emitters.Add(NewEmitter);
         }
-        ParticleSystems.Add(NewParticleSystem);
+        AddParticleSytstem(NewParticleSystem);
     }
 }
 
@@ -96,6 +98,18 @@ void FParticlePreviewUI::SetWorld(UWorld* InWorld)
     }
 }
 
+// World를 그려줄 viewportclient의 크기를 
+void FParticlePreviewUI::ResizeViewport(std::shared_ptr<FEditorViewportClient> ViewportClient)
+{
+    FRect Rect{};
+    Rect.Width = PreviewScreenWidth;
+    Rect.Height = PreviewScreenHeight - 20.f;
+    Rect.LeftTopX = 0.f;
+    Rect.LeftTopY = 20.f;
+
+    ViewportClient->ResizeViewport(Rect);
+}
+
 void FParticlePreviewUI::AddEditorPanel(const FString& PanelId, const std::shared_ptr<UEditorPanel>& EditorPanel)
 {
     Panels[PanelId] = EditorPanel;
@@ -104,6 +118,35 @@ void FParticlePreviewUI::AddEditorPanel(const FString& PanelId, const std::share
 std::shared_ptr<UEditorPanel> FParticlePreviewUI::GetEditorPanel(const FString& PanelId)
 {
     return Panels[PanelId];
+}
+
+// 
+void FParticlePreviewUI::CreateEmptyParticleSystem(UObject* InOuter)
+{
+    UParticleSystem* NewParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(InOuter);
+    ParticleSystems.Add(NewParticleSystem);
+    RegisterFlags(NewParticleSystem);
+}
+
+void FParticlePreviewUI::AddParticleSytstem(UParticleSystem* ParticleSystem) 
+{ 
+    ParticleSystems.Add(ParticleSystem);
+    RegisterFlags(ParticleSystem);
+}
+
+int32 FParticlePreviewUI::RemoveParticleSystem(UParticleSystem* ParticleSystem) {
+    return ParticleSystems.Remove(ParticleSystem);
+    RemoveFlags(ParticleSystem);
+}
+
+void FParticlePreviewUI::RemoveParticleSystemAt(int32 Index)
+{ 
+    if (Index >= 0 && Index < ParticleSystems.Num()) 
+    {
+        UParticleSystem* ParticleSystem = ParticleSystems[Index];
+        RemoveFlags(ParticleSystem);
+        ParticleSystems.RemoveAt(Index); 
+    }
 }
 
 void FParticlePreviewUI::SetSelectedSystemIndex(int32 Index)
@@ -138,7 +181,7 @@ void FParticlePreviewUI::SetSelectedModuleIndex(int32 Index)
     }
 }
 
-const UParticleSystem* FParticlePreviewUI::GetSelectedSystem() const
+UParticleSystem* FParticlePreviewUI::GetSelectedSystem() const
 {
     if (SelectedSystemIndex >= 0 && SelectedSystemIndex < ParticleSystems.Num())
     {
@@ -147,7 +190,7 @@ const UParticleSystem* FParticlePreviewUI::GetSelectedSystem() const
     return nullptr;
 }
 
-const UParticleEmitter* FParticlePreviewUI::GetSelectedEmitter() const
+UParticleEmitter* FParticlePreviewUI::GetSelectedEmitter() const
 {
     if (SelectedSystemIndex >= 0 && SelectedSystemIndex < ParticleSystems.Num())
     {
@@ -160,7 +203,7 @@ const UParticleEmitter* FParticlePreviewUI::GetSelectedEmitter() const
     return nullptr;
 }
 
-const UParticleLODLevel* FParticlePreviewUI::GetSelectedLODLevel() const
+UParticleLODLevel* FParticlePreviewUI::GetSelectedLODLevel() const
 {
     if (SelectedSystemIndex >= 0 && SelectedSystemIndex < ParticleSystems.Num())
     {
@@ -177,7 +220,7 @@ const UParticleLODLevel* FParticlePreviewUI::GetSelectedLODLevel() const
     return nullptr;
 }
 
-const UParticleModule* FParticlePreviewUI::GetSelectedModule() const
+UParticleModule* FParticlePreviewUI::GetSelectedModule() const
 {
     if (SelectedSystemIndex >= 0 && SelectedSystemIndex < ParticleSystems.Num())
     {
@@ -198,22 +241,19 @@ const UParticleModule* FParticlePreviewUI::GetSelectedModule() const
     return nullptr;
 }
 
-void FParticlePreviewUI::SetSelectedSystem(const UParticleSystem* ParticleSystem)
-{
-    if (ParticleSystem)
-    {
-        if (ParticleSystems.Contains(ParticleSystem))
-        {
-            for (int32 i = 0; i < ParticleSystems.Num(); ++i)
-            {
-                if (ParticleSystems[i] == ParticleSystem)
-                {
-                    SelectedSystemIndex = i;
-                    break;
-                }
-            }
-        }
-    }
+void FParticlePreviewUI::SetSelectedSystem(const UParticleSystem* ParticleSystem)  
+{  
+   if (ParticleSystem)  
+   {  
+       for (int32 i = 0; i < ParticleSystems.Num(); ++i)  
+       {  
+           if (ParticleSystems[i] == ParticleSystem)  
+           {  
+               SelectedSystemIndex = i;  
+               break;  
+           }  
+       }  
+   }  
 }
 
 void FParticlePreviewUI::SetSelectedEmitter(const UParticleEmitter* Emitter)
@@ -261,7 +301,86 @@ void FParticlePreviewUI::SetSelectedModule(const UParticleModule* Module)
         const UParticleLODLevel* LODLevel = GetSelectedLODLevel();
         if (LODLevel)
         {
-            SelectedModuleIndex = LODLevel->Modules.Num() - 1;
+            for (int i = 0; i < LODLevel->Modules.Num(); ++i)
+            {
+                if (LODLevel->Modules[i] == Module)
+                {
+                    SelectedModuleIndex = i;
+                    break;
+                }
+            }
         }
     }
+}
+
+// SoloFlag는 false, EnableFlag는 true가 되도록 설정합니다.
+// 아래 붙어있는 항목도 동일하게 설정합니다.
+void FParticlePreviewUI::RegisterFlags(UObject* InObject)
+{
+    if (InObject->IsA<UParticleModule>())
+    {
+        EnableFlags.Add(InObject, true);
+        SoloFlags.Add(InObject, false);
+    }
+    else if (UParticleLODLevel* LODLevel = Cast<UParticleLODLevel>(InObject))
+    {
+        for (auto Module : LODLevel->Modules)
+        {
+            EnableFlags.Add(InObject, true);
+            SoloFlags.Add(InObject, false);
+            RegisterFlags(Module);
+        }
+    }
+    else if (UParticleEmitter* Emitter = Cast<UParticleEmitter>(InObject))
+    {
+        for (auto LODLevel : Emitter->LODLevels)
+        {
+            EnableFlags.Add(InObject, true);
+            SoloFlags.Add(InObject, false);
+            RegisterFlags(LODLevel);
+        }
+    }
+    else if (UParticleSystem* ParticleSystem = Cast<UParticleSystem>(InObject))
+    {
+        for (auto Emitter : ParticleSystem->Emitters)
+        {
+            EnableFlags.Add(InObject, true);
+            SoloFlags.Add(InObject, false);
+            RegisterFlags(Emitter);
+        }
+    }
+
+    return;
+}
+
+// 아래 붙어있는 항목도 모두 제거합니다.
+void FParticlePreviewUI::RemoveFlags(UObject* InObject)
+{
+    if (InObject->IsA<UParticleModule>())
+    {
+        EnableFlags.Remove(InObject);
+        SoloFlags.Remove(InObject);
+    }
+    else if (UParticleLODLevel* LODLevel = Cast<UParticleLODLevel>(InObject))
+    {
+        for (auto Module : LODLevel->Modules)
+        {
+            RemoveFlags(Module);
+        }
+    }
+    else if (UParticleEmitter* Emitter = Cast<UParticleEmitter>(InObject))
+    {
+        for (auto LODLevel : Emitter->LODLevels)
+        {
+            RemoveFlags(LODLevel);
+        }
+    }
+    else if (UParticleSystem* ParticleSystem = Cast<UParticleSystem>(InObject))
+    {
+        for (auto Emitter : ParticleSystem->Emitters)
+        {
+            RemoveFlags(Emitter);
+        }
+    }
+    return;
 }

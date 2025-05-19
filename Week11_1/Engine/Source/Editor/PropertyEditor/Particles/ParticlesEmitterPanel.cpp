@@ -17,6 +17,12 @@ void ParticlesEmitterPanel::Initialize(SLevelEditor* LevelEditor, float InWidth,
     activeLevelEditor = LevelEditor;
     Width = InWidth;
     Height = InHeight;
+
+    UClass* ModuleClass = UClass::FindClass("UParticleModule");
+    GetChildOfClass(ModuleClass, ModuleClasses);
+    ModuleClasses.Remove(UClass::FindClass("UParticleModule"));
+    ModuleClasses.Remove(UClass::FindClass("UParticleModuleRequired"));
+    ModuleClasses.Remove(UClass::FindClass("UParticleModuleSpawn"));
 }
 
 void ParticlesEmitterPanel::Render()
@@ -24,8 +30,8 @@ void ParticlesEmitterPanel::Render()
     /* Pre Setup */
     ImGuiIO& io = ImGui::GetIO();
 
-    const float PanelWidth = (Width) * 0.6f;
-    const float PanelHeight = (Height) * 0.6f - 20.0f;
+    const float PanelWidth = (Width) * (1 - UI->PreviewScreenWidth);
+    const float PanelHeight = (Height) * (1 - UI->PreviewScreenHeight) - 20.0f;
 
     const float PanelPosX = Width - PanelWidth;
     const float PanelPosY = 20.0f;
@@ -44,7 +50,7 @@ void ParticlesEmitterPanel::Render()
 
     // Module을 정렬
     struct EmitterModulesSorted {
-        const UParticleEmitter* Emitter;
+        UParticleEmitter* Emitter;
         TArray<UParticleModule*> ModulesSorted;
     };
 
@@ -54,7 +60,7 @@ void ParticlesEmitterPanel::Render()
     static const int SpawnIndex = 1;
 
     // COLUMNS
-    for (const UParticleEmitter* Emitter : Emitters)
+    for (UParticleEmitter* Emitter : Emitters)
     {
         // 1. Module 정렬
         TArray<UParticleModule*> Modules = Emitter->LODLevels[UI->GetSelectedLODIndex()]->Modules;
@@ -111,21 +117,26 @@ void ParticlesEmitterPanel::Render()
         }
         ImGui::TableHeadersRow();
 
-        //for (const EmitterModulesSorted& EmitterModules : EmitterModulesSortedArray)
-        for (int row = 0; row < MaxNumModules; ++row)
+        // + 버튼을 위해서 최대개수보다 하나 더 추가
+        for (int row = 0; row < MaxNumModules + 1; ++row)
         {
             ImGui::TableNextRow();
             for (int col = 0; col < EmitterModulesSortedArray.Num(); ++col)
             {
                 ImGui::TableSetColumnIndex(col);
+                UParticleEmitter* Emitter = EmitterModulesSortedArray[col].Emitter;
                 if (row < EmitterModulesSortedArray[col].ModulesSorted.Num())
                 {
-                    const UParticleModule* Module = EmitterModulesSortedArray[col].ModulesSorted[row];
-                    RenderModuleCell(Module);
+                    UParticleModule* Module = EmitterModulesSortedArray[col].ModulesSorted[row];
+                    RenderModuleCell(Module, Emitter);
+                }
+                else if (row == EmitterModulesSortedArray[col].ModulesSorted.Num())
+                {
+                    RenderModuleAdd(Emitter);
                 }
                 else
                 {
-                    RenderModuleCell(nullptr);
+                    RenderModuleCell(nullptr, nullptr);
                 }
             }
         }
@@ -134,65 +145,75 @@ void ParticlesEmitterPanel::Render()
     ImGui::End();
 }
 
-void ParticlesEmitterPanel::RenderModuleCell(const UParticleModule* Module) const
+void ParticlesEmitterPanel::RenderModuleCell(UParticleModule* Module, UParticleEmitter* Emitter) const
 {
     if (!Module) return;
     
-    bool Checked = false;
-    if (Module == UI->GetSelectedModule())
-    {
-        Checked = true;
-    }
+    bool Checked = UI->IsEnabled(Module);
     FString ModuleName = Module->GetClass()->GetName();
     ModuleName.RemoveFromStart(TEXT("UParticleModule"));
-    if (ImGui::Checkbox(*FString::Printf("##%d", Module->GetUUID()), &Checked))
-    {
+    ImGui::Checkbox(*FString::Printf("##%d", Module->GetUUID()), &Checked);
+    // 체크했을때의 action은 없음
+    UI->SetEnabled(Module, Checked);
 
-    }
     ImGui::SameLine();
+    
     if (ImGui::Button(*FString::Printf("%s##%d", *ModuleName, Module->GetUUID())))
     {
         UI->SetSelectedModule(Module);
     }
 
-    //if (const UParticleModuleColor* ColorModule = Cast<UParticleModuleColor>(Module)) {
-    //    bool Checked = false;
-    //    if (ImGui::Checkbox("##ColorCheck", &Checked))
-    //    {
-
-    //    }
-    //    if (ImGui::Button("Color"))
-    //    {
-
-    //    }
-    //}
-    //else if (const UParticleModuleLifetime* LifetimeModule = Cast<UParticleModuleLifetime>(Module)) {
-
-    //}
-    //else if (const UParticleModuleLocation* LocationModule = Cast<UParticleModuleLocation>(Module)) {
-    //    ImGui::TextUnformatted("Location");
-    //}
-    //else if (const UParticleModuleSize* SizeModule = Cast<UParticleModuleSize>(Module)) {
-    //    ImGui::TextUnformatted("Size");
-    //}
-    //else if (const UParticleModuleSpawn* SpawnModule = Cast<UParticleModuleSpawn>(Module)) {
-    //    ImGui::TextUnformatted("Spawn");
-    //}
-    //else if (const UParticleModuleVelocity* VelocityModule = Cast<UParticleModuleVelocity>(Module)) {
-    //    ImGui::TextUnformatted("Velocity");
-    //}
-    //else if (const UParticleModuleRequired* RequiredModule = Cast<UParticleModuleRequired>(Module)) {
-    //    ImGui::TextUnformatted("Required");
-    //}
-    //else if (Module == nullptr)
-    //{
-    //    ImGui::TextUnformatted("-");
-    //}
-    //else {
-    //    // 알 수 없는 타입
-    //    ImGui::Text("Unknown");
-    //}
+    // 버튼 우클릭시 제거
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+    {
+        if (!Module->IsA<UParticleModuleRequired>() && !Module->IsA<UParticleModuleSpawn>())
+        {
+            for (int i = 0; i < Emitter->LODLevels.Num(); ++i)
+            {
+                Emitter->LODLevels[i]->Modules.Remove(Module);
+            }
+            UI->RemoveFlags(Module);
+            GUObjectArray.MarkRemoveObject(Module);
+        }
+    }
 }
+
+void ParticlesEmitterPanel::RenderModuleAdd(UParticleEmitter* Emitter)
+{
+    uint32 Identifier = Emitter->GetUUID();
+
+    // Popup ID 고정 문자열 생성
+    FString PopupIdStr = FString::Printf(TEXT("AddModulePopup##%u"), Identifier);
+    const char* PopupId = *PopupIdStr;
+
+    // 버튼
+    if (ImGui::Button(*FString::Printf(TEXT("Add Module##%u_AddEmitter"), Identifier)))
+    {
+        ImGui::OpenPopup(PopupId);
+    }
+
+    // 팝업 시작
+    if (ImGui::BeginPopup(PopupId))
+    {
+        for (UClass* Child : ModuleClasses)
+        {
+            if (ImGui::MenuItem(*Child->GetName()))
+            {
+                // 모든 LOD level에 추가
+                for (int l = 0; l < Emitter->LODLevels.Num(); ++l)
+                {
+                    UParticleModule* NewModule = Cast<UParticleModule>(FObjectFactory::ConstructObject(Child, Emitter));
+                    Emitter->LODLevels[l]->Modules.Add(NewModule);
+                    UI->RegisterFlags(NewModule);
+                }
+                ImGui::CloseCurrentPopup();
+            }
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
 
 
 void ParticlesEmitterPanel::OnResize(HWND hWnd)

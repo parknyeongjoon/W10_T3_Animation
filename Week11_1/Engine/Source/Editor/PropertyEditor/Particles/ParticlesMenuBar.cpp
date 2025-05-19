@@ -68,7 +68,7 @@ void ParticlesMenuBar::Render()
         //static int num = 0;
         //char buf[8];
 
-        const TArray<const UParticleSystem*> ParticleSystems = UI->GetParticleSystems();
+        const TArray<UParticleSystem*> ParticleSystems = UI->GetParticleSystems();
 
         if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
         {

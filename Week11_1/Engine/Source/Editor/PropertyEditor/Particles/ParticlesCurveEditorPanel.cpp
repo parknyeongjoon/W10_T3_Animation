@@ -1,4 +1,5 @@
 #include "ParticlesCurveEditorPanel.h"
+#include "UnrealEd/ParticlePreviewUI.h"
 
 void ParticlesCurveEditorPanel::Initialize(SLevelEditor* LevelEditor, float InWidth, float InHeight)
 {
@@ -12,8 +13,8 @@ void ParticlesCurveEditorPanel::Render()
     /* Pre Setup */
     ImGuiIO& io = ImGui::GetIO();
 
-    const float PanelWidth = (Width) * 0.6f;
-    const float PanelHeight = (Height) * 0.4f;
+    const float PanelWidth = (Width) * (1 - UI->PreviewScreenWidth);
+    const float PanelHeight = (Height) * UI->PreviewScreenHeight;
 
     const float PanelPosX = Width - PanelWidth;
     const float PanelPosY = Height - PanelHeight;

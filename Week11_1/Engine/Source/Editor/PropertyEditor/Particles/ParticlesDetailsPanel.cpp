@@ -15,8 +15,8 @@ void ParticlesDetailsPanel::Render()
     /* Pre Setup */
     ImGuiIO& io = ImGui::GetIO();
 
-    const float PanelWidth = (Width) * 0.4f;
-    const float PanelHeight = (Height) * 0.4f;
+    const float PanelWidth = (Width) * UI->PreviewScreenWidth;
+    const float PanelHeight = (Height) * UI->PreviewScreenHeight;
 
     const float PanelPosX = 0.f;
     const float PanelPosY = Height - PanelHeight;
@@ -37,8 +37,8 @@ void ParticlesDetailsPanel::Render()
         if (UParticleModule* SelectedModule = Modules[SelectedModuleIndex])
         {
             const UClass* Class = SelectedModule->GetClass();
-            for (; Class; Class = Class->GetSuperClass())
-            {
+            //for (; Class; Class = Class->GetSuperClass())
+            //{
                 const TArray<FProperty*>& Properties = Class->GetProperties();
                 if (!Properties.IsEmpty())
                 {
@@ -49,7 +49,7 @@ void ParticlesDetailsPanel::Render()
                 {
                     Prop->DisplayInImGui(SelectedModule);
                 }
-            }
+            //}
         }
     }
 

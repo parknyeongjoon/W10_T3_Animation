@@ -14,7 +14,6 @@
 #include "UnrealEd/UnrealEd.h"
 #include "UObject/Casts.h"
 
-
 FGraphicsDevice FEngineLoop::GraphicDevice;
 FRenderer FEngineLoop::Renderer;
 FResourceManager FEngineLoop::ResourceManager;
@@ -133,6 +132,14 @@ void FEngineLoop::Render() const
                 EditorEngine->UpdateGizmos(ViewportClient->GetWorld());
                 Renderer.Render(ViewportClient);
             }
+        }
+        // 왼쪽 위에만 띄어야해서 부득이하게 여기서 설정...
+        else if (LevelEditor->GetViewportClientData(AppWindow).ViewportClientType == EditorPreviewParticle)
+        {
+            EditorEngine->GetParticlePreviewUI()->ResizeViewport(ViewportClients[0]);
+            LevelEditor->FocusViewportClient(AppWindow, 0);
+            EditorEngine->UpdateGizmos(ViewportClients[0]->GetWorld());
+            Renderer.Render(ViewportClients[0]);
         }
         else
         {
