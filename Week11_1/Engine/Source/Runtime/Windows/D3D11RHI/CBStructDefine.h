@@ -202,6 +202,13 @@ struct alignas(16) FMatrixConstants
     FVector pad0; // offset: 196, size: 12
 };
 
+struct alignas(16) FMatrixSeparatedMVPConstants
+{
+    FMatrix Model;
+    FMatrix View;
+    FMatrix Proj;
+};
+
 struct alignas(16) FConstatntBufferActor
 {
     FVector4 UUID; // offset: 0, size: 16

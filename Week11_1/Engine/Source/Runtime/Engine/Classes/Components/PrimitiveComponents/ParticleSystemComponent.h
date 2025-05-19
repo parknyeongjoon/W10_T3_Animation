@@ -285,6 +285,7 @@ class  UParticleSystemComponent : public UPrimitiveComponent
     DECLARE_CLASS(UParticleSystemComponent, UPrimitiveComponent)
 public:
     UParticleSystemComponent();
+    ~UParticleSystemComponent();
     
     //이게 인스턴스, 틱돌면서 이거 돌아야함. 이거 데이터 기반으로 EmitterRenderData 생성
     TArray<FParticleEmitterInstance*> EmitterInstances;
@@ -293,6 +294,7 @@ public:
     UParticleSystem* Template;
     
     //이게 렌더할 때 필요한 데이터 렌더할때 이거 돌면서 렌더
+    //이 데이터가 Emitter가 뿜어낸 모든 Particle
     TArray<FDynamicEmitterDataBase*> EmitterRenderData;
 
 #pragma region hide

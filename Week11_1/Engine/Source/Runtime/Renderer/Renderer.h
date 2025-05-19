@@ -11,6 +11,7 @@
 #include "RenderPass/FogRenderPass.h"
 #include "RenderPass/ShadowRenderPass.h"
 
+class FParticleRenderPass;
 class FSkeletalMeshRenderPass;
 class FLetterBoxRenderPass;
 struct FLetterBoxConstants;
@@ -82,10 +83,12 @@ public:
 public:
     void PrepareShader(FName InShaderName);
     void BindConstantBuffers(FName InShaderName);
+    FName GetVSName(FName InShaderProgramName);
     
 public:
     void CreateMappedCB(TMap<FShaderConstantKey, uint32>& ShaderStageToCB, const TArray<FConstantBufferInfo>& CBArray, EShaderStage Stage) const;
     
+    void MappingInputLayout(FName InShaderProgramName, FName InInputLayoutName);
     void MappingVSPSInputLayout(FName InShaderProgramName, FName VSName, FName PSName, FName InInputLayoutName);
     void MappingVSPSCBSlot(FName InShaderName, const TMap<FShaderConstantKey, uint32>& MappedConstants);
     void MappingVBTopology(FName InObjectName, FName InVBName, uint32 InStride, uint32 InNumVertices, D3D11_PRIMITIVE_TOPOLOGY InTopology= D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -117,6 +120,7 @@ private:
     std::shared_ptr<FLetterBoxRenderPass> LetterBoxRenderPass;
     std::shared_ptr<FBlurRenderPass> BlurRenderPass;
     std::shared_ptr<FFinalRenderPass> FinalRenderPass;
+    std::shared_ptr<FParticleRenderPass> ParticleRenderPass;
 
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
     EViewModeIndex CurrentViewMode = VMI_Lit_Goroud;

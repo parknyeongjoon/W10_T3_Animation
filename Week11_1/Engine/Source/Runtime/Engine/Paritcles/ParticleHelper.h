@@ -13,20 +13,22 @@ struct FParticleSpriteVertex
 {
     /** The position of the particle. */
     FVector Position;
-    /** The relative time of the particle. */
-    float RelativeTime;
-    /** The previous position of the particle. */
-    FVector	OldPosition;
-    /** Value that remains constant over the lifetime of a particle. */
-    float ParticleId;
     /** The size of the particle. */
     FVector2D Size;
     /** The rotation of the particle. */
     float Rotation;
     /** The sub-image index for the particle. */
     float SubImageIndex;
+    
+    // 아래부턴 GPU에서 필요한거
+    /** The relative time of the particle. */
+    // float RelativeTime;
+    /** The previous position of the particle. */
+    // FVector	OldPosition;
+    /** Value that remains constant over the lifetime of a particle. */
+    // float ParticleId;
     /** The color of the particle. */
-    FLinearColor Color;
+    // FLinearColor Color;
 };
 
 // Per-particle data sent to the GPU.
@@ -51,7 +53,11 @@ struct FMeshParticleInstanceVertex
     float RelativeTime;
 };
 
-
+struct FMeshParticleInstanceVertexDynamicParameter
+{
+    /** The dynamic parameter of the particle. */
+    float DynamicValue[4];
+};
 
 enum EDynamicEmitterType
 {
@@ -64,22 +70,42 @@ enum EDynamicEmitterType
     DET_Custom
 };
 
-
-
 /*-----------------------------------------------------------------------------
     FBaseParticle
 -----------------------------------------------------------------------------*/
 struct FBaseParticle
 {
-    FVector    Location;
-    FVector    Velocity;
-    float      RelativeTime;
-    float      Lifetime;
-    FVector    BaseVelocity;
-    float      Rotation;
-    float      RotationRate;
-    FVector    Size;
-    FColor     Color;
+    // 48 bytes
+    // FVector		    OldLocation;			// Last frame's location, used for collision
+    FVector		    Location;				// Current location
+
+    // 16 bytes
+    // FVector		    BaseVelocity;			// Velocity = BaseVelocity at the start of each frame.
+    float			Rotation;				// Rotation of particle (in Radians)
+
+    // 16 bytes
+    // FVector		    Velocity;				// Current velocity, gets reset to BaseVelocity each frame to allow 
+    // float			BaseRotationRate;		// Initial angular velocity of particle (in Radians per second)
+
+    // 16 bytes
+    FVector		    BaseSize;				// Size = BaseSize at the start of each frame
+    // float			RotationRate;			// Current rotation rate, gets reset to BaseRotationRate each frame
+
+    // 16 bytes
+    FVector		    Size;					// Current size, gets reset to BaseSize each frame
+    // int32			Flags;					// Flags indicating various particle states
+
+    // 16 bytes
+    // FLinearColor	Color;					// Current color of particle.
+
+    // 16 bytes
+    // FLinearColor	BaseColor;				// Base color of the particle
+
+    // 16 bytes
+    // float			RelativeTime;			// Relative time, range is 0 (==spawn) to 1 (==death)
+    // float			OneOverMaxLifetime;		// Reciprocal of lifetime
+    // float			Placeholder0;
+    // float			Placeholder1;
 };
 
 /*-----------------------------------------------------------------------------
@@ -132,7 +158,18 @@ struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBas
 {
     UMaterial* MaterialInterface;
     struct FParticleRequiredModule* RequiredModule;
-    
+    int32							SubUVDataOffset;
+    int32							OrbitModuleOffset;
+    int32							DynamicParameterDataOffset;
+    int32							CameraPayloadOffset;
+};
+
+struct FFullSubUVPayload
+{
+    // The integer portion indicates the sub-image index.
+    // The fractional portion indicates the lerp factor.
+    float ImageIndex;
+    float RandomImageTime;
 };
 
 /** Source data for Sprite emitters */
@@ -150,6 +187,10 @@ struct FDynamicEmitterDataBase
     int32 EmitterIndex;
     
     virtual const FDynamicEmitterReplayDataBase& GetSource() const = 0;
+
+    // Particle을 생성하지 않는 Emitter가 있을 수 있다면 가상함수 말고 아무행동 안하는 함수로 변경
+    virtual void GetDynamicMeshElementsEmitter() const {};
+
 };
 
 struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
@@ -162,9 +203,25 @@ struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
         return Source;
     }
     
+    /**
+ *	Sort the given sprite particles
+ *
+ *	@param	SorceMode			The sort mode to utilize (EParticleSortMode)
+ *	@param	bLocalSpace			true if the emitter is using local space
+ *	@param	ParticleCount		The number of particles
+ *	@param	ParticleData		The actual particle data
+ *	@param	ParticleStride		The stride between entries in the ParticleData array
+ *	@param	ParticleIndices		Indirect index list into ParticleData
+ *	@param	View				The scene view being rendered
+ *	@param	LocalToWorld		The local to world transform of the component rendering the emitter
+ *	@param	ParticleOrder		The array to fill in with ordered indices
+ */
     void SortSpriteParticles();
+    // (int32 SortMode, bool bLocalSpace, 
+    //     int32 ParticleCount, const uint8* ParticleData, int32 ParticleStride, const uint16* ParticleIndices,
+    //     const FSceneView* View, const FMatrix& LocalToWorld, FParticleOrder* ParticleOrder) const;
     virtual int32 GetDynamicVertexStride() const = 0;
-    
+    // virtual int32 GetDynamicParameterVertexStride() const = 0;
 };
 
 struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
@@ -185,11 +242,31 @@ struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 
 struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
 {
-    virtual int32 GetDynamicVertexStride() const override
-    {
-        return sizeof(FMeshParticleInstanceVertex);
-    }
+    // virtual const FDynamicEmitterReplayDataBase& GetSource() const override
+    // {
+    //     return Source;
+    // }
+    
+    // virtual int32 GetDynamicVertexStride() const override
+    // {
+    //     return sizeof(FMeshParticleInstanceVertex);
+    // }
+    
+    // virtual int32 GetDynamicParameterVertexStride() const override 
+    // {
+    //     return sizeof(FMeshParticleInstanceVertexDynamicParameter);
+    // }
+
+    // virtual void GetDynamicMeshElementsEmitter() const override;
+
 };
+
+FORCEINLINE FVector2D GetParticleSizeWithUVFlipInSign(const FBaseParticle& Particle, const FVector2D& ScaledSize)
+{
+    return FVector2D(
+        Particle.BaseSize.X >= 0.0f ? ScaledSize.X : -ScaledSize.X,
+        Particle.BaseSize.Y >= 0.0f ? ScaledSize.Y : -ScaledSize.Y);
+}
 
 #define DECLARE_PARTICLE(Name,Address)		\
 	FBaseParticle& Name = *((FBaseParticle*) (Address));

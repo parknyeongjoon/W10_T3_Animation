@@ -15,6 +15,15 @@ UParticleSystemComponent::UParticleSystemComponent()
 
 }
 
+UParticleSystemComponent::~UParticleSystemComponent()
+{
+    for (FParticleEmitterInstance* EmitterInstance : EmitterInstances)
+    {
+        delete EmitterInstance;
+    }
+    EmitterInstances.Empty();
+}
+
 void UParticleSystemComponent::TickComponent(float DeltaTime)
 {
     UPrimitiveComponent::TickComponent(DeltaTime);
@@ -644,11 +653,36 @@ void UParticleSystemComponent::RewindEmitterInstances()
 }
 #pragma endregion 
 
+
+
 void UParticleSystemComponent::InitializeComponent()
 {
     UPrimitiveComponent::InitializeComponent();
 
     CreateQuadTextureVertexBuffer();
+
+    FDynamicSpriteEmitterData* DummyEmitter = new FDynamicSpriteEmitterData();
+
+    // 위치, 시간, 크기, 색상 등 더미 파티클 생성
+    TArray<FParticleSpriteVertex> DummyVertices;
+
+    FParticleSpriteVertex DummyParticle;
+    DummyParticle.Position = FVector(0.0f, 0.0f, 0.0f);        // Emitter 기준 좌표
+    DummyParticle.Size = FVector2D(10.0f, 10.0f);                // 화면에서 보일만한 크기
+    DummyParticle.Rotation = 0.0f;
+    DummyParticle.SubImageIndex = 0.0f;
+
+    // 파티클 배열에 추가
+    DummyVertices.Add(DummyParticle);
+
+    // 파티클 버퍼 채우기
+    DummyEmitter->VertexData = reinterpret_cast<uint8*>(FMemory::Malloc(sizeof(FParticleSpriteVertex) * DummyVertices.Num()));
+    FMemory::Memcpy(DummyEmitter->VertexData, DummyVertices.GetData(), sizeof(FParticleSpriteVertex) * DummyVertices.Num());
+    DummyEmitter->VertexCount = DummyVertices.Num();
+
+    // DummyEmitter->MaterialInterface = UMaterial::GetDefaultMaterial(MD_Surface); // 기본 머티리얼
+    
+    EmitterRenderData.Add(DummyEmitter);
 }
 
 void UParticleSystemComponent::CreateQuadTextureVertexBuffer()
@@ -672,4 +706,3 @@ void UParticleSystemComponent::CreateQuadTextureVertexBuffer()
 
     VBIBTopologyMappingName = TEXT("Quad");
 }
-

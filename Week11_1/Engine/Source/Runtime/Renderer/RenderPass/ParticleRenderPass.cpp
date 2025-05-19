@@ -41,11 +41,23 @@ FParticleRenderPass::FParticleRenderPass(const FName& InShaderName) : FBaseRende
 
     D3D11_BUFFER_DESC constdesc = {};
     constdesc.ByteWidth = sizeof(FLightingConstants);
-  
     constdesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     constdesc.Usage = D3D11_USAGE_DYNAMIC;
     constdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     Graphics.Device->CreateBuffer(&constdesc, nullptr, &LightConstantBuffer);
+
+    D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    //TODO: SpriteParticle에 맞는걸로 넣어주기 지금은 하드코딩
+    bufferDesc.ByteWidth = static_cast<UINT>(sizeof(FParticleSpriteVertex) * 512);
+    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.MiscFlags = 0;
+    bufferDesc.StructureByteStride = sizeof(FParticleSpriteVertex);
+
+    Graphics.Device->CreateBuffer(&bufferDesc, nullptr, &SpriteParticleInstanceBuffer);
+    
+    
 }
 
 void FParticleRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
@@ -67,6 +79,15 @@ void FParticleRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
             LightComponents.Add(LightComponent);
         }
     }
+}
+
+FVector2D GetParticleSize(const FBaseParticle& Particle, const FDynamicSpriteEmitterReplayDataBase& Source)
+{
+    FVector2D Size;
+    Size.X = FMath::Abs(Particle.Size.X * Source.Scale.X);
+    Size.Y = FMath::Abs(Particle.Size.Y * Source.Scale.Y);
+    
+    return Size;
 }
 
 void FParticleRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewportClient)
@@ -116,40 +137,128 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
         View = curEditorViewportClient->GetViewMatrix();
         Proj = curEditorViewportClient->GetProjectionMatrix();
     }
-
-    // 일단 지금은 staticMesh돌면서 업데이트 해줄 필요가 없어서 여기 넣는데, Prepare에 넣을지 아니면 여기 그대로 둘지는 좀 더 생각해봐야함.
-    // 매프레임 한번씩만 해줘도 충분하고 라이트 갯수가 변경될때만 해줘도 충분할듯하다
-    // 지금 딸깍이에서 structuredBuffer도 처리해줘서 그 타이밍보고 나중에 다시 PSSetShaderResources를 해줘야함
-   // UpdateComputeResource();
     
     UpdateCameraConstant(InViewportClient);
+    UpdateLightConstants();
+    UpdateFlagConstant();
+
+    // FVector CameraPosition = curEditorViewportClient->ViewTransformPerspective.GetLocation();
     
     for (UParticleSystemComponent* ParticleSystemComponent : ParticleSystemComponents)
     {
-        //위치값만 보내주고 셰이더에서 쿼드 그리기
-        const FMatrix Model = ParticleSystemComponent->GetWorldMatrix();
+        //ParticleComponent가 움직이면 Particle도 같이 움직여야하기 때문에 Model값 가져가야함
         UpdateMatrixConstants(ParticleSystemComponent, View, Proj);
-        // uint32 isSelected = 0;
-        // if (GetWorld()->GetSelectedActors().Contains(staticMeshComp->GetOwner()))
-        // {
-        //     isSelected = 1;
-        // }
-        // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(StaticMeshComp));
-        // UpdateContstantBufferActor(UUIDColor , isSelected);
-
-        UpdateLightConstants();
-
-        UpdateFlagConstant();
-
-        //
+        
         for (FDynamicEmitterDataBase* ParticleRenderData : ParticleSystemComponent->EmitterRenderData)
-        {
-            //ParticleRenderData가 각 이미터라서 여기서 해야함
-            
-            // VIBuffer Bind -> 쿼드나 메쉬나 그런거 잡아줌
-            const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(ParticleSystemComponent->GetVBIBTopologyMappingName());
-            VBIBTopMappingInfo->Bind();
+        {   //EmitterRenderData에는 현존하는 파티클들이 담겨있음.
+            switch (ParticleRenderData->GetSource().eEmitterType)
+            {
+                case DET_Unknown:
+                    {
+                        break;
+                    }
+                case DET_Sprite:
+                    { //일단 Sprite만 처리해
+                        //Quad VIBuffer Bind
+                        const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping("Quad");
+                        VBIBTopMappingInfo->Bind();
 
+                        //TODO: 이거 제대로 캐스팅 되는지 확인해봐야함
+                        const FDynamicSpriteEmitterReplayDataBase& Source = static_cast<const FDynamicSpriteEmitterReplayDataBase&>(ParticleRenderData->GetSource());
+
+                        int32 VertexStride = sizeof(FParticleSpriteVertex);
+                        int32 ParticleCount = Source.ActiveParticleCount;
+                        // int32 VertexDynamicParameterStride = sizeof(FParticleVertexDynamicParameter);
+                        TArray<FParticleSpriteVertex> InstanceVertices;
+                        
+                        float SubImageIndex = 0.0f;
+                        
+                        const uint8* ParticleData = Source.DataContainer.ParticleData;
+                        const uint16* ParticleIndices = Source.DataContainer.ParticleIndices;
+                        // const FParticleOrder* OrderedIndices = ParticleOrder;
+
+                        for (int i=0;i<ParticleCount;i++)
+                        {
+                            //TODO: Sort해서  아래로 변경
+                    		// ParticleIndex = OrderedIndices ? OrderedIndices[i].ParticleIndex : i;
+                            int32 ParticleIndex = i;
+                            DECLARE_PARTICLE_CONST(Particle, ParticleData + Source.ParticleStride * ParticleIndices[ParticleIndex]);
+
+                            const FVector2D Size = GetParticleSize(Particle, Source);
+                            FVector ParticlePosition = Particle.Location;
+
+                            // if (Source.CameraPayloadOffset != 0)
+                            // {
+                            //     FVector CameraOffset = GetCameraOffsetFromPayload(Source.CameraPayloadOffset, Particle, ParticlePosition, CameraPosition);
+                            //     ParticlePosition += CameraOffset;
+                            // }
+
+                            if (Source.SubUVDataOffset > 0)
+                            {
+                                FFullSubUVPayload* SubUVPayload = (FFullSubUVPayload*)(((uint8*)&Particle) + Source.SubUVDataOffset);
+                                SubImageIndex = SubUVPayload->ImageIndex;
+                            }
+
+                            // if (Source.DynamicParameterDataOffset > 0)
+                            // {
+                            //     GetDynamicValueFromPayload(Source.DynamicParameterDataOffset, Particle, DynamicParameterValue);
+                            // }
+                            
+                            FParticleSpriteVertex FillVertex;
+                            FillVertex.Position = ParticlePosition;
+                            FillVertex.Size = FVector2D(GetParticleSizeWithUVFlipInSign(Particle, Size));
+                            FillVertex.Rotation = Particle.Rotation;
+                            FillVertex.SubImageIndex = SubImageIndex;
+                            // if (bUsesDynamicParameter)
+                            // {
+                            //     DynFillVertex = (FParticleVertexDynamicParameter*)TempDynamicParameterVert;
+                            //     DynFillVertex->DynamicValue[0] = DynamicParameterValue.X;
+                            //     DynFillVertex->DynamicValue[1] = DynamicParameterValue.Y;
+                            //     DynFillVertex->DynamicValue[2] = DynamicParameterValue.Z;
+                            //     DynFillVertex->DynamicValue[3] = DynamicParameterValue.W;
+                            //     TempDynamicParameterVert += VertexDynamicParameterStride;
+                            // }
+
+                            InstanceVertices.Add(FillVertex);
+                        }
+
+                        ID3D11InputLayout* ParticleInputLayout = Renderer.GetResourceManager()->GetInputLayout(TEXT("SpriteParticle"));
+                        //Quad인 경우 Quad값 IASetVertexBuffer(0)에다 박고 1은 렌더데이터 돌면서 애들 다른애들마다 박아줘야함
+                        UpdateInstanceBuffer<FParticleSpriteVertex>(Graphics.DeviceContext, SpriteParticleInstanceBuffer, ParticleInputLayout, InstanceVertices, VertexStride);
+                        break;
+                    }
+                case DET_Mesh:
+                    {
+                        // SubSet마다 Material Update 및 Draw
+                        // If There's No Material Subset
+                        // if (ParticleRenderData->MaterialSubsets.Num() == 0)
+                        // {
+                        //     Graphics.DeviceContext->DrawIndexed(VBIBTopMappingInfo->GetNumIndices(), 0,0);
+                        // }
+                        // for (int subMeshIndex = 0; subMeshIndex < renderData->MaterialSubsets.Num(); ++subMeshIndex)
+                        // {
+                        //     const int materialIndex = renderData->MaterialSubsets[subMeshIndex].MaterialIndex;
+                        //     
+                        //     UpdateMaterialConstants(ParticleSystemComponent->GetMaterial(materialIndex)->GetMaterialInfo());
+                        //
+                        //     // index draw
+                        //     const uint64 startIndex = renderData->MaterialSubsets[subMeshIndex].IndexStart;
+                        //     const uint64 indexCount = renderData->MaterialSubsets[subMeshIndex].IndexCount;
+                        // }
+                        break;
+                    }
+                case DET_Beam2:
+                    {
+                        break;
+                    }
+                case DET_Ribbon:
+                    {
+                        break;
+                    }
+            default:
+                break;
+            }
+            
             //일단 쿼드기준으로 그리기
             Graphics.DeviceContext->DrawIndexedInstanced(
                 6,               // indexCount (쿼드 하나 = 2 tri = 6 index)
@@ -158,28 +267,9 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                 0,               // baseVertexLocation
                 0                // startInstanceLocation
             );
-            
-            
-            // 아래는 Mesh들어가면 고
-            // SubSet마다 Material Update 및 Draw
-            // If There's No Material Subset
-            // if (ParticleRenderData->MaterialSubsets.Num() == 0)
-            // {
-            //     Graphics.DeviceContext->DrawIndexed(VBIBTopMappingInfo->GetNumIndices(), 0,0);
-            // }
-            // for (int subMeshIndex = 0; subMeshIndex < renderData->MaterialSubsets.Num(); ++subMeshIndex)
-            // {
-            //     const int materialIndex = renderData->MaterialSubsets[subMeshIndex].MaterialIndex;
-            //     
-            //     UpdateMaterialConstants(ParticleSystemComponent->GetMaterial(materialIndex)->GetMaterialInfo());
-            //
-            //     // index draw
-            //     const uint64 startIndex = renderData->MaterialSubsets[subMeshIndex].IndexStart;
-            //     const uint64 indexCount = renderData->MaterialSubsets[subMeshIndex].IndexCount;
-            //     Graphics.DeviceContext->DrawIndexed(indexCount, startIndex, 0);
-            // }
         }
-        
+
+        //여기서 DrawInstanced ㄱㄱ
     }
 
     ID3D11ShaderResourceView* nullSRVs[8] = { nullptr };
@@ -235,19 +325,12 @@ void FParticleRenderPass::UpdateMatrixConstants(UParticleSystemComponent* InPart
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     // MVP Update
     const FMatrix Model = InParticleSystemComponent->GetWorldMatrix();
-    const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
-    FMatrixConstants MatrixConstants;
+    // const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
+    FMatrixSeparatedMVPConstants MatrixConstants;
     MatrixConstants.Model = Model;
-    MatrixConstants.ViewProj = InView * InProjection;
-    MatrixConstants.MInverseTranspose = NormalMatrix;
-    if (InParticleSystemComponent->GetWorld()->GetSelectedActors().Contains(InParticleSystemComponent->GetOwner()))
-    {
-        MatrixConstants.isSelected = true;
-    }
-    else
-    {
-        MatrixConstants.isSelected = false;
-    }
+    MatrixConstants.View = InView;
+    MatrixConstants.Proj = InProjection;
+
     renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixConstants"), &MatrixConstants);
 }
 
