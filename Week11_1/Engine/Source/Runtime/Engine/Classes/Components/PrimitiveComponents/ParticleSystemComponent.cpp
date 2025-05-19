@@ -8,6 +8,7 @@
 #include "Renderer/Renderer.h"
 #include "UObject/Casts.h"
 #include "Particles/Modules/ParticleModule.h"
+#include <Particles/Modules/ParticleModuleSpawn.h>
 
 bool GIsAllowingParticles = true;
 
@@ -668,7 +669,7 @@ void UParticleSystemComponent::InitParticles()
 
         bool bClearDynamicData = false;
 
-        SpawnAllEmitters();
+        //SpawnAllEmitters();
         //for (int32 Idx = 0; Idx < NumEmitters; Idx++)
         ///{
             // UParticleEmitter* Emitter = Template->Emitters[Idx];
@@ -1024,9 +1025,29 @@ void UParticleSystemComponent::UpdateAllEmitters(float DeltaTime)
     {
         if (!Instance || !Instance->CurrentLODLevel) {
             UE_LOG(LogLevel::Warning, "There is no ParticleEmitter Instance or LOD Level");
+            continue;
         }
 
-        // 파티클 라이프타임 체크 루프
+        // 생성할 파티클 수 개수 계산
+        int32 SpawnCount = 0;
+        for (UParticleModule* Module : Instance->CurrentLODLevel->SpawnModules) {
+            if (auto SpawnModule = dynamic_cast<UParticleModuleSpawn*>(Module)) {
+                SpawnCount = SpawnModule->ComputeSpawnCount(DeltaTime);
+                break;
+            }
+        }
+        
+        if (SpawnCount > 0)
+        {
+            // 실제 파티클 생성
+            // TODO : 위치 모듈과 연동
+            FVector InitLocation = FVector::ZeroVector;
+            // TODO : 속도 모듈과 연동
+            FVector InitVelocity = FVector::ZeroVector;
+            Instance->SpawnParticles(SpawnCount, /*StartTime*/ 0.0f, /*Increment*/0.0f, InitLocation, InitVelocity);
+        }
+
+        // 기존 파티클 라이프타임 체크 루프
         for (int32 i = 0; i < Instance->ActiveParticles;) {
             FBaseParticle* Particle = Instance->GetParticle(i);
 
@@ -1042,6 +1063,7 @@ void UParticleSystemComponent::UpdateAllEmitters(float DeltaTime)
             }
         }
 
+        // Update 모듈 적용
         for (UParticleModule* Module : Instance->CurrentLODLevel->UpdateModules) {
             Module->Update(Instance, /*offset*/ 0, DeltaTime);
         }

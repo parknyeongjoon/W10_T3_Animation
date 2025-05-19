@@ -6,6 +6,7 @@
 #include <Math/Rotator.h>
 #include "Engine/Particles/ParticleHelper.h"
 #include <Engine/Texture.h>
+#include "Classes/Particles/ParticleLODLevel.h"
 
 void FParticleEmitterInstance::Init(int32 InMaxParticles)
 {
@@ -53,6 +54,31 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
         DECLARE_PARTICLE_PTR(Particle, Address);
 
         // == 기본 값 초기화 ==
+        Particle->Location = InitialLocation;
+        Particle->Velocity = InitialVelocity;
+        Particle->BaseVelocity = InitialVelocity;
+
+        Particle->RelativeTime = 0.0f;
+        Particle->Lifetime = 1.0f;
+
+        Particle->Rotation = 0.0f;
+        Particle->RotationRate = 0.0f;
+
+        Particle->Size = FVector(1.0f);
+        Particle->Color = FColor::White;
+
+        for (UParticleModule* Module : CurrentLODLevel->SpawnModules)
+        {
+            if (Module)
+            {
+                float SpawnTime = StartTime + i * Increment;
+                Module->Spawn(this, /*Offset*/ 0, SpawnTime, /*Interp*/ 1.0f);
+            }
+        }
+
+        ParticleIndices[ActiveParticles] = ActiveParticles;
+        ActiveParticles++;
+        ParticleCounter++;
 
     }
 }
