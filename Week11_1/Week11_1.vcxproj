@@ -200,6 +200,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Container\EnumAsByte.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\RandomStream.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimationRuntime.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNodeBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify\AnimNotify.cpp" />
@@ -244,6 +245,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Contents\UI\GameUIPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\Script\LuaManagerBind.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Distributions\Distributions.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\FBXLoader.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Character.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Controller.cpp" />
@@ -453,6 +455,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Core\Container\Queue.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Container\StringConv.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\IsPODType.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\RandomStream.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Misc\CoreMiscDefines.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\FFunctor.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Template\SubClassOf.h" />
@@ -508,6 +511,9 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.impl.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\Distribution.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\DistributionFloat.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\DistributionVector.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\FBXLoader.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Character.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Controller.h" />
