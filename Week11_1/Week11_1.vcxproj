@@ -264,6 +264,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowResource.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstances.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleHelper.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Skeletal\SkeletalDefine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\PlayerCameraManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\AssetManager.cpp" />
