@@ -2,7 +2,7 @@
 #include "Container/Map.h"
 #include "Container/String.h"
 #include "Engine/World.h"
-#include "Engine/Paritcles/ParticleEmitterInstances.h"
+#include "Engine/Particles/ParticleEmitterInstances.h"
 #include "Engine/Classes/Particles/ParticleSystemWorldManager.h"
 #include "Engine/Classes/Particles/ParticleSystem.h"
 #include "Particles/ParticleLODLevel.h"

@@ -12,8 +12,7 @@ class UParticleLODLevel : public UObject
 {
     DECLARE_CLASS(UParticleLODLevel, UObject)
 public:
-
-    UParticleLODLevel();
+    UParticleLODLevel() {}
 
     UParticleModuleRequired* RequiredModule = nullptr;
 

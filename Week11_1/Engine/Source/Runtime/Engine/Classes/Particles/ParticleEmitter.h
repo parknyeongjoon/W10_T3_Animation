@@ -1,6 +1,6 @@
 #pragma once
 #include "CoreUObject/UObject/Object.h"
-#include "Runtime/Engine/Paritcles/ParticleHelper.h"
+#include "Runtime/Engine/Particles/ParticleHelper.h"
 #include "CoreUObject/UObject/ObjectMacros.h"
 #include <Math/Color.h>
 #include "Engine/Classes/Particles/ParticleLODLevel.h"

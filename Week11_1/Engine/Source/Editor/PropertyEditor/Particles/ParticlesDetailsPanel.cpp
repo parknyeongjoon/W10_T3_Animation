@@ -1,7 +1,7 @@
 #include "ParticlesDetailsPanel.h"
 #include "UnrealEd/ParticlePreviewUI.h"
 #include "Classes/Particles/ParticleEmitter.h"
-#include "Classes/Particles/ParticleModule.h"
+#include "Classes/Particles/Modules/ParticleModule.h"
 
 void ParticlesDetailsPanel::Initialize(SLevelEditor* LevelEditor, float InWidth, float InHeight)
 {

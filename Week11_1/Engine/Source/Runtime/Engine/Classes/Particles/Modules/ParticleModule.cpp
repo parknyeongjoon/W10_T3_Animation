@@ -1,6 +1,6 @@
 #include "ParticleModule.h"
 #include "Core/HAL/PlatformType.h"
-#include "Particles/ParticleEmitterInstance.h"
+#include "Particles/ParticleEmitterInstances.h"
 
 bool UParticleModule::IsSpawnModule()
 {

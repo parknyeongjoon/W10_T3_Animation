@@ -3,13 +3,13 @@
 #include "UnrealEd/ParticlePreviewUI.h"
 
 #include "Classes/Particles/ParticleEmitter.h"
-#include "Classes/Particles/ParticleModuleColor.h"
-#include "Classes/Particles/ParticleModuleLifetime.h"
-#include "Classes/Particles/ParticleModuleLocation.h"
-#include "Classes/Particles/ParticleModuleRequired.h"
-#include "Classes/Particles/ParticleModuleSize.h"
-#include "Classes/Particles/ParticleModuleSpawn.h"
-#include "Classes/Particles/ParticleModuleVelocity.h"
+#include "Classes/Particles/Modules/ParticleModuleColor.h"
+#include "Classes/Particles/Modules/ParticleModuleLifetime.h"
+#include "Classes/Particles/Modules/ParticleModuleLocation.h"
+#include "Classes/Particles/Modules/ParticleModuleRequired.h"
+#include "Classes/Particles/Modules/ParticleModuleSize.h"
+#include "Classes/Particles/Modules/ParticleModuleSpawn.h"
+#include "Classes/Particles/Modules/ParticleModuleVelocity.h"
 #include "Classes/Particles/ParticleLODLevel.h"
 
 void ParticlesEmitterPanel::Initialize(SLevelEditor* LevelEditor, float InWidth, float InHeight)

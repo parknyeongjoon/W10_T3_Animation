@@ -231,7 +231,6 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\Skeleton.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Mesh\SkeletalMesh.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ParticleSystemComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\MeshComponents\SkeletalMeshComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\ParticleSystemComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.cpp" />

@@ -1,5 +1,5 @@
 #include "ParticleModuleSpawn.h"
-#include "Runtime/Engine/Particles/ParticleEmitterInstance.h"
+#include "Runtime/Engine/Particles/ParticleEmitterInstances.h"
 
 void UParticleModuleSpawn::InitializeDefaults()
 {
