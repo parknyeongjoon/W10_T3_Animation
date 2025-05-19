@@ -3,15 +3,15 @@
 
 void UParticleModuleSpawn::InitializeDefaults()
 {
-    if (Rate.Constant <= 0.0f)
-    {
-        Rate.Constant = 20.0f;
-    }
+    UDistributionFloatUniform* DefaultDistribution = FObjectFactory::ConstructObject<UDistributionFloatUniform>(nullptr);
+    DefaultDistribution->MinValue = 0.0f;
+    DefaultDistribution->MaxValue = 20.0f;
+    Rate.Distribution = DefaultDistribution;
 
-    if ( RateScale.Constant <= 0.0f)
-    {
-        RateScale.Constant = 1.0f;
-    }
+    UDistributionFloatUniform* DefaultDistributionScale = FObjectFactory::ConstructObject<UDistributionFloatUniform>(nullptr);
+    DefaultDistributionScale->MinValue = 0.0f;
+    DefaultDistributionScale->MaxValue = 1.0f;
+    RateScale.Distribution = DefaultDistributionScale;
 }
 
 int32 UParticleModuleSpawn::ComputeSpawnCount(float DeltaTime) const
