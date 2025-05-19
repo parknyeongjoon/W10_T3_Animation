@@ -7,6 +7,8 @@
 
 class UParticleSystemComponent;
 
+class UParticleEmitter;
+
 class UParticleSystem : public UObject
 {
     DECLARE_CLASS(UParticleSystem, UObject)
@@ -140,5 +142,13 @@ private:
 
     /** 어떤 이미터가 좀비 상태(무한 루프하면서도 일정 시점 이후 스폰을 멈추는 경우)가 되는지 여부 */
     bool bWillBecomeZombie;
+
+public:
+    void InitializeSystem();
+
+    void AddEmitter(UParticleEmitter* Emitter);
+    
+    // 디버깅용 이름 반환
+    FString GetDebugName() const;
 
 };

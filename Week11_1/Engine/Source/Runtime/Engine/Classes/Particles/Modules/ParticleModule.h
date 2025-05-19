@@ -1,13 +1,40 @@
 #pragma once
+#pragma once
 #include "CoreUObject/UObject/Object.h"
 #include "CoreUObject/UObject/ObjectMacros.h"
 
+struct FParticleEmitterInstance;
+class UParticleModuleTypeDataBase;
+
+enum class EModuleType {
+    Spawn,
+    Update,
+    Both,
+    None
+};
+
 class UParticleModule : public UObject
 {
-    DECLARE_ABSTRACT_CLASS(UParticleModule, UObject)
+    DECLARE_CLASS(UParticleModule, UObject)
+public:
+    //FBox BoundingBox;
 
 public:
     UParticleModule() {}
+    bool IsSpawnModule();
+
+    bool IsUpdateModule();
+
+    virtual void InitializeDefaults();
+
+    virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime);
+
+    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp);
+
+    // 에디터에서 Property 변경 시 호출
+    virtual void PostEditChangeProperty();
+
+    virtual EModuleType GetType() const;
 };
 
 /*
