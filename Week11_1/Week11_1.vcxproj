@@ -250,6 +250,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Pawn.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerController.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerInput.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemWorldManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowResource.cpp" />
