@@ -187,6 +187,11 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\AnimSequenceEditorPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesCurveEditorPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesDetailsPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesEmitterPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesMenuBar.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\ParticlePreviewUI.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Class.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectGlobals.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectUtils.cpp" />
@@ -226,7 +231,6 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\Skeleton.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Mesh\SkeletalMesh.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ParticleSystemComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\MeshComponents\SkeletalMeshComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\ParticleSystemComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.cpp" />
@@ -442,6 +446,12 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\CustomAnimInstance\TestAnimInstance.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesCurveEditorPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesDetailsPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesEmitterPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesMenuBar.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesViewportPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\ParticlePreviewUI.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Template\IsTSubclassOf.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Template\SubclassOf.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Class.h" />

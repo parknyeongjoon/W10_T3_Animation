@@ -1,8 +1,9 @@
 #pragma once
 #include "CoreUObject/UObject/Object.h"
+#include "Runtime/Engine/Particles/ParticleHelper.h"
+#include "CoreUObject/UObject/ObjectMacros.h"
 #include <Math/Color.h>
 #include "Engine/Classes/Particles/ParticleLODLevel.h"
-#include "UObject/ObjectMacros.h"
 class UParticleLODLevel;
 class UParticleModule;
 class UParticleEmitter : public UObject
@@ -14,7 +15,12 @@ public:
 
     FColor EditorColor;
 
-    TArray<UParticleLODLevel*> LODLevels;
+    UPROPERTY(
+        EditAnywhere,
+        TArray<UParticleLODLevel*>,
+        LODLevels,
+        = TArray<UParticleLODLevel*>();
+    )
 
     // 런타임 생성되는 하나의 FBaseParticle이 차지하는 메모리 크기
     int32 ParticleSize;

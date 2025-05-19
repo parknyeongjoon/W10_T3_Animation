@@ -247,6 +247,14 @@ public:
         ESearchDir::Type SearchDir = ESearchDir::FromStart, int32 StartPosition = -1
     ) const;
 
+    /**
+     * 문자열 시작 부분에서 지정된 접두사를 제거합니다. (인라인 버전)
+     * @param InPrefix 제거할 접두사 문자열.
+     * @param SearchCase 대소문자 구분 설정.
+     * @return 접두사가 성공적으로 제거되었으면 true, 아니면 false를 반환합니다.
+     */
+    bool RemoveFromStart(const FString& InPrefix);
+
     void Reserve(int32 CharacterCount);
     void Resize(int32 CharacterCount);
 

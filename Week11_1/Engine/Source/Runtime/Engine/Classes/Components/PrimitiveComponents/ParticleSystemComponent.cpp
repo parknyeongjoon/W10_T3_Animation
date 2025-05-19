@@ -997,7 +997,7 @@ void UParticleSystemComponent::SpawnAllEmitters()
         if (!Emitter) continue;
 
         // 새 이미터 인스턴스를 생성
-        FParticleEmitterInstance* Instance;
+        FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
         Instance->SpriteTemplate = Emitter;
         Instance->Component = this;
         Instance->CurrentLODLevelIndex = 0;

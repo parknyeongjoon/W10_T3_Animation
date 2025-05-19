@@ -110,7 +110,7 @@ public:
     void ResizeViewport(FRect InRect);
 
     bool IsSelected(FVector2D Point) const;
-
+    
 protected:
     /** Camera speed setting */
     int32 CameraSpeedSetting = 1;

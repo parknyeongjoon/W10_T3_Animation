@@ -100,6 +100,8 @@ void PropertyEditorPanel::Render()
 
     ImVec2 imageSize = ImVec2(256, 256); // 이미지 출력 크기
 
+    DrawParticlesPreviewButton(FString());
+
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)
     {
@@ -1798,7 +1800,7 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
             return;
         }
         
-        UWorld* World = EditorEngine->CreatePreviewWindow();
+        UWorld* World = EditorEngine->CreatePreviewWindow(EditorPreviewSkeletal);
 
         // @todo CreatePreviewWindow()에서 다른 액터들을 소환하는가? 아니라면 불필요해 보이는 검사
         const TArray<AActor*> CopiedActors = World->GetActors();
@@ -1835,6 +1837,20 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
         UAnimSingleNodeInstance* TestAnimInstance = FObjectFactory::ConstructObject<UAnimSingleNodeInstance>(SkeletalMeshComponent);
         TestAnimInstance->GetCurrentSequence()->SetData(FilePath+"\\mixamo.com");
         SkeletalMeshComponent->SetAnimInstance(TestAnimInstance);
+    }
+}
+
+void PropertyEditorPanel::DrawParticlesPreviewButton(const FString& FilePath) const
+{
+    if (ImGui::Button("Preview##Particles"))
+    {
+        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+        if (EditorEngine == nullptr)
+        {
+            return;
+        }
+
+        UWorld* World = EditorEngine->CreatePreviewWindow(EditorPreviewParticle);
     }
 }
 

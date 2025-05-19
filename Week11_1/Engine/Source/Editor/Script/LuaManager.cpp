@@ -209,9 +209,19 @@ void FLuaManager::BindCoreTypes()
     // LuaTypes::FBindLua<USceneComponent>::Bind(Ns);
     // LuaTypes::FBindLua<UStaticMeshComponent>::Bind(Ns);
 
-    for (const auto& [name, meta]: UClassRegistry::Get().Registry)
+    for (const auto& [name, meta]: UClass::GetClassMap())
     {
-        meta->BindPropertiesToLua(LuaState);
+        if (meta->IsChildOf<AActor>())
+        {
+            meta->BindPropertiesToLua(LuaState);
+        }
+    }
+    for (const auto& [name, meta]: UClass::GetClassMap())
+    {
+        if (meta->IsChildOf<UActorComponent>())
+        {
+            meta->BindPropertiesToLua(LuaState);
+        }
     }
     // UFUNCTION으로 안되는 케이스들 별도로 등록.
     sol::usertype<UActorComponent> ActorComponentTypeTable = UActorComponent::GetLuaUserType(LuaState);

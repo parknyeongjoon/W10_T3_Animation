@@ -1,5 +1,5 @@
 #include "ParticleModuleLifetime.h"
-#include "Runtime/Engine/Particles/ParticleEmitterInstance.h"
+#include "Runtime/Engine/Particles/ParticleEmitterInstances.h"
 
 void UParticleModuleLifeTime::InitializeDefaults()
 {

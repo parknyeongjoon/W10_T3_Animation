@@ -1,9 +1,6 @@
 #include "ParticleLODLevel.h"
 #include "Particles/Modules/ParticleModule.h"
 
-UParticleLODLevel::UParticleLODLevel()
-{
-}
 
 void UParticleLODLevel::AnalyzeModules()
 {

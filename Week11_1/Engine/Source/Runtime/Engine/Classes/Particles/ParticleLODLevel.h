@@ -1,7 +1,7 @@
 #pragma once
 #include "Container/Array.h"
 #include "CoreUObject/UObject/Object.h"
-#include "UObject/ObjectMacros.h"
+#include "CoreUObject/UObject/ObjectMacros.h"
 #include "Core/HAL/PlatformType.h"
 
 class UParticleModule;
@@ -12,8 +12,7 @@ class UParticleLODLevel : public UObject
 {
     DECLARE_CLASS(UParticleLODLevel, UObject)
 public:
-
-    UParticleLODLevel();
+    UParticleLODLevel() {}
 
     UParticleModuleRequired* RequiredModule = nullptr;
 
