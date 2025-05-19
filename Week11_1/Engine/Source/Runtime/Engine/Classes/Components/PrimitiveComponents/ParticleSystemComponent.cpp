@@ -149,7 +149,7 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
     TotalActiveParticles = 0;
 
     // 동기 업데이트
-    ComputeTickComponent_Concurrent();
+    ComputeTickComponent_Concurrent(DeltaTime);
     FinalizeTickComponent();
 }
 
@@ -238,16 +238,13 @@ void UParticleSystemComponent::OnUnregister()
     Super::OnUnregister();
 }
 
-void UParticleSystemComponent::ComputeTickComponent_Concurrent()
+void UParticleSystemComponent::ComputeTickComponent_Concurrent(float DeltaTime)
 {
     // 전체 활성 파티클 수 누적 변수
     TotalActiveParticles = 0;
 
     // 각 이터미터 인스턴스마다 시뮬레이션 실행
-    for (auto& Emitter : EmitterInstances)
-    {
-
-    }
+    UpdateAllEmitters(DeltaTime);
 }
 
 void UParticleSystemComponent::FinalizeTickComponent()
@@ -431,6 +428,8 @@ void UParticleSystemComponent::Activate(bool bReset)
         {
             ActivateSystem(bReset);
         }
+
+
     }
 }
 
@@ -669,6 +668,7 @@ void UParticleSystemComponent::InitParticles()
 
         bool bClearDynamicData = false;
 
+        SpawnAllEmitters();
         //for (int32 Idx = 0; Idx < NumEmitters; Idx++)
         ///{
             // UParticleEmitter* Emitter = Template->Emitters[Idx];

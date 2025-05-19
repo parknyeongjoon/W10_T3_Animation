@@ -541,7 +541,7 @@ private:
     virtual void OnRegister() override;
     virtual void OnUnregister() override;
 
-    void ComputeTickComponent_Concurrent();
+    void ComputeTickComponent_Concurrent(float DeltaTime);
     void FinalizeTickComponent();
 
 protected:
