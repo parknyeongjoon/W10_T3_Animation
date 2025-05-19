@@ -3,7 +3,9 @@
 #include "Math/Color.h"
 #include "Math/Vector4.h"
 
-class UMaterialInterface;
+class UMaterial;
+struct FParticleRequiredModule;
+
 /**
  * Per-particle data sent to the GPU.
  */
@@ -90,6 +92,21 @@ struct FParticleDataContainer
     int32 ParticleIndicesNumShorts;
     uint8* ParticleData; // this is also the memory block we allocated
     uint16* ParticleIndices; // not allocated, this is at the end of the memory block
+
+    FParticleDataContainer()
+    : MemBlockSize(0)
+    , ParticleDataNumBytes(0)
+    , ParticleIndicesNumShorts(0)
+    , ParticleData(nullptr)
+    , ParticleIndices(nullptr)
+    {
+    }
+    ~FParticleDataContainer()
+    {
+        Free();
+    }
+    void Alloc(int32 InParticleDataNumBytes, int32 InParticleIndicesNumShorts);
+    void Free();
 };
 
 /*-----------------------------------------------------------------------------
@@ -113,9 +130,19 @@ struct FDynamicEmitterReplayDataBase
 
 struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBase
 {
-    UMaterialInterface* MaterialInterface;
+    UMaterial* MaterialInterface;
     struct FParticleRequiredModule* RequiredModule;
     
+};
+
+/** Source data for Sprite emitters */
+struct FDynamicSpriteEmitterReplayData
+    : public FDynamicSpriteEmitterReplayDataBase
+{
+    /** Constructor */
+    FDynamicSpriteEmitterReplayData()
+    {
+    }
 };
 
 struct FDynamicEmitterDataBase
@@ -130,6 +157,14 @@ struct FDynamicEmitterDataBase
 struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
 {
 
+    FDynamicSpriteEmitterReplayDataBase Source;
+    
+    /** Returns the source data for this particle system */
+    virtual const FDynamicSpriteEmitterReplayDataBase& GetSource() const override
+    {
+        return Source;
+    }
+    
     void SortSpriteParticles();
     
     
@@ -140,10 +175,18 @@ struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
 
 struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 {
-    /*virtual int32 GetDynamicVertexStride() const override
+    FDynamicSpriteEmitterReplayData Source;
+
+	/** Returns the source data for this particle system */
+	virtual const FDynamicSpriteEmitterReplayData& GetSource() const override
+	{
+		return Source;
+	}
+    
+    virtual int32 GetDynamicVertexStride() const override
     {
         return sizeof(FParticleSpriteVertex);
-    }*/
+    }
 };
 
 struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
@@ -153,8 +196,6 @@ struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
         return sizeof(FMeshParticleInstanceVertex);
     }*/
 };
-
-
 
 #define DECLARE_PARTICLE(Name,Address)		\
 	FBaseParticle& Name = *((FBaseParticle*) (Address));

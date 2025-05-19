@@ -65,10 +65,10 @@ public:
     bool IsActive() const { return bIsActive; }
 
     void Activate() { bIsActive = true; }
-    void Deactivate() { bIsActive = false; }
+    virtual void Deactivate() { bIsActive = false; }
 
-    bool IsComponentTickEnabled() const { return bTickEnabled; }
-    void SetComponentTickEnabled(const bool bEnabled) { bTickEnabled = bEnabled; }
+    virtual bool IsComponentTickEnabled() const { return bTickEnabled; }
+    virtual void SetComponentTickEnabled(const bool bEnabled) { bTickEnabled = bEnabled; }
 
 public:
     /** Tick을 아예 지원하는 컴포넌트인지 확인합니다. */
@@ -100,6 +100,9 @@ protected:
     
     /** Tick을 지원하는 컴포넌트인지 여부 */
     uint8 bCanEverTick : 1 = 0;
+    
+    /** Should this component be ticked in the editor */
+    uint8 bTickInEditor : 1;
 
     /** 컴포넌트가 Actor에 정상적으로 등록되었는지 여부 */
     uint8 bRegistered : 1 = 0;

@@ -116,13 +116,22 @@ void UBillboardComponent::PostDuplicate()
 
 void UBillboardComponent::CreateQuadTextureVertexBuffer()
 {
-    ID3D11Buffer* VB = GEngineLoop.Renderer.GetResourceManager()->CreateImmutableVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
-    GEngineLoop.Renderer.GetResourceManager()->AddOrSetVertexBuffer(TEXT("QuadVB"), VB);
-    GEngineLoop.Renderer.MappingVBTopology(TEXT("Quad"), TEXT("QuadVB"), sizeof(FVertexTexture), 4);
+    FRenderer& Renderer = GEngineLoop.Renderer;
+    FRenderResourceManager* ResourceManager = Renderer.GetResourceManager();
+    
+    if (ResourceManager->GetVertexBuffer(TEXT("QuadVB")) && ResourceManager->GetVertexBuffer(TEXT("QuadIB")))
+    {
+        VBIBTopologyMappingName = TEXT("Quad");
+        return;
+    }
+    
+    ID3D11Buffer* VB = ResourceManager->CreateImmutableVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
+    ResourceManager->AddOrSetVertexBuffer(TEXT("QuadVB"), VB);
+    Renderer.MappingVBTopology(TEXT("Quad"), TEXT("QuadVB"), sizeof(FVertexTexture), 4);
 
-    ID3D11Buffer* IB = GEngineLoop.Renderer.GetResourceManager()->CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices) / sizeof(uint32));
-    GEngineLoop.Renderer.GetResourceManager()->AddOrSetIndexBuffer(TEXT("QuadIB"), IB);
-    GEngineLoop.Renderer.MappingIB(TEXT("Quad"), TEXT("QuadIB"), sizeof(quadTextureInices) / sizeof(uint32));
+    ID3D11Buffer* IB = ResourceManager->CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices) / sizeof(uint32));
+    ResourceManager->AddOrSetIndexBuffer(TEXT("QuadIB"), IB);
+    Renderer.MappingIB(TEXT("Quad"), TEXT("QuadIB"), sizeof(quadTextureInices) / sizeof(uint32));
 
     VBIBTopologyMappingName = TEXT("Quad");
 }

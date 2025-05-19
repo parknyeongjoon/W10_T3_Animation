@@ -6,6 +6,7 @@
 UActorComponent::UActorComponent()
     : ComponentID(FGuid::NewGuid())
 {
+    bTickInEditor = false;
 }
 
 

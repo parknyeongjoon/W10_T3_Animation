@@ -4,9 +4,9 @@
 #include "UObject/ObjectMacros.h"
 #include "Core/HAL/PlatformType.h"
 
-class UParticleModuleRequired;
-class UParticleModuleTypeDataBase;
 class UParticleModule;
+class UParticleModuleRequired;
+struct UParticleModuleTypeDataBase;
 
 class UParticleLODLevel : public UObject
 {
@@ -21,7 +21,6 @@ public:
     UParticleModuleTypeDataBase* TypeDataModule = nullptr;
 
     TArray<UParticleModule*> Modules;
-
     TArray<UParticleModule*> SpawnModules;
     TArray<UParticleModule*> UpdateModules;
 
