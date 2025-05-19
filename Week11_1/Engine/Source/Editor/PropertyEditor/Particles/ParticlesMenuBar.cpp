@@ -68,7 +68,7 @@ void ParticlesMenuBar::Render()
         //static int num = 0;
         //char buf[8];
 
-        const TArray<FParticleEmitterInstance*> ParticleEmitterInstances = ParticlePreviewUI->GetParticleEmitterInstances();
+        const TArray<const UParticleSystem*> ParticleSystems = UI->GetParticleSystems();
 
         if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
         {
@@ -76,21 +76,22 @@ void ParticlesMenuBar::Render()
             {
                 //_itoa_s(num++, buf, 10);
                 //Particles.Add(FString(buf)); // Add new tab
-                ParticlePreviewUI->CreateEmptyParticleEmitterInstance();
+                UI->CreateEmptyParticleSystem();
             }
 
-            for (int n = 0; n < ParticleEmitterInstances.Num(); n++)
+            for (int n = 0; n < ParticleSystems.Num(); n++)
             {
                 bool open = true;
-                FString InstanceName = ParticleEmitterInstances[n]->EmitterName.ToString();
-                if (ImGui::BeginTabItem(*InstanceName, &open, ImGuiTabItemFlags_None))
+                FString SystemName = ParticleSystems[n]->GetName();
+                if (ImGui::BeginTabItem(*SystemName, &open, ImGuiTabItemFlags_None))
                 {
-                    ImGui::Text("This is the %s tab!", *InstanceName);
+                    ImGui::Text("This is the %s tab!", *SystemName);
+                    UI->SetSelectedSystemIndex(n);
                     ImGui::EndTabItem();
                 }
                 if (!open)
                 {
-                    ParticlePreviewUI->RemoveParticleEmitterInstance(n);
+                    UI->RemoveParticleSystemAt(n);
                 }
             }
             ImGui::EndTabBar();

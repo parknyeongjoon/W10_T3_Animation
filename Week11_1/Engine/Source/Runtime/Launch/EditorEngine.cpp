@@ -37,7 +37,7 @@ void UEditorEngine::Init()
     UnrealEditor = new UnrealEd();
     ContentsUI = new FContentsUI();
     SkeletalPreviewUI = new FSkeletalPreviewUI();
-    ParticlePreviewUI = new FParticlePreviewUI();
+    UI = new FParticlePreviewUI();
 
     UWorld* EditorWorld = CreateWorld(EWorldType::Editor, LEVELTICK_ViewportsOnly);
     EditorWorldContext = CreateNewWorldContext(EditorWorld, EWorldType::Editor, LEVELTICK_ViewportsOnly);
@@ -47,7 +47,7 @@ void UEditorEngine::Init()
 
     UnrealEditor->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
     SkeletalPreviewUI->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
-    ParticlePreviewUI->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
+    UI->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
 
     ContentsUI->Initialize();
     CollisionManager.Initialize();  

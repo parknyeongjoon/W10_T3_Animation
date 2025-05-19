@@ -1,6 +1,7 @@
 #include "ParticlesEmitterPanel.h"
 #include "CoreUObject/UObject/Casts.h"
 #include "UnrealEd/ParticlePreviewUI.h"
+
 #include "Classes/Particles/ParticleEmitter.h"
 #include "Classes/Particles/ParticleModuleColor.h"
 #include "Classes/Particles/ParticleModuleLifetime.h"
@@ -39,42 +40,11 @@ void ParticlesEmitterPanel::Render()
 
     // 예시: 여러 Emitter
     // UParticleEmitter로 변경할것
-    TArray<FParticleEmitterInstance*>& Instances = UI->GetParticleEmitterInstances();
-
-    static bool first = true;
-    if (first)
-    {
-        for (int i = 0; i < 5; i++)
-        {
-            Instances.Add(new FParticleEmitterInstance);
-            Instances[i]->SpriteTemplate = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
-            Instances[i]->SpriteTemplate->LODLevels.Add(FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr));
-            Instances[i]->SpriteTemplate->LODLevels[0]->RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(nullptr);
-
-            Instances[i]->SpriteTemplate->LODLevels[0]->Modules.Add(Instances[i]->SpriteTemplate->LODLevels[0]->RequiredModule);
-            Instances[i]->SpriteTemplate->LODLevels[0]->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleColor>(nullptr));
-            Instances[i]->SpriteTemplate->LODLevels[0]->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLifetime>(nullptr));
-            Instances[i]->SpriteTemplate->LODLevels[0]->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLocation>(nullptr));
-            if (i > 1) {
-                Instances[i]->SpriteTemplate->LODLevels[0]->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSize>(nullptr));
-                if (i > 2) {
-                    Instances[i]->SpriteTemplate->LODLevels[0]->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSpawn>(nullptr));
-                    if (i > 3)
-                    {
-                        Instances[i]->SpriteTemplate->LODLevels[0]->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleVelocity>(nullptr));
-                    }
-                }
-
-            }
-        }
-
-
-        first = false;
-    }
+    const TArray<UParticleEmitter*>& Emitters = UI->GetSelectedSystem()->Emitters;
 
     // Module을 정렬
     struct EmitterModulesSorted {
-        UParticleEmitter* Emitter;
+        const UParticleEmitter* Emitter;
         TArray<UParticleModule*> ModulesSorted;
     };
 
@@ -84,10 +54,10 @@ void ParticlesEmitterPanel::Render()
     static const int SpawnIndex = 1;
 
     // COLUMNS
-    for (const FParticleEmitterInstance* Instance : Instances)
+    for (const UParticleEmitter* Emitter : Emitters)
     {
         // 1. Module 정렬
-        TArray<UParticleModule*> Modules = Instance->SpriteTemplate->LODLevels[0]->Modules;
+        TArray<UParticleModule*> Modules = Emitter->LODLevels[UI->GetSelectedLODIndex()]->Modules;
 
         // Required 찾기
         // iterate중에 바꿔도 되나??
@@ -122,11 +92,11 @@ void ParticlesEmitterPanel::Render()
             }
         }
 
-        EmitterModulesSortedArray.Add({ Instance->SpriteTemplate, Modules });
+        EmitterModulesSortedArray.Add({ Emitter, Modules });
     }
 
     // 3. 테이블 시작
-    if (ImGui::BeginTable("EmitterModules", Instances.Num(), ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+    if (ImGui::BeginTable("EmitterModules", EmitterModulesSortedArray.Num(), ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
     {
         int MaxNumModules = 0;
         for (const EmitterModulesSorted& EmitterModules : EmitterModulesSortedArray)
@@ -182,7 +152,7 @@ void ParticlesEmitterPanel::RenderModuleCell(const UParticleModule* Module) cons
     ImGui::SameLine();
     if (ImGui::Button(*FString::Printf("%s##%d", *ModuleName, Module->GetUUID())))
     {
-        UI->SelectModule(Module);
+        UI->SetSelectedModule(Module);
     }
 
     //if (const UParticleModuleColor* ColorModule = Cast<UParticleModuleColor>(Module)) {

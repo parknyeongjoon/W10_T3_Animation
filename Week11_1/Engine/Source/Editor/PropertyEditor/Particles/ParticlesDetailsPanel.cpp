@@ -27,25 +27,14 @@ void ParticlesDetailsPanel::Render()
     /* Panel Size */
     ImGui::SetNextWindowSize(ImVec2(PanelWidth, PanelHeight), ImGuiCond_Always);
 
-    if (!ParticlePreviewUI->GetSelectedParticleInstance() || 
-        !ParticlePreviewUI->GetSelectedParticleInstance()->SpriteTemplate || 
-        ParticlePreviewUI->GetSelectedParticleInstance()->SpriteTemplate->LODLevels.Num() == 0)
-    {
-        return;
-    }
-    UParticleEmitter* SelectedEmitter = ParticlePreviewUI->GetSelectedParticleInstance()->SpriteTemplate;
-    UParticleLODLevel* LODLevel = SelectedEmitter->LODLevels[0];
-    if (LODLevel == nullptr)
-    {
-        return;
-    }
+    TArray<UParticleModule*> Modules = UI->GetSelectedLODLevel()->Modules;
     
     ImGui::Begin("Details", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
 
-    int SelectedModuleIndex = ParticlePreviewUI->GetSelectedModuleIndex();
-    if (SelectedModuleIndex >= 0 && SelectedModuleIndex < LODLevel->Modules.Num())
+    int SelectedModuleIndex = UI->GetSelectedModuleIndex();
+    if (SelectedModuleIndex >= 0 && SelectedModuleIndex < Modules.Num())
     {
-        if (UParticleModule* SelectedModule = LODLevel->Modules[SelectedModuleIndex])
+        if (UParticleModule* SelectedModule = Modules[SelectedModuleIndex])
         {
             const UClass* Class = SelectedModule->GetClass();
             for (; Class; Class = Class->GetSuperClass())

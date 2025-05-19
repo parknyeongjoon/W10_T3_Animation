@@ -12,7 +12,7 @@ public:
     void Initialize(SLevelEditor* LevelEditor, float InWidth, float InHeight);
     virtual void Render() override;
     virtual void OnResize(HWND hWnd) override;
-    void BindUI(FParticlePreviewUI* InUI) { ParticlePreviewUI = InUI; }
+    void BindUI(FParticlePreviewUI* InUI) { UI = InUI; }
 
 private:
     void RenderFileMenu() const;
@@ -22,6 +22,6 @@ private:
     SLevelEditor* activeLevelEditor;
     float Width = 30, Height = 300;
     bool bMenuOpenAny = false; // 아무 메뉴가 열려있는지 여부
-    FParticlePreviewUI* ParticlePreviewUI = nullptr;
+    FParticlePreviewUI* UI = nullptr;
 };
 
