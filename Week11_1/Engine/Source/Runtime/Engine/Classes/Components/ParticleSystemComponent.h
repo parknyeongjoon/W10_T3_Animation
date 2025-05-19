@@ -1,11 +1,26 @@
 #pragma once
 #include "Container/Array.h"
 #include "Particles/ParticleSystem.h"
+#include "Components/SceneComponent.h"
 
-class UParticleSystemComponent
+class FDynamicEmitterDataBase;
+
+class UParticleSystemComponent : public USceneComponent
 {
-    TArray<struct FParticleEmitterInstance*> EmitterInstances;
+    DECLARE_CLASS(UParticleSystemComponent, USceneComponent)
+public:
+    UParticleSystemComponent() = default;
     UParticleSystem* Template;
 
+    TArray<struct FParticleEmitterInstance*> EmitterInstances;
+
     TArray<FDynamicEmitterDataBase*> EmitterRenderData;
+public:
+    virtual void InitializeComponent() override;
+    virtual void TickComponent(float DeltaTime) override;
+    void DestroyComponent() override;
+
+    void SpawnAllEmitters();
+    void UpdateAllEmitters(float DeltaTime);
+
 };

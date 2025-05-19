@@ -3,6 +3,7 @@
 #include "Math/Color.h"
 #include "Math/Vector4.h"
 
+class UMaterialInterface;
 /**
  * Per-particle data sent to the GPU.
  */
@@ -122,29 +123,35 @@ struct FDynamicEmitterDataBase
     int32 EmitterIndex;
     
     virtual const FDynamicEmitterReplayDataBase& GetSource() const = 0;
+
+    virtual int const GetDynamicVertexStride() const = 0;
 };
 
 struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
 {
+
     void SortSpriteParticles();
-    virtual int32 GetDynamicVertexStride() const = 0;
     
+    
+    FDynamicEmitterReplayDataBase& GetSource();
+
+    //int GetDynamicVertexStride() const;
 };
 
 struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 {
-    virtual int32 GetDynamicVertexStride() const override
+    /*virtual int32 GetDynamicVertexStride() const override
     {
         return sizeof(FParticleSpriteVertex);
-    }
+    }*/
 };
 
 struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
 {
-    virtual int32 GetDynamicVertexStride() const override
+    /*virtual int32 GetDynamicVertexStride() const override
     {
         return sizeof(FMeshParticleInstanceVertex);
-    }
+    }*/
 };
 
 
