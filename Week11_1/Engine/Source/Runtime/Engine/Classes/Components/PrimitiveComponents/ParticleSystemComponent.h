@@ -610,6 +610,9 @@ public:
     
     void KillParticlesForced();
 
+    void SpawnAllEmitters();
+    void UpdateAllEmitters(float DeltaTime);
+
 protected:
     static FDynamicEmitterDataBase* CreateDynamicDataFromReplay( FParticleEmitterInstance* EmitterInstance, const FDynamicEmitterReplayDataBase* EmitterReplayData, bool bSelected);
     
