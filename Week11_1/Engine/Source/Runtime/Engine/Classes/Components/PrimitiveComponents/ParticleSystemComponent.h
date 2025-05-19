@@ -1,11 +1,12 @@
 #pragma once
+#include "PrimitiveComponent.h"
 #include "Container/Array.h"
 #include "Particles/ParticleSystem.h"
-#include "PrimitiveComponent.h"
 #include "Container/EnumAsByte.h"
 
 struct FParticleEmitterInstance;
-
+struct FDynamicEmitterDataBase;
+struct FDynamicEmitterReplayDataBase;
 #pragma region structs
 
 enum EParticleSysParamType : int
@@ -278,14 +279,14 @@ struct FParticleEventKismetData : public FParticleEventData
 };
 #pragma endregion
 
-class  UParticleSystemComponent : public UPrimitiveComponent
+class UParticleSystemComponent : public UPrimitiveComponent
 {
     friend class FParticleSystemWorldManager;
     
     DECLARE_CLASS(UParticleSystemComponent, UPrimitiveComponent)
 public:
     UParticleSystemComponent();
-    ~UParticleSystemComponent();
+    ~UParticleSystemComponent() override;
     
     //이게 인스턴스, 틱돌면서 이거 돌아야함. 이거 데이터 기반으로 EmitterRenderData 생성
     TArray<FParticleEmitterInstance*> EmitterInstances;
@@ -377,6 +378,7 @@ public:
     bool bIsViewRelevanceDirty;
 
     bool bAutoDestroy;
+
 private:
     /** 컴포넌트의 변환(transform)이 변경되어 업데이트가 필요한지 여부 */
     bool bIsTransformDirty;
@@ -387,7 +389,26 @@ private:
     /** AsyncComponentToWorld 등의 비동기 데이터 복사가 유효한지 여부 */
     bool bAsyncDataCopyIsValid;
 
+    //0 [ManagerHandle] 30[bPendingManagerAdd] 31[bPendingManagerRemove]
+    /** FParticleSystemWorldManager에 대한 핸들입니다. 관리되는 틱이 없으면 INDEX_NONE을 가집니다. */
+    int32 ManagerHandle : 30;
+    /** 현재 매니저에 추가 대기 중임을 나타내는 플래그입니다. */
+    int32 bPendingManagerAdd : 1;
+    /** 언레지스터되어 매니저 배열에서 제거 대기 중임을 나타내는 플래그입니다. */
+    int32 bPendingManagerRemove : 1;
+    
 public:
+    virtual bool Editor_CanBeTickManaged()const { return true; }
+    bool ShouldBeTickManaged()const;
+
+    FORCEINLINE bool IsTickManaged()const { return ManagerHandle != INDEX_NONE && !IsPendingManagerRemove(); }
+    FORCEINLINE int32 GetManagerHandle()const { return ManagerHandle; }
+    FORCEINLINE void SetManagerHandle(const int32 InHandle) { ManagerHandle = InHandle; }
+
+    FORCEINLINE int32 IsPendingManagerAdd()const { return bPendingManagerAdd; }
+    FORCEINLINE void SetPendingManagerAdd(const bool bValue) { bPendingManagerAdd = bValue; }
+    FORCEINLINE int32 IsPendingManagerRemove()const { return bPendingManagerRemove; }
+    FORCEINLINE void SetPendingManagerRemove(const bool bValue) { bPendingManagerRemove = bValue; }
     
     FParticleSystemWorldManager* GetWorldManager() const;
 
@@ -456,6 +477,9 @@ public:
     */
     float EmitterDelay;
 
+    /** Scales DeltaTime in UParticleSystemComponent::Tick(...) */
+    float CustomTimeDilation;
+
     /** 이 PSysComp에서 발생한 Spawn 이벤트들입니다. */
     TArray<struct FParticleEventSpawnData> SpawnEvents;
 
@@ -512,17 +536,32 @@ private:
     /** 마지막 틱 이후 경과된 시간(밀리초). UParticleSystem의 MinTimeBetweenTicks와 함께 틱 간격을 제어하는 데 사용됩니다. */
     uint32 TimeSinceLastTick;
 
+    void SetComponentTickEnabled(bool bEnabled) override;
+    bool IsComponentTickEnabled() const override;
+
+    virtual void OnRegister() override;
+    virtual void OnUnregister() override;
+
+    void ComputeTickComponent_Concurrent(float DeltaTime);
+    void FinalizeTickComponent();
+
 protected:
     virtual bool ShouldActivate() const;
 public:
+    // 이걸 호출 해야 파티클 동작, 아마 Particle Emmiter Spawn 후, 바로 이거 호출하면 될 듯?
     virtual void Activate(bool bReset=false);
+    // 이걸 호출 해야 파티클 정지, 아마 Particle Emmiter DeSpawn 할 때, 호출하면 될 듯?
     void Deactivate() override;
+    
     void Complete();
     virtual void DeactivateImmediate();
+
+    void ForceReset();
 
     /** Activate the system */
     virtual void ActivateSystem(bool bFlagAsJustAttached = false);
     /** Deactivate the system */
+
     void DeactivateSystem();
 
     //FParticleDynamicData* CreateDynamicData(ERHIFeatureLevel::Type InFeatureLevel);
@@ -571,6 +610,9 @@ public:
         const FVector InLocation, const FVector InDirection, const FVector InVelocity);
     
     void KillParticlesForced();
+
+    void SpawnAllEmitters();
+    void UpdateAllEmitters(float DeltaTime);
 
 protected:
     static FDynamicEmitterDataBase* CreateDynamicDataFromReplay( FParticleEmitterInstance* EmitterInstance, const FDynamicEmitterReplayDataBase* EmitterReplayData, bool bSelected);

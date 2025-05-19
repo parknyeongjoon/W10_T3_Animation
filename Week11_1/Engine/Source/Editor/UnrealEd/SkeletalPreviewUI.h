@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Container/Map.h"
 #include "Container/String.h"
 #include "Engine/World.h"

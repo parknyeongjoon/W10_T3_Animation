@@ -56,6 +56,7 @@ void UAnimSingleNodeInstance::NativeUpdateAnimation(float DeltaSeconds)
     if (!CurrentSequence ||!SkeletalMesh||!SkeletalMesh->GetSkeleton()) return;
 
     const UAnimDataModel* DataModel = CurrentSequence->GetDataModel();
+    if (!DataModel) return;
     const int32 FrameRate = DataModel->GetFrameRate().Numerator;    // Number of Frames per second);    // Number of Frames per second
     const int32 NumFrames = DataModel->GetNumberOfFrames();
 

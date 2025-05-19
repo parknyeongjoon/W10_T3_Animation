@@ -189,6 +189,30 @@ int32 FString::Find(
     }
 }
 
+bool FString::RemoveFromStart(const FString& InPrefix)
+{
+    const int32 PrefixLen = InPrefix.Len();
+    const int32 MyLen = Len();
+
+    if (PrefixLen == 0 || PrefixLen > MyLen)
+    {
+        return false; // Cannot remove an empty or longer prefix
+    }
+
+    // Check if the string actually starts with the prefix
+    bool bStartsWithPrefix = (PrivateString.compare(0, PrefixLen, *InPrefix) == 0);
+
+    if (bStartsWithPrefix)
+    {
+        // If it starts with the prefix, remove it using erase or assign with substr
+        // erase(pos, count)
+        PrivateString.erase(0, PrefixLen);
+        return true;
+    }
+
+    return false; // Prefix not found at the start
+}
+
 void FString::Reserve(const int32 CharacterCount)
 {
     PrivateString.reserve(CharacterCount);

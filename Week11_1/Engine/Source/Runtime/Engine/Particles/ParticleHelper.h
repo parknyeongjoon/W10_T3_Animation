@@ -84,12 +84,12 @@ struct FBaseParticle
     float			Rotation;				// Rotation of particle (in Radians)
 
     // 16 bytes
-    // FVector		    Velocity;				// Current velocity, gets reset to BaseVelocity each frame to allow 
-    // float			BaseRotationRate;		// Initial angular velocity of particle (in Radians per second)
+    FVector		    Velocity;				// Current velocity, gets reset to BaseVelocity each frame to allow 
+    float			BaseRotationRate;		// Initial angular velocity of particle (in Radians per second)
 
     // 16 bytes
     FVector		    BaseSize;				// Size = BaseSize at the start of each frame
-    // float			RotationRate;			// Current rotation rate, gets reset to BaseRotationRate each frame
+    float			RotationRate;			// Current rotation rate, gets reset to BaseRotationRate each frame
 
     // 16 bytes
     FVector		    Size;					// Current size, gets reset to BaseSize each frame
@@ -102,8 +102,8 @@ struct FBaseParticle
     // FLinearColor	BaseColor;				// Base color of the particle
 
     // 16 bytes
-    // float			RelativeTime;			// Relative time, range is 0 (==spawn) to 1 (==death)
-    // float			OneOverMaxLifetime;		// Reciprocal of lifetime
+    float			RelativeTime;			// Relative time, range is 0 (==spawn) to 1 (==death)
+    float           Lifetime;	            // Reciprocal of lifetime
     // float			Placeholder0;
     // float			Placeholder1;
 };
@@ -188,6 +188,8 @@ struct FDynamicEmitterDataBase
     
     virtual const FDynamicEmitterReplayDataBase& GetSource() const = 0;
 
+    virtual int const GetDynamicVertexStride() const = 0;
+
     // Particle을 생성하지 않는 Emitter가 있을 수 있다면 가상함수 말고 아무행동 안하는 함수로 변경
     virtual void GetDynamicMeshElementsEmitter() const {};
 
@@ -195,6 +197,7 @@ struct FDynamicEmitterDataBase
 
 struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
 {
+
     FDynamicSpriteEmitterReplayDataBase Source;
     
     /** Returns the source data for this particle system */
@@ -217,6 +220,10 @@ struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
  *	@param	ParticleOrder		The array to fill in with ordered indices
  */
     void SortSpriteParticles();
+    
+    
+    FDynamicEmitterReplayDataBase& GetSource();
+
     // (int32 SortMode, bool bLocalSpace, 
     //     int32 ParticleCount, const uint8* ParticleData, int32 ParticleStride, const uint16* ParticleIndices,
     //     const FSceneView* View, const FMatrix& LocalToWorld, FParticleOrder* ParticleOrder) const;
@@ -234,7 +241,7 @@ struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 		return Source;
 	}
     
-    virtual int32 GetDynamicVertexStride() const override
+    virtual int32 const GetDynamicVertexStride() const override
     {
         return sizeof(FParticleSpriteVertex);
     }

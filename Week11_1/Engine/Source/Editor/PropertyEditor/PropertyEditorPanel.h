@@ -49,6 +49,7 @@ private:
     void RenderDelegate(ULevel* Level) const;
     
     void DrawSkeletalMeshPreviewButton(const FString& FilePath) const;
+    void DrawParticlesPreviewButton(const FString& FilePath) const;
     
 	template<typename T>
 		requires std::derived_from<T, UActorComponent>

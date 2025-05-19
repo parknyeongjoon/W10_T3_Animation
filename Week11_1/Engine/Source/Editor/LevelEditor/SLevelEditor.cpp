@@ -16,7 +16,7 @@ void SLevelEditor::Initialize(UWorld* World, const HWND OwnerWindow)
     ActiveViewportClientIndex = 0;
     for (size_t Index = 0; Index < 4; Index++)
     {
-        const std::shared_ptr<FEditorViewportClient> EditorViewportClient = AddViewportClient<FEditorViewportClient>(OwnerWindow, World);
+        const std::shared_ptr<FEditorViewportClient> EditorViewportClient = AddViewportClient<FEditorViewportClient>(OwnerWindow, World, Editor);
         EditorViewportClient->GetViewport()->ViewScreenLocation = static_cast<EViewScreenLocation>(Index);
     }
 
@@ -61,21 +61,37 @@ void SLevelEditor::Release()
     WindowViewportDataMap.Empty();
 }
 
+// 렌더대상인 Render
 template <typename T>
     requires std::derived_from<T, FViewportClient>
-std::shared_ptr<T> SLevelEditor::AddViewportClient(HWND OwnerWindow, UWorld* World)
+std::shared_ptr<T> SLevelEditor::AddViewportClient(HWND OwnerWindow, UWorld* World, const EViewportClientType Type)
 {
     if (!WindowViewportDataMap.Contains(OwnerWindow))
     {
         WindowViewportDataMap.Add(OwnerWindow, FWindowViewportClientData());
         WindowViewportDataMap[OwnerWindow].EditorWidth = GEngineLoop.GraphicDevice.SwapChains[OwnerWindow].ScreenWidth;
         WindowViewportDataMap[OwnerWindow].EditorHeight = GEngineLoop.GraphicDevice.SwapChains[OwnerWindow].ScreenHeight;
+        WindowViewportDataMap[OwnerWindow].ViewportClientType = Type;
     }
+    
     std::shared_ptr<T> ViewportClient = std::make_shared<T>();
     ViewportClient->Initialize(OwnerWindow, WindowViewportDataMap[OwnerWindow].ViewportClients.Num(), World);
 
     WindowViewportDataMap[OwnerWindow].ViewportClients.Add(ViewportClient);
     return ViewportClient;
+}
+
+int SLevelEditor::GetNumViewportClientByType(const EViewportClientType Type)
+{
+    int count = 0;
+    for (auto& [AppWnd, WindowViewportData] : WindowViewportDataMap)
+    {
+        if (WindowViewportData.ViewportClientType == Type)
+        {
+            count++;
+        }
+    }
+    return count;
 }
 
 void SLevelEditor::RemoveViewportClient(const HWND OwnerWindow, const std::shared_ptr<FEditorViewportClient>& ViewportClient)

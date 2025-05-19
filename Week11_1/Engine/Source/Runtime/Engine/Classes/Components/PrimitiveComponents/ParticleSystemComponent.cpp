@@ -2,17 +2,57 @@
 
 #include "LaunchEngineLoop.h"
 #include "QuadTexture.h"
-#include "Paritcles/ParticleEmitterInstances.h"
+#include "Particles/ParticleEmitterInstances.h"
 #include "Particles/ParticleSystemWorldManager.h"
 #include "Engine/Classes/Engine/World.h"
 #include "Renderer/Renderer.h"
 #include "UObject/Casts.h"
+#include "Particles/Modules/ParticleModule.h"
 
 bool GIsAllowingParticles = true;
 
 UParticleSystemComponent::UParticleSystemComponent()
+    : Super()
 {
+    bCanEverTick = true;
+    bTickInEditor = true;
+    MaxTimeBeforeForceUpdateTransform = 5.0f;
+    bResetOnDetach = false;
+    bOldPositionValid = false;
+    OldPosition = FVector::ZeroVector;
+    PartSysVelocity = FVector::ZeroVector;
 
+    WarmupTime = 0.0f;
+    SecondsBeforeInactive = 1.0f;
+    bIsTransformDirty = false;
+    bSkipUpdateDynamicDataDuringTick = false;
+    bIsViewRelevanceDirty = true;
+    CustomTimeDilation = 1.0f;
+    bWasActive = false;
+    SetGenerateOverlapEvents(false);
+    
+    SavedAutoAttachRelativeScale3D = FVector(1.f, 1.f, 1.f);
+    TimeSinceLastTick = 0;
+    LastSignificantTime = 0.0f;
+    bIsManagingSignificance = 0;
+    bWasManagingSignificance = 0;
+    bIsDuringRegister = 0;
+
+    ManagerHandle = INDEX_NONE;
+    bPendingManagerAdd = false;
+    bPendingManagerRemove = false;
+}
+
+bool UParticleSystemComponent::ShouldBeTickManaged() const
+{
+    if (!Editor_CanBeTickManaged())
+    {
+        return false;
+    }
+    return
+        GbEnablePSCWorldManager &&
+        Template && Template->AllowManagedTicking() &&
+        GetAttachChildren().Num() == 0; //Don't batch tick if people are attached and dependent on us.
 }
 
 UParticleSystemComponent::~UParticleSystemComponent()
@@ -22,11 +62,259 @@ UParticleSystemComponent::~UParticleSystemComponent()
         delete EmitterInstance;
     }
     EmitterInstances.Empty();
+    
+    Template = nullptr;
 }
 
 void UParticleSystemComponent::TickComponent(float DeltaTime)
 {
-    UPrimitiveComponent::TickComponent(DeltaTime);
+    Super::TickComponent(DeltaTime);
+    // 여기까지는 잘 들어옴
+    if (Template == nullptr || Template->Emitters.Num() == 0)
+    {
+        // Disable our tick here, will be enabled when activating
+        SetComponentTickEnabled(false);
+        return;
+    }
+
+    // 여기서 부터는 UParticleSystem의 Emitter가 추가되어야 하는 듯?
+
+    if (TimeSinceLastTick + static_cast<uint32>(DeltaTime*1000.0f) < Template->MinTimeBetweenTicks)
+    {
+        TimeSinceLastTick += static_cast<uint32>(DeltaTime*1000.0f);
+        return;
+    }
+
+    DeltaTime += TimeSinceLastTick / 1000.0f;
+    TimeSinceLastTick = 0;
+
+    if (bDeactivateTriggered)
+    {
+        DeactivateSystem();
+    }
+    
+    if ((IsActive() == false))
+    {
+        // Disable our tick here, will be enabled when activating
+        SetComponentTickEnabled(false);
+        return;
+    }
+    
+    DeltaTimeTick = DeltaTime;
+
+    UWorld* World = GetWorld();
+    
+    bool bRequiresReset = bResetTriggered;
+    bResetTriggered = false;
+
+    if (bRequiresReset)
+    {
+        ForceReset();
+    }
+
+    if (bWarmingUp == false)
+    {
+    }
+
+    bForcedInActive = false;
+
+    DeltaTime *= CustomTimeDilation;
+    DeltaTimeTick = DeltaTime;
+    if (FMath::IsNearlyZero(DeltaTimeTick))
+    {
+        return;
+    }
+
+    AccumTickTime += DeltaTime;
+
+    for (auto Instance : EmitterInstances)
+    {
+        if (Instance)
+        {
+            //Instance->LastTickDurationMs = 0.0f;
+        }
+    }
+
+    // Orient the Z axis toward the camera
+    if (Template->bOrientZAxisTowardCamera)
+    {
+        //OrientZAxisTowardCamera();
+    }
+
+    // // 고정 시간 업데이트 모드
+    // if (Template->SystemUpdateMode == EPSUM_FixedTime)
+    // {
+    //     DeltaTime = Template->UpdateTime_Delta;
+    // }
+
+    // Clear out the events.
+    SpawnEvents.Empty();
+    DeathEvents.Empty();
+    CollisionEvents.Empty();
+    BurstEvents.Empty();
+    TotalActiveParticles = 0;
+
+    // 동기 업데이트
+    ComputeTickComponent_Concurrent(DeltaTime);
+    FinalizeTickComponent();
+}
+
+void UParticleSystemComponent::SetComponentTickEnabled(bool bEnabled)
+{
+    bEnabled &= IsRegistered();
+    
+    if (GetWorld() == nullptr)
+        return;
+
+    bool bShouldTickBeManaged = ShouldBeTickManaged();
+    bool bIsTickManaged = IsTickManaged();
+    
+    FParticleSystemWorldManager* PSCMan = bShouldTickBeManaged || bIsTickManaged ? GetWorldManager() : nullptr; 
+
+
+    if ((bShouldTickBeManaged || bIsTickManaged) && PSCMan == nullptr)
+    {
+        Super::SetComponentTickEnabled(bEnabled);
+        return;
+    }
+
+    if (bShouldTickBeManaged)
+    {
+        Super::SetComponentTickEnabled(false); //Ensure we're not ticking via task graph.
+        if (bEnabled)
+        {
+            if (!PSCMan->RegisterComponent(this))
+            {
+                UE_LOG(LogLevel::Warning, TEXT("Failed to register with the PSC world manager"));
+            }
+        }
+        else if (bIsTickManaged)
+        {
+            PSCMan->UnregisterComponent(this);
+        }
+    }
+    else
+    {
+        //Make sure we're not ticking via the manager.
+        if (bIsTickManaged)
+        {
+            PSCMan->UnregisterComponent(this);
+        }
+
+        Super::SetComponentTickEnabled(bEnabled);
+    }
+}
+
+bool UParticleSystemComponent::IsComponentTickEnabled() const
+{
+    //As far as anyone else is concerned, a tick managed component is ticking. The shouldn't know or care how.
+    return Super::IsComponentTickEnabled() || IsTickManaged();
+}
+
+void UParticleSystemComponent::OnRegister()
+{
+    UWorld* World = GetWorld();
+    if (World == nullptr)
+        return;
+    
+    SavedAutoAttachRelativeLocation = GetRelativeLocation();
+    SavedAutoAttachRelativeRotation = GetRelativeRotation();
+    SavedAutoAttachRelativeScale3D = GetRelativeScale();
+    
+    Super::OnRegister();
+
+    // If we were active before but are not now, activate us
+    if (bWasActive && !IsActive())
+    {
+        Activate(true);
+    }
+}
+
+void UParticleSystemComponent::OnUnregister()
+{
+    bWasActive = IsActive() && !bWasDeactivated;
+
+    UWorld* World = GetWorld();
+    if (World == nullptr)
+        return;
+
+    SetComponentTickEnabled(false);
+    
+    ResetParticles(true);
+    Super::OnUnregister();
+}
+
+void UParticleSystemComponent::ComputeTickComponent_Concurrent(float DeltaTime)
+{
+    // 전체 활성 파티클 수 누적 변수
+    TotalActiveParticles = 0;
+
+    // 각 이터미터 인스턴스마다 시뮬레이션 실행
+    UpdateAllEmitters(DeltaTime);
+}
+
+void UParticleSystemComponent::FinalizeTickComponent()
+{
+    // 3) 이벤트 처리
+    for (auto& instance : EmitterInstances)
+    {
+        // if (instance->IsEnabled())
+        // {
+        //     instance->ProcessParticleEvents(DeltaTimeTick, bSuppressSpawning);
+        // }
+    }
+    // if (auto* mgr = GetWorld().getevent)
+    // {
+    //     if (!SpawnEvents.empty())     mgr->HandleParticleSpawnEvents(this, SpawnEvents);
+    //     if (!DeathEvents.empty())     mgr->HandleParticleDeathEvents(this, DeathEvents);
+    //     if (!CollisionEvents.empty()) mgr->HandleParticleCollisionEvents(this, CollisionEvents);
+    //     if (!BurstEvents.empty())     mgr->HandleParticleBurstEvents(this, BurstEvents);
+    // }
+    // KismetEvents.clear();
+
+    // 4) 시스템 완료 및 중요도(Significance) 갱신
+    // float currTime = WorldContext->GetTimeSeconds();
+    // if (IsActive() && bIsManagingSignificance && NumSignificantEmitters == 0
+    //     && currTime >= LastSignificantTime + InsignificanceDelay)
+    // {
+    //     OnSignificanceChanged(false);
+    // }
+    // else
+    // {
+    //     LastSignificantTime = currTime;
+    //     bool isCompleted = HasCompleted();
+    //     if (isCompleted && !bWasCompleted)
+    //     {
+    //         Complete();
+    //     }
+    //     bWasCompleted = isCompleted;
+    // }
+    
+    if (bIsTransformDirty)
+    {
+        //UpdateComponentToWorld();
+        TimeSinceLastForceUpdateTransform = 0.0f;
+        bIsTransformDirty = false;
+    }
+
+    // 6) 파티클 시스템 속도 계산
+    if (bOldPositionValid)
+    {
+        float invDT = DeltaTimeTick > 0.0f ? 1.0f / DeltaTimeTick : 0.0f;
+        PartSysVelocity = (GetWorldLocation() - OldPosition) * invDT;
+    }
+    else
+    {
+        PartSysVelocity = FVector(0.0f);
+        bOldPositionValid = true;
+    }
+    OldPosition = GetWorldLocation();
+
+    // 7) 렌더 동적 데이터 갱신 플래그
+    if (!bSkipUpdateDynamicDataDuringTick)
+    {
+
+    }
 }
 
 UMaterial* UParticleSystemComponent::GetMaterial(int32 ElementIndex) const
@@ -136,6 +424,8 @@ int32 UParticleSystemComponent::GetNumMaterials() const
 
 void UParticleSystemComponent::Activate(bool bReset)
 {
+    Super::Activate();
+    
     if (Template != nullptr)
     {
         bDeactivateTriggered = false;
@@ -144,11 +434,15 @@ void UParticleSystemComponent::Activate(bool bReset)
         {
             ActivateSystem(bReset);
         }
+
+
     }
 }
 
 void UParticleSystemComponent::Deactivate()
 {
+    Super::Deactivate();
+    
     if (ShouldActivate()==false)
     {
         DeactivateSystem();
@@ -170,13 +464,28 @@ void UParticleSystemComponent::DeactivateImmediate()
     Complete();
 }
 
-void UParticleSystemComponent::ActivateSystem(bool bFlagAsJustAttached)
+void UParticleSystemComponent::ForceReset()
 {
+    //If we're resetting in the editor, cached emitter values may now be invalid.
     if (Template != nullptr)
     {
-        return;
+        Template->UpdateAllModuleLists();
     }
 
+    bool bOldActive = IsActive();
+    ResetParticles(true);
+    if (bOldActive)
+    {
+        ActivateSystem();
+    }
+    else
+    {
+        InitializeSystem();
+    }
+}
+
+void UParticleSystemComponent::ActivateSystem(bool bFlagAsJustAttached)
+{
     bOldPositionValid = false;
     OldPosition = FVector::ZeroVector;
     PartSysVelocity = FVector::ZeroVector;
@@ -365,6 +674,7 @@ void UParticleSystemComponent::InitParticles()
 
         bool bClearDynamicData = false;
 
+        SpawnAllEmitters();
         //for (int32 Idx = 0; Idx < NumEmitters; Idx++)
         ///{
             // UParticleEmitter* Emitter = Template->Emitters[Idx];
@@ -569,7 +879,7 @@ void UParticleSystemComponent::InitializeSystem()
 {
     if( GIsAllowingParticles)
     {
-        if( Template != NULL )
+        if( Template != nullptr )
         {
             //EmitterDelay = Template->Delay;
 
@@ -705,4 +1015,66 @@ void UParticleSystemComponent::CreateQuadTextureVertexBuffer()
     Renderer.MappingIB(TEXT("Quad"), TEXT("QuadIB"), sizeof(quadTextureInices) / sizeof(uint32));
 
     VBIBTopologyMappingName = TEXT("Quad");
+}
+
+void UParticleSystemComponent::SpawnAllEmitters()
+{
+    if (!Template) return;
+
+    EmitterInstances.Empty();
+
+    for (UParticleEmitter* Emitter : Template->Emitters)
+    {
+        if (!Emitter) continue;
+
+        // 새 이미터 인스턴스를 생성
+        FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
+        Instance->SpriteTemplate = Emitter;
+        Instance->Component = this;
+        Instance->CurrentLODLevelIndex = 0;
+        Instance->CurrentLODLevel = Emitter->GetLODLevel(0); // 현재는 LOD0만 사용
+        Instance->Init(1024); // 임의 최대 파티클 수
+
+        // 파티클 모듈들의 초기화 및 첫 스폰 호출
+        if (Instance->CurrentLODLevel)
+        {
+            for (UParticleModule* Module : Instance->CurrentLODLevel->SpawnModules)
+            {
+                // TODO : SpawnTime, Interp 관련 시간 보간 추후 확인 필요. 
+                Module->Spawn(Instance, /*Offset*/ 0, /*SpawnTime*/ 0.0f, /*Interp*/ 1.0f);
+            }
+        }
+
+        EmitterInstances.Add(Instance);
+    }
+}
+
+void UParticleSystemComponent::UpdateAllEmitters(float DeltaTime)
+{
+    for (FParticleEmitterInstance* Instance : EmitterInstances)
+    {
+        if (!Instance || !Instance->CurrentLODLevel) {
+            UE_LOG(LogLevel::Warning, "There is no ParticleEmitter Instance or LOD Level");
+        }
+
+        // 파티클 라이프타임 체크 루프
+        for (int32 i = 0; i < Instance->ActiveParticles;) {
+            FBaseParticle* Particle = Instance->GetParticle(i);
+
+            // 시간 경과
+            Particle->RelativeTime += DeltaTime;
+
+            if (Particle->RelativeTime >= Particle->Lifetime) {
+                // 죽은 파티클 제거
+                Instance->KillParticle(i);
+            }
+            else {
+                ++i;
+            }
+        }
+
+        for (UParticleModule* Module : Instance->CurrentLODLevel->UpdateModules) {
+            Module->Update(Instance, /*offset*/ 0, DeltaTime);
+        }
+    }
 }

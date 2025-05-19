@@ -1,6 +1,5 @@
 #include "World.h"
 
-#include "LaunchEngineLoop.h"
 #include "Renderer/Renderer.h"
 #include "PlayerCameraManager.h"
 #include "BaseGizmos/TransformGizmo.h"
@@ -14,21 +13,18 @@
 #include "Contents/GameManager.h"
 #include "Serialization/FWindowsBinHelper.h"
 
-#include "Actors/PointLightActor.h"
-#include "Components/LightComponents/PointLightComponent.h"
-#include "Components/Mesh/StaticMesh.h"
-#include "Components/PrimitiveComponents/MeshComponents/SkeletalMeshComponent.h"
-#include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/SkySphereComponent.h"
-#include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/StaticMeshComponent.h"
-#include "Components/PrimitiveComponents/Physics/UBoxShapeComponent.h"
 #include "GameFramework//PlayerController.h"
 #include "GameFramework/Character.h"
+#include "Particles/ParticleSystemWorldManager.h"
 #include "Script/LuaManager.h"
 #include "UObject/UObjectArray.h"
 #include "UnrealEd/PrimitiveBatch.h"
+#include "Components/PrimitiveComponents/ParticleSystemComponent.h"
 
 void UWorld::InitWorld()
 {
+    FParticleSystemWorldManager::OnWorldInit(this);
+    
     // TODO: Load Scene
     if (Level == nullptr)
     {
@@ -67,6 +63,12 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
     if (LocalGizmo == nullptr && WorldType)
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(this);
+
+        // TODO : 삭제해야 될 Test 코드
+        AActor* TestActor = SpawnActor<AActor>();
+        UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
+        TestComp->Template = FObjectFactory::ConstructObject<UParticleSystem>(this);
+        TestComp->Activate();
     }
 }
 
@@ -106,10 +108,14 @@ void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
 
         FGameManager::Get().Tick(deltaSeconds);
     }
+    
+    FParticleSystemWorldManager::Get(this)->Tick(deltaSeconds, tickType);
 }
 
 void UWorld::Release()
 {
+    FParticleSystemWorldManager::OnWorldCleanup(this);
+    
     if (WorldType == EWorldType::Editor)
     {
         SaveScene("Assets/Scenes/AutoSave.Scene");
@@ -131,8 +137,6 @@ void UWorld::Release()
 
 	pickingGizmo = nullptr;
 	ReleaseBaseObject();
-
-    
 }
 
 void UWorld::ClearScene()

@@ -68,3 +68,11 @@ enum EPrimitiveColor : uint8
     GREEN_Y_ROT,
     BLUE_Z_ROT
 };
+
+enum EViewportClientType : uint8
+{
+    Game,
+    Editor,
+    EditorPreviewSkeletal,
+    EditorPreviewParticle,
+};

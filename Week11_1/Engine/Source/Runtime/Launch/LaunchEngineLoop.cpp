@@ -10,9 +10,9 @@
 #include "PropertyEditor/ViewportTypePanel.h"
 #include "Renderer/Renderer.h"
 #include "UnrealEd/SkeletalPreviewUI.h"
+#include "UnrealEd/ParticlePreviewUI.h"
 #include "UnrealEd/UnrealEd.h"
 #include "UObject/Casts.h"
-
 
 FGraphicsDevice FEngineLoop::GraphicDevice;
 FRenderer FEngineLoop::Renderer;
@@ -133,6 +133,14 @@ void FEngineLoop::Render() const
                 Renderer.Render(ViewportClient);
             }
         }
+        // 왼쪽 위에만 띄어야해서 부득이하게 여기서 설정...
+        else if (LevelEditor->GetViewportClientData(AppWindow).ViewportClientType == EditorPreviewParticle)
+        {
+            EditorEngine->GetParticlePreviewUI()->ResizeViewport(ViewportClients[0]);
+            LevelEditor->FocusViewportClient(AppWindow, 0);
+            EditorEngine->UpdateGizmos(ViewportClients[0]->GetWorld());
+            Renderer.Render(ViewportClients[0]);
+        }
         else
         {
             for (uint32 i = 0; (i < ViewportClients.Num() && i < 1); i++)
@@ -150,7 +158,6 @@ void FEngineLoop::Render() const
             // TODO 다른 방법으로 World 구하기
             UWorld* TargetWorld = ViewportClients[0]->GetWorld();
             EditorEngine->GetUnrealEditor()->SetWorld(TargetWorld);
-            EditorEngine->GetSkeletalPreviewUI()->SetWorld(TargetWorld);
             EditorEngine->ContentsUI->SetWorld(TargetWorld);
             if (TargetWorld->WorldType == EWorldType::Editor)
             {
@@ -177,13 +184,26 @@ void FEngineLoop::Render() const
             }
             else if (TargetWorld->WorldType == EWorldType::EditorPreview)
             {
-                EditorEngine->GetSkeletalPreviewUI()->Render();
+                EViewportClientType Type = LevelEditor->GetViewportClientData(AppWindow).ViewportClientType;
+                switch(Type)
+                {
+                case EViewportClientType::EditorPreviewSkeletal:
+                    EditorEngine->GetSkeletalPreviewUI()->SetWorld(TargetWorld);
+                    EditorEngine->GetSkeletalPreviewUI()->Render();
+                    break;
+                case EViewportClientType::EditorPreviewParticle:
+                    EditorEngine->GetParticlePreviewUI()->SetWorld(TargetWorld);
+                    EditorEngine->GetParticlePreviewUI()->Render();
+                    break;
+                default:
+                    assert(false);
+                }
             }
         }
         ImGuiManager::Get().EndFrame(AppWindow);
     
         // Pending 처리된 오브젝트 제거
-        //GUObjectArray.ProcessPendingDestroyObjects();
+        GUObjectArray.ProcessPendingDestroyObjects();
         GraphicDevice.SwapBuffer(AppWindow);
     }
     LevelEditor->FocusViewportClient(OriginalWindow, OriginalIndex);
