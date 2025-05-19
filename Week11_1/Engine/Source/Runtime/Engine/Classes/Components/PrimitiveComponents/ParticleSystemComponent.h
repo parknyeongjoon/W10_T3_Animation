@@ -4,6 +4,10 @@
 #include "Particles/ParticleSystem.h"
 #include "Container/EnumAsByte.h"
 
+struct FParticleEmitterInstance;
+
+#pragma region structs
+
 enum EParticleSysParamType : int
 {
     PSPT_None,
@@ -272,7 +276,7 @@ struct FParticleEventBurstData : public FParticleEventData
 struct FParticleEventKismetData : public FParticleEventData
 {
 };
-
+#pragma endregion
 
 class UParticleSystemComponent : public UPrimitiveComponent
 {
@@ -283,13 +287,18 @@ public:
     UParticleSystemComponent();
     ~UParticleSystemComponent() override;
     
-    TArray<struct FParticleEmitterInstance*> EmitterInstances;
+    //이게 인스턴스, 틱돌면서 이거 돌아야함. 이거 데이터 기반으로 EmitterRenderData 생성
+    TArray<FParticleEmitterInstance*> EmitterInstances;
+
+    //얘는 원본데이터
     UParticleSystem* Template;
-
-    // TODO : Material 대신에 Texture 쓸 듯?
-    //TArray<UMaterialInterface*> EmitterMaterials;
-
+    
+    //이게 렌더할 때 필요한 데이터 렌더할때 이거 돌면서 렌더
     TArray<FDynamicEmitterDataBase*> EmitterRenderData;
+
+#pragma region hide
+    
+    //TArray<UMaterialInterface*> EmitterMaterials;
 
     bool bWasCompleted;
     
@@ -524,8 +533,6 @@ private:
     uint32 NumSignificantEmitters;
     /** 마지막 틱 이후 경과된 시간(밀리초). UParticleSystem의 MinTimeBetweenTicks와 함께 틱 간격을 제어하는 데 사용됩니다. */
     uint32 TimeSinceLastTick;
-public:
-    virtual void TickComponent(float DeltaTime) override;
 
     void SetComponentTickEnabled(bool bEnabled) override;
     bool IsComponentTickEnabled() const override;
@@ -539,10 +546,6 @@ public:
 protected:
     virtual bool ShouldActivate() const;
 public:
-    virtual int32 GetNumMaterials() const;
-    virtual UMaterial* GetMaterial(int32 ElementIndex) const;
-    virtual void SetMaterial(int32 ElementIndex, UMaterial* Material);
-
     // 이걸 호출 해야 파티클 동작, 아마 Particle Emmiter Spawn 후, 바로 이거 호출하면 될 듯?
     virtual void Activate(bool bReset=false);
     // 이걸 호출 해야 파티클 정지, 아마 Particle Emmiter DeSpawn 할 때, 호출하면 될 듯?
@@ -558,33 +561,16 @@ public:
     /** Deactivate the system */
 
     void DeactivateSystem();
-protected:
 
-	static FDynamicEmitterDataBase* CreateDynamicDataFromReplay( FParticleEmitterInstance* EmitterInstance, const FDynamicEmitterReplayDataBase* EmitterReplayData, bool bSelected);
-    
     //FParticleDynamicData* CreateDynamicData(ERHIFeatureLevel::Type InFeatureLevel);
-
-    void ClearDynamicData();
-
-    virtual void UpdateDynamicData();
-
 public:
-    // If particles have not already been initialised (ie. EmitterInstances created) do it now.
-    virtual void InitParticles();
-
 
     // @todo document
     void ResetParticles(bool bEmptyInstances = false);
-
-
+    
     // @todo document
     void ResetBurstLists();
-
-
-    // @todo document
-    void UpdateInstances(bool bEmptyInstances = false);
-
-
+    
     // @todo document
     bool HasCompleted();
     
@@ -601,10 +587,31 @@ public:
     //     const FVector InDirection, const FVector InVelocity, const TArray<class UParticleModuleEventSendToGame*>& InEventData, 
     //     const float InParticleTime, const FVector InNormal, const float InTime, const int32 InItem, const FName InBoneName, UPhysicalMaterial* PhysMat);
 
+
+    virtual void RewindEmitterInstances();
+#pragma endregion
+
+public:
+    virtual void InitializeComponent() override;
+    void CreateQuadTextureVertexBuffer();
+    virtual void TickComponent(float DeltaTime) override;
+
+    virtual int32 GetNumMaterials() const;
+    virtual UMaterial* GetMaterial(int32 ElementIndex) const;
+    virtual void SetMaterial(int32 ElementIndex, UMaterial* Material);
+    
+    // If particles have not already been initialised (ie. EmitterInstances created) do it now.
+    virtual void InitParticles();
+    virtual void UpdateDynamicData();
+    void UpdateInstances(bool bEmptyInstances = false);
     void GenerateParticleEvent(const FName InEventName, const float InEmitterTime,
         const FVector InLocation, const FVector InDirection, const FVector InVelocity);
     
     void KillParticlesForced();
 
-    virtual void RewindEmitterInstances();
+protected:
+    static FDynamicEmitterDataBase* CreateDynamicDataFromReplay( FParticleEmitterInstance* EmitterInstance, const FDynamicEmitterReplayDataBase* EmitterReplayData, bool bSelected);
+    
+    void ClearDynamicData();
+
 };

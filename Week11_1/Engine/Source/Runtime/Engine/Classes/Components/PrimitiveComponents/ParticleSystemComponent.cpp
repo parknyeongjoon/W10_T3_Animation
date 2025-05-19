@@ -1,8 +1,11 @@
 #include "ParticleSystemComponent.h"
 
-#include "Paritcles/ParticleEmitterInstance.h"
+#include "LaunchEngineLoop.h"
+#include "QuadTexture.h"
+#include "Paritcles/ParticleEmitterInstances.h"
 #include "Particles/ParticleSystemWorldManager.h"
 #include "Engine/Classes/Engine/World.h"
+#include "Renderer/Renderer.h"
 #include "UObject/Casts.h"
 
 bool GIsAllowingParticles = true;
@@ -54,11 +57,6 @@ bool UParticleSystemComponent::ShouldBeTickManaged() const
         GbEnablePSCWorldManager &&
         Template && Template->AllowManagedTicking() &&
         GetAttachChildren().Num() == 0; //Don't batch tick if people are attached and dependent on us.
-}
-
-FParticleSystemWorldManager* UParticleSystemComponent::GetWorldManager() const
-{
-    return FParticleSystemWorldManager::Get(GetWorld());
 }
 
 void UParticleSystemComponent::TickComponent(float DeltaTime)
@@ -315,20 +313,6 @@ void UParticleSystemComponent::FinalizeTickComponent()
     }
 }
 
-bool UParticleSystemComponent::ShouldActivate() const
-{
-    return (!IsActive() || (bWasDeactivated || bWasCompleted));
-}
-
-int32 UParticleSystemComponent::GetNumMaterials() const
-{
-    // if (Template)
-    // {
-    //     return Template->Emitters.Num();
-    // }
-    return 0;
-}
-
 UMaterial* UParticleSystemComponent::GetMaterial(int32 ElementIndex) const
 {
     // if (EmitterMaterials.IsValidIndex(ElementIndex) && EmitterMaterials[ElementIndex] != NULL)
@@ -368,6 +352,70 @@ void UParticleSystemComponent::SetMaterial(int32 ElementIndex, UMaterial* Materi
     //         Inst->Tick_MaterialOverrides(EmitterIndex);
     //     }
     // }
+}
+
+FDynamicEmitterDataBase* UParticleSystemComponent::CreateDynamicDataFromReplay(FParticleEmitterInstance* EmitterInstance,
+    const FDynamicEmitterReplayDataBase* EmitterReplayData, bool bSelected)
+{
+    switch( EmitterReplayData->eEmitterType )
+    {
+    case DET_Unknown:
+        break;
+    case DET_Sprite:
+        break;
+    case DET_Mesh:
+        break;
+    case DET_Beam2:
+        break;
+    case DET_Ribbon:
+        break;
+    case DET_AnimTrail:
+        break;
+    case DET_Custom:
+        break;
+    }
+
+    return nullptr;
+}
+
+void UParticleSystemComponent::UpdateDynamicData()
+{
+}
+
+void UParticleSystemComponent::UpdateInstances(bool bEmptyInstances)
+{
+    if (IsRegistered())
+    {
+        ResetParticles(bEmptyInstances);
+
+        InitializeSystem();
+        ActivateSystem();
+
+        if (Template)
+        {
+            //UpdateComponentToWorld();
+        }
+    }
+}
+
+#pragma region Hide
+FParticleSystemWorldManager* UParticleSystemComponent::GetWorldManager() const
+{
+    return FParticleSystemWorldManager::Get(GetWorld());
+}
+
+bool UParticleSystemComponent::ShouldActivate() const
+{
+    return (!IsActive() || (bWasDeactivated || bWasCompleted));
+}
+
+int32 UParticleSystemComponent::GetNumMaterials() const
+{
+    // if (Template)
+    // {
+    //     return Template->Emitters.Num();
+    // }
+    return 0;
 }
 
 void UParticleSystemComponent::Activate(bool bReset)
@@ -596,37 +644,9 @@ void UParticleSystemComponent::DeactivateSystem()
     SetComponentTickEnabled(true);
 }
 
-FDynamicEmitterDataBase* UParticleSystemComponent::CreateDynamicDataFromReplay(FParticleEmitterInstance* EmitterInstance,
-    const FDynamicEmitterReplayDataBase* EmitterReplayData, bool bSelected)
-{
-    switch( EmitterReplayData->eEmitterType )
-    {
-    case DET_Unknown:
-        break;
-    case DET_Sprite:
-        break;
-    case DET_Mesh:
-        break;
-    case DET_Beam2:
-        break;
-    case DET_Ribbon:
-        break;
-    case DET_AnimTrail:
-        break;
-    case DET_Custom:
-        break;
-    }
-
-    return nullptr;
-}
-
 void UParticleSystemComponent::ClearDynamicData()
 {
 
-}
-
-void UParticleSystemComponent::UpdateDynamicData()
-{
 }
 
 void UParticleSystemComponent::InitParticles()
@@ -752,22 +772,6 @@ void UParticleSystemComponent::ResetBurstLists()
         if (EmitterInstances[i])
         {
             //EmitterInstances[i]->ResetBurstList();
-        }
-    }
-}
-
-void UParticleSystemComponent::UpdateInstances(bool bEmptyInstances)
-{
-    if (IsRegistered())
-    {
-        ResetParticles(bEmptyInstances);
-
-        InitializeSystem();
-        ActivateSystem();
-
-        if (Template)
-        {
-            //UpdateComponentToWorld();
         }
     }
 }
@@ -950,6 +954,34 @@ void UParticleSystemComponent::RewindEmitterInstances()
         }
     }
 }
+#pragma endregion 
 
+void UParticleSystemComponent::InitializeComponent()
+{
+    UPrimitiveComponent::InitializeComponent();
 
+    CreateQuadTextureVertexBuffer();
+}
+
+void UParticleSystemComponent::CreateQuadTextureVertexBuffer()
+{
+    FRenderer& Renderer = GEngineLoop.Renderer;
+    FRenderResourceManager* ResourceManager = Renderer.GetResourceManager();
+    
+    if (ResourceManager->GetVertexBuffer(TEXT("QuadVB")) && ResourceManager->GetVertexBuffer(TEXT("QuadIB")))
+    {
+        VBIBTopologyMappingName = TEXT("Quad");
+        return;
+    }
+    
+    ID3D11Buffer* VB = ResourceManager->CreateImmutableVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
+    ResourceManager->AddOrSetVertexBuffer(TEXT("QuadVB"), VB);
+    Renderer.MappingVBTopology(TEXT("Quad"), TEXT("QuadVB"), sizeof(FVertexTexture), 4);
+
+    ID3D11Buffer* IB = ResourceManager->CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices) / sizeof(uint32));
+    ResourceManager->AddOrSetIndexBuffer(TEXT("QuadIB"), IB);
+    Renderer.MappingIB(TEXT("Quad"), TEXT("QuadIB"), sizeof(quadTextureInices) / sizeof(uint32));
+
+    VBIBTopologyMappingName = TEXT("Quad");
+}
 
