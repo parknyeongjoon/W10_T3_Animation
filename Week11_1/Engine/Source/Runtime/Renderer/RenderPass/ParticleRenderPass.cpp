@@ -20,7 +20,7 @@
 #include "Components/PrimitiveComponents/ParticleSystemComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/SkySphereComponent.h"
 #include "LevelEditor/SLevelEditor.h"
-#include "Paritcles/ParticleHelper.h"
+#include "Particles/ParticleHelper.h"
 #include "Renderer/ComputeShader/ComputeTileLightCulling.h"
 
 #include "UObject/UObjectIterator.h"

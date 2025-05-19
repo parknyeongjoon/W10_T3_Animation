@@ -479,22 +479,21 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\FFunctor.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\AnimSequenceEditorPanel.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\FBXLoader.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Paritcles\ParticleHelper.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Paritcles\ParticleEmitterInstance.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleHelper.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstance.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowResource.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\ParticleSystemComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModule.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleRequired.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleSpawn.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleLifetime.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleLocation.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleVelocity.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleColor.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleSize.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleRequired.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSpawn.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLifetime.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLocation.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleVelocity.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleColor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSize.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Misc\Optional.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Templates\IsArray.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Templates\IsCharType.h" />
@@ -525,6 +524,8 @@
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\FunctionRegistry.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\Distributions.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModule.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemWorldManager.h" />
   </ItemGroup>
   <ItemGroup>
@@ -768,6 +769,14 @@
     <ClCompile Include="Engine\Source\Runtime\Serialization\Archive.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleRequired.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSpawn.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLifetime.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstance.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModule.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\ParticleSystemComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemWorldManager.cpp" />
   </ItemGroup>

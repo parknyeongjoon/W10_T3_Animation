@@ -150,10 +150,13 @@ struct FDynamicEmitterDataBase
     int32 EmitterIndex;
     
     virtual const FDynamicEmitterReplayDataBase& GetSource() const = 0;
+
+    virtual int const GetDynamicVertexStride() const = 0;
 };
 
 struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
 {
+
     FDynamicSpriteEmitterReplayDataBase Source;
     
     /** Returns the source data for this particle system */
@@ -163,8 +166,11 @@ struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
     }
     
     void SortSpriteParticles();
-    virtual int32 GetDynamicVertexStride() const = 0;
     
+    
+    FDynamicEmitterReplayDataBase& GetSource();
+
+    //int GetDynamicVertexStride() const;
 };
 
 struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
@@ -177,7 +183,7 @@ struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 		return Source;
 	}
     
-    virtual int32 GetDynamicVertexStride() const override
+    virtual int32 const GetDynamicVertexStride() const override
     {
         return sizeof(FParticleSpriteVertex);
     }
@@ -185,10 +191,10 @@ struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 
 struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
 {
-    virtual int32 GetDynamicVertexStride() const override
+    /*virtual int32 GetDynamicVertexStride() const override
     {
         return sizeof(FMeshParticleInstanceVertex);
-    }
+    }*/
 };
 
 #define DECLARE_PARTICLE(Name,Address)		\
