@@ -1,7 +1,7 @@
 #pragma once
+#include "PrimitiveComponent.h"
 #include "Container/Array.h"
 #include "Particles/ParticleSystem.h"
-#include "PrimitiveComponent.h"
 #include "Container/EnumAsByte.h"
 
 enum EParticleSysParamType : int
@@ -274,13 +274,14 @@ struct FParticleEventKismetData : public FParticleEventData
 };
 
 
-class  UParticleSystemComponent : public UPrimitiveComponent
+class UParticleSystemComponent : public UPrimitiveComponent
 {
     friend class FParticleSystemWorldManager;
     
     DECLARE_CLASS(UParticleSystemComponent, UPrimitiveComponent)
 public:
     UParticleSystemComponent();
+    ~UParticleSystemComponent() override;
     
     TArray<struct FParticleEmitterInstance*> EmitterInstances;
     UParticleSystem* Template;
@@ -386,6 +387,8 @@ private:
     int32 bPendingManagerRemove : 1;
     
 public:
+    virtual bool Editor_CanBeTickManaged()const { return true; }
+    bool ShouldBeTickManaged()const;
 
     FORCEINLINE bool IsTickManaged()const { return ManagerHandle != INDEX_NONE && !IsPendingManagerRemove(); }
     FORCEINLINE int32 GetManagerHandle()const { return ManagerHandle; }

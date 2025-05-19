@@ -6,45 +6,48 @@
 
 TMap<UWorld*, FParticleSystemWorldManager*> FParticleSystemWorldManager::WorldManagers = {};
 
-void FParticleSystemWorldManager::OnWorldInit(UWorld* World)
+int32 GbEnablePSCWorldManager = 1;
+
+void FParticleSystemWorldManager::OnWorldInit(UWorld* InWorld)
 {
-    FParticleSystemWorldManager* NewWorldMan = new FParticleSystemWorldManager(World);
-    WorldManagers.Add(World, NewWorldMan);
+    FParticleSystemWorldManager* NewWorldMan = new FParticleSystemWorldManager(InWorld);
+    WorldManagers.Add(InWorld, NewWorldMan);
 }
 
-void FParticleSystemWorldManager::OnWorldCleanup(UWorld* World)
+void FParticleSystemWorldManager::OnWorldCleanup(UWorld* InWorld)
 {
-    if (FParticleSystemWorldManager** WorldMan = WorldManagers.Find(World))
+    if (FParticleSystemWorldManager** WorldMan = WorldManagers.Find(InWorld))
     {
-        UE_LOG(LogLevel::Warning, TEXT("| OnWorldCleanup | WorldMan: %p | World: %p | %s |"), *WorldMan, World, GetData(World->GetName()));
+        UE_LOG(LogLevel::Warning, TEXT("| OnWorldCleanup | WorldMan: %p | World: %p | %s |"), *WorldMan, InWorld, GetData(InWorld->GetName()));
         delete (*WorldMan);
-        WorldManagers.Remove(World);
+        WorldManagers.Remove(InWorld);
     }
 }
 
-void FParticleSystemWorldManager::OnPreWorldFinishDestroy(UWorld* World)
+void FParticleSystemWorldManager::OnPreWorldFinishDestroy(UWorld* InWorld)
 {
-    if (FParticleSystemWorldManager** WorldMan = WorldManagers.Find(World))
+    if (FParticleSystemWorldManager** WorldMan = WorldManagers.Find(InWorld))
     {
-        UE_LOG(LogLevel::Warning, TEXT("| OnPreWorldFinishDestroy | WorldMan: %p | World: %p | %s |"), *WorldMan, World, GetData(World->GetName()));
+        UE_LOG(LogLevel::Warning, TEXT("| OnPreWorldFinishDestroy | WorldMan: %p | World: %p | %s |"), *WorldMan, InWorld, GetData(InWorld->GetName()));
         delete (*WorldMan);
-        WorldManagers.Remove(World);
+        WorldManagers.Remove(InWorld);
     }
 }
 
-void FParticleSystemWorldManager::OnWorldBeginTearDown(UWorld* World)
+void FParticleSystemWorldManager::OnWorldBeginTearDown(UWorld* InWorld)
 {
-    if (FParticleSystemWorldManager** WorldMan = WorldManagers.Find(World))
+    if (FParticleSystemWorldManager** WorldMan = WorldManagers.Find(InWorld))
     {
-        UE_LOG(LogLevel::Warning, TEXT("| OnWorldBeginTearDown | WorldMan: %p | World: %p | %s |"), *WorldMan, World, GetData(World->GetName()));
+        UE_LOG(LogLevel::Warning, TEXT("| OnWorldBeginTearDown | WorldMan: %p | World: %p | %s |"), *WorldMan, InWorld, GetData(InWorld->GetName()));
         delete (*WorldMan);
-        WorldManagers.Remove(World);
+        WorldManagers.Remove(InWorld);
     }
 }
 
 FParticleSystemWorldManager::FParticleSystemWorldManager(UWorld* InWorld)
 {
     bCachedParticleWorldManagerEnabled = GbEnablePSCWorldManager;
+    World = InWorld;
 }
 
 FParticleSystemWorldManager::~FParticleSystemWorldManager()

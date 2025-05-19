@@ -39,6 +39,23 @@ UParticleSystemComponent::UParticleSystemComponent()
     bPendingManagerRemove = false;
 }
 
+UParticleSystemComponent::~UParticleSystemComponent()
+{
+    Template = nullptr;
+}
+
+bool UParticleSystemComponent::ShouldBeTickManaged() const
+{
+    if (!Editor_CanBeTickManaged())
+    {
+        return false;
+    }
+    return
+        GbEnablePSCWorldManager &&
+        Template && Template->AllowManagedTicking() &&
+        GetAttachChildren().Num() == 0; //Don't batch tick if people are attached and dependent on us.
+}
+
 FParticleSystemWorldManager* UParticleSystemComponent::GetWorldManager() const
 {
     return FParticleSystemWorldManager::Get(GetWorld());
@@ -47,12 +64,15 @@ FParticleSystemWorldManager* UParticleSystemComponent::GetWorldManager() const
 void UParticleSystemComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
+    // 여기까지는 잘 들어옴
     if (Template == nullptr || Template->Emitters.Num() == 0)
     {
         // Disable our tick here, will be enabled when activating
         SetComponentTickEnabled(false);
         return;
     }
+
+    // 여기서 부터는 UParticleSystem의 Emitter가 추가되어야 하는 듯?
 
     if (TimeSinceLastTick + static_cast<uint32>(DeltaTime*1000.0f) < Template->MinTimeBetweenTicks)
     {
@@ -141,28 +161,42 @@ void UParticleSystemComponent::SetComponentTickEnabled(bool bEnabled)
     if (GetWorld() == nullptr)
         return;
 
+    bool bShouldTickBeManaged = ShouldBeTickManaged();
     bool bIsTickManaged = IsTickManaged();
     
-    FParticleSystemWorldManager* PSCMan = bIsTickManaged ?  GetWorldManager() : nullptr; 
+    FParticleSystemWorldManager* PSCMan = bShouldTickBeManaged || bIsTickManaged ? GetWorldManager() : nullptr; 
 
 
-    if (bIsTickManaged && PSCMan == nullptr)
+    if ((bShouldTickBeManaged || bIsTickManaged) && PSCMan == nullptr)
     {
         Super::SetComponentTickEnabled(bEnabled);
         return;
     }
 
-    Super::SetComponentTickEnabled(false); //Ensure we're not ticking via task graph.
-    if (bEnabled)
+    if (bShouldTickBeManaged)
     {
-        if (!PSCMan->RegisterComponent(this))
+        Super::SetComponentTickEnabled(false); //Ensure we're not ticking via task graph.
+        if (bEnabled)
         {
-            UE_LOG(LogLevel::Warning, TEXT("Failed to register with the PSC world manager"));
+            if (!PSCMan->RegisterComponent(this))
+            {
+                UE_LOG(LogLevel::Warning, TEXT("Failed to register with the PSC world manager"));
+            }
+        }
+        else if (bIsTickManaged)
+        {
+            PSCMan->UnregisterComponent(this);
         }
     }
-    else if (bIsTickManaged)
+    else
     {
-        PSCMan->UnregisterComponent(this);
+        //Make sure we're not ticking via the manager.
+        if (bIsTickManaged)
+        {
+            PSCMan->UnregisterComponent(this);
+        }
+
+        Super::SetComponentTickEnabled(bEnabled);
     }
 }
 
@@ -398,11 +432,6 @@ void UParticleSystemComponent::ForceReset()
 
 void UParticleSystemComponent::ActivateSystem(bool bFlagAsJustAttached)
 {
-    if (Template != nullptr)
-    {
-        return;
-    }
-
     bOldPositionValid = false;
     OldPosition = FVector::ZeroVector;
     PartSysVelocity = FVector::ZeroVector;
@@ -839,7 +868,7 @@ void UParticleSystemComponent::InitializeSystem()
 {
     if( GIsAllowingParticles)
     {
-        if( Template != NULL )
+        if( Template != nullptr )
         {
             //EmitterDelay = Template->Delay;
 

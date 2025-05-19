@@ -332,7 +332,8 @@ T* AActor::AddComponent(EComponentOrigin Origin)
     }
 
     // TODO: RegisterComponent() 생기면 제거
-    Component->InitializeComponent();
+    //Component->InitializeComponent();
+    Component->RegisterComponent();
     Component->ComponentOrigin = Origin;
 
     return Component;

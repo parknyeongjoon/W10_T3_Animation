@@ -2,6 +2,29 @@
 
 #include "ParticleModule.h"
 
+UParticleSystem::UParticleSystem()
+    : Super()
+    , bAnyEmitterLoopsForever(false)
+    , bShouldManageSignificance(false)
+    , bIsImmortal(false)
+    , bWillBecomeZombie(false)
+{
+    ThumbnailDistance = 200.0;
+    ThumbnailWarmup = 1.0;
+
+    UpdateTime_FPS = 60.0f;
+    UpdateTime_Delta = 1.0f/60.0f;
+    WarmupTime = 0.0f;
+    WarmupTickRate = 0.0f;
+    
+    bAutoDeactivate = true;
+    MinTimeBetweenTicks = 0;
+    InsignificanceDelay = 0.0f;
+    MaxPoolSize = 32;
+
+    bAllowManagedTicking = true;
+}
+
 bool UParticleSystem::CanBePooled()const
 {
     if (MaxPoolSize == 0)

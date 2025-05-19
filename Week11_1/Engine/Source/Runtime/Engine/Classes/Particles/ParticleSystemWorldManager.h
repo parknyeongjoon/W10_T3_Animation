@@ -14,10 +14,10 @@ private:
     static TMap<UWorld*, FParticleSystemWorldManager*> WorldManagers;
     
 public: 
-    static void OnWorldInit(UWorld* World);
-    static void OnWorldCleanup(UWorld* World);
+    static void OnWorldInit(UWorld* InWorld);
+    static void OnWorldCleanup(UWorld* InWorld);
     static void OnPreWorldFinishDestroy(UWorld* World);
-    static void OnWorldBeginTearDown(UWorld* World);
+    static void OnWorldBeginTearDown(UWorld* InWorld);
 
     FORCEINLINE static FParticleSystemWorldManager* Get(UWorld* World)
     {

@@ -129,6 +129,7 @@ public:
     /** 시스템이 불멸인지 여부 확인 (무한 루프 + 무제한 지속시간) */
     bool IsImmortal() const { return bIsImmortal; }
 
+    bool AllowManagedTicking()const { return bAllowManagedTicking; }
 private:
     /** 중요도 관리를 해야 하는지 여부 */
     bool bShouldManageSignificance;
