@@ -1,6 +1,6 @@
 #include "ParticleModuleRequired.h"
 #include "Runtime/Engine/Particles/ParticleHelper.h"
-#include "Runtime/Engine/Particles/ParticleEmitterInstance.h"
+#include "Runtime/Engine/Particles/ParticleEmitterInstances.h"
 
 UParticleModuleRequired::UParticleModuleRequired()
 {

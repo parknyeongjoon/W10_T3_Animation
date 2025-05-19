@@ -259,12 +259,11 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSpawn.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstance.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemWorldManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowResource.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Paritcles\ParticleEmitterInstances.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstances.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Skeletal\SkeletalDefine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\PlayerCameraManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\AssetManager.cpp" />
@@ -499,6 +498,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\Skeleton.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Mesh\SkeletalMesh.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ParticleSystemComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\MeshComponents\SkeletalMeshComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.h" />
@@ -524,6 +524,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerController.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerInput.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\ParticleSystemComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModule.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleColor.h" />
@@ -537,9 +538,8 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemWorldManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowResource.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstance.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Paritcles\ParticleEmitterInstances.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Paritcles\ParticleHelper.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstances.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Skeletal\SkeletalDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\InputCore\InputCoreTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\ShowFlags.h" />

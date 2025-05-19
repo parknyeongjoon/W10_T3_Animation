@@ -2,7 +2,7 @@
 
 #include "LaunchEngineLoop.h"
 #include "QuadTexture.h"
-#include "Paritcles/ParticleEmitterInstances.h"
+#include "Particles/ParticleEmitterInstances.h"
 #include "Particles/ParticleSystemWorldManager.h"
 #include "Engine/Classes/Engine/World.h"
 #include "Renderer/Renderer.h"

@@ -5,7 +5,8 @@
 #include "Container/EnumAsByte.h"
 
 struct FParticleEmitterInstance;
-
+struct FDynamicEmitterDataBase;
+struct FDynamicEmitterReplayDataBase;
 #pragma region structs
 
 enum EParticleSysParamType : int

@@ -183,7 +183,7 @@ struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 		return Source;
 	}
     
-    virtual int32 GetDynamicVertexStride() const override
+    virtual int32 const GetDynamicVertexStride() const override
     {
         return sizeof(FParticleSpriteVertex);
     }
