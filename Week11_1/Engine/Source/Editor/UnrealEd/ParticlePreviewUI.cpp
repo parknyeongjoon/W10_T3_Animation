@@ -38,7 +38,7 @@ void FParticlePreviewUI::Initialize(SLevelEditor* LevelEditor, float Width, floa
     CurvePanel->BindUI(this);
 
     // TEST CASES
-    for (int j = 0; j < 5; j++)
+    /*for (int j = 0; j < 5; j++)
     {
         UParticleSystem* NewParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(nullptr);
         for(int i = 0; i < 5; i++)
@@ -70,7 +70,7 @@ void FParticlePreviewUI::Initialize(SLevelEditor* LevelEditor, float Width, floa
             NewParticleSystem->Emitters.Add(NewEmitter);
         }
         AddParticleSytstem(NewParticleSystem);
-    }
+    }*/
 }
 
 void FParticlePreviewUI::Render() const

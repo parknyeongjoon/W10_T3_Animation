@@ -7,6 +7,7 @@
 #include "Engine/Particles/ParticleHelper.h"
 #include <Engine/Texture.h>
 #include "Classes/Particles/ParticleLODLevel.h"
+#include "ParticleMacros.h"
 
 void FParticleEmitterInstance::Init(int32 InMaxParticles)
 {
