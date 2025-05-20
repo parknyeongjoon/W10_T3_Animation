@@ -1,7 +1,8 @@
 #pragma once
 
 #include "ParticleModule.h"
-#include "Classes/Distributions/Distributions.h"
+#include "Classes/Distributions/DistributionFloat.h"
+#include "Classes/Distributions/DistributionVector.h"
 
 class UParticleModuleSpawn : public UParticleModule
 {
@@ -10,9 +11,20 @@ class UParticleModuleSpawn : public UParticleModule
 public:
     UParticleModuleSpawn();
     // Property 스폰
-    FRawDistributionFloat Rate;
 
-    FRawDistributionFloat RateScale;
+    UPROPERTY(
+        EditAnywhere,
+        FRawDistributionFloat,
+        Rate,
+        = {}
+    )
+
+    UPROPERTY(
+        EditAnywhere,
+        FRawDistributionFloat,
+        RateScale,
+        = {}
+    )
 
     // Property :: 파티클 시스템
     float UpdateTimeFPS = 60.0f;

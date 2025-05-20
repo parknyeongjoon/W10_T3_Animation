@@ -1,14 +1,19 @@
 #pragma once
 
 #include "ParticleModule.h"
-#include "Classes/Distributions/Distributions.h"
+#include "Classes/Distributions/DistributionFloat.h"
 
 class UParticleModuleLifeTime : public UParticleModule
 {
 DECLARE_CLASS(UParticleModuleLifeTime, UParticleModule)
 public :
     // 파티클 수명
-    //FRawDistributionFloat Lifetime;
+    UPROPERTY(
+        EditAnywhere,
+        FRawDistributionFloat,
+        Lifetime,
+        = {}
+    )
 
 public:
     UParticleModuleLifeTime() = default;

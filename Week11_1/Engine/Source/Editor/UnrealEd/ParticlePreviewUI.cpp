@@ -61,6 +61,11 @@ void FParticlePreviewUI::Initialize(SLevelEditor* LevelEditor, float Width, floa
                 }
 
             }
+
+            for (auto& Module : NewLODLevel->Modules)
+            {
+                Module->InitializeDefaults();
+            }
             NewEmitter->LODLevels.Add(NewLODLevel);
             NewParticleSystem->Emitters.Add(NewEmitter);
         }
