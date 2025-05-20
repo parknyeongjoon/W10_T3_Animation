@@ -207,6 +207,7 @@ struct alignas(16) FMatrixSeparatedMVPConstants
     FMatrix Model;
     FMatrix View;
     FMatrix Proj;
+    FMatrix InvView;
 };
 
 struct alignas(16) FConstatntBufferActor

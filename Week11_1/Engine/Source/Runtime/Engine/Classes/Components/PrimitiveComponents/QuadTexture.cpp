@@ -8,8 +8,8 @@ uint32 quadTextureInices[] =
 
 FVertexTexture quadTextureVertices[] =
 {
-    {-1.0f,1.0f,0.0f,0.0f,0.0f},
-    { 1.0f,1.0f,0.0f,1.0f,0.0f},
-    {-1.0f,-1.0f,0.0f,0.0f,1.0f},
-    { 1.0f,-1.0f,0.0f,1.0f,1.0f}
+    {   -1.0f,  1.0f,   0.0f,   0.0f,0.0f},
+    {    1.0f,  1.0f,   0.0f,   1.0f,0.0f},
+    {   -1.0f,  -1.0f,  0.0f,   0.0f,1.0f},
+    {    1.0f,  -1.0f,  0.0f,   1.0f,1.0f}
 };

@@ -152,12 +152,15 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
     
     FMatrix View = FMatrix::Identity;
     FMatrix Proj = FMatrix::Identity;
-
+    FMatrix InvView = FMatrix::Identity;
+    
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
+
     if (curEditorViewportClient != nullptr)
     {
         View = curEditorViewportClient->GetViewMatrix();
         Proj = curEditorViewportClient->GetProjectionMatrix();
+        InvView = curEditorViewportClient->GetInvViewMatrix();
     }
     
     UpdateCameraConstant(InViewportClient);
@@ -168,11 +171,9 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
     
     for (UParticleSystemComponent* ParticleSystemComponent : ParticleSystemComponents)
     {
-        //ParticleComponent가 움직이면 Particle도 같이 움직여야하기 때문에 Model값 가져가야함
-        UpdateMatrixConstants(ParticleSystemComponent, View, Proj);
-        
         for (FDynamicEmitterDataBase* ParticleRenderData : ParticleSystemComponent->EmitterRenderData)
         {   //EmitterRenderData에는 현존하는 파티클들이 담겨있음.
+
             switch (ParticleRenderData->GetSource().eEmitterType)
             {
                 case DET_Unknown:
@@ -250,6 +251,11 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                             Texture = Source.Texture;
                         }
 
+                        // if (curEditorViewportClient != nullptr)
+                        // {
+                        //     View = curEditorViewportClient->GetBillboardViewMatrix();
+                        // }
+                        
                         ID3D11InputLayout* ParticleInputLayout = Renderer.GetResourceManager()->GetInputLayout(TEXT("SpriteParticle"));
                         //Quad인 경우 Quad값 IASetVertexBuffer(0)에다 박고 1은 렌더데이터 돌면서 애들 다른애들마다 박아줘야함
                         UpdateInstanceBuffer<FParticleSpriteVertex>(Graphics.DeviceContext, SpriteParticleInstanceBuffer, ParticleInputLayout, InstanceVertices, VertexStride);
@@ -289,7 +295,9 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
             default:
                 break;
             }
-            
+            //ParticleComponent가 움직이면 Particle도 같이 움직여야하기 때문에 Model값 가져가야함
+            UpdateMatrixConstants(ParticleSystemComponent, View, Proj, InvView);
+
             //일단 쿼드기준으로 그리기
             Graphics.DeviceContext->DrawIndexedInstanced(
                 6,               // indexCount (쿼드 하나 = 2 tri = 6 index)
@@ -351,7 +359,8 @@ void FParticleRenderPass::ClearRenderObjects()
     LightComponents.Empty();
 }
 
-void FParticleRenderPass::UpdateMatrixConstants(UParticleSystemComponent* InParticleSystemComponent, const FMatrix& InView, const FMatrix& InProjection)
+void FParticleRenderPass::UpdateMatrixConstants(UParticleSystemComponent* InParticleSystemComponent, const FMatrix& InView, const FMatrix& InProjection, const FMatrix&
+                                                InInvView)
 {
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     // MVP Update
@@ -361,7 +370,8 @@ void FParticleRenderPass::UpdateMatrixConstants(UParticleSystemComponent* InPart
     MatrixConstants.Model = Model;
     MatrixConstants.View = InView;
     MatrixConstants.Proj = InProjection;
-
+    MatrixConstants.InvView = InInvView;
+    
     renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixSeparatedMVPConstants"), &MatrixConstants);
 }
 

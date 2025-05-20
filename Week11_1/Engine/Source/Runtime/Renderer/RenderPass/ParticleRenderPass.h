@@ -24,7 +24,8 @@ public:
 
     // void UpdateComputeResource();
 private:
-    static void UpdateMatrixConstants(UParticleSystemComponent* InParticleSystemComponent, const FMatrix& InView, const FMatrix& InProjection);
+    static void UpdateMatrixConstants(UParticleSystemComponent* InParticleSystemComponent, const FMatrix& InView, const FMatrix& InProjection, const FMatrix&
+                                      InInvView);
     static void UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo);
     void UpdateFlagConstant();
     void UpdateLightConstants();

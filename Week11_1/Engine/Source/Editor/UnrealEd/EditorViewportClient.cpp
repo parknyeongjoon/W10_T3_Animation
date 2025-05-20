@@ -632,6 +632,12 @@ void FEditorViewportClient::PivotMoveUp(const float Value)
     }
 }
 
+void FEditorViewportClient::SetViewMatrix(FMatrix& InViewMatrix)
+{
+    View = InViewMatrix;
+    InvView = FMatrix::Inverse(InViewMatrix);
+}
+
 void FEditorViewportClient::UpdateViewMatrix()
 {
     if (!OverrideComponent)
@@ -640,25 +646,28 @@ void FEditorViewportClient::UpdateViewMatrix()
         {
             NearPlane = 0.1f;
             FarPlane = 1000.f;
-            View = JungleMath::CreateViewMatrix(ViewTransformPerspective.GetLocation(),
+            FMatrix NewView = JungleMath::CreateViewMatrix(ViewTransformPerspective.GetLocation(),
                 ViewTransformPerspective.GetLocation() + ViewTransformPerspective.GetForwardVector(),
                 FVector{ 0.0f,0.0f, 1.0f }
             );
+            SetViewMatrix(NewView);
         }
         else
         {
             UpdateOrthoCameraLoc();
             if (ViewportType == LVT_OrthoXY || ViewportType == LVT_OrthoNegativeXY)
             {
-                View = JungleMath::CreateViewMatrix(ViewTransformOrthographic.GetLocation(),
+                FMatrix NewView = JungleMath::CreateViewMatrix(ViewTransformOrthographic.GetLocation(),
                     Pivot, FVector(0.0f, -1.0f, 0.0f)
                 );
+                SetViewMatrix(NewView);
             }
             else
             {
-                View = JungleMath::CreateViewMatrix(ViewTransformOrthographic.GetLocation(),
+                FMatrix NewView = JungleMath::CreateViewMatrix(ViewTransformOrthographic.GetLocation(),
                     Pivot, FVector(0.0f, 0.0f, 1.0f)
                 );
+                SetViewMatrix(NewView);
             }
         }
     }
@@ -666,16 +675,19 @@ void FEditorViewportClient::UpdateViewMatrix()
     {
         if (const USpotLightComponent* SpotLight = Cast<USpotLightComponent>(OverrideComponent))
         {
-            View = SpotLight->GetViewMatrix();
-        }
+            FMatrix NewView = SpotLight->GetViewMatrix();
+            SetViewMatrix(NewView);
+    }
         if (const UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(OverrideComponent))
         {
-            View = DirectionalLight->GetViewMatrix();
-        }
+            FMatrix NewView = DirectionalLight->GetViewMatrix();
+            SetViewMatrix(NewView);
+    }
         if (const UCameraComponent* PlayerCamera = Cast<UCameraComponent>(OverrideComponent))
         {
-            View = PlayerCamera->GetViewMatrix();
-        }
+            FMatrix NewView = PlayerCamera->GetViewMatrix();
+            SetViewMatrix(NewView);
+    }
     }
 }
 

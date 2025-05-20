@@ -132,7 +132,7 @@ struct FDynamicEmitterReplayDataBase
 
 struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBase
 {
-    // FIXME : UMaterial로 변경.
+    // TODO: UMaterial로 변경.
     //UMaterial* MaterialInterface;
     FTexture* Texture;
     //struct UParticleModuleRequired* RequiredModule;
