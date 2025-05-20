@@ -6,7 +6,7 @@
 
 class UParticleModule;
 class UParticleModuleRequired;
-struct UParticleModuleTypeDataBase;
+class UParticleModuleTypeDataBase;
 
 class UParticleLODLevel : public UObject
 {

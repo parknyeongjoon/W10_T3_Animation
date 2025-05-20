@@ -25,12 +25,6 @@ public:
 
     bool IsUpdateModule();
 
-    virtual void InitializeDefaults();
-
-    virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime);
-
-    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp);
-
     // 에디터에서 Property 변경 시 호출
     virtual void PostEditChangeProperty();
 
