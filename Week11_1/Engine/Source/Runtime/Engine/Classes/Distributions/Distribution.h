@@ -3,12 +3,6 @@
 #include "UObject/ObjectMacros.h"
 #include "UObject/Object.h"
 
-enum class EDistributionMode
-{
-    EDM_Constant,
-    EDM_UniformRandom
-};
-
 /** Lookup table for distributions. */
 //struct FDistributionLookupTable
 //{
@@ -38,8 +32,6 @@ enum class EDistributionMode
 struct FRawDistribution
 {
     DECLARE_STRUCT(FRawDistribution)
-
-    EDistributionMode Mode = EDistributionMode::EDM_Constant;
     //UPROPERTY(
     //    FDistributionLookupTable,
     //    Table
