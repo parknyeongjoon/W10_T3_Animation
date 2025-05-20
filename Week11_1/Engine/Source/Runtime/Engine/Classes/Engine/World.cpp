@@ -20,6 +20,10 @@
 #include "UObject/UObjectArray.h"
 #include "UnrealEd/PrimitiveBatch.h"
 #include "Components/PrimitiveComponents/ParticleSystemComponent.h"
+#include <Particles/ParticleModule.h>
+#include "Particles/ParticleEmitter.h"
+#include "Particles/ParticleLODLevel.h"
+#include "Serialization/Serializer.h"
 
 void UWorld::InitWorld()
 {
@@ -67,7 +71,29 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
         // TODO : 삭제해야 될 Test 코드
         AActor* TestActor = SpawnActor<AActor>();
         UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
-        TestComp->Template = FObjectFactory::ConstructObject<UParticleSystem>(this);
+        UParticleSystem* TestParticleSystem = Cast<UParticleSystem>(Serializer::LoadFromFile(TEXT("Contents/Particles/TestParticle.uasset")));
+        if (TestParticleSystem == nullptr)
+        {
+            TestParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(nullptr);
+            UParticleEmitter* TestEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
+
+            UParticleLODLevel* TestLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
+
+            UParticleModule* TestModule = FObjectFactory::ConstructObject<UParticleModule>(nullptr);
+
+            TestLODLevel->Modules.Add(TestModule);
+            TestEmitter->LODLevels.Add(TestLODLevel);
+            TestParticleSystem->Emitters.Add(TestEmitter);
+        }
+        TestComp->Template = TestParticleSystem;
+        if (Serializer::SaveToFile(TestParticleSystem, TEXT("Contents/Particles/TestParticle.uasset")))
+        {
+            UE_LOG(LogLevel::Display, TEXT("Save Succeess test particles"));
+        }
+        else
+        {
+            UE_LOG(LogLevel::Display, TEXT("Save Failed  test particles"));
+        }
         TestComp->Activate();
     }
 }

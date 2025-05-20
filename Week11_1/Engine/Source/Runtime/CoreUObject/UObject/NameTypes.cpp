@@ -416,14 +416,39 @@ FName::FName(const WIDECHAR* Name)
 {
 }
 
+FName::FName(const WIDECHAR* Name, uint32 Len)
+    : FName(FNameHelper::MakeFName(Name, Len))
+{
+}
+
 FName::FName(const ANSICHAR* Name)
     : FName(FNameHelper::MakeFName(Name))
+{
+}
+
+FName::FName(const ANSICHAR* Name, uint32 Len)
+    : FName(FNameHelper::MakeFName(Name, Len))
 {
 }
 
 FName::FName(const FString& Name)
     : FName(FNameHelper::MakeFName(*Name, Name.Len()))
 {
+}
+
+bool FName::operator==(ENameNone) const
+{
+    return ComparisonIndex == NAME_None;
+}
+
+bool FName::operator!=(const FName& Other) const
+{
+    return ComparisonIndex != Other.ComparisonIndex;
+}
+
+bool FName::operator!=(ENameNone) const
+{
+    return ComparisonIndex != NAME_None;
 }
 
 FString FName::ToString() const
@@ -435,10 +460,14 @@ FString FName::ToString() const
 
     // TODO: WIDECHAR에 대응 해야함
     FNameEntry Entry = FNamePool::Get().Resolve(DisplayIndex);
-    return {
-        // Entry.Header.IsWide ? Entry.WideName : Entry.AnsiName
-        Entry.AnsiName
-    };
+    if (Entry.Header.IsWide)
+    {
+        return {Entry.WideName};
+    }
+    else
+    {
+        return {Entry.AnsiName};
+    }
 }
 
 bool FName::operator==(const FName& Other) const

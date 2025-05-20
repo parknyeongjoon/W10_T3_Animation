@@ -3,7 +3,16 @@
 
 class UParticleModule : public UObject
 {
+    DECLARE_CLASS(UParticleModule, UObject)
+public:
+    UParticleModule();
+
+    UPROPERTY(EditAnywhere, int, TestNum, = 0);
 };
+
+inline UParticleModule::UParticleModule()
+{
+}
 
 /*
 UParticleModuleRequired: Emitter에 필수적인 설정을 포함하며, 파티클의 기본 속성들을 정의합니다.

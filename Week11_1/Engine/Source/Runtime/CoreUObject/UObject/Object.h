@@ -3,6 +3,7 @@
 #include "Container/String.h"
 #include "sol/sol.hpp"
 
+class FArchive2;
 class UWorld;
 class UClass;
 class AActor;
@@ -155,5 +156,6 @@ public:
     //void operator delete(void* Ptr, size_t Size);
 public:
     // Serialize
-
+    /** 이 객체의 UPROPERTY들을 읽거나 쓰는 직렬화 함수 */
+    virtual void Serialize(FArchive2& Ar);
 };

@@ -25,6 +25,32 @@ UParticleSystem::UParticleSystem()
     bAllowManagedTicking = true;
 }
 
+UParticleSystem::~UParticleSystem()
+{
+}
+
+bool UParticleSystem::LoadFromFile(const FString& filepath)
+{
+    return true;
+}
+
+bool UParticleSystem::SerializeToFile(std::ostream& Out)
+{
+    // 1) 클래스명 헤더
+    Out << GetClass()->GetName() << "\n";
+    // 2) 리플렉션으로 모든 UPROPERTY 순회
+    for (FProperty* Prop : GetClass()->GetProperties())
+    {
+        FString PropertyName = Prop->Name;
+    }
+    return true;
+}
+
+bool UParticleSystem::DeserializeFromFile(std::istream& In)
+{
+    return true;
+}
+
 bool UParticleSystem::CanBePooled()const
 {
     if (MaxPoolSize == 0)

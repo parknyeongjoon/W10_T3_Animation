@@ -1,9 +1,12 @@
 #pragma once
 #include <fstream>
 
+#include "Container/Array.h"
 #include "Container/String.h"
 
-struct Serializer
+class UObject;
+
+namespace Serializer
 {
     /* Write FString */
     static void WriteFString(std::ofstream& Stream, const FString& InString)
@@ -44,4 +47,18 @@ struct Serializer
         InString = Buffer;
         delete[] Buffer;
     }
+
+    // 메모리 버퍼에 직렬화
+    void Save(const UObject* Obj, TArray<uint8>& OutBytes);
+    
+    // 메모리 버퍼에서 역직렬화
+    UObject* Load(const TArray<uint8>& InBytes);
+    
+    // 깊은 복제
+    UObject* Duplicate(const UObject* Obj);
+
+    bool SaveToFile(const UObject* Obj, const std::string& FilePath);
+
+    // 파일에서 읽기
+    UObject* LoadFromFile(const std::string& FilePath);
 };

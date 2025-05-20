@@ -36,9 +36,9 @@ TMap<FName, UClass*>& UClass::GetClassMap()
 
 UClass* UClass::FindClass(const FName& ClassName)
 {
-    if (UClass** It = GetClassMap().Find(ClassName))
+    if(GetClassMap().Contains(ClassName))
     {
-        return *It;
+        return GetClassMap()[ClassName];
     }
     return nullptr;
 }

@@ -8,10 +8,21 @@ struct UParticleModuleTypeDataBase;
 
 class UParticleLODLevel : public UObject
 {
-    int32 Level;
-    bool bEnabled;
+    DECLARE_CLASS(UParticleLODLevel, UObject)
+public:
+    UParticleLODLevel() = default;
+    ~UParticleLODLevel() override;
 
-    UParticleModuleRequired* RequiredModule;
+    int32 Level = 0;
+    bool bEnabled = false;
+
+public:
+    UParticleModuleRequired* RequiredModule = nullptr;
     TArray<UParticleModule*> Modules;
-    UParticleModuleTypeDataBase* TypeDataModule;
+    UParticleModuleTypeDataBase* TypeDataModule = nullptr;
 };
+
+inline UParticleLODLevel::~UParticleLODLevel()
+{
+}
+

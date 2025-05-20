@@ -1,16 +1,21 @@
 #pragma once
 #include "Container/Array.h"
-#include "CoreUObject/UObject/Object.h"
 #include "ParticleEmitter.h"
-#include "UObject/ObjectMacros.h"
+#include "Engine/Asset/Asset.h"
 
 class UParticleSystemComponent;
 
-class UParticleSystem : public UObject
+class UParticleSystem : public UAsset
 {
-    DECLARE_CLASS(UParticleSystem, UObject)
+    DECLARE_CLASS(UParticleSystem, UAsset)
     UParticleSystem();
+    ~UParticleSystem() override;
+    
+    bool LoadFromFile(const FString& filepath) override;
 
+    bool SerializeToFile(std::ostream& Out) override;
+    bool DeserializeFromFile(std::istream& In) override;
+    
     uint32 MaxPoolSize;
 
     /**
@@ -39,8 +44,8 @@ class UParticleSystem : public UObject
         값을 높이면 성능이 향상되고, 낮추면 정확도가 향상됩니다.
         0으로 설정하면 기본 틱 시간(tick time)을 사용합니다. */
     float WarmupTickRate;
-    
-    TArray<UParticleEmitter*> Emitters;
+
+    UPROPERTY(EditAnywhere, TArray<UParticleEmitter*>, Emitters, {};)
 
     /** Cascade에서 파티클 시스템을 미리보기 위해 사용하는 컴포넌트 */
     UParticleSystemComponent* PreviewComponent;
@@ -130,6 +135,7 @@ public:
     bool IsImmortal() const { return bIsImmortal; }
 
     bool AllowManagedTicking()const { return bAllowManagedTicking; }
+
 private:
     /** 중요도 관리를 해야 하는지 여부 */
     bool bShouldManageSignificance;

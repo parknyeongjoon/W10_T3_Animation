@@ -19,7 +19,8 @@
 #include "Script/LuaManager.h"
 #include "UnrealEd/EditorPlayer.h"
 #include "UObject/Casts.h"
-#include "Engine/AssetManager.h"
+#include "Engine/Asset/AssetManager.h"
+#include "Engine/Asset/AssetImporter.h"
 #include "GameFramework/PlayerController.h"
 #include "UnrealEd/SkeletalPreviewUI.h"
 
@@ -37,6 +38,19 @@ void UEditorEngine::Init()
     ContentsUI = new FContentsUI();
     SkeletalPreviewUI = new FSkeletalPreviewUI();
 
+    if (AssetManager == nullptr)
+    {
+        AssetManager = FObjectFactory::ConstructObject<UAssetManager>(this);
+        assert(AssetManager);
+        AssetManager->InitAssetManager();
+    }
+
+    if (AssetImporter == nullptr)
+    {
+        AssetImporter = FObjectFactory::ConstructObject<UAssetImporter>(this);
+        assert(AssetImporter);
+    }
+
     UWorld* EditorWorld = CreateWorld(EWorldType::Editor, LEVELTICK_ViewportsOnly);
     EditorWorldContext = CreateNewWorldContext(EditorWorld, EWorldType::Editor, LEVELTICK_ViewportsOnly);
     
@@ -53,13 +67,6 @@ void UEditorEngine::Init()
     EditorPlayer->Initialize();
     
     RegisterWaitHelpers(FLuaManager::Get().GetLuaState());
-
-    if (AssetManager == nullptr)
-    {
-        AssetManager = FObjectFactory::ConstructObject<UAssetManager>(this);
-        assert(AssetManager);
-        AssetManager->InitAssetManager();
-    }
 }
 
 void UEditorEngine::Tick(float DeltaTime)

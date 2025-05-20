@@ -195,6 +195,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Container\EnumAsByte.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Serialization\Serializer.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimationRuntime.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNodeBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNotify\AnimNotify.cpp" />
@@ -239,6 +240,11 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Contents\UI\GameUIPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\Script\LuaManagerBind.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\Asset.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetFactory.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetImporter.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetRegistry.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\Particle\ParticleSystemFactory.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\FBXLoader.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Character.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Controller.cpp" />
@@ -252,7 +258,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\Engine\Paritcles\ParticleEmitterInstances.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Skeletal\SkeletalDefine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\PlayerCameraManager.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\AssetManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\InputCore\InputCoreTypes.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\FCollisionManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.cpp" />
@@ -356,13 +362,15 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\GizmoRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\LetterBoxRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\LineBatchRenderPass.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\ParticleRenderPass.cpp"/>
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\ParticleRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\ShadowRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\SkeletalMeshRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\StaticMeshRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResourceManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\VBIBTopologyMapping.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Serialization\Archive.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Serialization\Archive2.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Serialization\MemoryArchive.cpp" />
     <ClCompile Include="Engine\Source\Runtime\SlateCore\Layout\SlateRect.cpp" />
     <ClCompile Include="Engine\Source\Runtime\SlateCore\Widgets\SWindow.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Slate\Widgets\Layout\SSplitter.cpp" />
@@ -497,6 +505,11 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.impl.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\Asset.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetFactory.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetImporter.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetRegistry.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\Particle\ParticleSystemFactory.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\FBXLoader.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Character.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Controller.h" />
@@ -524,7 +537,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\InputCore\InputCoreTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\ShowFlags.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\PlayerCameraManager.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\AssetManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Physics\FCollisionManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Coroutine\CoroutineManager.h" />
     <ClInclude Include="Engine\Source\Editor\LevelEditor\SLevelEditor.h" />
@@ -661,6 +674,8 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Core\Serialization\FWindowsBinHelper.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Serialization\Serializer.h" />
     <ClInclude Include="Engine\Source\Runtime\Serialization\Archive.h" />
+    <ClInclude Include="Engine\Source\Runtime\Serialization\Archive2.h" />
+    <ClInclude Include="Engine\Source\Runtime\Serialization\MemoryArchive.h" />
     <ClInclude Include="Engine\Source\Runtime\SlateCore\Layout\SlateRect.h" />
     <ClInclude Include="Engine\Source\Runtime\SlateCore\Widgets\SWindow.h" />
     <ClInclude Include="Engine\Source\Runtime\Slate\Widgets\Layout\SSplitter.h" />

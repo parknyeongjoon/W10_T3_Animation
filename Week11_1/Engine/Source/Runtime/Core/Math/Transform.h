@@ -44,6 +44,7 @@ public:
             << Transform.Scale;
     }
 
+    
 };
 
 inline const FTransform FTransform::Identity = FTransform();
