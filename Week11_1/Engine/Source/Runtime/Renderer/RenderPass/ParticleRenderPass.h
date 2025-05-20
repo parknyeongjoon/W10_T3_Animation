@@ -26,6 +26,7 @@ public:
 private:
     static void UpdateMatrixConstants(UParticleSystemComponent* InParticleSystemComponent, const FMatrix& InView, const FMatrix& InProjection, const FMatrix&
                                       InInvView);
+    void UpdateParticleConstants(float InAlpha);
     static void UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo);
     void UpdateFlagConstant();
     void UpdateLightConstants();

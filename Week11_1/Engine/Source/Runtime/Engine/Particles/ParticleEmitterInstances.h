@@ -47,9 +47,7 @@ public:
     void Init(int32 InMaxparticles);
 
     void Release();
-
-    FBaseParticle* GetParticle(int32 Index);
-
+    
     void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity);
 
     void KillParticle(int32 Index);

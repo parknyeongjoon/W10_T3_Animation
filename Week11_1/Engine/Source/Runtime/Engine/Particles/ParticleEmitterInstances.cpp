@@ -43,11 +43,6 @@ void FParticleEmitterInstance::Release()
     ActiveParticles = 0;
 }
 
-FBaseParticle* FParticleEmitterInstance::GetParticle(int32 Index)
-{
-    return reinterpret_cast<FBaseParticle*>(ParticleData + Index * ParticleStride);
-}
-
 void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity)
 {
     if (!CurrentLODLevel) {
@@ -143,7 +138,9 @@ void FParticleEmitterInstance::UpdatParticles(float DeltaTime)
 {
     for (int32 i = 0; i < ActiveParticles; ++i)
     {
-        FBaseParticle* Particle = GetParticle(i);
+        uint8* Address = ParticleData + i * ParticleStride;
+        DECLARE_PARTICLE_PTR(Particle, Address);
+        // FBaseParticle* Particle = GetParticle(i);
         if (!Particle)
             continue;
 

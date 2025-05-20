@@ -142,6 +142,8 @@ struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBas
     int32							OrbitModuleOffset;
     int32							DynamicParameterDataOffset;
     int32							CameraPayloadOffset;
+    int32							SubImages_Horizontal;
+    int32							SubImages_Vertical;
 };
 
 struct FFullSubUVPayload

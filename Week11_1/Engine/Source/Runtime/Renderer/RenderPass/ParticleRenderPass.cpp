@@ -149,7 +149,8 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
 {
     FRenderer& Renderer = GEngineLoop.Renderer;
     FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
-    
+    FRenderResourceManager* RenderResourceManager = Renderer.GetResourceManager();
+
     FMatrix View = FMatrix::Identity;
     FMatrix Proj = FMatrix::Identity;
     FMatrix InvView = FMatrix::Identity;
@@ -259,9 +260,16 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                         ID3D11InputLayout* ParticleInputLayout = Renderer.GetResourceManager()->GetInputLayout(TEXT("SpriteParticle"));
                         //Quad인 경우 Quad값 IASetVertexBuffer(0)에다 박고 1은 렌더데이터 돌면서 애들 다른애들마다 박아줘야함
                         UpdateInstanceBuffer<FParticleSpriteVertex>(Graphics.DeviceContext, SpriteParticleInstanceBuffer, ParticleInputLayout, InstanceVertices, VertexStride);
+
+                        //블렌드 설정 + Alpha값 주기
+                        float blendFactor[4] = {0, 0, 0, 0};
+                        ID3D11BlendState* AlphaBlend = RenderResourceManager->GetBlendState(EBlendState::AlphaBlend);
+                        Graphics.DeviceContext->OMSetBlendState(AlphaBlend, blendFactor, 0xffffffff); // 블렌딩 상태 설정, 기본 블렌딩 상태임
+
+                        UpdateParticleConstants(0.5f);
                         //이거 Material로 바꾸면 아래걸로 변경
-                        Graphics.DeviceContext->PSSetShaderResources(0, 1, &Texture->TextureSRV);
                         // UpdateMaterialConstants();
+                        Graphics.DeviceContext->PSSetShaderResources(0, 1, &Texture->TextureSRV);
                         break;
                     }
                 case DET_Mesh:
@@ -297,7 +305,7 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
             }
             //ParticleComponent가 움직이면 Particle도 같이 움직여야하기 때문에 Model값 가져가야함
             UpdateMatrixConstants(ParticleSystemComponent, View, Proj, InvView);
-
+            
             //일단 쿼드기준으로 그리기
             Graphics.DeviceContext->DrawIndexedInstanced(
                 6,               // indexCount (쿼드 하나 = 2 tri = 6 index)
@@ -307,8 +315,6 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                 0                // startInstanceLocation
             );
         }
-
-        //여기서 DrawInstanced ㄱㄱ
     }
 
     ID3D11ShaderResourceView* nullSRVs[8] = { nullptr };
@@ -318,6 +324,8 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
     Graphics.DeviceContext->PSSetShaderResources(11, 4, nullSRV);
     Graphics.DeviceContext->PSSetShaderResources(15, 8, nullSRVs);
     Graphics.DeviceContext->PSSetShaderResources(23, 8, nullSRVs);
+
+    Graphics.DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌딩 상태 설정, 기본 블렌딩 상태임
 }
 
 void FParticleRenderPass::CreateDummyTexture()
@@ -373,6 +381,16 @@ void FParticleRenderPass::UpdateMatrixConstants(UParticleSystemComponent* InPart
     MatrixConstants.InvView = InInvView;
     
     renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixSeparatedMVPConstants"), &MatrixConstants);
+}
+
+void FParticleRenderPass::UpdateParticleConstants(float InAlpha)
+{
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
+
+    FParticleConstant ParticleConstant;
+    ParticleConstant.Alpha = InAlpha;
+    
+    renderResourceManager->UpdateConstantBuffer(TEXT("FParticleConstant"), &ParticleConstant);
 }
 
 void FParticleRenderPass::UpdateFlagConstant()

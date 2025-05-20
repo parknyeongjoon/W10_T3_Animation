@@ -75,12 +75,17 @@ PS_INPUT mainVS(VS_INPUT input, uint instanceId : SV_InstanceID)
 
     // 6. View-Projection 변환
     // row_major 행렬이므로 mul(vector, matrix) 순서.
-    output.position = mul(worldPosition, View);
+    output.position = mul(worldPosition, Model);
+    output.position = mul(output.position, View);
     output.position = mul(output.position, Proj);
 
-    // 7. 텍스처 좌표 및 기타 데이터 전달
+    // // 7. 텍스처 좌표 및 기타 데이터 전달
+    // float2 cellSize = float2(1.0 / SubImageCountX, 1.0 / SubImageCountY);
+    // int frameX = input.SubImageIndex % SubImageCountX;
+    // int frameY = input.SubImageIndex / SubImageCountX;
+    // float2 uvOffset = float2(frameX, frameY) * cellSize;
+    // output.texcoord = input.texcoord * cellSize + uvOffset;
     output.texcoord = input.texcoord;
-    // output.subIndex = input.InstanceParticleSubIndex; // subindex 여기서 계산
-
+    
     return output;
 }
