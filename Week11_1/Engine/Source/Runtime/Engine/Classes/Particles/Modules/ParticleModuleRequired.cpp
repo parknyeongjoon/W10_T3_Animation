@@ -30,6 +30,14 @@ void UParticleModuleRequired::CacheEmitterData(FParticleEmitterInstance* Instanc
     Instance->RequiredModule = const_cast<UParticleModuleRequired*>(this); // 단순 참조만 저장
 }
 
+void UParticleModuleRequired::FillReplayData(FDynamicSpriteEmitterReplayDataBase* ReplayData) const
+{
+    ReplayData->Texture = Texture; // FTexture* => UMaterialInterface*로 변경 필요
+    //ReplayData->SubImageH = SubImagesHorizontal;
+    //ReplayData->SubImageV = SubImagesVertical;
+    ReplayData->EmitterOrigin = EmitterOrigin;
+}
+
 int32 UParticleModuleRequired::GetTotalSubImages() const
 {
     return int32();

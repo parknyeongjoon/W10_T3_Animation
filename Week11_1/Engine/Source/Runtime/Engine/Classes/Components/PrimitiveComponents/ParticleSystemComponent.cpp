@@ -9,7 +9,7 @@
 #include "UObject/Casts.h"
 #include "Particles/Modules/ParticleModule.h"
 #include <Particles/Modules/ParticleModuleSpawn.h>
-
+#include "Particles/Modules/ParticleModuleRequired.h"
 bool GIsAllowingParticles = true;
 
 UParticleSystemComponent::UParticleSystemComponent()
@@ -379,6 +379,42 @@ FDynamicEmitterDataBase* UParticleSystemComponent::CreateDynamicDataFromReplay(F
 
 void UParticleSystemComponent::UpdateDynamicData()
 {
+    ClearDynamicData();
+
+    EmitterRenderData.Empty();
+
+    for (FParticleEmitterInstance* EmitterInstance : EmitterInstances) {
+        if (!EmitterInstance || EmitterInstance->ActiveParticles == 0) {
+            continue;
+        }
+
+        FDynamicSpriteEmitterReplayData* ReplayData = new FDynamicSpriteEmitterReplayData();
+
+        if (EmitterInstance->RequiredModule)
+        {
+            EmitterInstance->RequiredModule->FillReplayData(ReplayData);
+        }
+
+        // 기본 정보 복사
+        ReplayData->eEmitterType = DET_Sprite;
+        ReplayData->ActiveParticleCount = EmitterInstance->ActiveParticles;
+        ReplayData->ParticleStride = EmitterInstance->ParticleStride;
+        ReplayData->DataContainer.MemBlockSize = EmitterInstance->MaxActiveParticles * EmitterInstance->ParticleStride;
+        ReplayData->DataContainer.ParticleData = EmitterInstance->ParticleData;
+        ReplayData->DataContainer.ParticleIndices = EmitterInstance->ParticleIndices;
+        ReplayData->RequiredModule = EmitterInstance->RequiredModule;
+
+        // TODO: 필요 시 정렬 설정 (SortMode 등)
+        ReplayData->SortMode = 0;
+
+        FDynamicSpriteEmitterData* DynamicData = new FDynamicSpriteEmitterData();
+
+        DynamicData->EmitterIndex = EmitterRenderData.Num(); // index 저장
+        DynamicData->Source = *ReplayData; // 이걸 통해 접근
+        
+        delete ReplayData;
+        EmitterRenderData.Add(DynamicData);
+    }
 }
 
 void UParticleSystemComponent::UpdateInstances(bool bEmptyInstances)

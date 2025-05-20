@@ -42,7 +42,7 @@ public:
 
     void CacheEmitterData(FParticleEmitterInstance* Instance) const;
 
-    void FillReplayData(FDynamicSpriteEmitterDataBase* ReplayData) const;
+    void FillReplayData(FDynamicSpriteEmitterReplayDataBase* ReplayData) const;
 
     int32 GetTotalSubImages() const;
 

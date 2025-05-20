@@ -14,19 +14,30 @@ void FParticleEmitterInstance::Init(int32 InMaxParticles)
     ParticleStride = sizeof(FBaseParticle);
     ParticleSize = ParticleStride;
 
-    const int32 DataSize = MaxActiveParticles * ParticleStride;
+    // Alloc방식으로 변경
+    /*const int32 DataSize = MaxActiveParticles * ParticleStride;
     const int32 IndexSize = MaxActiveParticles * sizeof(uint16);
 
     ParticleData = new uint8[DataSize + IndexSize];
-    ParticleIndices = reinterpret_cast<uint16*>(ParticleData + DataSize);
+    ParticleIndices = reinterpret_cast<uint16*>(ParticleData + DataSize);*/
 
+    DataContainer.Alloc(MaxActiveParticles * ParticleStride, MaxActiveParticles);
+
+    // 외부 포인터 캐시: 기존 코드와의 호환성을 위해 그대로 유지
+    ParticleData = DataContainer.ParticleData;
+    ParticleIndices = DataContainer.ParticleIndices;
+
+    ActiveParticles = 0;
+    ParticleCounter = 0;
     ActiveParticles = 0;
     ParticleCounter = 0;
 }
 
 void FParticleEmitterInstance::Release()
 {
-    delete[] ParticleData;
+    //delete[] ParticleData;
+
+    DataContainer.Free();
     ParticleData = nullptr;
     ParticleIndices = nullptr;
     MaxActiveParticles = 0;
