@@ -7,6 +7,7 @@
 
 struct FTexture;
 struct FDynamicSpriteEmitterDataBase;
+struct FDynamicSpriteEmitterReplayDataBase;
 
 class UParticleModuleRequired : public UParticleModule
 {
@@ -42,7 +43,7 @@ public:
 
     void CacheEmitterData(FParticleEmitterInstance* Instance) const;
 
-    void FillReplayData(FDynamicSpriteEmitterDataBase* ReplayData) const;
+    void FillReplayData(FDynamicSpriteEmitterReplayDataBase* ReplayData) const;
 
     int32 GetTotalSubImages() const;
 
