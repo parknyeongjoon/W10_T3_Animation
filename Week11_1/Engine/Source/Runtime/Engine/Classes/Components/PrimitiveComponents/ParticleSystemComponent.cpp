@@ -1108,7 +1108,9 @@ void UParticleSystemComponent::UpdateAllEmitters(float DeltaTime)
 
         // 기존 파티클 라이프타임 체크 루프
         for (int32 i = 0; i < Instance->ActiveParticles;) {
-            FBaseParticle* Particle = Instance->GetParticle(i);
+            uint8* Address = Instance->ParticleData + i * Instance->ParticleStride;
+            DECLARE_PARTICLE_PTR(Particle, Address);
+            // FBaseParticle* Particle = Instance->GetParticle(i);
 
             // 시간 경과
             Particle->RelativeTime += DeltaTime;
