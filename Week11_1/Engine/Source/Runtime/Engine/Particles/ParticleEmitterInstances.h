@@ -61,6 +61,8 @@ public:
     int32 GetSubImageH() const;
     int32 GetSubImageV() const;
 
+    void UpdatParticles(float DeltaTime);
+
 };
 
 /* void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity, struct FParticleEventInstancePayload* EventPayload)

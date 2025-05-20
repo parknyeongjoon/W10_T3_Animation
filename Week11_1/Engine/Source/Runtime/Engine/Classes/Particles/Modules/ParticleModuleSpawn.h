@@ -1,7 +1,8 @@
 #pragma once
 
 #include "ParticleModule.h"
-#include "Classes/Distributions/Distributions.h"
+#include "Classes/Distributions/DistributionFloat.h"
+#include "Classes/Distributions/DistributionVector.h"
 
 class UParticleModuleSpawn : public UParticleModule
 {
@@ -10,25 +11,39 @@ class UParticleModuleSpawn : public UParticleModule
 public:
     UParticleModuleSpawn();
     // Property 스폰
-    FRawDistributionFloat Rate;
 
-    FRawDistributionFloat RateScale;
+    UPROPERTY(
+        EditAnywhere,
+        FRawDistributionFloat,
+        Rate,
+        = {}
+    )
+
+    UPROPERTY(
+        EditAnywhere,
+        FRawDistributionFloat,
+        RateScale,
+        = {}
+    )
 
     // Property :: 파티클 시스템
     float UpdateTimeFPS = 60.0f;
 
-
+    
 public:
     void InitializeDefaults();
 
     // Tick 마다 스폰 수를 계산
-    int32 ComputeSpawnCount(float DeltaTime) const;
+    int32 ComputeSpawnCount(float DeltaTime);
 
     // Spawn 시점에 처리
     virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp) override;
 
     virtual EModuleType GetType() const override;
-    
+
+private:
+    float SpawnRemainder = 0.0f;
+
 };
 
 // FIXING : FPropertyChangeEvent& PropertyChangeEvent 인자

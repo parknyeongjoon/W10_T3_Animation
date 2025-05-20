@@ -139,6 +139,25 @@ int32 FParticleEmitterInstance::GetSubImageV() const
     return RequiredModule ? RequiredModule->SubImagesVertical : 1;
 }
 
+void FParticleEmitterInstance::UpdatParticles(float DeltaTime)
+{
+    for (int32 i = 0; i < ActiveParticles; ++i)
+    {
+        FBaseParticle* Particle = GetParticle(i);
+        if (!Particle)
+            continue;
+
+        // 단순 선형 이동: Velocity 기준 위치 이동
+        Particle->Location += Particle->Velocity * DeltaTime;
+
+        // 예시: BaseVelocity를 중력처럼 사용할 경우 (선택)
+        // Particle->Velocity += Particle->BaseVelocity * DeltaTime;
+
+        // OldPosition이 필요한 경우 (모션 벡터, Trail 등)
+        // Particle->OldLocation = Particle->Location;
+    }
+}
+
 // FORCEINLINE static void* FastParticleSmallBlockAlloc(size_t AllocSize)
 // {
 //     if (GEnableFastPools)
