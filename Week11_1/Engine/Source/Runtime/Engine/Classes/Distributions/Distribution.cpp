@@ -5,6 +5,43 @@
 #include "DistributionFloat.h"
 #include "DistributionVector.h"
 
+// struct
+//void FRawDistributionFloat::Initialize()
+//{
+//    if (!Distribution)
+//    {
+//        Distribution = FObjectFactory::ConstructObject<UDistributionFloat>(nullptr);
+//    }
+//}
+
+float FRawDistributionFloat::GetValue(struct FRandomStream* InRandomStream) const
+{
+    if (Distribution)
+    {
+        return Distribution->GetValue(InRandomStream);
+    }
+    assert(!Distribution);
+    return 0.0f;
+}
+
+//void FRawDistributionVector::Initialize()
+//{
+//    if (!Distribution)
+//    {
+//        Distribution = FObjectFactory::ConstructObject<UDistributionVector>(nullptr);
+//    }
+//}
+
+FVector FRawDistributionVector::GetValue(struct FRandomStream* InRandomStream) const
+{
+    if (Distribution)
+    {
+        return Distribution->GetValue(InRandomStream);
+    }
+    assert(!Distribution);
+    return FVector::ZeroVector;
+}
+
 const float UDistribution::DefaultValue = 1.2345E-20f;
 
 float UDistributionFloat::GetValue(struct FRandomStream* InRandomStream) const
@@ -12,9 +49,18 @@ float UDistributionFloat::GetValue(struct FRandomStream* InRandomStream) const
     return 0.0f;
 }
 
+void UDistributionFloat::SetValue(float NewValue)
+{
+}
+
 float UDistributionFloatConstant::GetValue(struct FRandomStream* InRandomStream) const
 {
     return Constant;
+}
+
+void UDistributionFloatConstant::SetValue(float NewValue)
+{
+    Constant = NewValue;
 }
 
 float UDistributionFloatUniform::GetValue(struct FRandomStream* InRandomStream) const

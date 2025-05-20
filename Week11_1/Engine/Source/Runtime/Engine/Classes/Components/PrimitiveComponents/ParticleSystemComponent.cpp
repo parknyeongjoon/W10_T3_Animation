@@ -46,11 +46,6 @@ UParticleSystemComponent::UParticleSystemComponent()
 
 }
 
-UParticleSystemComponent::~UParticleSystemComponent()
-{
-    Template = nullptr;
-}
-
 bool UParticleSystemComponent::ShouldBeTickManaged() const
 {
     if (!Editor_CanBeTickManaged())
@@ -61,6 +56,17 @@ bool UParticleSystemComponent::ShouldBeTickManaged() const
         GbEnablePSCWorldManager &&
         Template && Template->AllowManagedTicking() &&
         GetAttachChildren().Num() == 0; //Don't batch tick if people are attached and dependent on us.
+}
+
+UParticleSystemComponent::~UParticleSystemComponent()
+{
+    for (FParticleEmitterInstance* EmitterInstance : EmitterInstances)
+    {
+        delete EmitterInstance;
+    }
+    EmitterInstances.Empty();
+    
+    Template = nullptr;
 }
 
 void UParticleSystemComponent::TickComponent(float DeltaTime)
@@ -407,6 +413,8 @@ void UParticleSystemComponent::UpdateDynamicData()
         ReplayData->Texture = EmitterInstance->GetTexture();
         //ReplayData->RequiredModule = EmitterInstance->RequiredModule;
 
+        ReplayData->Scale = FVector::OneVector;
+        
         // TODO: 필요 시 정렬 설정 (SortMode 등)
         ReplayData->SortMode = 0;
 
@@ -998,6 +1006,8 @@ void UParticleSystemComponent::RewindEmitterInstances()
 }
 #pragma endregion 
 
+
+
 void UParticleSystemComponent::InitializeComponent()
 {
     UPrimitiveComponent::InitializeComponent();
@@ -1088,6 +1098,9 @@ void UParticleSystemComponent::UpdateAllEmitters(float DeltaTime)
             FVector InitVelocity = FVector::ZeroVector;
             Instance->SpawnParticles(SpawnCount, /*StartTime*/ 0.0f, /*Increment*/0.0f, InitLocation, InitVelocity);
         }
+
+        // 속도 등 업데이트
+        Instance->UpdatParticles(DeltaTime);
 
         // 기존 파티클 라이프타임 체크 루프
         for (int32 i = 0; i < Instance->ActiveParticles;) {

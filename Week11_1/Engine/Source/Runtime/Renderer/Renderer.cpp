@@ -17,6 +17,7 @@
 #include "RenderPass/GizmoRenderPass.h"
 #include "RenderPass/LetterBoxRenderPass.h"
 #include "RenderPass/LineBatchRenderPass.h"
+#include "RenderPass/ParticleRenderPass.h"
 #include "RenderPass/SkeletalMeshRenderPass.h"
 #include "RenderPass/StaticMeshRenderPass.h"
 
@@ -112,6 +113,31 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     
     CreateVertexPixelShader(TEXT("Final"), nullptr);
     FinalRenderPass = std::make_shared<FFinalRenderPass>(TEXT("Final"));
+
+    CreateVertexPixelShader(TEXT("ParticleSystem"), nullptr);
+    ParticleRenderPass = std::make_shared<FParticleRenderPass>(TEXT("ParticleSystem"));
+    //Particle은 Instancing해야해서 InputLayout 따로 만들어야함
+    ID3D11InputLayout* ParticleInputLayout = nullptr;
+    ID3DBlob* ParticleVertexBlob = RenderResourceManager->GetVertexShaderBlob(GetVSName(TEXT("ParticleSystem")));
+    D3D11_INPUT_ELEMENT_DESC ParticleInputLayoutDesc[] =
+    {
+        // 기본 쿼드 정점
+        {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TANGENT", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    
+        // 인스턴스 데이터
+        {"INSTANCEPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"INSTANCESIZE", 0, DXGI_FORMAT_R32G32_FLOAT,   1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"INSTANCEROTATION", 0, DXGI_FORMAT_R32_FLOAT,   1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"INSTANCESUBINDEX", 0, DXGI_FORMAT_R32_FLOAT,   1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+    };
+    Graphics->Device->CreateInputLayout(ParticleInputLayoutDesc, ARRAYSIZE(ParticleInputLayoutDesc),
+        ParticleVertexBlob->GetBufferPointer(), ParticleVertexBlob->GetBufferSize(), &ParticleInputLayout);
+
+    RenderResourceManager->AddOrSetInputLayout(TEXT("SpriteParticle"), ParticleInputLayout);
 }
 
 void FRenderer::PrepareShader(const FName InShaderName)
@@ -279,6 +305,12 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
             SkeletalRenderPass->Prepare(ActiveViewportClient);
             SkeletalRenderPass->Execute(ActiveViewportClient);
         }
+        
+        // if (ActiveViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Particle))
+        {
+            ParticleRenderPass->Prepare(ActiveViewportClient);
+            ParticleRenderPass->Execute(ActiveViewportClient);
+        }
     }
 
     if (FogRenderPass->ShouldRender())
@@ -307,12 +339,6 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
         GizmoRenderPass->Prepare(ActiveViewportClient);
         GizmoRenderPass->Execute(ActiveViewportClient);
     }
-
-    // if (ActiveViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Particle))
-    {
-        
-    }
-
     
     LetterBoxRenderPass->Prepare(ActiveViewportClient);
     LetterBoxRenderPass->Execute(ActiveViewportClient);
@@ -347,6 +373,7 @@ void FRenderer::ClearRenderObjects() const
     FogRenderPass->ClearRenderObjects();
     BlurRenderPass->ClearRenderObjects();
     FinalRenderPass->ClearRenderObjects();
+    ParticleRenderPass->ClearRenderObjects();
 }
 
 void FRenderer::SetViewMode(const EViewModeIndex evi)
@@ -423,6 +450,28 @@ void FRenderer::AddRenderObjectsToRenderPass(UWorld* World) const
     FogRenderPass->AddRenderObjectsToRenderPass(World);
     BlurRenderPass->AddRenderObjectsToRenderPass(World);
     FinalRenderPass->AddRenderObjectsToRenderPass(World);
+
+    ParticleRenderPass->AddRenderObjectsToRenderPass(World);
+}
+
+FName FRenderer::GetVSName(const FName InShaderProgramName)
+{
+    if (ShaderPrograms.Contains(InShaderProgramName))
+    {
+        return ShaderPrograms[InShaderProgramName]->GetVertexShaderName();
+    }
+
+    UE_LOG(LogLevel::Error, "Cannot Find ShaderProgram");
+    
+    return {""};
+}
+
+void FRenderer::MappingInputLayout(const FName InShaderProgramName, FName InInputLayoutName)
+{
+    if (ShaderPrograms.Contains(InShaderProgramName))
+    {
+        ShaderPrograms[InShaderProgramName] = std::make_shared<FShaderProgram>(ShaderPrograms[InShaderProgramName]->GetVertexShaderName(), ShaderPrograms[InShaderProgramName]->GetPixelShaderName(), InInputLayoutName);
+    }
 }
 
 void FRenderer::MappingVSPSInputLayout(const FName InShaderProgramName, FName VSName, FName PSName, FName InInputLayoutName)

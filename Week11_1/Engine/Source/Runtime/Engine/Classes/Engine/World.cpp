@@ -23,6 +23,7 @@
 #include <Particles/Modules/ParticleModuleSpawn.h>
 #include "Classes/Particles/ParticleLODLevel.h"
 #include "Particles/Modules/ParticleModuleRequired.h"
+#include <Particles/Modules/ParticleModuleVelocity.h>
 
 void UWorld::InitWorld()
 {
@@ -76,6 +77,7 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
         NewLODLevel->RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(nullptr);
         NewLODLevel->Modules.Add(NewLODLevel->RequiredModule);
         NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSpawn>(nullptr));
+        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleVelocity>(nullptr));
 
         NewEmitter->LODLevels.Add(NewLODLevel);
         TestComp->Template->Emitters.Add(NewEmitter);

@@ -1,7 +1,10 @@
 #include "ParticlesDetailsPanel.h"
+#include "CoreUObject/UObject/Casts.h"
 #include "UnrealEd/ParticlePreviewUI.h"
 #include "Classes/Particles/ParticleEmitter.h"
 #include "Classes/Particles/Modules/ParticleModule.h"
+#include "Classes/Distributions/DistributionFloat.h"
+#include "Classes/Distributions/DistributionVector.h"
 
 void ParticlesDetailsPanel::Initialize(SLevelEditor* LevelEditor, float InWidth, float InHeight)
 {
@@ -37,19 +40,29 @@ void ParticlesDetailsPanel::Render()
         if (UParticleModule* SelectedModule = Modules[SelectedModuleIndex])
         {
             const UClass* Class = SelectedModule->GetClass();
-            //for (; Class; Class = Class->GetSuperClass())
-            //{
-                const TArray<FProperty*>& Properties = Class->GetProperties();
-                if (!Properties.IsEmpty())
-                {
-                    ImGui::SeparatorText(*Class->GetName());
-                }
+            const TArray<FProperty*>& Properties = Class->GetProperties();
+            
+            // distribution관련 지우기
+            // 그리고 distribution인건 따로 그리기
+            // distribution일 경우 float 수정할수있게 따로 그리기
+            //Properties.Remove()
+            if (!Properties.IsEmpty())
+            {
+                ImGui::SeparatorText(*Class->GetName());
+            }
 
-                for (const FProperty* Prop : Properties)
+            for (const FProperty* Prop : Properties)
+            {
+                UScriptStruct* Struct = std::get<UScriptStruct*>(Prop->TypeSpecificData);
+                if (Struct->IsChildOf(FRawDistribution::StaticStruct()))
                 {
-                    Prop->DisplayInImGui(SelectedModule);
+                    ImGui::SeparatorText(Prop->Name);
+                    FRawDistribution* Distribution = static_cast<FRawDistribution*>(Prop->GetPropertyData(SelectedModule));
+                    RenderDistributionMenu(Distribution);
+                    continue;
                 }
-            //}
+                Prop->DisplayInImGui(SelectedModule);
+            }
         }
     }
 
@@ -70,4 +83,88 @@ void ParticlesDetailsPanel::RenderFileMenu() const
 
 void ParticlesDetailsPanel::RenderEditMenu() const
 {
+}
+
+void ParticlesDetailsPanel::RenderDistributionMenu(FRawDistribution* Distribution)
+{
+    TArray<UClass*> CandidateClasses;
+    UClass* BaseClass = nullptr;
+    UDistribution* CurrentDistribution = nullptr;
+    
+    bool bFloat = Distribution->StaticStruct()->GetName() == FRawDistributionFloat::StaticStruct()->GetName();
+    // 현재 Distribution 타입 확인
+    if (bFloat)
+    {
+        CurrentDistribution = static_cast<FRawDistributionFloat*>(Distribution)->Distribution;
+        BaseClass = UDistributionFloat::StaticClass();
+    }
+    else // Vector
+    {
+        CurrentDistribution = static_cast<FRawDistributionVector*>(Distribution)->Distribution;
+        BaseClass = UDistributionVector::StaticClass();
+    }
+
+    if (!BaseClass)
+    {
+        ImGui::Text("Unsupported distribution type");
+        return;
+    }
+
+    // 하위 클래스 수집 (캐싱해도 좋음)
+    GetChildOfClass(BaseClass, CandidateClasses);
+    CandidateClasses.Remove(BaseClass); // 기본 클래스 제거
+
+    // 현재 선택된 클래스 이름
+    FString CurrentName = CurrentDistribution ? CurrentDistribution->GetClass()->GetName() : TEXT("None");
+    CurrentName = FString::Printf("%s##%llu", *CurrentName, Distribution);
+    // Combo 시작
+    ImGui::PushID(Distribution);
+    if (ImGui::BeginCombo("Distribution Type", *CurrentName))
+    {
+        for (UClass* OptionClass : CandidateClasses)
+        {
+            FString OptionName = OptionClass->GetName();
+            OptionName = FString::Printf("%s##%llu", *OptionName, Distribution);
+
+            bool bIsSelected = (CurrentDistribution && CurrentDistribution->GetClass() == OptionClass);
+
+            if (ImGui::Selectable(*OptionName, bIsSelected))
+            {
+                // 선택이 바뀐 경우: 기존 오브젝트 제거
+                if (CurrentDistribution)
+                {
+                    GUObjectArray.MarkRemoveObject(CurrentDistribution);
+                    CurrentDistribution = nullptr;
+                }
+
+                // 새 오브젝트 생성
+                UDistribution* NewDistribution = Cast<UDistribution>(
+                    FObjectFactory::ConstructObject(OptionClass, nullptr)
+                );
+
+                if (bFloat)
+                {
+                    static_cast<FRawDistributionFloat*>(Distribution)->Distribution
+                        = Cast<UDistributionFloat>(NewDistribution);
+                }
+                else
+                {
+                    static_cast<FRawDistributionVector*>(Distribution)->Distribution
+                        = Cast<UDistributionVector>(NewDistribution);
+                }
+            }
+        }
+        ImGui::EndCombo();
+    }
+
+    // 값 조절 UI
+    if (CurrentDistribution)
+    {
+        for (const FProperty* Prop : CurrentDistribution->GetClass()->GetProperties())
+        {
+            Prop->DisplayInImGui(CurrentDistribution);
+        }
+
+    }
+    ImGui::PopID();
 }

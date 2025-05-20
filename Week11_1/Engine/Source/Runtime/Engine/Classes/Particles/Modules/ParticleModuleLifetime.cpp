@@ -3,10 +3,10 @@
 
 void UParticleModuleLifeTime::InitializeDefaults()
 {
-    //if (Lifetime.Constant <= 0.0f)
-    //{
-    //    Lifetime.Constant = 1.0f; // 기본 수명 1초
-    //}
+    UDistributionFloatUniform* DefaultDistribution = FObjectFactory::ConstructObject<UDistributionFloatUniform>(nullptr);
+    DefaultDistribution->MinValue = 0.0f;
+    DefaultDistribution->MaxValue = 1.0f;
+    Lifetime.Distribution = DefaultDistribution;
 }
 
 void UParticleModuleLifeTime::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp)
