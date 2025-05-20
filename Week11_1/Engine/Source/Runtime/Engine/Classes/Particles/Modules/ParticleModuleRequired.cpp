@@ -6,7 +6,8 @@
 UParticleModuleRequired::UParticleModuleRequired()
 {
     // 초기값 지정
-    Texture = FEngineLoop::ResourceManager.GetDefaultWhiteTexture().get();
+    Texture = FEngineLoop::ResourceManager.GetTexture(L"Contents/Textures/Particles/jewel_particle_yellow@2x.png").get();
+    //Texture = FEngineLoop::ResourceManager.GetDefaultWhiteTexture().get();
     EmitterOrigin = FVector::ZeroVector;
     EmitterRotation = FRotator::ZeroRotator;
 
