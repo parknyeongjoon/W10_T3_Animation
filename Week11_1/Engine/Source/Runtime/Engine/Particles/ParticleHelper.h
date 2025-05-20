@@ -178,14 +178,14 @@ struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
 
 struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 {
-    FDynamicSpriteEmitterReplayData Source;
+    //FDynamicSpriteEmitterReplayData Source;
 
 	/** Returns the source data for this particle system */
-	virtual const FDynamicSpriteEmitterReplayData& GetSource() const override
+	/*virtual const FDynamicSpriteEmitterReplayData& GetSource() const override
 	{
 		return Source;
 	}
-    
+    */
     virtual int32 const GetDynamicVertexStride() const override
     {
         return sizeof(FParticleSpriteVertex);

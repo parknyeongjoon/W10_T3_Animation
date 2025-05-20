@@ -415,7 +415,7 @@ void UParticleSystemComponent::UpdateDynamicData()
         DynamicData->EmitterIndex = EmitterRenderData.Num(); // index 저장
         DynamicData->Source = *ReplayData; // 이걸 통해 접근
         
-        delete ReplayData;
+        //delete ReplayData;
         EmitterRenderData.Add(DynamicData);
     }
 }
