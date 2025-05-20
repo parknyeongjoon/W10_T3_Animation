@@ -20,6 +20,9 @@
 #include "UObject/UObjectArray.h"
 #include "UnrealEd/PrimitiveBatch.h"
 #include "Components/PrimitiveComponents/ParticleSystemComponent.h"
+#include <Particles/Modules/ParticleModuleSpawn.h>
+#include "Classes/Particles/ParticleLODLevel.h"
+#include "Particles/Modules/ParticleModuleRequired.h"
 
 void UWorld::InitWorld()
 {
@@ -68,7 +71,18 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
         AActor* TestActor = SpawnActor<AActor>();
         UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
         TestComp->Template = FObjectFactory::ConstructObject<UParticleSystem>(this);
+        UParticleEmitter* NewEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
+        UParticleLODLevel* NewLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
+        NewLODLevel->RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(nullptr);
+        NewLODLevel->Modules.Add(NewLODLevel->RequiredModule);
+        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSpawn>(nullptr));
+
+        NewEmitter->LODLevels.Add(NewLODLevel);
+        TestComp->Template->Emitters.Add(NewEmitter);
         TestComp->Activate();
+        
+        
+        
     }
 }
 

@@ -6,6 +6,7 @@
 #include <Math/Rotator.h>
 #include "Engine/Particles/ParticleHelper.h"
 #include <Engine/Texture.h>
+#include "Classes/Particles/ParticleLODLevel.h"
 
 void FParticleEmitterInstance::Init(int32 InMaxParticles)
 {
@@ -13,19 +14,29 @@ void FParticleEmitterInstance::Init(int32 InMaxParticles)
     ParticleStride = sizeof(FBaseParticle);
     ParticleSize = ParticleStride;
 
-    const int32 DataSize = MaxActiveParticles * ParticleStride;
+    // Alloc방식으로 변경
+    /*const int32 DataSize = MaxActiveParticles * ParticleStride;
     const int32 IndexSize = MaxActiveParticles * sizeof(uint16);
 
     ParticleData = new uint8[DataSize + IndexSize];
-    ParticleIndices = reinterpret_cast<uint16*>(ParticleData + DataSize);
+    ParticleIndices = reinterpret_cast<uint16*>(ParticleData + DataSize);*/
+
+    DataContainer.Alloc(MaxActiveParticles * ParticleStride, MaxActiveParticles);
+
+    // 외부 포인터 캐시: 기존 코드와의 호환성을 위해 그대로 유지
+    ParticleData = DataContainer.ParticleData;
+    ParticleIndices = DataContainer.ParticleIndices;
 
     ActiveParticles = 0;
+    ParticleCounter = 0;
     ParticleCounter = 0;
 }
 
 void FParticleEmitterInstance::Release()
 {
-    delete[] ParticleData;
+    //delete[] ParticleData;
+
+    DataContainer.Free();
     ParticleData = nullptr;
     ParticleIndices = nullptr;
     MaxActiveParticles = 0;
@@ -53,6 +64,31 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
         DECLARE_PARTICLE_PTR(Particle, Address);
 
         // == 기본 값 초기화 ==
+        Particle->Location = InitialLocation;
+        Particle->Velocity = InitialVelocity;
+        Particle->BaseVelocity = InitialVelocity;
+
+        Particle->RelativeTime = 0.0f;
+        Particle->Lifetime = 10000.0f;
+
+        Particle->Rotation = 0.0f;
+        Particle->RotationRate = 0.0f;
+
+        Particle->Size = FVector(1.0f);
+        Particle->Color = FColor::White;
+
+        for (UParticleModule* Module : CurrentLODLevel->SpawnModules)
+        {
+            if (Module)
+            {
+                float SpawnTime = StartTime + i * Increment;
+                Module->Spawn(this, /*Offset*/ 0, SpawnTime, /*Interp*/ 1.0f);
+            }
+        }
+
+        ParticleIndices[ActiveParticles] = ActiveParticles;
+        ActiveParticles++;
+        ParticleCounter++;
 
     }
 }

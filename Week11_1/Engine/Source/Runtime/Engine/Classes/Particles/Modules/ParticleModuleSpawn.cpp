@@ -1,6 +1,11 @@
 #include "ParticleModuleSpawn.h"
 #include "Runtime/Engine/Particles/ParticleEmitterInstances.h"
 
+UParticleModuleSpawn::UParticleModuleSpawn()
+{
+    InitializeDefaults();
+}
+
 void UParticleModuleSpawn::InitializeDefaults()
 {
     UDistributionFloatUniform* DefaultDistribution = FObjectFactory::ConstructObject<UDistributionFloatUniform>(nullptr);

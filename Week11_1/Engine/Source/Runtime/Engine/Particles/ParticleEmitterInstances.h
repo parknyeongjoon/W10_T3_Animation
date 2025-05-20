@@ -39,6 +39,8 @@ struct FParticleEmitterInstance
     int32 InstancePayloadSize = 0;
     int32 PayloadOffset = 0;
 
+    FParticleDataContainer DataContainer;
+
     FTexture* Texture;
 
 public:
