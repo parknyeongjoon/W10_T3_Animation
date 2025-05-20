@@ -46,11 +46,6 @@ UParticleSystemComponent::UParticleSystemComponent()
 
 }
 
-UParticleSystemComponent::~UParticleSystemComponent()
-{
-    Template = nullptr;
-}
-
 bool UParticleSystemComponent::ShouldBeTickManaged() const
 {
     if (!Editor_CanBeTickManaged())
@@ -61,6 +56,17 @@ bool UParticleSystemComponent::ShouldBeTickManaged() const
         GbEnablePSCWorldManager &&
         Template && Template->AllowManagedTicking() &&
         GetAttachChildren().Num() == 0; //Don't batch tick if people are attached and dependent on us.
+}
+
+UParticleSystemComponent::~UParticleSystemComponent()
+{
+    for (FParticleEmitterInstance* EmitterInstance : EmitterInstances)
+    {
+        delete EmitterInstance;
+    }
+    EmitterInstances.Empty();
+    
+    Template = nullptr;
 }
 
 void UParticleSystemComponent::TickComponent(float DeltaTime)
@@ -407,6 +413,8 @@ void UParticleSystemComponent::UpdateDynamicData()
         ReplayData->Texture = EmitterInstance->GetTexture();
         //ReplayData->RequiredModule = EmitterInstance->RequiredModule;
 
+        ReplayData->Scale = FVector::OneVector;
+        
         // TODO: 필요 시 정렬 설정 (SortMode 등)
         ReplayData->SortMode = 0;
 
@@ -997,6 +1005,8 @@ void UParticleSystemComponent::RewindEmitterInstances()
     }
 }
 #pragma endregion 
+
+
 
 void UParticleSystemComponent::InitializeComponent()
 {

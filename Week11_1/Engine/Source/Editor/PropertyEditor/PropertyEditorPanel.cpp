@@ -124,139 +124,24 @@ void PropertyEditorPanel::Render()
                 }
             }
 
-            if (ImGui::Button("+", ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
+            TArray<UClass*> CompClasses;
+            GetChildOfClass(USceneComponent::StaticClass(), CompClasses);
+
+            if (ImGui::BeginCombo("##AddComponent", "Components", ImGuiComboFlags_None))
             {
-                ImGui::OpenPopup("AddComponentPopup");
-            }
-
-            // 팝업 메뉴
-            if (ImGui::BeginPopup("AddComponentPopup"))
-            {
-                if (ImGui::Selectable("TextComponent"))
+                for (UClass* Class : CompClasses)
                 {
-                    UTextComponent* TextComponent = PickedActor->AddComponent<UTextComponent>(EComponentOrigin::Editor);
-                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    if (ImGui::Selectable(GetData(Class->GetName()), false))
                     {
-                        TextComponent->DetachFromParent();
-                        TextComponent->SetupAttachment(ParentComponent);
+                        USceneComponent* NewComp = Cast<USceneComponent>(PickedActor->AddComponent(Class));
+                        USceneComponent* RootComponent = PickedActor->GetRootComponent();
+                        if (NewComp != nullptr && RootComponent != nullptr)
+                        {
+                            NewComp->SetupAttachment(RootComponent);
+                        }
                     }
-                    PickedComponent = TextComponent;
-                    TextComponent->SetTexture(L"Assets/Texture/font.png");
-                    TextComponent->SetRowColumnCount(106, 106);
-                    TextComponent->SetText(L"안녕하세요 Jungle");
                 }
-                if (ImGui::Selectable("BillboardComponent"))
-                {
-                    UBillboardComponent* BillboardComponent = PickedActor->AddComponent<UBillboardComponent>(EComponentOrigin::Editor);
-                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
-                    {
-                        BillboardComponent->DetachFromParent();
-                        BillboardComponent->SetupAttachment(ParentComponent);
-                    }
-                    PickedComponent = BillboardComponent;
-                    BillboardComponent->SetTexture(L"Assets/Texture/Pawn_64x.png");
-                    BillboardComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 3.0f));
-                }
-                //if (ImGui::Selectable("LightComponent"))
-                //{
-                //    ULightComponentBase* LightComponent = PickedActor->AddComponent<ULightComponentBase>();
-                //    PickedComponent = LightComponent;
-                //}
-                if (ImGui::Selectable("DirectionalLightComponent"))
-                {
-                    UDirectionalLightComponent* DirectionalLightComponent = PickedActor->AddComponent<UDirectionalLightComponent>(EComponentOrigin::Editor);
-                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
-                    {
-                        DirectionalLightComponent->DetachFromParent();
-                        DirectionalLightComponent->SetupAttachment(ParentComponent);
-                    }
-                    PickedComponent = DirectionalLightComponent;
-                }
-                if (ImGui::Selectable("PointLightComponent"))
-                {
-                    UPointLightComponent* PointLightComponent = PickedActor->AddComponent<UPointLightComponent>(EComponentOrigin::Editor);
-                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
-                    {
-                        PointLightComponent->DetachFromParent();
-                        PointLightComponent->SetupAttachment(ParentComponent);
-                    }
-                    PickedComponent = PointLightComponent;
-                }
-                if (ImGui::Selectable("SpotLightComponent"))
-                {
-                    USpotLightComponent* SpotLightComponent = PickedActor->AddComponent<USpotLightComponent>(EComponentOrigin::Editor);
-                    PickedComponent = SpotLightComponent;
-                }
-                if (ImGui::Selectable("ParticleComponent"))
-                {
-                    UParticleSubUVComp* ParticleComponent = PickedActor->AddComponent<UParticleSubUVComp>(EComponentOrigin::Editor);
-                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
-                    {
-                        ParticleComponent->DetachFromParent();
-                        ParticleComponent->SetupAttachment(ParentComponent);
-                    }
-                    PickedComponent = ParticleComponent;
-                    ParticleComponent->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
-                    ParticleComponent->SetRowColumnCount(6, 6);
-                    ParticleComponent->SetRelativeScale(FVector(10.0f, 10.0f, 1.0f));
-                    ParticleComponent->Activate();
-                }
-                if (ImGui::Selectable("StaticMeshComponent"))
-                {
-                    UStaticMeshComponent* StaticMeshComponent = PickedActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Editor);
-                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
-                    {
-                        StaticMeshComponent->DetachFromParent();
-                        StaticMeshComponent->SetupAttachment(ParentComponent);
-                    }
-                    PickedComponent = StaticMeshComponent;
-                    FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
-                    StaticMeshComponent->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
-                }
-                if (ImGui::Selectable("CubeComponent"))
-                {
-                    UCubeComp* CubeComponent = PickedActor->AddComponent<UCubeComp>(EComponentOrigin::Editor);
-                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
-                    {
-                        CubeComponent->DetachFromParent();
-                        CubeComponent->SetupAttachment(ParentComponent);
-                    }
-                    PickedComponent = CubeComponent;
-                }
-
-                if (ImGui::Selectable("ProjectileMovementComponent"))
-                {
-                    UProjectileMovementComponent* ProjectileComp = PickedActor->AddComponent<UProjectileMovementComponent>(EComponentOrigin::Editor);
-                    PickedComponent = ProjectileComp;
-                }
-
-                if (ImGui::Selectable("RotatingMovementComponent"))
-                {
-                    URotatingMovementComponent* RotatingComponent = PickedActor->AddComponent<URotatingMovementComponent>(EComponentOrigin::Editor);
-                    PickedComponent = RotatingComponent;
-                }
-                
-                if (ImGui::Selectable("LuaComponent"))
-                {
-                    ULuaComponent* LuaComponent = PickedActor->AddComponent<ULuaComponent>(EComponentOrigin::Editor);
-                    PickedComponent = LuaComponent;
-                }
-                
-                if (ImGui::Selectable("HeartComponent"))
-                {
-                    UBillboardComponent* BillboardComponent = PickedActor->AddComponent<UBillboardComponent>(EComponentOrigin::Editor);
-                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
-                    {
-                        BillboardComponent->DetachFromParent();
-                        BillboardComponent->SetupAttachment(ParentComponent);
-                    }
-                    PickedComponent = BillboardComponent;
-                    BillboardComponent->SetTexture(L"Assets/Texture/heartpixelart.png");
-                    BillboardComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 3.0f));
-                    BillboardComponent->bOnlyForEditor = false;
-                }
-
-                ImGui::EndPopup();
+                ImGui::EndCombo();
             }
             ImGui::TreePop();
         }

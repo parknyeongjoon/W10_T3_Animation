@@ -14,11 +14,11 @@ struct FParticleSpriteVertex
     /** The position of the particle. */
     FVector Position;
     /** The relative time of the particle. */
-    float RelativeTime;
+    // float RelativeTime;
     /** The previous position of the particle. */
-    FVector	OldPosition;
+    // FVector	OldPosition;
     /** Value that remains constant over the lifetime of a particle. */
-    float ParticleId;
+    // float ParticleId;
     /** The size of the particle. */
     FVector2D Size;
     /** The rotation of the particle. */
@@ -26,7 +26,7 @@ struct FParticleSpriteVertex
     /** The sub-image index for the particle. */
     float SubImageIndex;
     /** The color of the particle. */
-    FLinearColor Color;
+    // FLinearColor Color;
 };
 
 // Per-particle data sent to the GPU.
@@ -51,7 +51,11 @@ struct FMeshParticleInstanceVertex
     float RelativeTime;
 };
 
-
+struct FMeshParticleInstanceVertexDynamicParameter
+{
+    /** The dynamic parameter of the particle. */
+    float DynamicValue[4];
+};
 
 enum EDynamicEmitterType
 {
@@ -63,8 +67,6 @@ enum EDynamicEmitterType
     DET_AnimTrail,
     DET_Custom
 };
-
-
 
 /*-----------------------------------------------------------------------------
     FBaseParticle
@@ -136,6 +138,18 @@ struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBas
     //struct UParticleModuleRequired* RequiredModule;
     FVector EmitterOrigin;
     
+    int32							SubUVDataOffset;
+    int32							OrbitModuleOffset;
+    int32							DynamicParameterDataOffset;
+    int32							CameraPayloadOffset;
+};
+
+struct FFullSubUVPayload
+{
+    // The integer portion indicates the sub-image index.
+    // The fractional portion indicates the lerp factor.
+    float ImageIndex;
+    float RandomImageTime;
 };
 
 /** Source data for Sprite emitters */
@@ -154,7 +168,11 @@ struct FDynamicEmitterDataBase
     
     virtual const FDynamicEmitterReplayDataBase& GetSource() const = 0;
 
-    virtual int const GetDynamicVertexStride() const = 0;
+    virtual int32 const GetDynamicVertexStride() const = 0;
+
+    // Particle을 생성하지 않는 Emitter가 있을 수 있다면 가상함수 말고 아무행동 안하는 함수로 변경
+    virtual void GetDynamicMeshElementsEmitter() const {};
+
 };
 
 struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
@@ -173,12 +191,16 @@ struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
     
     FDynamicEmitterReplayDataBase& GetSource();
 
-    //int GetDynamicVertexStride() const;
+    // (int32 SortMode, bool bLocalSpace, 
+    //     int32 ParticleCount, const uint8* ParticleData, int32 ParticleStride, const uint16* ParticleIndices,
+    //     const FSceneView* View, const FMatrix& LocalToWorld, FParticleOrder* ParticleOrder) const;
+    virtual int32 const GetDynamicVertexStride() const = 0;
+    // virtual int32 GetDynamicParameterVertexStride() const = 0;
 };
 
 struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 {
-    //FDynamicSpriteEmitterReplayData Source;
+     // FDynamicSpriteEmitterReplayData Source;
 
 	/** Returns the source data for this particle system */
 	/*virtual const FDynamicSpriteEmitterReplayData& GetSource() const override
@@ -194,11 +216,31 @@ struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 
 struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
 {
-    /*virtual int32 GetDynamicVertexStride() const override
-    {
-        return sizeof(FMeshParticleInstanceVertex);
-    }*/
+    // virtual const FDynamicEmitterReplayDataBase& GetSource() const override
+    // {
+    //     return Source;
+    // }
+    
+    // virtual int32 GetDynamicVertexStride() const override
+    // {
+    //     return sizeof(FMeshParticleInstanceVertex);
+    // }
+    
+    // virtual int32 GetDynamicParameterVertexStride() const override 
+    // {
+    //     return sizeof(FMeshParticleInstanceVertexDynamicParameter);
+    // }
+
+    // virtual void GetDynamicMeshElementsEmitter() const override;
+
 };
+
+FORCEINLINE FVector2D GetParticleSizeWithUVFlipInSign(const FBaseParticle& Particle, const FVector2D& ScaledSize)
+{
+    return FVector2D(
+        Particle.Size.X >= 0.0f ? ScaledSize.X : -ScaledSize.X,
+        Particle.Size.Y >= 0.0f ? ScaledSize.Y : -ScaledSize.Y);
+}
 
 #define DECLARE_PARTICLE(Name,Address)		\
 	FBaseParticle& Name = *((FBaseParticle*) (Address));
