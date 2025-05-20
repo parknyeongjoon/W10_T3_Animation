@@ -9,6 +9,7 @@
 #include <Engine/Texture.h>
 #include "Classes/Particles/ParticleLODLevel.h"
 #include "Particles/TypeData/ParticleModuleTypeDataMesh.h"
+#include "ParticleMacros.h"
 
 void FParticleEmitterInstance::Init(int32 InMaxParticles)
 {

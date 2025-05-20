@@ -50,7 +50,7 @@ public:
     virtual void InitParameters(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent);
 
     void Release();
-    
+
     void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity);
 
     void KillParticle(int32 Index);
@@ -80,6 +80,8 @@ public:
     virtual void Init(int32 InMaxParticles) override;
 
     virtual void InitParameters(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent) override;
+
+    FBaseParticle* GetParticle(int32 Index);
 
 };
 

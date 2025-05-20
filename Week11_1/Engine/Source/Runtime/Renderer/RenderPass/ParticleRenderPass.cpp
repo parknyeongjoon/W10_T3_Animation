@@ -26,6 +26,7 @@
 #include "Particles/ParticleEmitter.h"
 
 #include "UObject/UObjectIterator.h"
+#include <Particles/ParticleMacros.h>
 
 FParticleRenderPass::FParticleRenderPass(const FName& InShaderName) : FBaseRenderPass(InShaderName)
 {

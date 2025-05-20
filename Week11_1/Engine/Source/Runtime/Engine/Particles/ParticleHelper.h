@@ -252,12 +252,3 @@ FORCEINLINE FVector2D GetParticleSizeWithUVFlipInSign(const FBaseParticle& Parti
         Particle.Size.X >= 0.0f ? ScaledSize.X : -ScaledSize.X,
         Particle.Size.Y >= 0.0f ? ScaledSize.Y : -ScaledSize.Y);
 }
-
-#define DECLARE_PARTICLE(Name,Address)		\
-	FBaseParticle& Name = *((FBaseParticle*) (Address));
-
-#define DECLARE_PARTICLE_CONST(Name,Address)		\
-	const FBaseParticle& Name = *((const FBaseParticle*) (Address));
-
-#define DECLARE_PARTICLE_PTR(Name,Address)		\
-	FBaseParticle* Name = (FBaseParticle*) (Address);
