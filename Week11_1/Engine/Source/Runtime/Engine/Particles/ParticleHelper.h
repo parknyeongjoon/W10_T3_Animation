@@ -4,6 +4,7 @@
 #include "Math/Vector4.h"
 
 class UMaterial;
+class UStaticMesh;
 struct FParticleRequiredModule;
 struct FTexture;
 /**
@@ -144,6 +145,10 @@ struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBas
     int32							CameraPayloadOffset;
 };
 
+struct FDynamicMeshEmitterReplayData : public FDynamicSpriteEmitterReplayDataBase
+{
+};
+
 struct FFullSubUVPayload
 {
     // The integer portion indicates the sub-image index.
@@ -216,6 +221,10 @@ struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 
 struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
 {
+    FDynamicMeshEmitterReplayData Source;
+
+    UStaticMesh* Mesh;
+
     // virtual const FDynamicEmitterReplayDataBase& GetSource() const override
     // {
     //     return Source;

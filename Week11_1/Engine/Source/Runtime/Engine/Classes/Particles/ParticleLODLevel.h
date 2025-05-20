@@ -17,6 +17,7 @@ public:
     UParticleModuleRequired* RequiredModule = nullptr;
 
     // 메시, 빔, 리본 등 Emitter 타입 별 특성 데이터 정의.
+    // 만약 nullptr이면 sprite를 의미
     UParticleModuleTypeDataBase* TypeDataModule = nullptr;
 
     TArray<UParticleModule*> Modules;

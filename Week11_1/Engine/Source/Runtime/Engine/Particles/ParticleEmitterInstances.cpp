@@ -1,5 +1,6 @@
 #include "ParticleEmitterInstances.h"
 
+#include "CoreUObject/UObject/Casts.h"
 #include "UserInterface/Console.h"
 #include "Core/HAL/PlatformMemory.h"
 #include "Particles/Modules/ParticleModuleRequired.h"
@@ -7,6 +8,7 @@
 #include "Engine/Particles/ParticleHelper.h"
 #include <Engine/Texture.h>
 #include "Classes/Particles/ParticleLODLevel.h"
+#include "Particles/TypeData/ParticleModuleTypeDataMesh.h"
 
 void FParticleEmitterInstance::Init(int32 InMaxParticles)
 {
@@ -30,6 +32,12 @@ void FParticleEmitterInstance::Init(int32 InMaxParticles)
     ActiveParticles = 0;
     ParticleCounter = 0;
     ParticleCounter = 0;
+}
+
+void FParticleEmitterInstance::InitParameters(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent)
+{
+    SpriteTemplate = InTemplate;
+    Component = InComponent;
 }
 
 void FParticleEmitterInstance::Release()
@@ -139,7 +147,7 @@ int32 FParticleEmitterInstance::GetSubImageV() const
     return RequiredModule ? RequiredModule->SubImagesVertical : 1;
 }
 
-void FParticleEmitterInstance::UpdatParticles(float DeltaTime)
+void FParticleEmitterInstance::UpdateParticles(float DeltaTime)
 {
     for (int32 i = 0; i < ActiveParticles; ++i)
     {
@@ -156,6 +164,17 @@ void FParticleEmitterInstance::UpdatParticles(float DeltaTime)
         // OldPosition이 필요한 경우 (모션 벡터, Trail 등)
         // Particle->OldLocation = Particle->Location;
     }
+}
+
+void FParticleMeshEmitterInstance::Init(int32 InMaxParticles)
+{
+    FParticleEmitterInstance::Init(InMaxParticles);
+}
+
+void FParticleMeshEmitterInstance::InitParameters(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent)
+{
+    FParticleEmitterInstance::InitParameters(InTemplate, InComponent);
+    MeshTypeData = Cast<UParticleModuleTypeDataMesh>(CurrentLODLevel->TypeDataModule);
 }
 
 // FORCEINLINE static void* FastParticleSmallBlockAlloc(size_t AllocSize)

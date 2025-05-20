@@ -23,6 +23,7 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "Particles/ParticleHelper.h"
 #include "Renderer/ComputeShader/ComputeTileLightCulling.h"
+#include "Particles/ParticleEmitter.h"
 
 #include "UObject/UObjectIterator.h"
 

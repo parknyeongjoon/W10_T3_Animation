@@ -24,6 +24,7 @@
 #include "Classes/Particles/ParticleLODLevel.h"
 #include "Particles/Modules/ParticleModuleRequired.h"
 #include <Particles/Modules/ParticleModuleVelocity.h>
+#include "Particles/ParticleEmitter.h"
 
 void UWorld::InitWorld()
 {
@@ -72,7 +73,7 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
         AActor* TestActor = SpawnActor<AActor>();
         UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
         TestComp->Template = FObjectFactory::ConstructObject<UParticleSystem>(this);
-        UParticleEmitter* NewEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
+        UParticleEmitter* NewEmitter = FObjectFactory::ConstructObject<UParticleSpriteEmitter>(nullptr);
         UParticleLODLevel* NewLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
         NewLODLevel->RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(nullptr);
         NewLODLevel->Modules.Add(NewLODLevel->RequiredModule);

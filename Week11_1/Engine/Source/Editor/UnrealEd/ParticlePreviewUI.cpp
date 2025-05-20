@@ -43,7 +43,7 @@ void FParticlePreviewUI::Initialize(SLevelEditor* LevelEditor, float Width, floa
         UParticleSystem* NewParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(nullptr);
         for(int i = 0; i < 5; i++)
         {
-            UParticleEmitter* NewEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
+            UParticleEmitter* NewEmitter = FObjectFactory::ConstructObject<UParticleSpriteEmitter>(nullptr);
             UParticleLODLevel* NewLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
             NewLODLevel->RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(nullptr);
             NewLODLevel->Modules.Add(NewLODLevel->RequiredModule);

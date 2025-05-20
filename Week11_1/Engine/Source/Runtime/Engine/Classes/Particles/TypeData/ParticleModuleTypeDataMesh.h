@@ -2,8 +2,7 @@
 
 #include "ParticleModuleTypeDataBase.h"
 #include "Math/RandomStream.h"
-
-class UStaticMesh;
+#include "Components/Mesh/StaticMesh.h" // UPROPERTY 전방선언 못함
 
 class UParticleModuleTypeDataMesh : public UParticleModuleTypeDataBase
 {

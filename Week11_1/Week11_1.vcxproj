@@ -556,6 +556,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowResource.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Paritcles\ParticleHelper.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstances.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleHelper.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Skeletal\SkeletalDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\InputCore\InputCoreTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\ShowFlags.h" />

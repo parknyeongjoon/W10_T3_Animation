@@ -10,6 +10,9 @@
 #include "Particles/Modules/ParticleModule.h"
 #include <Particles/Modules/ParticleModuleSpawn.h>
 #include "Particles/Modules/ParticleModuleRequired.h"
+#include "Particles/ParticleLODLevel.h"
+#include "Particles/ParticleEmitter.h"
+
 bool GIsAllowingParticles = true;
 
 UParticleSystemComponent::UParticleSystemComponent()
@@ -1047,15 +1050,16 @@ void UParticleSystemComponent::SpawnAllEmitters()
     {
         if (!Emitter) continue;
 
+        FParticleEmitterInstance* Instance = Emitter->CreateInstance(this);
         // 새 이미터 인스턴스를 생성
-        FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
-        Instance->SpriteTemplate = Emitter;
-        Instance->Component = this;
-        Instance->CurrentLODLevelIndex = 0;
-        Instance->CurrentLODLevel = Emitter->GetLODLevel(0); // 현재는 LOD0만 사용
-        Instance->CurrentLODLevel->AnalyzeModules();
-        Instance->RequiredModule = Instance->CurrentLODLevel->RequiredModule;
-        Instance->Init(1024); // 임의 최대 파티클 수
+        //FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
+        //Instance->SpriteTemplate = Emitter;
+        //Instance->Component = this;
+        //Instance->CurrentLODLevelIndex = 0;
+        //Instance->CurrentLODLevel = Emitter->GetLODLevel(0); // 현재는 LOD0만 사용
+        //Instance->CurrentLODLevel->AnalyzeModules();
+        //Instance->RequiredModule = Instance->CurrentLODLevel->RequiredModule;
+        //Instance->Init(1024); // 임의 최대 파티클 수
 
         // 파티클 모듈들의 초기화 및 첫 스폰 호출
         if (Instance->CurrentLODLevel)
@@ -1100,7 +1104,7 @@ void UParticleSystemComponent::UpdateAllEmitters(float DeltaTime)
         }
 
         // 속도 등 업데이트
-        Instance->UpdatParticles(DeltaTime);
+        Instance->UpdateParticles(DeltaTime);
 
         // 기존 파티클 라이프타임 체크 루프
         for (int32 i = 0; i < Instance->ActiveParticles;) {

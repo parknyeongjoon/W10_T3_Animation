@@ -10,6 +10,7 @@ class UParticleEmitter;
 class UParticleSystemComponent;
 class UParticleLODLevel;
 class UParticleModuleRequired;
+class UParticleModuleTypeDataMesh;
 struct FTexture;
 
 struct FParticleEmitterInstance
@@ -44,7 +45,9 @@ struct FParticleEmitterInstance
     FTexture* Texture;
 
 public:
-    void Init(int32 InMaxparticles);
+    virtual void Init(int32 InMaxparticles);
+
+    virtual void InitParameters(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent);
 
     void Release();
 
@@ -61,7 +64,24 @@ public:
     int32 GetSubImageH() const;
     int32 GetSubImageV() const;
 
-    void UpdatParticles(float DeltaTime);
+    void UpdateParticles(float DeltaTime);
+
+};
+
+struct FParticleSpriteEmitterInstance : public FParticleEmitterInstance
+{
+    // Sprite가 기본값 : 사실상 FParticleEmitterInstance와 동일
+};
+
+struct FParticleMeshEmitterInstance : public FParticleEmitterInstance
+{
+    UParticleModuleTypeDataMesh* MeshTypeData = nullptr;
+    //TArray<UMaterial*> CurrentMaterials;
+
+public:
+    virtual void Init(int32 InMaxParticles) override;
+
+    virtual void InitParameters(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent) override;
 
 };
 
