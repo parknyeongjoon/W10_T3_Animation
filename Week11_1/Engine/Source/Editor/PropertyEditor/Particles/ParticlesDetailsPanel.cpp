@@ -54,11 +54,18 @@ void ParticlesDetailsPanel::Render()
             for (const FProperty* Prop : Properties)
             {
                 UScriptStruct* Struct = std::get<UScriptStruct*>(Prop->TypeSpecificData);
-                if (Struct->IsChildOf(FRawDistribution::StaticStruct()))
+                if (Struct->IsChildOf(FRawDistributionFloat::StaticStruct()))
                 {
                     ImGui::SeparatorText(Prop->Name);
-                    FRawDistribution* Distribution = static_cast<FRawDistribution*>(Prop->GetPropertyData(SelectedModule));
-                    RenderDistributionMenu(Distribution);
+                    FRawDistributionFloat* Distribution = static_cast<FRawDistributionFloat*>(Prop->GetPropertyData(SelectedModule));
+                    RenderDistributionMenu(Distribution, true);
+                    continue;
+                }
+                else if (Struct->IsChildOf(FRawDistributionVector::StaticStruct()))
+                {
+                    ImGui::SeparatorText(Prop->Name);
+                    FRawDistributionVector* Distribution = static_cast<FRawDistributionVector*>(Prop->GetPropertyData(SelectedModule));
+                    RenderDistributionMenu(Distribution, false);
                     continue;
                 }
                 Prop->DisplayInImGui(SelectedModule);
@@ -85,14 +92,14 @@ void ParticlesDetailsPanel::RenderEditMenu() const
 {
 }
 
-void ParticlesDetailsPanel::RenderDistributionMenu(FRawDistribution* Distribution)
+void ParticlesDetailsPanel::RenderDistributionMenu(FRawDistribution* Distribution, bool bFloat)
 {
     TArray<UClass*> CandidateClasses;
     UClass* BaseClass = nullptr;
     UDistribution* CurrentDistribution = nullptr;
     
-    bool bFloat = Distribution->StaticStruct()->GetName() == FRawDistributionFloat::StaticStruct()->GetName();
     // 현재 Distribution 타입 확인
+    // 내부에서 float 찾는 방법을 찾지 못함...
     if (bFloat)
     {
         CurrentDistribution = static_cast<FRawDistributionFloat*>(Distribution)->Distribution;
