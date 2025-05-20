@@ -188,7 +188,7 @@ struct FDynamicEmitterDataBase
     
     virtual const FDynamicEmitterReplayDataBase& GetSource() const = 0;
 
-    virtual int const GetDynamicVertexStride() const = 0;
+    virtual int32 const GetDynamicVertexStride() const = 0;
 
     // Particle을 생성하지 않는 Emitter가 있을 수 있다면 가상함수 말고 아무행동 안하는 함수로 변경
     virtual void GetDynamicMeshElementsEmitter() const {};
@@ -227,7 +227,7 @@ struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
     // (int32 SortMode, bool bLocalSpace, 
     //     int32 ParticleCount, const uint8* ParticleData, int32 ParticleStride, const uint16* ParticleIndices,
     //     const FSceneView* View, const FMatrix& LocalToWorld, FParticleOrder* ParticleOrder) const;
-    virtual int32 GetDynamicVertexStride() const = 0;
+    virtual int32 const GetDynamicVertexStride() const = 0;
     // virtual int32 GetDynamicParameterVertexStride() const = 0;
 };
 

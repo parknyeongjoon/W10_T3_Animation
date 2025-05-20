@@ -203,6 +203,8 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                             // {
                             //     GetDynamicValueFromPayload(Source.DynamicParameterDataOffset, Particle, DynamicParameterValue);
                             // }
+
+                            //텍스쳐 넘겨줘야함
                             
                             FParticleSpriteVertex FillVertex;
                             FillVertex.Position = ParticlePosition;
