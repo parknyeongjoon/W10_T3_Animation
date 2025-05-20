@@ -5,7 +5,7 @@
 // UDistribution을 넣어서 생성 방법을 지정할 수 있습니다.
 struct FRawDistributionVector : public FRawDistribution
 {
-    DECLARE_STRUCT(FRawDistributionVector)
+    DECLARE_STRUCT(FRawDistributionVector, FRawDistribution)
 
 private:
     //UPROPERTY(

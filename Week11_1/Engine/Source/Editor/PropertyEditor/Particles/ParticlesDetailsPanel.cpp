@@ -46,8 +46,6 @@ void ParticlesDetailsPanel::Render()
             // 그리고 distribution인건 따로 그리기
             // distribution일 경우 float 수정할수있게 따로 그리기
             //Properties.Remove()
-
-                
             if (!Properties.IsEmpty())
             {
                 ImGui::SeparatorText(*Class->GetName());
@@ -55,6 +53,14 @@ void ParticlesDetailsPanel::Render()
 
             for (const FProperty* Prop : Properties)
             {
+                UScriptStruct* Struct = std::get<UScriptStruct*>(Prop->TypeSpecificData);
+                if (Struct->IsChildOf(FRawDistribution::StaticStruct()))
+                {
+                    ImGui::SeparatorText(Prop->Name);
+                    FRawDistribution* Distribution = static_cast<FRawDistribution*>(Prop->GetPropertyData(SelectedModule));
+                    RenderDistributionMenu(Distribution);
+                    continue;
+                }
                 Prop->DisplayInImGui(SelectedModule);
             }
         }
@@ -84,10 +90,10 @@ void ParticlesDetailsPanel::RenderDistributionMenu(FRawDistribution* Distributio
     TArray<UClass*> CandidateClasses;
     UClass* BaseClass = nullptr;
     UDistribution* CurrentDistribution = nullptr;
-
-    bool bIsFloat = Distribution->StaticStruct()->IsChildOf(FRawDistributionFloat::StaticStruct());
+    
+    bool bFloat = Distribution->StaticStruct()->GetName() == FRawDistributionFloat::StaticStruct()->GetName();
     // 현재 Distribution 타입 확인
-    if (bIsFloat)
+    if (bFloat)
     {
         CurrentDistribution = static_cast<FRawDistributionFloat*>(Distribution)->Distribution;
         BaseClass = UDistributionFloat::StaticClass();
@@ -110,13 +116,16 @@ void ParticlesDetailsPanel::RenderDistributionMenu(FRawDistribution* Distributio
 
     // 현재 선택된 클래스 이름
     FString CurrentName = CurrentDistribution ? CurrentDistribution->GetClass()->GetName() : TEXT("None");
-
+    CurrentName = FString::Printf("%s##%llu", *CurrentName, Distribution);
     // Combo 시작
+    ImGui::PushID(Distribution);
     if (ImGui::BeginCombo("Distribution Type", *CurrentName))
     {
         for (UClass* OptionClass : CandidateClasses)
         {
             FString OptionName = OptionClass->GetName();
+            OptionName = FString::Printf("%s##%llu", *OptionName, Distribution);
+
             bool bIsSelected = (CurrentDistribution && CurrentDistribution->GetClass() == OptionClass);
 
             if (ImGui::Selectable(*OptionName, bIsSelected))
@@ -133,7 +142,7 @@ void ParticlesDetailsPanel::RenderDistributionMenu(FRawDistribution* Distributio
                     FObjectFactory::ConstructObject(OptionClass, nullptr)
                 );
 
-                if (bIsFloat)
+                if (bFloat)
                 {
                     static_cast<FRawDistributionFloat*>(Distribution)->Distribution
                         = Cast<UDistributionFloat>(NewDistribution);
@@ -148,13 +157,14 @@ void ParticlesDetailsPanel::RenderDistributionMenu(FRawDistribution* Distributio
         ImGui::EndCombo();
     }
 
-    // 현재 선택된 Distribution 이름 출력
+    // 값 조절 UI
     if (CurrentDistribution)
     {
-        ImGui::Text("Current: %s", *CurrentDistribution->GetName());
+        for (const FProperty* Prop : CurrentDistribution->GetClass()->GetProperties())
+        {
+            Prop->DisplayInImGui(CurrentDistribution);
+        }
+
     }
-    else
-    {
-        ImGui::Text("No Distribution");
-    }
+    ImGui::PopID();
 }
