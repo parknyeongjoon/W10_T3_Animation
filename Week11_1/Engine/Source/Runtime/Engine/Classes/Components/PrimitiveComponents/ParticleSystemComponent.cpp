@@ -1100,7 +1100,7 @@ void UParticleSystemComponent::UpdateAllEmitters(float DeltaTime)
         }
 
         // 속도 등 업데이트
-        // Instance->UpdatParticles(DeltaTime);
+        Instance->UpdatParticles(DeltaTime);
 
         // 기존 파티클 라이프타임 체크 루프
         for (int32 i = 0; i < Instance->ActiveParticles;) {
