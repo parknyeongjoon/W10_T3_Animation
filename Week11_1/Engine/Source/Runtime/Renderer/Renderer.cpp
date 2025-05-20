@@ -305,6 +305,12 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
             SkeletalRenderPass->Prepare(ActiveViewportClient);
             SkeletalRenderPass->Execute(ActiveViewportClient);
         }
+        
+        // if (ActiveViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Particle))
+        {
+            ParticleRenderPass->Prepare(ActiveViewportClient);
+            ParticleRenderPass->Execute(ActiveViewportClient);
+        }
     }
 
     if (FogRenderPass->ShouldRender())
@@ -333,12 +339,6 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
         GizmoRenderPass->Prepare(ActiveViewportClient);
         GizmoRenderPass->Execute(ActiveViewportClient);
     }
-
-    // if (ActiveViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Particle))
-    {
-        
-    }
-
     
     LetterBoxRenderPass->Prepare(ActiveViewportClient);
     LetterBoxRenderPass->Execute(ActiveViewportClient);
@@ -373,6 +373,7 @@ void FRenderer::ClearRenderObjects() const
     FogRenderPass->ClearRenderObjects();
     BlurRenderPass->ClearRenderObjects();
     FinalRenderPass->ClearRenderObjects();
+    ParticleRenderPass->ClearRenderObjects();
 }
 
 void FRenderer::SetViewMode(const EViewModeIndex evi)
@@ -449,6 +450,8 @@ void FRenderer::AddRenderObjectsToRenderPass(UWorld* World) const
     FogRenderPass->AddRenderObjectsToRenderPass(World);
     BlurRenderPass->AddRenderObjectsToRenderPass(World);
     FinalRenderPass->AddRenderObjectsToRenderPass(World);
+
+    ParticleRenderPass->AddRenderObjectsToRenderPass(World);
 }
 
 FName FRenderer::GetVSName(const FName InShaderProgramName)

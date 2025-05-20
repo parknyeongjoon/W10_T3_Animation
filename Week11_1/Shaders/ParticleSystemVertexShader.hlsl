@@ -1,4 +1,4 @@
-cbuffer FMatrixBuffer : register(b0)
+cbuffer FMatrixSeparatedMVPConstants : register(b0)
 {
     row_major float4x4 Model; //Emitter 위치
     row_major float4x4 View;

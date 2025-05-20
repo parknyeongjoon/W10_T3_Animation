@@ -12,6 +12,7 @@ class FParticleRenderPass : public FBaseRenderPass
 {
 public:
     explicit FParticleRenderPass(const FName& InShaderName);
+    void CreateQuadTextureVertexBuffer();
 
     virtual ~FParticleRenderPass() {}
     void AddRenderObjectsToRenderPass(UWorld* World) override;

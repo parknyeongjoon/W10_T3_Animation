@@ -620,7 +620,7 @@ float CalculateVSMShadow(float3 WorldPos, float3 LightPos, float3 Normal, float3
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
-    output.color = float4(1,1,1,1);
+    output.color = Texture.Sample(linearSampler, input.texcoord);
 
     output.UUID = UUID;
     //임시 테스트용

@@ -14,11 +14,11 @@ struct FParticleSpriteVertex
     /** The position of the particle. */
     FVector Position;
     /** The relative time of the particle. */
-    float RelativeTime;
+    // float RelativeTime;
     /** The previous position of the particle. */
-    FVector	OldPosition;
+    // FVector	OldPosition;
     /** Value that remains constant over the lifetime of a particle. */
-    float ParticleId;
+    // float ParticleId;
     /** The size of the particle. */
     FVector2D Size;
     /** The rotation of the particle. */
@@ -26,7 +26,7 @@ struct FParticleSpriteVertex
     /** The sub-image index for the particle. */
     float SubImageIndex;
     /** The color of the particle. */
-    FLinearColor Color;
+    // FLinearColor Color;
 };
 
 // Per-particle data sent to the GPU.
@@ -200,7 +200,7 @@ struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
 
 struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 {
-    //FDynamicSpriteEmitterReplayData Source;
+     // FDynamicSpriteEmitterReplayData Source;
 
 	/** Returns the source data for this particle system */
 	/*virtual const FDynamicSpriteEmitterReplayData& GetSource() const override
@@ -238,8 +238,8 @@ struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
 FORCEINLINE FVector2D GetParticleSizeWithUVFlipInSign(const FBaseParticle& Particle, const FVector2D& ScaledSize)
 {
     return FVector2D(
-        Particle.BaseSize.X >= 0.0f ? ScaledSize.X : -ScaledSize.X,
-        Particle.BaseSize.Y >= 0.0f ? ScaledSize.Y : -ScaledSize.Y);
+        Particle.Size.X >= 0.0f ? ScaledSize.X : -ScaledSize.X,
+        Particle.Size.Y >= 0.0f ? ScaledSize.Y : -ScaledSize.Y);
 }
 
 #define DECLARE_PARTICLE(Name,Address)		\

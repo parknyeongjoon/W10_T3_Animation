@@ -413,6 +413,8 @@ void UParticleSystemComponent::UpdateDynamicData()
         ReplayData->Texture = EmitterInstance->GetTexture();
         //ReplayData->RequiredModule = EmitterInstance->RequiredModule;
 
+        ReplayData->Scale = FVector::OneVector;
+        
         // TODO: 필요 시 정렬 설정 (SortMode 등)
         ReplayData->SortMode = 0;
 

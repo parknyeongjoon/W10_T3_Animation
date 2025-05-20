@@ -18,6 +18,7 @@
 #include "Components/Material/Material.h"
 #include "Components/Mesh/StaticMesh.h"
 #include "Components/PrimitiveComponents/ParticleSystemComponent.h"
+#include "Components/PrimitiveComponents/QuadTexture.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/SkySphereComponent.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Particles/ParticleHelper.h"
@@ -57,7 +58,28 @@ FParticleRenderPass::FParticleRenderPass(const FName& InShaderName) : FBaseRende
 
     Graphics.Device->CreateBuffer(&bufferDesc, nullptr, &SpriteParticleInstanceBuffer);
     
+    CreateQuadTextureVertexBuffer();
+}
+
+
+void FParticleRenderPass::CreateQuadTextureVertexBuffer()
+{
+    FRenderer& Renderer = GEngineLoop.Renderer;
+    FRenderResourceManager* ResourceManager = Renderer.GetResourceManager();
     
+    if (ResourceManager->GetVertexBuffer(TEXT("QuadVB")) && ResourceManager->GetVertexBuffer(TEXT("QuadIB")))
+    {
+        return;
+    }
+    
+    ID3D11Buffer* VB = ResourceManager->CreateImmutableVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
+    ResourceManager->AddOrSetVertexBuffer(TEXT("QuadVB"), VB);
+    Renderer.MappingVBTopology(TEXT("Quad"), TEXT("QuadVB"), sizeof(FVertexTexture), 4);
+
+    ID3D11Buffer* IB = ResourceManager->CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices) / sizeof(uint32));
+    ResourceManager->AddOrSetIndexBuffer(TEXT("QuadIB"), IB);
+    Renderer.MappingIB(TEXT("Quad"), TEXT("QuadIB"), sizeof(quadTextureInices) / sizeof(uint32));
+
 }
 
 void FParticleRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
@@ -170,6 +192,8 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                         int32 ParticleCount = Source.ActiveParticleCount;
                         // int32 VertexDynamicParameterStride = sizeof(FParticleVertexDynamicParameter);
                         TArray<FParticleSpriteVertex> InstanceVertices;
+
+                        FTexture* Texture = nullptr;
                         
                         float SubImageIndex = 0.0f;
                         
@@ -222,11 +246,16 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                             // }
 
                             InstanceVertices.Add(FillVertex);
+
+                            Texture = Source.Texture;
                         }
 
                         ID3D11InputLayout* ParticleInputLayout = Renderer.GetResourceManager()->GetInputLayout(TEXT("SpriteParticle"));
                         //Quad인 경우 Quad값 IASetVertexBuffer(0)에다 박고 1은 렌더데이터 돌면서 애들 다른애들마다 박아줘야함
                         UpdateInstanceBuffer<FParticleSpriteVertex>(Graphics.DeviceContext, SpriteParticleInstanceBuffer, ParticleInputLayout, InstanceVertices, VertexStride);
+                        //이거 Material로 바꾸면 아래걸로 변경
+                        Graphics.DeviceContext->PSSetShaderResources(0, 1, &Texture->TextureSRV);
+                        // UpdateMaterialConstants();
                         break;
                     }
                 case DET_Mesh:
@@ -333,7 +362,7 @@ void FParticleRenderPass::UpdateMatrixConstants(UParticleSystemComponent* InPart
     MatrixConstants.View = InView;
     MatrixConstants.Proj = InProjection;
 
-    renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixConstants"), &MatrixConstants);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixSeparatedMVPConstants"), &MatrixConstants);
 }
 
 void FParticleRenderPass::UpdateFlagConstant()
@@ -625,3 +654,4 @@ bool FParticleRenderPass::IsSpotLightInFrustum(USpotLightComponent* SpotLightCom
     // 모든 검사에서 프러스텀 내부에 포함된 점이 없으면 false
     return false;
 }
+

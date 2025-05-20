@@ -236,6 +236,7 @@ enum class EShaderConstantBuffer : std::uint8_t
     FPrimitiveCounts = 10,
     FSubUVConstant = 11,
     FViewportInfo = 12,
+    FMatrixSeparatedMVPConstants = 13,
     
     EShaderConstantBuffer_MAX
 };
@@ -277,6 +278,7 @@ inline EShaderConstantBuffer EShaderConstantBufferFromString(const TCHAR* str)
     if(std::wcscmp(str, TEXT("FPrimitiveCounts")) == 0) return EShaderConstantBuffer::FPrimitiveCounts;
     if(std::wcscmp(str, TEXT("FSubUVConstant")) == 0) return EShaderConstantBuffer::FSubUVConstant;
     if(std::wcscmp(str, TEXT("FViewportInfo")) == 0) return EShaderConstantBuffer::FViewportInfo;
+    if(std::strcmp(str, "FMatrixSeparatedMVPConstants") == 0) return EShaderConstantBuffer::FMatrixSeparatedMVPConstants;
 #else
     if(std::strcmp(str, "FCameraConstant") == 0) return EShaderConstantBuffer::FCameraConstant;
     if(std::strcmp(str, "FConstants") == 0) return EShaderConstantBuffer::FConstants;
@@ -291,6 +293,7 @@ inline EShaderConstantBuffer EShaderConstantBufferFromString(const TCHAR* str)
     if(std::strcmp(str, "FPrimitiveCounts") == 0) return EShaderConstantBuffer::FPrimitiveCounts;
     if(std::strcmp(str, "FSubUVConstant") == 0) return EShaderConstantBuffer::FSubUVConstant;
     if(std::strcmp(str, "FViewportInfo") == 0) return EShaderConstantBuffer::FViewportInfo;
+    if(std::strcmp(str, "FMatrixSeparatedMVPConstants") == 0) return EShaderConstantBuffer::FMatrixSeparatedMVPConstants;
 #endif
     return EShaderConstantBuffer::EShaderConstantBuffer_MAX;
 }
