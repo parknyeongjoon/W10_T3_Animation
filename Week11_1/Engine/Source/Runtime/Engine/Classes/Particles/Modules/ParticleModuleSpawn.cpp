@@ -1,6 +1,11 @@
 #include "ParticleModuleSpawn.h"
 #include "Runtime/Engine/Particles/ParticleEmitterInstances.h"
 
+UParticleModuleSpawn::UParticleModuleSpawn()
+{
+    InitializeDefaults();
+}
+
 void UParticleModuleSpawn::InitializeDefaults()
 {
     if (Rate.Constant <= 0.0f)

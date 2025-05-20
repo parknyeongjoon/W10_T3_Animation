@@ -8,7 +8,7 @@ class UParticleModuleSpawn : public UParticleModule
     DECLARE_CLASS(UParticleModuleSpawn, UParticleModule)
 
 public:
-    UParticleModuleSpawn() = default;
+    UParticleModuleSpawn();
     // Property 스폰
     FRawDistributionFloat Rate;
 
