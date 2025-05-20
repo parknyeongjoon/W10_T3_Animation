@@ -38,29 +38,29 @@ void FParticlePreviewUI::Initialize(SLevelEditor* LevelEditor, float Width, floa
     CurvePanel->BindUI(this);
 
     // TEST CASES
-    for (int j = 0; j < 5; j++)
+    for (int j = 0; j < 1; j++)
     {
         UParticleSystem* NewParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(nullptr);
-        for(int i = 0; i < 5; i++)
+        for(int i = 0; i < 1; i++)
         {
             UParticleEmitter* NewEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
             UParticleLODLevel* NewLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
             NewLODLevel->RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(nullptr);
             NewLODLevel->Modules.Add(NewLODLevel->RequiredModule);
-            NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleColor>(nullptr));
-            NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLifeTime>(nullptr));
-            NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLocation>(nullptr));
-            if (i > 1) {
-                NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSize>(nullptr));
-                if (i > 2) {
+            //->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleColor>(nullptr));
+            //NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLifeTime>(nullptr));
+            //NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLocation>(nullptr));
+            //if (i > 1) {
+                //NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSize>(nullptr));
+                //if (i > 2) {
                     NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSpawn>(nullptr));
-                    if (i > 3)
-                    {
-                        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleVelocity>(nullptr));
-                    }
-                }
+                    //if (i > 3)
+                    //{
+                    //    NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleVelocity>(nullptr));
+                    //}
+                //}
 
-            }
+            //}
             NewEmitter->LODLevels.Add(NewLODLevel);
             NewParticleSystem->Emitters.Add(NewEmitter);
         }

@@ -29,7 +29,6 @@ void FParticleEmitterInstance::Init(int32 InMaxParticles)
 
     ActiveParticles = 0;
     ParticleCounter = 0;
-    ActiveParticles = 0;
     ParticleCounter = 0;
 }
 
@@ -70,7 +69,7 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
         Particle->BaseVelocity = InitialVelocity;
 
         Particle->RelativeTime = 0.0f;
-        Particle->Lifetime = 1.0f;
+        Particle->Lifetime = 10000.0f;
 
         Particle->Rotation = 0.0f;
         Particle->RotationRate = 0.0f;

@@ -5,7 +5,7 @@
 
 class UMaterial;
 struct FParticleRequiredModule;
-
+struct FTexture;
 /**
  * Per-particle data sent to the GPU.
  */
@@ -133,7 +133,7 @@ struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBas
     // FIXME : UMaterial로 변경.
     //UMaterial* MaterialInterface;
     FTexture* Texture;
-    struct UParticleModuleRequired* RequiredModule;
+    //struct UParticleModuleRequired* RequiredModule;
     FVector EmitterOrigin;
     
 };

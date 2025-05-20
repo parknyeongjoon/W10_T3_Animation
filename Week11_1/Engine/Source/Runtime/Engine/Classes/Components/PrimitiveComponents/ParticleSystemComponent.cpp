@@ -42,6 +42,8 @@ UParticleSystemComponent::UParticleSystemComponent()
     ManagerHandle = INDEX_NONE;
     bPendingManagerAdd = false;
     bPendingManagerRemove = false;
+
+
 }
 
 UParticleSystemComponent::~UParticleSystemComponent()
@@ -308,7 +310,7 @@ void UParticleSystemComponent::FinalizeTickComponent()
     // 7) 렌더 동적 데이터 갱신 플래그
     if (!bSkipUpdateDynamicDataDuringTick)
     {
-
+        UpdateDynamicData();
     }
 }
 
@@ -402,7 +404,8 @@ void UParticleSystemComponent::UpdateDynamicData()
         ReplayData->DataContainer.MemBlockSize = EmitterInstance->MaxActiveParticles * EmitterInstance->ParticleStride;
         ReplayData->DataContainer.ParticleData = EmitterInstance->ParticleData;
         ReplayData->DataContainer.ParticleIndices = EmitterInstance->ParticleIndices;
-        ReplayData->RequiredModule = EmitterInstance->RequiredModule;
+        ReplayData->Texture = EmitterInstance->GetTexture();
+        //ReplayData->RequiredModule = EmitterInstance->RequiredModule;
 
         // TODO: 필요 시 정렬 설정 (SortMode 등)
         ReplayData->SortMode = 0;
@@ -912,6 +915,7 @@ void UParticleSystemComponent::InitializeSystem()
     {
         if( Template != nullptr )
         {
+            SpawnAllEmitters();
             //EmitterDelay = Template->Delay;
 
             // if( Template->bUseDelayRange )
@@ -1039,6 +1043,8 @@ void UParticleSystemComponent::SpawnAllEmitters()
         Instance->Component = this;
         Instance->CurrentLODLevelIndex = 0;
         Instance->CurrentLODLevel = Emitter->GetLODLevel(0); // 현재는 LOD0만 사용
+        Instance->CurrentLODLevel->AnalyzeModules();
+        Instance->RequiredModule = Instance->CurrentLODLevel->RequiredModule;
         Instance->Init(1024); // 임의 최대 파티클 수
 
         // 파티클 모듈들의 초기화 및 첫 스폰 호출

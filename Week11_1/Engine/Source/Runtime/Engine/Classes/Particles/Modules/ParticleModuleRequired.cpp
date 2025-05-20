@@ -1,10 +1,12 @@
 #include "ParticleModuleRequired.h"
 #include "Runtime/Engine/Particles/ParticleHelper.h"
 #include "Runtime/Engine/Particles/ParticleEmitterInstances.h"
+#include "LaunchEngineLoop.h"
 
 UParticleModuleRequired::UParticleModuleRequired()
 {
-    Texture = nullptr;
+    // 초기값 지정
+    Texture = FEngineLoop::ResourceManager.GetDefaultWhiteTexture().get();
     EmitterOrigin = FVector::ZeroVector;
     EmitterRotation = FRotator::ZeroRotator;
 

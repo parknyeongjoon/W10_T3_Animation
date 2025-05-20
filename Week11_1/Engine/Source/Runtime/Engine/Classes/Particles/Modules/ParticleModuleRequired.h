@@ -7,6 +7,7 @@
 
 struct FTexture;
 struct FDynamicSpriteEmitterDataBase;
+struct FDynamicSpriteEmitterReplayDataBase;
 
 class UParticleModuleRequired : public UParticleModule
 {
