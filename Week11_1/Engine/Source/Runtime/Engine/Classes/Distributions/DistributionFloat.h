@@ -49,6 +49,7 @@ public:
     UDistributionFloat() {}
 
     virtual float GetValue(struct FRandomStream* InRandomStream = nullptr) const;
+    virtual void SetValue(float NewValue);
 };
 
 class UDistributionFloatConstant : public UDistributionFloat
@@ -57,7 +58,9 @@ class UDistributionFloatConstant : public UDistributionFloat
 
 public:
     UDistributionFloatConstant() {}
+    
     virtual float GetValue(struct FRandomStream* InRandomStream = nullptr) const override;
+    virtual void SetValue(float NewValue) override;
 
 private:
     UPROPERTY(

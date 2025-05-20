@@ -49,9 +49,18 @@ float UDistributionFloat::GetValue(struct FRandomStream* InRandomStream) const
     return 0.0f;
 }
 
+void UDistributionFloat::SetValue(float NewValue)
+{
+}
+
 float UDistributionFloatConstant::GetValue(struct FRandomStream* InRandomStream) const
 {
     return Constant;
+}
+
+void UDistributionFloatConstant::SetValue(float NewValue)
+{
+    Constant = NewValue;
 }
 
 float UDistributionFloatUniform::GetValue(struct FRandomStream* InRandomStream) const
