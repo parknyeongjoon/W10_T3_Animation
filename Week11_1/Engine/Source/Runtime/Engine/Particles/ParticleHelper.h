@@ -26,7 +26,7 @@ struct FParticleSpriteVertex
     /** The sub-image index for the particle. */
     float SubImageIndex;
     /** The color of the particle. */
-    // FLinearColor Color;
+    FLinearColor Color;
 };
 
 // Per-particle data sent to the GPU.
@@ -109,6 +109,30 @@ struct FParticleDataContainer
     }
     void Alloc(int32 InParticleDataNumBytes, int32 InParticleIndicesNumShorts);
     void Free();
+};
+
+/*-----------------------------------------------------------------------------
+    Particle Sorting Helper
+-----------------------------------------------------------------------------*/
+struct FParticleOrder
+{
+    int32 ParticleIndex;
+
+    union
+    {
+        float Z;
+        uint32 C;
+    };
+	
+    FParticleOrder(int32 InParticleIndex,float InZ):
+        ParticleIndex(InParticleIndex),
+        Z(InZ)
+    {}
+
+    FParticleOrder(int32 InParticleIndex,uint32 InC):
+        ParticleIndex(InParticleIndex),
+        C(InC)
+    {}
 };
 
 /*-----------------------------------------------------------------------------

@@ -57,7 +57,7 @@ void FLetterBoxRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     }
 }
 
-void FLetterBoxRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
+void FLetterBoxRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     if (bRender)
     {
