@@ -3,6 +3,8 @@
 #include "ParticleModule.h"
 #include <Math/Vector.h>
 #include <Math/Rotator.h>
+
+#include "Components/PrimitiveComponents/ParticleSystemComponent.h"
 #include "UObject/ObjectMacros.h"
 
 struct FTexture;
@@ -17,44 +19,28 @@ public:
     UParticleModuleRequired();
    
     // Property : 이미터
-    //FTexture* Texture;
-    UPROPERTY(
-        EditAnywhere,
-        FTexture*,
-        Texture,
-        = nullptr
-    )
+    FTexture* Texture;
 
-    UPROPERTY(
-        EditAnywhere,
-        FVector,
-        EmitterOrigin,
-        = FVector::ZeroVector
-    )
-
-    UPROPERTY(
-        EditAnywhere,
-        FRotator,
-        EmitterRotation,
-        = FRotator::ZeroRotator
-    )
+    UPROPERTY(EditAnywhere, FVector, EmitterOrigin, = FVector::ZeroVector)
+    UPROPERTY(EditAnywhere, FRotator, EmitterRotation, = FRotator::ZeroRotator)
 
     // Property : 경과시간
-    bool EmitterDurationUseRange;
-    float EmitterLoops;
-    float EmitterDuration;
-    float EmitterDurationLow;
+    UPROPERTY(EditAnywhere, bool, EmitterDurationUseRange, = false)
+    UPROPERTY(EditAnywhere, bool, EmitterLoops, = false)
+    UPROPERTY(EditAnywhere, float, EmitterDuration, = 1.0f)
+    UPROPERTY(EditAnywhere, float, EmitterDurationLow, = 0.0f)
 
     // Property : 딜레이
-    float EmitterDelay;
-    float EmitterDelayLow;
+    UPROPERTY(EditAnywhere, bool, EmitterDelay, = false)
+    UPROPERTY(EditAnywhere, bool, EmitterDelayLow, = false)
     // bool DelayFirstLoopOnly;
-    bool EmitterDelayUseRange;
+
+    UPROPERTY(EditAnywhere, bool, EmitterDelayUseRange, = false)
 
     // Property : 서브 UV; 
     // InterpolationMethod : Linear;
-    int SubImagesHorizontal;
-    int SubImagesVertical;
+    UPROPERTY(EditAnywhere, int, SubImagesHorizontal, = 1)
+    UPROPERTY(EditAnywhere, int, SubImagesVertical, = 1)
 
 public:
 

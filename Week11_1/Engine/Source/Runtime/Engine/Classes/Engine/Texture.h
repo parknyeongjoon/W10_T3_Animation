@@ -2,6 +2,7 @@
 #include "D3D11RHI/GraphicDevice.h"
 #include "container/String.h"
 #include "HAL/PlatformType.h"
+
 struct FTexture
 {
     FTexture(ID3D11ShaderResourceView* SRV, ID3D11Texture2D* Texture2D, uint32 _width, uint32 _height, FWString _path)

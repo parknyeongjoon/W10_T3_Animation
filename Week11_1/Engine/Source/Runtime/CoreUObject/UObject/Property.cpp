@@ -1,11 +1,17 @@
 #include "Property.h"
 #include "Class.h"
 #include "ScriptStruct.h"
+#include "Serialization/Archive2.h"
 #include "UserInterface/Console.h"
 
 
 void FProperty::Resolve()
 {
+}
+
+void FProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    Ar.SerializeRaw(DataPtr, Size);
 }
 
 void FUnresolvedPtrProperty::Resolve()

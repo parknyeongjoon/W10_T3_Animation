@@ -13,16 +13,18 @@ public:
     using SizeType = typename AllocatorType::SizeType;
     using ElementType = T;
     using ArrayType = std::vector<ElementType, AllocatorType>;
+    using iterator = typename ArrayType::iterator;
+    using const_iterator = typename ArrayType::const_iterator;
 
 private:
     ArrayType ContainerPrivate;
 
 public:
     // Iterator를 사용하기 위함
-    auto begin() noexcept { return ContainerPrivate.begin(); }
-    auto end() noexcept { return ContainerPrivate.end(); }
-    auto begin() const noexcept { return ContainerPrivate.begin(); }
-    auto end() const noexcept { return ContainerPrivate.end(); }
+    iterator begin() noexcept { return ContainerPrivate.begin(); }
+    iterator end() noexcept { return ContainerPrivate.end(); }
+    const_iterator begin() const noexcept { return ContainerPrivate.begin(); }
+    const_iterator end() const noexcept { return ContainerPrivate.end(); }
     auto rbegin() noexcept { return ContainerPrivate.rbegin(); }
     auto rend() noexcept { return ContainerPrivate.rend(); }
     auto rbegin() const noexcept { return ContainerPrivate.rbegin(); }
@@ -76,6 +78,16 @@ public:
     void RemoveAt(SizeType Index);
 
     void RemoveAtSwap(SizeType Index);
+    
+    // 추가된 Erase 래퍼
+    /** 첫 번째 일치 요소 하나를 제거하고 제거 개수를 반환 */
+    SizeType Erase(const T& Item) { return RemoveSingle(Item) ? 1 : 0; }
+    /** 지정 인덱스 위치 요소 제거 */
+    void EraseAt(SizeType Index) { RemoveAt(Index); }
+    /** 이터레이터 위치 요소 제거 및 다음 이터레이터 반환 */
+    iterator Erase(iterator Pos) { return ContainerPrivate.erase(Pos); }
+    /** 이터레이터 범위 요소 제거 및 첫 위치 이터레이터 반환 */
+    iterator Erase(iterator First, iterator Last) { return ContainerPrivate.erase(First, Last); }
 
 	/** Predicate에 부합하는 모든 요소를 제거합니다. */
     template <typename Predicate>

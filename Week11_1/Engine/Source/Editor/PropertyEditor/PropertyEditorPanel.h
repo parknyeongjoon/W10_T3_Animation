@@ -9,6 +9,7 @@ class UParticleSystem;
 class UActorComponent;
 class UStaticMeshComponent;
 class USceneComponent;
+class UMaterial;
 class ULevel;
 
 struct FBoneRotation

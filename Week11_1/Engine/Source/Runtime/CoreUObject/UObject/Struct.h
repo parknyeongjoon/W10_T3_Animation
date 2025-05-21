@@ -76,7 +76,10 @@ public:
 
     /** 컴파일 타임에 알 수 없는 프로퍼티 타입을 런타임에 검사합니다.*/
     static void ResolvePendingProperties();
-
+public:
+    /** 컴파일 타임에 알 수 없는 프로퍼티 등록 */
+    static void RegisterUnresolvedProperty(FProperty* Prop);
+    
 private:
     /** 컴파일 타임에 알 수 없는 프로퍼티 목록들*/
     static TArray<FProperty*>& GetUnresolvedProperties();

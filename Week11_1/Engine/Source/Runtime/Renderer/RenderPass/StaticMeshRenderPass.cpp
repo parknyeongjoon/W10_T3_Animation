@@ -445,8 +445,6 @@ void FStaticMeshRenderPass::UpdateLightConstants()
     LightConstant.NumSpotLights = SpotLightCount;
     
     renderResourceManager->UpdateConstantBuffer(LightConstantBuffer, &LightConstant);
-    Graphics.DeviceContext->VSSetConstantBuffers(1, 1, &LightConstantBuffer);
-    Graphics.DeviceContext->PSSetConstantBuffers(2, 1, &LightConstantBuffer);
 }
 
 // void FStaticMeshRenderPass::UpdateContstantBufferActor(const FVector4 UUID, int32 isSelected)
