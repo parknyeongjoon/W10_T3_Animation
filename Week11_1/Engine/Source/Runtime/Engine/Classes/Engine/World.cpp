@@ -20,12 +20,13 @@
 #include "UObject/UObjectArray.h"
 #include "UnrealEd/PrimitiveBatch.h"
 #include "Components/PrimitiveComponents/ParticleSystemComponent.h"
-#include <Particles/ParticleModule.h>
-
-#include "Asset/AssetManager.h"
-#include "Particles/ParticleEmitter.h"
-#include "Particles/ParticleLODLevel.h"
-#include "Serialization/Serializer.h"
+#include <Particles/Modules/ParticleModuleSpawn.h>
+#include "Classes/Particles/ParticleLODLevel.h"
+#include "Particles/Modules/ParticleModuleRequired.h"
+#include <Particles/Modules/ParticleModuleVelocity.h>
+#include <Particles/Modules/ParticleModuleLifetime.h>
+#include <Particles/Modules/ParticleModuleLocation.h>
+#include <Particles/Modules/ParticleModuleSize.h>
 
 void UWorld::InitWorld()
 {
@@ -325,32 +326,29 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
 
         AActor* TestActor = SpawnActor<AActor>();
         UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
-        UParticleSystem* TestParticleSystem = UAssetManager::Get().Get<UParticleSystem>(TEXT("TestParticle"));
-        if (TestParticleSystem == nullptr)
-        {
-            TestParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(nullptr);
-            UParticleEmitter* TestEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
+        TestComp->Template = FObjectFactory::ConstructObject<UParticleSystem>(this);
+        UParticleEmitter* NewEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
+        UParticleLODLevel* NewLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
         
-            UParticleLODLevel* TestLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
-        
-            UParticleModule* TestModule = FObjectFactory::ConstructObject<UParticleModule>(nullptr);
-            TestModule->TestNum = 1;
-        
-            TestLODLevel->Modules.Add(TestModule);
-            TestEmitter->LODLevels.Add(TestLODLevel);
-            TestParticleSystem->Emitters.Add(TestEmitter);
-        }
-        TestComp->Template = TestParticleSystem;
-        
-        if (UAssetManager::Get().SaveAsset(TestParticleSystem, TEXT("Contents/Particles/TestParticle.uasset")))
-        {
-            UE_LOG(LogLevel::Display, TEXT("Save Succeess test particles"));
-        }
-        else
-        {
-            UE_LOG(LogLevel::Display, TEXT("Save Failed  test particles"));
-        }
+        NewLODLevel->RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(nullptr);
+        NewLODLevel->Modules.Add(NewLODLevel->RequiredModule);
+        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSpawn>(nullptr));
+        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleVelocity>(nullptr));
+        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLifeTime>(nullptr));
+        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLocation>(nullptr));
+        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSize>(nullptr));
+
+        NewEmitter->LODLevels.Add(NewLODLevel);
+        TestComp->Template->Emitters.Add(NewEmitter);
         TestComp->Activate();
+
+        for (auto& Module : NewLODLevel->Modules)
+        {
+            Module->InitializeDefaults();
+        }
+        
+        
+        
     }
 }
 

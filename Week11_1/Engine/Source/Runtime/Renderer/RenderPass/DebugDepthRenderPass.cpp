@@ -33,7 +33,7 @@ void FDebugDepthRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportC
     Graphics.DeviceContext->OMSetRenderTargets(1, &CurRTV, nullptr);
 }
 
-void FDebugDepthRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
+void FDebugDepthRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 

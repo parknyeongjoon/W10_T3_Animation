@@ -114,7 +114,7 @@ void FShadowRenderPass::RenderPointLightShadowMap(UPointLightComponent* PointLig
     }
 }
 
-void FShadowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
+void FShadowRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     Prepare(InViewportClient);
     

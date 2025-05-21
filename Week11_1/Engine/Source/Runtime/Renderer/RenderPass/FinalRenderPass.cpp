@@ -38,7 +38,7 @@ void FFinalRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewport
     }
 }
 
-void FFinalRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
+void FFinalRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 

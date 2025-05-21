@@ -14,7 +14,8 @@ struct FWindowViewportClientData
     float EditorWidth;
     float EditorHeight;
 
-    bool bMultiViewportMode;
+    bool bMultiViewportMode : 1;
+    EViewportClientType ViewportClientType;
     uint32 ActiveViewportIndex;
 
     EControlMode ViewportControlMode;
@@ -37,6 +38,7 @@ struct FWindowViewportClientData
         : EditorWidth(0.0f)
         , EditorHeight(0.0f)
         , bMultiViewportMode(false)
+        , ViewportClientType(EViewportClientType::Editor)
         , ActiveViewportIndex(0)
         , ViewportControlMode()
         , ViewportCoordiMode()
@@ -61,7 +63,9 @@ public:
     
     template <typename T>
         requires std::derived_from<T, FViewportClient>
-    std::shared_ptr<T> AddViewportClient(HWND OwnerWindow, UWorld* World);
+    std::shared_ptr<T> AddViewportClient(HWND OwnerWindow, UWorld* World, const EViewportClientType Type);
+
+    int GetNumViewportClientByType(const EViewportClientType Type);
 
     void RemoveViewportClient(HWND OwnerWindow, const std::shared_ptr<FEditorViewportClient>& ViewportClient);
     void RemoveViewportClients(HWND OwnerWindow);

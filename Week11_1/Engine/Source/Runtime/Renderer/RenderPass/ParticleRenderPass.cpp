@@ -18,12 +18,14 @@
 #include "Components/Material/Material.h"
 #include "Components/Mesh/StaticMesh.h"
 #include "Components/PrimitiveComponents/ParticleSystemComponent.h"
+#include "Components/PrimitiveComponents/QuadTexture.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/SkySphereComponent.h"
 #include "LevelEditor/SLevelEditor.h"
-#include "Paritcles/ParticleHelper.h"
+#include "Particles/ParticleHelper.h"
 #include "Renderer/ComputeShader/ComputeTileLightCulling.h"
 
 #include "UObject/UObjectIterator.h"
+#include <Particles/ParticleMacros.h>
 
 FParticleRenderPass::FParticleRenderPass(const FName& InShaderName) : FBaseRenderPass(InShaderName)
 {
@@ -41,11 +43,44 @@ FParticleRenderPass::FParticleRenderPass(const FName& InShaderName) : FBaseRende
 
     D3D11_BUFFER_DESC constdesc = {};
     constdesc.ByteWidth = sizeof(FLightingConstants);
-  
     constdesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     constdesc.Usage = D3D11_USAGE_DYNAMIC;
     constdesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     Graphics.Device->CreateBuffer(&constdesc, nullptr, &LightConstantBuffer);
+
+    D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    //TODO: SpriteParticle에 맞는걸로 넣어주기 지금은 하드코딩
+    bufferDesc.ByteWidth = static_cast<UINT>(sizeof(FParticleSpriteVertex) * 512);
+    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.MiscFlags = 0;
+    bufferDesc.StructureByteStride = sizeof(FParticleSpriteVertex);
+
+    Graphics.Device->CreateBuffer(&bufferDesc, nullptr, &SpriteParticleInstanceBuffer);
+    
+    CreateQuadTextureVertexBuffer();
+}
+
+
+void FParticleRenderPass::CreateQuadTextureVertexBuffer()
+{
+    FRenderer& Renderer = GEngineLoop.Renderer;
+    FRenderResourceManager* ResourceManager = Renderer.GetResourceManager();
+    
+    if (ResourceManager->GetVertexBuffer(TEXT("QuadVB")) && ResourceManager->GetVertexBuffer(TEXT("QuadIB")))
+    {
+        return;
+    }
+    
+    ID3D11Buffer* VB = ResourceManager->CreateImmutableVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
+    ResourceManager->AddOrSetVertexBuffer(TEXT("QuadVB"), VB);
+    Renderer.MappingVBTopology(TEXT("Quad"), TEXT("QuadVB"), sizeof(FVertexTexture), 4);
+
+    ID3D11Buffer* IB = ResourceManager->CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices) / sizeof(uint32));
+    ResourceManager->AddOrSetIndexBuffer(TEXT("QuadIB"), IB);
+    Renderer.MappingIB(TEXT("Quad"), TEXT("QuadIB"), sizeof(quadTextureInices) / sizeof(uint32));
+
 }
 
 void FParticleRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
@@ -67,6 +102,15 @@ void FParticleRenderPass::AddRenderObjectsToRenderPass(UWorld* World)
             LightComponents.Add(LightComponent);
         }
     }
+}
+
+FVector2D GetParticleSize(const FBaseParticle& Particle, const FDynamicSpriteEmitterReplayDataBase& Source)
+{
+    FVector2D Size;
+    Size.X = FMath::Abs(Particle.Size.X * Source.Scale.X);
+    Size.Y = FMath::Abs(Particle.Size.Y * Source.Scale.Y);
+    
+    return Size;
 }
 
 void FParticleRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewportClient)
@@ -102,54 +146,188 @@ void FParticleRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewp
     Graphics.DeviceContext->PSSetSamplers(static_cast<uint32>(ESamplerType::PostProcess), 1, &PostProcessSampler);
 }
 
+//TODO: Test후 삭제
+#include <random>
+
 void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     FRenderer& Renderer = GEngineLoop.Renderer;
     FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
-    
+    FRenderResourceManager* RenderResourceManager = Renderer.GetResourceManager();
+
     FMatrix View = FMatrix::Identity;
     FMatrix Proj = FMatrix::Identity;
-
+    FMatrix InvView = FMatrix::Identity;
+    
     std::shared_ptr<FEditorViewportClient> curEditorViewportClient = std::dynamic_pointer_cast<FEditorViewportClient>(InViewportClient);
+
     if (curEditorViewportClient != nullptr)
     {
         View = curEditorViewportClient->GetViewMatrix();
         Proj = curEditorViewportClient->GetProjectionMatrix();
+        InvView = curEditorViewportClient->GetInvViewMatrix();
     }
-
-    // 일단 지금은 staticMesh돌면서 업데이트 해줄 필요가 없어서 여기 넣는데, Prepare에 넣을지 아니면 여기 그대로 둘지는 좀 더 생각해봐야함.
-    // 매프레임 한번씩만 해줘도 충분하고 라이트 갯수가 변경될때만 해줘도 충분할듯하다
-    // 지금 딸깍이에서 structuredBuffer도 처리해줘서 그 타이밍보고 나중에 다시 PSSetShaderResources를 해줘야함
-   // UpdateComputeResource();
     
     UpdateCameraConstant(InViewportClient);
+    UpdateLightConstants();
+    UpdateFlagConstant();
+
+    FVector CameraLocation = curEditorViewportClient->ViewTransformPerspective.GetLocation();
     
     for (UParticleSystemComponent* ParticleSystemComponent : ParticleSystemComponents)
-    {
-        //위치값만 보내주고 셰이더에서 쿼드 그리기
-        const FMatrix Model = ParticleSystemComponent->GetWorldMatrix();
-        UpdateMatrixConstants(ParticleSystemComponent, View, Proj);
-        // uint32 isSelected = 0;
-        // if (GetWorld()->GetSelectedActors().Contains(staticMeshComp->GetOwner()))
-        // {
-        //     isSelected = 1;
-        // }
-        // UpdateSkySphereTextureConstants(Cast<USkySphereComponent>(StaticMeshComp));
-        // UpdateContstantBufferActor(UUIDColor , isSelected);
-
-        UpdateLightConstants();
-
-        UpdateFlagConstant();
-
-        //
+    {        
         for (FDynamicEmitterDataBase* ParticleRenderData : ParticleSystemComponent->EmitterRenderData)
-        {
-            //ParticleRenderData가 각 이미터라서 여기서 해야함
-            
-            // VIBuffer Bind -> 쿼드나 메쉬나 그런거 잡아줌
-            const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(ParticleSystemComponent->GetVBIBTopologyMappingName());
-            VBIBTopMappingInfo->Bind();
+        {   //EmitterRenderData에는 현존하는 파티클들이 담겨있음.
+            // 렌더데이터 소팅            
+            switch (ParticleRenderData->GetSource().eEmitterType)
+            {
+                case DET_Unknown:
+                    {
+                        break;
+                    }
+                case DET_Sprite:
+                    { //일단 Sprite만 처리해
+                        //Quad VIBuffer Bind
+                        const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping("Quad");
+                        VBIBTopMappingInfo->Bind();
 
+                        //TODO: 이거 제대로 캐스팅 되는지 확인해봐야함
+                        const FDynamicSpriteEmitterReplayDataBase& Source = static_cast<const FDynamicSpriteEmitterReplayDataBase&>(ParticleRenderData->GetSource());
+
+                        int32 VertexStride = sizeof(FParticleSpriteVertex);
+                        int32 ParticleCount = Source.ActiveParticleCount;
+                        // int32 VertexDynamicParameterStride = sizeof(FParticleVertexDynamicParameter);
+                        TArray<std::pair<float, FParticleSpriteVertex>> ParticleVerticesWithDistance;
+
+                        FTexture* Texture = nullptr;
+                        
+                        float SubImageIndex = 0.0f;
+                        
+                        const uint8* ParticleData = Source.DataContainer.ParticleData;
+                        const uint16* ParticleIndices = Source.DataContainer.ParticleIndices;
+                        // const FParticleOrder* OrderedIndices = ParticleOrder;
+
+                        for (int i=0;i<ParticleCount;i++)
+                        {
+                            int32 ParticleIndex = i;
+                            DECLARE_PARTICLE_CONST(Particle, ParticleData + Source.ParticleStride * ParticleIndices[ParticleIndex]);
+
+                            const FVector2D Size = GetParticleSize(Particle, Source);
+                            FVector ParticlePosition = Particle.Location;
+                            FLinearColor ParticleColor = Particle.Color;
+
+                            // if (Source.CameraPayloadOffset != 0)
+                            // {
+                            //     FVector CameraOffset = GetCameraOffsetFromPayload(Source.CameraPayloadOffset, Particle, ParticlePosition, CameraPosition);
+                            //     ParticlePosition += CameraOffset;
+                            // }
+
+                            if (Source.SubUVDataOffset > 0)
+                            {
+                                FFullSubUVPayload* SubUVPayload = (FFullSubUVPayload*)(((uint8*)&Particle) + Source.SubUVDataOffset);
+                                SubImageIndex = SubUVPayload->ImageIndex;
+                            }
+
+                            // if (Source.DynamicParameterDataOffset > 0)
+                            // {
+                            //     GetDynamicValueFromPayload(Source.DynamicParameterDataOffset, Particle, DynamicParameterValue);
+                            // }
+
+                            //서브인덱스 테스트
+                            std::random_device rd;
+                            std::mt19937 gen(rd()); // 시드 생성기
+                            std::uniform_int_distribution<int> distInt(0, 3);
+                            std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+                            SubImageIndex = distInt(gen);
+
+                            ParticleColor = FLinearColor(dist(gen), dist(gen), dist(gen), 1);
+                            
+                            FParticleSpriteVertex FillVertex;
+                            FillVertex.Position = ParticlePosition;
+                            FillVertex.Size = FVector2D(GetParticleSizeWithUVFlipInSign(Particle, Size));
+                            FillVertex.Rotation = Particle.Rotation;
+                            FillVertex.SubImageIndex = SubImageIndex;
+                            FillVertex.Color = ParticleColor;
+                            // if (bUsesDynamicParameter)
+                            // {
+                            //     DynFillVertex = (FParticleVertexDynamicParameter*)TempDynamicParameterVert;
+                            //     DynFillVertex->DynamicValue[0] = DynamicParameterValue.X;
+                            //     DynFillVertex->DynamicValue[1] = DynamicParameterValue.Y;
+                            //     DynFillVertex->DynamicValue[2] = DynamicParameterValue.Z;
+                            //     DynFillVertex->DynamicValue[3] = DynamicParameterValue.W;
+                            //     TempDynamicParameterVert += VertexDynamicParameterStride;
+                            // }
+
+                            //컴포넌트 기준 로컬 위치기 때문에 컴포넌트의 위치를 더해줘야함
+                            FVector ParticleLocation = Particle.Location + ParticleSystemComponent->GetWorldLocation();
+                            
+                            float Distance = (ParticleLocation - CameraLocation).MagnitudeSquared();
+                            
+                            ParticleVerticesWithDistance.Add({Distance, FillVertex});
+
+                            Texture = Source.Texture;
+                        }
+
+                        TArray<FParticleSpriteVertex> InstanceVertices;
+                        ExtractDescSort(InstanceVertices, ParticleVerticesWithDistance);
+                        
+                        ID3D11InputLayout* ParticleInputLayout = Renderer.GetResourceManager()->GetInputLayout(TEXT("SpriteParticle"));
+                        //Quad인 경우 Quad값 IASetVertexBuffer(0)에다 박고 1은 렌더데이터 돌면서 애들 다른애들마다 박아줘야함
+                        UpdateInstanceBuffer<FParticleSpriteVertex>(Graphics.DeviceContext, SpriteParticleInstanceBuffer, ParticleInputLayout, InstanceVertices, VertexStride);
+                        
+                        //블렌드 설정 + Alpha값 주기
+                        float blendFactor[4] = {0, 0, 0, 0};
+                        ID3D11BlendState* AlphaBlend = RenderResourceManager->GetBlendState(EBlendState::AlphaBlend);
+                        Graphics.DeviceContext->OMSetBlendState(AlphaBlend, blendFactor, 0xffffffff); // 블렌딩 상태 설정, 기본 블렌딩 상태임
+                        
+                        int TextureCountX = Source.SubImages_Horizontal;
+                        int TextureCountY = Source.SubImages_Vertical;
+
+                        //subuv테스트용
+                        TextureCountX = 4;
+                        TextureCountY = 1;
+                        
+                        UpdateTextureSizeConstants(TextureCountX, TextureCountY);
+                        UpdateParticleConstants(0.5f);
+                        //이거 Material로 바꾸면 아래걸로 변경
+                        // UpdateMaterialConstants();
+                        Graphics.DeviceContext->PSSetShaderResources(0, 1, &Texture->TextureSRV);
+                        break;
+                    }
+                case DET_Mesh:
+                    {
+                        // SubSet마다 Material Update 및 Draw
+                        // If There's No Material Subset
+                        // if (ParticleRenderData->MaterialSubsets.Num() == 0)
+                        // {
+                        //     Graphics.DeviceContext->DrawIndexed(VBIBTopMappingInfo->GetNumIndices(), 0,0);
+                        // }
+                        // for (int subMeshIndex = 0; subMeshIndex < renderData->MaterialSubsets.Num(); ++subMeshIndex)
+                        // {
+                        //     const int materialIndex = renderData->MaterialSubsets[subMeshIndex].MaterialIndex;
+                        //     
+                        //     UpdateMaterialConstants(ParticleSystemComponent->GetMaterial(materialIndex)->GetMaterialInfo());
+                        //
+                        //     // index draw
+                        //     const uint64 startIndex = renderData->MaterialSubsets[subMeshIndex].IndexStart;
+                        //     const uint64 indexCount = renderData->MaterialSubsets[subMeshIndex].IndexCount;
+                        // }
+                        break;
+                    }
+                case DET_Beam2:
+                    {
+                        break;
+                    }
+                case DET_Ribbon:
+                    {
+                        break;
+                    }
+            default:
+                break;
+            }
+            //ParticleComponent가 움직이면 Particle도 같이 움직여야하기 때문에 Model값 가져가야함
+            UpdateMatrixConstants(ParticleSystemComponent, View, Proj, InvView);
+            
             //일단 쿼드기준으로 그리기
             Graphics.DeviceContext->DrawIndexedInstanced(
                 6,               // indexCount (쿼드 하나 = 2 tri = 6 index)
@@ -158,28 +336,7 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                 0,               // baseVertexLocation
                 0                // startInstanceLocation
             );
-            
-            
-            // 아래는 Mesh들어가면 고
-            // SubSet마다 Material Update 및 Draw
-            // If There's No Material Subset
-            // if (ParticleRenderData->MaterialSubsets.Num() == 0)
-            // {
-            //     Graphics.DeviceContext->DrawIndexed(VBIBTopMappingInfo->GetNumIndices(), 0,0);
-            // }
-            // for (int subMeshIndex = 0; subMeshIndex < renderData->MaterialSubsets.Num(); ++subMeshIndex)
-            // {
-            //     const int materialIndex = renderData->MaterialSubsets[subMeshIndex].MaterialIndex;
-            //     
-            //     UpdateMaterialConstants(ParticleSystemComponent->GetMaterial(materialIndex)->GetMaterialInfo());
-            //
-            //     // index draw
-            //     const uint64 startIndex = renderData->MaterialSubsets[subMeshIndex].IndexStart;
-            //     const uint64 indexCount = renderData->MaterialSubsets[subMeshIndex].IndexCount;
-            //     Graphics.DeviceContext->DrawIndexed(indexCount, startIndex, 0);
-            // }
         }
-        
     }
 
     ID3D11ShaderResourceView* nullSRVs[8] = { nullptr };
@@ -189,6 +346,22 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
     Graphics.DeviceContext->PSSetShaderResources(11, 4, nullSRV);
     Graphics.DeviceContext->PSSetShaderResources(15, 8, nullSRVs);
     Graphics.DeviceContext->PSSetShaderResources(23, 8, nullSRVs);
+
+    Graphics.DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌딩 상태 설정, 기본 블렌딩 상태임
+}
+
+void FParticleRenderPass::ExtractDescSort(TArray<FParticleSpriteVertex>& OutInstanceVertices, TArray<std::pair<float, FParticleSpriteVertex>>& ParticleVerticesWithDistance)
+{
+    std::sort(ParticleVerticesWithDistance.begin(), ParticleVerticesWithDistance.end(),
+    [](const std::pair<float, FParticleSpriteVertex>& a, const std::pair<float, FParticleSpriteVertex>& b)
+    {
+        return a.first > b.first; // 내림차순
+    });
+                            
+    for (std::pair<float, FParticleSpriteVertex> ParticleVertex : ParticleVerticesWithDistance)
+    {
+        OutInstanceVertices.Add(ParticleVertex.second);
+    }
 }
 
 void FParticleRenderPass::CreateDummyTexture()
@@ -230,25 +403,41 @@ void FParticleRenderPass::ClearRenderObjects()
     LightComponents.Empty();
 }
 
-void FParticleRenderPass::UpdateMatrixConstants(UParticleSystemComponent* InParticleSystemComponent, const FMatrix& InView, const FMatrix& InProjection)
+void FParticleRenderPass::UpdateMatrixConstants(UParticleSystemComponent* InParticleSystemComponent, const FMatrix& InView, const FMatrix& InProjection, const FMatrix&
+                                                 InInvView)
 {
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     // MVP Update
     const FMatrix Model = InParticleSystemComponent->GetWorldMatrix();
-    const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
-    FMatrixConstants MatrixConstants;
+    // const FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
+    FMatrixSeparatedMVPConstants MatrixConstants;
     MatrixConstants.Model = Model;
-    MatrixConstants.ViewProj = InView * InProjection;
-    MatrixConstants.MInverseTranspose = NormalMatrix;
-    if (InParticleSystemComponent->GetWorld()->GetSelectedActors().Contains(InParticleSystemComponent->GetOwner()))
-    {
-        MatrixConstants.isSelected = true;
-    }
-    else
-    {
-        MatrixConstants.isSelected = false;
-    }
-    renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixConstants"), &MatrixConstants);
+    MatrixConstants.View = InView;
+    MatrixConstants.Proj = InProjection;
+    MatrixConstants.InvView = InInvView;
+    
+    renderResourceManager->UpdateConstantBuffer(TEXT("FMatrixSeparatedMVPConstants"), &MatrixConstants);
+}
+
+void FParticleRenderPass::UpdateParticleConstants(float InAlpha)
+{
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
+
+    FParticleConstant ParticleConstant;
+    ParticleConstant.Alpha = InAlpha;
+    
+    renderResourceManager->UpdateConstantBuffer(TEXT("FParticleConstant"), &ParticleConstant);
+}
+
+void FParticleRenderPass::UpdateTextureSizeConstants(int InCountX, int InCountY)
+{
+    FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
+    
+    FTextureCountConstants TextureCountConstant;
+    TextureCountConstant.CountX = InCountX;
+    TextureCountConstant.CountY = InCountY;
+
+    renderResourceManager->UpdateConstantBuffer(TEXT("FTextureCountConstants"), &TextureCountConstant);
 }
 
 void FParticleRenderPass::UpdateFlagConstant()
@@ -389,8 +578,6 @@ void FParticleRenderPass::UpdateLightConstants()
     LightConstant.NumSpotLights = SpotLightCount;
     
     renderResourceManager->UpdateConstantBuffer(LightConstantBuffer, &LightConstant);
-    Graphics.DeviceContext->VSSetConstantBuffers(1, 1, &LightConstantBuffer);
-    Graphics.DeviceContext->PSSetConstantBuffers(2, 1, &LightConstantBuffer);
 }
 
 void FParticleRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
@@ -540,3 +727,4 @@ bool FParticleRenderPass::IsSpotLightInFrustum(USpotLightComponent* SpotLightCom
     // 모든 검사에서 프러스텀 내부에 포함된 점이 없으면 false
     return false;
 }
+

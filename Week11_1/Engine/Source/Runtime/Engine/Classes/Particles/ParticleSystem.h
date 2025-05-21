@@ -1,162 +1,19 @@
 #pragma once
 #include "Container/Array.h"
+#include "CoreUObject/UObject/Object.h"
+#include "CoreUObject/UObject/ObjectMacros.h"
 #include "ParticleEmitter.h"
-#include "Engine/Asset/Asset.h"
+#include "UObject/ObjectMacros.h"
 
 class UParticleSystemComponent;
 
-// 전방 선언
-struct DummyStruct;
+class UParticleEmitter;
 
-// 테스트용 더미 UObject 서브클래스
-class DummyObject : public UObject
+class UParticleSystem : public UObject
 {
-    DECLARE_CLASS(DummyObject, UObject)
-public:
-    UPROPERTY(EPropertyFlags::EditAnywhere, int32,   IntValue,     = 0)
-    UPROPERTY(EPropertyFlags::EditAnywhere, float,   FloatValue,   = 0.f)
-    UPROPERTY(EPropertyFlags::EditAnywhere, double,  DoubleValue,  = 0.0)
-    UPROPERTY(EPropertyFlags::EditAnywhere, bool,    BoolValue,    = false)
-    UPROPERTY(EPropertyFlags::EditAnywhere, FString, StringValue,  = TEXT(""))
-
-    UPROPERTY(EPropertyFlags::EditAnywhere, FName,   NameValue,    = NAME_None)
-
-    UPROPERTY(EPropertyFlags::EditAnywhere, TArray<int32>,     IntArray,        = {})
-    UPROPERTY(EPropertyFlags::EditAnywhere, TSet<FName>,       StringSet,       = {})
-
-    using NameToIntMapType = TMap<FName,int32>;
-    UPROPERTY(EPropertyFlags::EditAnywhere, NameToIntMapType, NameToIntMap,  = {})
-
-    DummyObject() = default;
-    ~DummyObject() override = default;
-};
-
-// 테스트용 더미 UObject 서브클래스
-class DummyObject0 : public UObject
-{
-    DECLARE_CLASS(DummyObject0, UObject)
-public:
-    UPROPERTY(EPropertyFlags::EditAnywhere, int32,                IntValue0,                = 0)
-    UPROPERTY(EPropertyFlags::EditAnywhere, float,                FloatValue0,              = 0.f)
-    UPROPERTY(EPropertyFlags::EditAnywhere, double,               DoubleValue0,             = 0.0)
-    UPROPERTY(EPropertyFlags::EditAnywhere, bool,                 BoolValue0,               = false)
-    UPROPERTY(EPropertyFlags::EditAnywhere, FString,              StringValue0,             = TEXT(""))
-    UPROPERTY(EPropertyFlags::EditAnywhere, FName,                NameValue0,               = NAME_None)
-
-    UPROPERTY(EPropertyFlags::EditAnywhere, TArray<int32>,             IntArray0,               = {})
-    UPROPERTY(EPropertyFlags::EditAnywhere, TArray<DummyStruct>,       DummyStructArray0,       = {})
-    UPROPERTY(EPropertyFlags::EditAnywhere, TSet<FName>,               StringSet0,              = {})
-
-    using NameToIntMapType = TMap<FName,int32>;
-    UPROPERTY(EPropertyFlags::EditAnywhere, NameToIntMapType,         StringToIntMap0,         = {})
-    using NameToDummyStructType = TMap<FName,DummyStruct>;
-    UPROPERTY(EPropertyFlags::EditAnywhere, NameToDummyStructType,   StringToDummyStructMap0, = {})
-
-    DummyObject0() = default;
-    ~DummyObject0() override = default;
-};
-
-class DummyObject1 : public UObject
-{
-    DECLARE_CLASS(DummyObject1, UObject)
-public:
-    UPROPERTY(EPropertyFlags::EditAnywhere, int32,                   IntValue1,           = 0)
-    UPROPERTY(EPropertyFlags::EditAnywhere, float,                   FloatValue1,         = 0.f)
-    UPROPERTY(EPropertyFlags::EditAnywhere, double,                  DoubleValue1,        = 0.0)
-    UPROPERTY(EPropertyFlags::EditAnywhere, bool,                    BoolValue1,          = false)
-    UPROPERTY(EPropertyFlags::EditAnywhere, FString,                 StringValue1,        = TEXT(""))
-    UPROPERTY(EPropertyFlags::EditAnywhere, FName,                   NameValue1,          = NAME_None)
-
-    UPROPERTY(EPropertyFlags::EditAnywhere, DummyObject0*,           ObjectPtr1,          = nullptr)
-
-    UPROPERTY(EPropertyFlags::EditAnywhere, TArray<int32>,           IntArray1,           = {})
-    UPROPERTY(EPropertyFlags::EditAnywhere, TArray<DummyObject0*>,   ObjectArray1,        = {})
-    UPROPERTY(EPropertyFlags::EditAnywhere, TSet<FName>,             StringSet1,          = {})
-
-    using NameToIntMapType = TMap<FName,int32>;
-    UPROPERTY(EPropertyFlags::EditAnywhere, NameToIntMapType,       StringToIntMap1,     = {})
-    using NameToDummyObject0 = TMap<FName,DummyObject0*>;
-    UPROPERTY(EPropertyFlags::EditAnywhere, NameToDummyObject0 ,StringToObjectMap1,= {})
-
-    DummyObject1() = default;
-    ~DummyObject1() override = default;
-};
-
-class DummyObject2 : public UObject
-{
-    DECLARE_CLASS(DummyObject2, UObject)
-public:
-    UPROPERTY(EPropertyFlags::EditAnywhere, int32,                   IntValue2,           = 0)
-    UPROPERTY(EPropertyFlags::EditAnywhere, float,                   FloatValue2,         = 0.f)
-    UPROPERTY(EPropertyFlags::EditAnywhere, double,                  DoubleValue2,        = 0.0)
-    UPROPERTY(EPropertyFlags::EditAnywhere, bool,                    BoolValue2,          = false)
-    UPROPERTY(EPropertyFlags::EditAnywhere, FString,                 StringValue2,        = TEXT(""))
-    UPROPERTY(EPropertyFlags::EditAnywhere, FName,                   NameValue2,          = NAME_None)
-
-    UPROPERTY(EPropertyFlags::EditAnywhere, DummyObject1*,           ObjectPtr2,          = nullptr)
-
-    UPROPERTY(EPropertyFlags::EditAnywhere, TArray<int32>,           IntArray2,           = {})
-    UPROPERTY(EPropertyFlags::EditAnywhere, TArray<DummyObject1*>,   ObjectArray2,        = {})
-    UPROPERTY(EPropertyFlags::EditAnywhere, TSet<FName>,             StringSet2,          = {})
-    
-    using NameToIntMapType = TMap<FName,int32>;
-    UPROPERTY(EPropertyFlags::EditAnywhere, NameToIntMapType,       StringToIntMap2,     = {})
-    using NameToDummyObject1 = TMap<FName,DummyObject1*>;
-    UPROPERTY(EPropertyFlags::EditAnywhere, NameToDummyObject1 ,StringToObjectMap2,= {})
-
-    DummyObject2() = default;
-    ~DummyObject2() override = default;
-};
-
-struct DummyStruct
-{
-    DECLARE_STRUCT(DummyStruct)
-
-    UPROPERTY(EPropertyFlags::EditAnywhere, int32,                IntValueST,           = 0)
-    UPROPERTY(EPropertyFlags::EditAnywhere, float,                FloatValueST,         = 0.f)
-    UPROPERTY(EPropertyFlags::EditAnywhere, double,               DoubleValueST,        = 0.0)
-    UPROPERTY(EPropertyFlags::EditAnywhere, bool,                 BoolValueST,          = false)
-    UPROPERTY(EPropertyFlags::EditAnywhere, FString,              StringValueST,        = TEXT(""))
-    UPROPERTY(EPropertyFlags::EditAnywhere, FName,                NameValueST,          = NAME_None)
-
-    UPROPERTY(EPropertyFlags::EditAnywhere, DummyObject*,         ObjectPtrST,          = nullptr)
-
-    UPROPERTY(EPropertyFlags::EditAnywhere, TArray<int32>,        IntArrayST,           = {})
-    UPROPERTY(EPropertyFlags::EditAnywhere, TArray<DummyObject*>, ObjectArrayST,        = {})
-    UPROPERTY(EPropertyFlags::EditAnywhere, TSet<FName>,          StringSetST,          = {})
-    
-    using NameToIntMapType = TMap<FName,int32>;
-    UPROPERTY(EPropertyFlags::EditAnywhere, NameToIntMapType,    StringToIntMapST,     = {})
-    using NameToDummyObject = TMap<FName,DummyObject*>;
-    UPROPERTY(EPropertyFlags::EditAnywhere, NameToDummyObject, StringToObjectMapST,= {})
-
-    DummyStruct()
-        : IntValueST(0)
-        , FloatValueST(0.f)
-        , DoubleValueST(0.0)
-        , BoolValueST(false)
-        , StringValueST(TEXT(""))
-        , NameValueST(NAME_None)
-        , ObjectPtrST(nullptr)
-        , IntArrayST()
-        , ObjectArrayST()
-        , StringSetST()
-        , StringToIntMapST()
-        , StringToObjectMapST()
-    {}
-};
-
-class UParticleSystem : public UAsset
-{
-    DECLARE_CLASS(UParticleSystem, UAsset)
+    DECLARE_CLASS(UParticleSystem, UObject)
     UParticleSystem();
-    ~UParticleSystem() override;
-    
-    bool LoadFromFile(const FString& filepath) override;
 
-    bool SerializeToFile(std::ostream& Out) override;
-    bool DeserializeFromFile(std::istream& In) override;
-    
     uint32 MaxPoolSize;
 
     /**
@@ -185,11 +42,11 @@ class UParticleSystem : public UAsset
         값을 높이면 성능이 향상되고, 낮추면 정확도가 향상됩니다.
         0으로 설정하면 기본 틱 시간(tick time)을 사용합니다. */
     float WarmupTickRate;
-
-    UPROPERTY(EditAnywhere, TArray<UParticleEmitter*>, Emitters, {};)
+    
+    TArray<UParticleEmitter*> Emitters;
 
     /** Cascade에서 파티클 시스템을 미리보기 위해 사용하는 컴포넌트 */
-    UParticleSystemComponent* PreviewComponent = nullptr;
+    UParticleSystemComponent* PreviewComponent;
 
     /** 썸네일 이미지를 렌더링할 때 시스템을 배치할 거리 */
     float ThumbnailDistance;
@@ -276,7 +133,6 @@ public:
     bool IsImmortal() const { return bIsImmortal; }
 
     bool AllowManagedTicking()const { return bAllowManagedTicking; }
-
 private:
     /** 중요도 관리를 해야 하는지 여부 */
     bool bShouldManageSignificance;
@@ -286,5 +142,13 @@ private:
 
     /** 어떤 이미터가 좀비 상태(무한 루프하면서도 일정 시점 이후 스폰을 멈추는 경우)가 되는지 여부 */
     bool bWillBecomeZombie;
+
+public:
+    void InitializeSystem();
+
+    void AddEmitter(UParticleEmitter* Emitter);
+    
+    // 디버깅용 이름 반환
+    FString GetDebugName() const;
 
 };

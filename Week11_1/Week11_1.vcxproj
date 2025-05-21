@@ -140,9 +140,9 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)\Engine\Source\ThirdParty\FBX_SDK\2020.3.7\include;$(ProjectDir)\Shaders;$(ProjectDir)\Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)\Engine\Source\ThirdParty;$(VcpkgRoot)\installed\x64-windows\include;$(IncludePath);$(ProjectDir)\Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)\Engine\Source\Runtime;$(ProjectDir)\Engine\Source\Runtime\Windows;$(ProjectDir)\Engine\Source\ThirdParty\include;$(ProjectDir)\Engine\Source\Editor;$(ProjectDir)\Engine\Source\Runtime\CoreUObject;$(ProjectDir)\Engine\Source\Runtime\Core;$(ProjectDir)\Engine\Source\Runtime\Launch;$(ProjectDir)\Engine\Source\Runtime\Engine;$(ProjectDir)\Engine\Source\Runtime\Engine\Classes;$(ProjectDir)\Engine\Source;$(ProjectDir);$(ProjectDir)\Engine\Source\ThirdParty\Lua\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalOptions>/utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -187,6 +187,11 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\AnimSequenceEditorPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesCurveEditorPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesDetailsPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesEmitterPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesMenuBar.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\ParticlePreviewUI.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Class.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectGlobals.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectUtils.cpp" />
@@ -195,6 +200,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Container\EnumAsByte.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\RandomStream.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Serialization\Serializer.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimationRuntime.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\AnimNodeBase.cpp" />
@@ -240,6 +246,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Contents\UI\GameUIPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\Script\LuaManagerBind.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Distributions\Distribution.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\Asset.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetFactory.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetImporter.cpp" />
@@ -251,11 +258,27 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Pawn.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerController.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerInput.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModule.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleColor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLifetime.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLocation.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleRequired.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSize.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSpawn.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleVelocity.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemWorldManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Light\ShadowResource.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Paritcles\ParticleEmitterInstances.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstances.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleHelper.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Skeletal\SkeletalDefine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\PlayerCameraManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetManager.cpp" />
@@ -435,6 +458,12 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Animation\CustomAnimInstance\TestAnimInstance.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesCurveEditorPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesDetailsPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesEmitterPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesMenuBar.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesViewportPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\ParticlePreviewUI.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Template\IsTSubclassOf.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Template\SubclassOf.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Class.h" />
@@ -450,6 +479,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Core\Container\Queue.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Container\StringConv.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\IsPODType.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\RandomStream.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Misc\CoreMiscDefines.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\FFunctor.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Template\SubClassOf.h" />
@@ -491,6 +521,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Animation\Skeleton.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Mesh\SkeletalMesh.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ParticleSystemComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\MeshComponents\SkeletalMeshComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveFloat.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Curves\CurveBase.h" />
@@ -505,6 +536,9 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.impl.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\UCameraModifier.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\Distribution.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\DistributionFloat.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\DistributionVector.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\Asset.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetFactory.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetImporter.h" />
@@ -517,22 +551,23 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerController.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\PlayerInput.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\ParticleSystemComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModule.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleLODLevel.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModule.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleColor.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleLifetime.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleLocation.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleRequired.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleSize.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleSpawn.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleModuleVelocity.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleColor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLifetime.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLocation.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleRequired.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSize.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSpawn.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleVelocity.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemWorldManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowResource.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Paritcles\ParticleEmitterInstances.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Paritcles\ParticleHelper.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstances.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleMacros.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Skeletal\SkeletalDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\InputCore\InputCoreTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\ShowFlags.h" />

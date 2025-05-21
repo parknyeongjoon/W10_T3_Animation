@@ -110,7 +110,7 @@ public:
     void ResizeViewport(FRect InRect);
 
     bool IsSelected(FVector2D Point) const;
-
+    
 protected:
     /** Camera speed setting */
     int32 CameraSpeedSetting = 1;
@@ -155,6 +155,7 @@ public:
     EViewModeIndex ViewMode;
 
     FMatrix View;
+    FMatrix InvView;
     FMatrix Projection;
 
     // Cascade Shadow Map
@@ -183,7 +184,10 @@ public: //Camera Movement
     void PivotMoveRight(float Value);
     void PivotMoveUp(float Value);
 
+    void SetViewMatrix(FMatrix& InViewMatrix);
+    
     FMatrix& GetViewMatrix() { return  View; }
+    FMatrix& GetInvViewMatrix() { return  InvView; }
     FMatrix& GetProjectionMatrix() { return Projection; }
     void UpdateViewMatrix();
     void UpdateProjectionMatrix();

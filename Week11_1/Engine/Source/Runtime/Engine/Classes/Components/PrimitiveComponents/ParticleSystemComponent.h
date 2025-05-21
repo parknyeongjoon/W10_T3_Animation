@@ -5,7 +5,8 @@
 #include "Container/EnumAsByte.h"
 
 struct FParticleEmitterInstance;
-
+struct FDynamicEmitterDataBase;
+struct FDynamicEmitterReplayDataBase;
 #pragma region structs
 
 enum EParticleSysParamType : int
@@ -294,6 +295,7 @@ public:
     UParticleSystem* Template;
     
     //이게 렌더할 때 필요한 데이터 렌더할때 이거 돌면서 렌더
+    //이 데이터가 Emitter가 뿜어낸 모든 Particle
     TArray<FDynamicEmitterDataBase*> EmitterRenderData;
 
 #pragma region hide
@@ -540,7 +542,7 @@ private:
     virtual void OnRegister() override;
     virtual void OnUnregister() override;
 
-    void ComputeTickComponent_Concurrent();
+    void ComputeTickComponent_Concurrent(float DeltaTime);
     void FinalizeTickComponent();
 
 protected:
@@ -608,6 +610,9 @@ public:
         const FVector InLocation, const FVector InDirection, const FVector InVelocity);
     
     void KillParticlesForced();
+
+    void SpawnAllEmitters();
+    void UpdateAllEmitters(float DeltaTime);
 
 protected:
     static FDynamicEmitterDataBase* CreateDynamicDataFromReplay( FParticleEmitterInstance* EmitterInstance, const FDynamicEmitterReplayDataBase* EmitterReplayData, bool bSelected);

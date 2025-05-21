@@ -107,6 +107,8 @@ public:
     template <typename T>
         requires std::derived_from<T, UActorComponent>
     T* AddComponent(EComponentOrigin Origin);
+    UActorComponent* AddComponent(UClass* InClass, FName InName = NAME_None, bool bTryRootComponent = true);
+
     template <class T>
     void AddDuplicatedComponent(T* Component, EComponentOrigin Origin = EComponentOrigin::Duplicated);
 

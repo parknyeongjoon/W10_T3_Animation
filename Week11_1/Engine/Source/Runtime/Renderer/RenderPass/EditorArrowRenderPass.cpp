@@ -13,6 +13,6 @@ void FEditorArrowRenderPass::Prepare(const std::shared_ptr<FViewportClient> InVi
     FBaseRenderPass::Prepare(InViewportClient);
 }
 
-void FEditorArrowRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
+void FEditorArrowRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
 }

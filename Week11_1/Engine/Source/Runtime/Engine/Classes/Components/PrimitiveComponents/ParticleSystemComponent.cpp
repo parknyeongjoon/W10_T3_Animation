@@ -2,12 +2,15 @@
 
 #include "LaunchEngineLoop.h"
 #include "QuadTexture.h"
-#include "Paritcles/ParticleEmitterInstances.h"
+#include "Particles/ParticleEmitterInstances.h"
 #include "Particles/ParticleSystemWorldManager.h"
 #include "Engine/Classes/Engine/World.h"
 #include "Renderer/Renderer.h"
 #include "UObject/Casts.h"
-
+#include "Particles/Modules/ParticleModule.h"
+#include <Particles/Modules/ParticleModuleSpawn.h>
+#include "Particles/Modules/ParticleModuleRequired.h"
+#include <Particles/ParticleMacros.h>
 bool GIsAllowingParticles = true;
 
 UParticleSystemComponent::UParticleSystemComponent()
@@ -40,11 +43,8 @@ UParticleSystemComponent::UParticleSystemComponent()
     ManagerHandle = INDEX_NONE;
     bPendingManagerAdd = false;
     bPendingManagerRemove = false;
-}
 
-UParticleSystemComponent::~UParticleSystemComponent()
-{
-    Template = nullptr;
+
 }
 
 bool UParticleSystemComponent::ShouldBeTickManaged() const
@@ -57,6 +57,17 @@ bool UParticleSystemComponent::ShouldBeTickManaged() const
         GbEnablePSCWorldManager &&
         Template && Template->AllowManagedTicking() &&
         GetAttachChildren().Num() == 0; //Don't batch tick if people are attached and dependent on us.
+}
+
+UParticleSystemComponent::~UParticleSystemComponent()
+{
+    for (FParticleEmitterInstance* EmitterInstance : EmitterInstances)
+    {
+        delete EmitterInstance;
+    }
+    EmitterInstances.Empty();
+    
+    Template = nullptr;
 }
 
 void UParticleSystemComponent::TickComponent(float DeltaTime)
@@ -148,7 +159,7 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
     TotalActiveParticles = 0;
 
     // 동기 업데이트
-    ComputeTickComponent_Concurrent();
+    ComputeTickComponent_Concurrent(DeltaTime);
     FinalizeTickComponent();
 }
 
@@ -237,16 +248,13 @@ void UParticleSystemComponent::OnUnregister()
     Super::OnUnregister();
 }
 
-void UParticleSystemComponent::ComputeTickComponent_Concurrent()
+void UParticleSystemComponent::ComputeTickComponent_Concurrent(float DeltaTime)
 {
     // 전체 활성 파티클 수 누적 변수
     TotalActiveParticles = 0;
 
     // 각 이터미터 인스턴스마다 시뮬레이션 실행
-    for (auto& Emitter : EmitterInstances)
-    {
-
-    }
+    UpdateAllEmitters(DeltaTime);
 }
 
 void UParticleSystemComponent::FinalizeTickComponent()
@@ -309,7 +317,7 @@ void UParticleSystemComponent::FinalizeTickComponent()
     // 7) 렌더 동적 데이터 갱신 플래그
     if (!bSkipUpdateDynamicDataDuringTick)
     {
-
+        UpdateDynamicData();
     }
 }
 
@@ -380,6 +388,45 @@ FDynamicEmitterDataBase* UParticleSystemComponent::CreateDynamicDataFromReplay(F
 
 void UParticleSystemComponent::UpdateDynamicData()
 {
+    ClearDynamicData();
+
+    EmitterRenderData.Empty();
+
+    for (FParticleEmitterInstance* EmitterInstance : EmitterInstances) {
+        if (!EmitterInstance || EmitterInstance->ActiveParticles == 0) {
+            continue;
+        }
+
+        FDynamicSpriteEmitterReplayData* ReplayData = new FDynamicSpriteEmitterReplayData();
+
+        if (EmitterInstance->RequiredModule)
+        {
+            EmitterInstance->RequiredModule->FillReplayData(ReplayData);
+        }
+
+        // 기본 정보 복사
+        ReplayData->eEmitterType = DET_Sprite;
+        ReplayData->ActiveParticleCount = EmitterInstance->ActiveParticles;
+        ReplayData->ParticleStride = EmitterInstance->ParticleStride;
+        ReplayData->DataContainer.MemBlockSize = EmitterInstance->MaxActiveParticles * EmitterInstance->ParticleStride;
+        ReplayData->DataContainer.ParticleData = EmitterInstance->ParticleData;
+        ReplayData->DataContainer.ParticleIndices = EmitterInstance->ParticleIndices;
+        ReplayData->Texture = EmitterInstance->GetTexture();
+        //ReplayData->RequiredModule = EmitterInstance->RequiredModule;
+
+        ReplayData->Scale = FVector::OneVector;
+        
+        // TODO: 필요 시 정렬 설정 (SortMode 등)
+        ReplayData->SortMode = 0;
+
+        FDynamicSpriteEmitterData* DynamicData = new FDynamicSpriteEmitterData();
+
+        DynamicData->EmitterIndex = EmitterRenderData.Num(); // index 저장
+        DynamicData->Source = *ReplayData; // 이걸 통해 접근
+        
+        //delete ReplayData;
+        EmitterRenderData.Add(DynamicData);
+    }
 }
 
 void UParticleSystemComponent::UpdateInstances(bool bEmptyInstances)
@@ -430,6 +477,8 @@ void UParticleSystemComponent::Activate(bool bReset)
         {
             ActivateSystem(bReset);
         }
+
+
     }
 }
 
@@ -668,6 +717,7 @@ void UParticleSystemComponent::InitParticles()
 
         bool bClearDynamicData = false;
 
+        //SpawnAllEmitters();
         //for (int32 Idx = 0; Idx < NumEmitters; Idx++)
         ///{
             // UParticleEmitter* Emitter = Template->Emitters[Idx];
@@ -874,6 +924,7 @@ void UParticleSystemComponent::InitializeSystem()
     {
         if( Template != nullptr )
         {
+            SpawnAllEmitters();
             //EmitterDelay = Template->Delay;
 
             // if( Template->bUseDelayRange )
@@ -956,6 +1007,8 @@ void UParticleSystemComponent::RewindEmitterInstances()
 }
 #pragma endregion 
 
+
+
 void UParticleSystemComponent::InitializeComponent()
 {
     UPrimitiveComponent::InitializeComponent();
@@ -985,3 +1038,92 @@ void UParticleSystemComponent::CreateQuadTextureVertexBuffer()
     VBIBTopologyMappingName = TEXT("Quad");
 }
 
+void UParticleSystemComponent::SpawnAllEmitters()
+{
+    if (!Template) return;
+
+    EmitterInstances.Empty();
+
+    for (UParticleEmitter* Emitter : Template->Emitters)
+    {
+        if (!Emitter) continue;
+
+        // 새 이미터 인스턴스를 생성
+        FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
+        Instance->SpriteTemplate = Emitter;
+        Instance->Component = this;
+        Instance->CurrentLODLevelIndex = 0;
+        Instance->CurrentLODLevel = Emitter->GetLODLevel(0); // 현재는 LOD0만 사용
+        Instance->CurrentLODLevel->AnalyzeModules();
+        Instance->RequiredModule = Instance->CurrentLODLevel->RequiredModule;
+        Instance->Init(1024); // 임의 최대 파티클 수
+
+        // 파티클 모듈들의 초기화 및 첫 스폰 호출
+        if (Instance->CurrentLODLevel)
+        {
+            for (UParticleModule* Module : Instance->CurrentLODLevel->SpawnModules)
+            {
+                // TODO : SpawnTime, Interp 관련 시간 보간 추후 확인 필요. 
+                //Module->Spawn(Instance, /*Offset*/ 0, /*SpawnTime*/ 0.0f, /*Interp*/ 1.0f, );
+            }
+        }
+
+        EmitterInstances.Add(Instance);
+    }
+}
+
+void UParticleSystemComponent::UpdateAllEmitters(float DeltaTime)
+{
+    for (FParticleEmitterInstance* Instance : EmitterInstances)
+    {
+        if (!Instance || !Instance->CurrentLODLevel) {
+            UE_LOG(LogLevel::Warning, "There is no ParticleEmitter Instance or LOD Level");
+            continue;
+        }
+
+        // 생성할 파티클 수 개수 계산
+        int32 SpawnCount = 0;
+        for (UParticleModule* Module : Instance->CurrentLODLevel->SpawnModules) {
+            if (auto SpawnModule = dynamic_cast<UParticleModuleSpawn*>(Module)) {
+                SpawnCount = SpawnModule->ComputeSpawnCount(DeltaTime);
+                break;
+            }
+        }
+        
+        if (SpawnCount > 0)
+        {
+            // 실제 파티클 생성
+            // TODO : 위치 모듈과 연동
+            FVector InitLocation = Instance->GetEmitterOrigin();
+            // TODO : 속도 모듈과 연동
+            FVector InitVelocity = FVector::ZeroVector;
+            Instance->SpawnParticles(SpawnCount, /*StartTime*/ 0.0f, /*Increment*/0.0f, InitLocation, InitVelocity);
+        }
+
+        // 속도 등 업데이트
+        Instance->UpdatParticles(DeltaTime);
+
+        // 기존 파티클 라이프타임 체크 루프
+        for (int32 i = 0; i < Instance->ActiveParticles;) {
+            uint8* Address = Instance->ParticleData + i * Instance->ParticleStride;
+            DECLARE_PARTICLE_PTR(Particle, Address);
+            // FBaseParticle* Particle = Instance->GetParticle(i);
+
+            // 시간 경과
+            Particle->RelativeTime += DeltaTime;
+
+            if (Particle->RelativeTime >= Particle->Lifetime) {
+                // 죽은 파티클 제거
+                Instance->KillParticle(i);
+            }
+            else {
+                ++i;
+            }
+        }
+
+        // Update 모듈 적용
+        for (UParticleModule* Module : Instance->CurrentLODLevel->UpdateModules) {
+            Module->Update(Instance, /*offset*/ 0, DeltaTime);
+        }
+    }
+}
