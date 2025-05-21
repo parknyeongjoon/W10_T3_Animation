@@ -1,6 +1,7 @@
 #include "ParticleEmitter.h"
 #include <UserInterface/Console.h>
 #include "Components/PrimitiveComponents/ParticleSystemComponent.h"
+#include "Engine/FLoaderOBJ.h"
 #include "Particles/ParticleEmitterInstances.h"
 #include "Engine/Classes/Particles/ParticleLODLevel.h"
 #include "Particles/TypeData/ParticleModuleTypeDataBase.h"
@@ -54,6 +55,8 @@ FParticleEmitterInstance* UParticleSpriteEmitter::CreateInstance(UParticleSystem
     if (LODLevel->TypeDataModule)
     {
         Instance = LODLevel->TypeDataModule->CreateInstance(this, InComponent);
+        LODLevel->RequiredModule->Mesh = FManagerOBJ::CreateStaticMesh("Assets/Dodge/Dodge.obj");
+
     }
     // 없을경우 스프라이트 생성
     else

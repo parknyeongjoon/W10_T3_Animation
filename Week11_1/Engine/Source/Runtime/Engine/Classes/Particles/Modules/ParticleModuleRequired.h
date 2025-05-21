@@ -8,6 +8,7 @@
 #include "UObject/ObjectMacros.h"
 
 class UTexture;
+class UStaticMesh;
 struct FDynamicSpriteEmitterDataBase;
 struct FDynamicSpriteEmitterReplayDataBase;
 struct FBaseParticle;
@@ -20,6 +21,7 @@ public:
    
     // Property : 이미터
     UPROPERTY(EditAnywhere, UTexture*, Texture, = nullptr)
+    UPROPERTY(EditAnywhere, UStaticMesh*, Mesh, = nullptr)
 
     UPROPERTY(EditAnywhere, FVector, EmitterOrigin, = FVector::ZeroVector)
     UPROPERTY(EditAnywhere, FRotator, EmitterRotation, = FRotator::ZeroRotator)

@@ -62,6 +62,7 @@ public:
 
     // == Required Module 설정값 접근 메서드 == 
     UTexture* GetTexture() const;
+    UStaticMesh* GetMesh() const;
     FVector GetEmitterOrigin() const;
     FRotator GetEmitterRotation() const;
     int32 GetSubImageH() const;

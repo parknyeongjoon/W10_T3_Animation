@@ -178,6 +178,11 @@ UTexture* FParticleEmitterInstance::GetTexture() const
     return RequiredModule ? RequiredModule->Texture : nullptr;
 }
 
+UStaticMesh* FParticleEmitterInstance::GetMesh() const
+{
+    return RequiredModule ? RequiredModule->Mesh : nullptr;
+}
+
 FVector FParticleEmitterInstance::GetEmitterOrigin() const
 {
     return RequiredModule ? RequiredModule->EmitterOrigin : FVector::ZeroVector;
@@ -237,7 +242,7 @@ FDynamicEmitterDataBase* FParticleSpriteEmitterInstance::GetDynamicData()
     UParticleLODLevel* LODLevel = SpriteTemplate->GetLODLevel(CurrentLODLevelIndex);
     
     FDynamicSpriteEmitterData* NewEmitterData = new FDynamicSpriteEmitterData();
-
+    
     if (!FillReplayData(NewEmitterData->Source))
     {
         delete NewEmitterData;
@@ -274,8 +279,9 @@ FDynamicEmitterDataBase* FParticleMeshEmitterInstance::GetDynamicData()
 {
     UParticleLODLevel* LODLevel = SpriteTemplate->GetLODLevel(CurrentLODLevelIndex);
 
-    FDynamicSpriteEmitterData* NewEmitterData = new FDynamicSpriteEmitterData();
-
+    FDynamicMeshEmitterData* NewEmitterData = new FDynamicMeshEmitterData();
+    NewEmitterData->Mesh = GetMesh();
+    
     if (!FillReplayData(NewEmitterData->Source))
     {
         delete NewEmitterData;
@@ -293,7 +299,6 @@ bool FParticleMeshEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase&
     }
 
     OutData.eEmitterType = DET_Mesh;
-
 
     FDynamicMeshEmitterReplayData* NewReplayData =
         static_cast<FDynamicMeshEmitterReplayData*>(&OutData);

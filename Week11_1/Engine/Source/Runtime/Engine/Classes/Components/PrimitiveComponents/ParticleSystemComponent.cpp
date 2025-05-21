@@ -134,21 +134,7 @@ void UParticleSystemComponent::TickComponent(float DeltaTime)
     }
 
     AccumTickTime += DeltaTime;
-
-    for (auto Instance : EmitterInstances)
-    {
-        if (Instance)
-        {
-            //Instance->LastTickDurationMs = 0.0f;
-        }
-    }
-
-    // Orient the Z axis toward the camera
-    if (Template->bOrientZAxisTowardCamera)
-    {
-        //OrientZAxisTowardCamera();
-    }
-
+    
     // // 고정 시간 업데이트 모드
     // if (Template->SystemUpdateMode == EPSUM_FixedTime)
     // {
@@ -263,41 +249,6 @@ void UParticleSystemComponent::ComputeTickComponent_Concurrent(float DeltaTime)
 
 void UParticleSystemComponent::FinalizeTickComponent()
 {
-    // 3) 이벤트 처리
-    for (auto& instance : EmitterInstances)
-    {
-        // if (instance->IsEnabled())
-        // {
-        //     instance->ProcessParticleEvents(DeltaTimeTick, bSuppressSpawning);
-        // }
-    }                                                    
-    // if (auto* mgr = GetWorld().getevent)
-    // {
-    //     if (!SpawnEvents.empty())     mgr->HandleParticleSpawnEvents(this, SpawnEvents);
-    //     if (!DeathEvents.empty())     mgr->HandleParticleDeathEvents(this, DeathEvents);
-    //     if (!CollisionEvents.empty()) mgr->HandleParticleCollisionEvents(this, CollisionEvents);
-    //     if (!BurstEvents.empty())     mgr->HandleParticleBurstEvents(this, BurstEvents);
-    // }
-    // KismetEvents.clear();
-
-    // 4) 시스템 완료 및 중요도(Significance) 갱신
-    // float currTime = WorldContext->GetTimeSeconds();
-    // if (IsActive() && bIsManagingSignificance && NumSignificantEmitters == 0
-    //     && currTime >= LastSignificantTime + InsignificanceDelay)
-    // {
-    //     OnSignificanceChanged(false);
-    // }
-    // else
-    // {
-    //     LastSignificantTime = currTime;
-    //     bool isCompleted = HasCompleted();
-    //     if (isCompleted && !bWasCompleted)
-    //     {
-    //         Complete();
-    //     }
-    //     bWasCompleted = isCompleted;
-    // }
-    
     if (bIsTransformDirty)
     {
         //UpdateComponentToWorld();
@@ -872,16 +823,16 @@ bool UParticleSystemComponent::HasCompleted()
 //                         bHasCompleted = false;
 //                     }
 //                 }
-            }
-            else
-            {
-                // UParticleEmitter* Em = Cast<UParticleEmitter>(Instance->CurrentLODLevel->GetOuter());
-                // if (Em && Em->bDisabledLODsKeepEmitterAlive)
-                // {
-                //     bHasCompleted = false;
-                // }				
-            }
         }
+        else
+        {
+            // UParticleEmitter* Em = Cast<UParticleEmitter>(Instance->CurrentLODLevel->GetOuter());
+            // if (Em && Em->bDisabledLODsKeepEmitterAlive)
+            // {
+            //     bHasCompleted = false;
+            // }				
+        }
+    }
     
     if (bCanBeDeactivated && Template /* && Template->bAutoDeactivate*/)
     {
