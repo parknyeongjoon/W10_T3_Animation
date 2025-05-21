@@ -2,22 +2,22 @@
 #include "Runtime/Engine/Particles/ParticleHelper.h"
 #include "Runtime/Engine/Particles/ParticleEmitterInstances.h"
 #include "LaunchEngineLoop.h"
-
+#include "ParticleModuleDefaults.h"
 UParticleModuleRequired::UParticleModuleRequired()
 {
     // 초기값 지정
-    Texture = FEngineLoop::ResourceManager.GetTexture(L"Contents/Textures/Particles/hit_2.png").get();
-    //Texture = FEngineLoop::ResourceManager.GetDefaultWhiteTexture().get();
-    EmitterOrigin = FVector::ZeroVector;
-    EmitterRotation = FRotator::ZeroRotator;
+    Texture = FEngineLoop::ResourceManager.GetTexture(ParticleModuleDefaults::Required::TexturePath).get();
+    EmitterOrigin = ParticleModuleDefaults::Required::EmitterOrigin;
+    // TODO : rotation 테스트 필요.
+    EmitterRotation = ParticleModuleDefaults::Required::EmitterRotation;
 
-    EmitterDurationUseRange = false;
-    EmitterDuration = 1.0f;
-    EmitterDurationLow = 0.0f;
-    EmitterDelayUseRange = false;
+    EmitterDurationUseRange = ParticleModuleDefaults::Required::bUseDurationRange;
+    EmitterDuration = ParticleModuleDefaults::Required::EmitterDuration;
+    EmitterDurationLow = ParticleModuleDefaults::Required::EmitterDurationLow;
+    EmitterDelayUseRange = ParticleModuleDefaults::Required::bUseDelayRange;
 
-    SubImagesHorizontal = 1;
-    SubImagesVertical = 1;
+    SubImagesHorizontal = ParticleModuleDefaults::Required::SubImagesHorizontal;
+    SubImagesVertical = ParticleModuleDefaults::Required::SubImagesVertical;
 }
 
 void UParticleModuleRequired::InitializeDefaults()
@@ -36,14 +36,14 @@ void UParticleModuleRequired::CacheEmitterData(FParticleEmitterInstance* Instanc
 void UParticleModuleRequired::FillReplayData(FDynamicSpriteEmitterReplayDataBase* ReplayData) const
 {
     ReplayData->Texture = Texture; // FTexture* => UMaterialInterface*로 변경 필요
-    //ReplayData->SubImageH = SubImagesHorizontal;
-    //ReplayData->SubImageV = SubImagesVertical;
+    ReplayData->SubImages_Horizontal = SubImagesHorizontal;
+    ReplayData->SubImages_Vertical = SubImagesVertical;
     ReplayData->EmitterOrigin = EmitterOrigin;
 }
 
 int32 UParticleModuleRequired::GetTotalSubImages() const
 {
-    return int32();
+    return SubImagesHorizontal * SubImagesVertical;
 }
 
 float UParticleModuleRequired::ComputeEmitterDuration(float RandomFactor) const

@@ -479,8 +479,6 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\FFunctor.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\AnimSequenceEditorPanel.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\FBXLoader.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleHelper.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstance.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowMapAtlas.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Light\ShadowResource.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\ParticleSystemComponent.h" />
@@ -524,9 +522,27 @@
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\FunctionRegistry.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ScriptStruct.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Struct.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\Distributions.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModule.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemWorldManager.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesCurveEditorPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesDetailsPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesEmitterPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesMenuBar.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesViewportPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\ParticlePreviewUI.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Container\EnumAsByte.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\IsPODType.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\RandomStream.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ParticleSystemComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\Distribution.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\DistributionFloat.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\DistributionVector.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Paritcles\ParticleHelper.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstances.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleMacros.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\ParticleRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleDefaults.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSubUV.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -605,6 +621,8 @@
     <FxCompile Include="Shaders\FinalVertexShader.hlsl" />
     <FxCompile Include="Shaders\SkeletalUberLitPixelShader.hlsl" />
     <FxCompile Include="Shaders\SkeletalUberLitVertexShader.hlsl" />
+    <FxCompile Include="Shaders\ParticleSystemPixelShader.hlsl" />
+    <FxCompile Include="Shaders\ParticleSystemVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week11_1.natvis" />
@@ -773,12 +791,28 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleRequired.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSpawn.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLifetime.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstance.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModule.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\ParticleSystemComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemWorldManager.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesCurveEditorPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesDetailsPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesEmitterPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesMenuBar.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\ParticlePreviewUI.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Container\EnumAsByte.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\RandomStream.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Distributions\Distribution.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleColor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLocation.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSize.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleVelocity.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstances.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleHelper.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\ParticleRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleDefaults.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSubUV.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

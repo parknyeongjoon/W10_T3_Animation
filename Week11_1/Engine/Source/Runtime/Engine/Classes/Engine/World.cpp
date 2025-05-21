@@ -27,6 +27,7 @@
 #include <Particles/Modules/ParticleModuleLifetime.h>
 #include <Particles/Modules/ParticleModuleLocation.h>
 #include <Particles/Modules/ParticleModuleSize.h>
+#include <Particles/Modules/ParticleModuleSubUV.h>
 
 void UWorld::InitWorld()
 {
@@ -85,6 +86,7 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
         NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLifeTime>(nullptr));
         NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLocation>(nullptr));
         NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSize>(nullptr));
+        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSubUV>(nullptr));
 
         NewEmitter->LODLevels.Add(NewLODLevel);
         TestComp->Template->Emitters.Add(NewEmitter);

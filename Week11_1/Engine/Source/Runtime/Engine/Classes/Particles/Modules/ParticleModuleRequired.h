@@ -55,7 +55,6 @@ public:
     virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime) override;
 
     virtual void PostEditChangeProperty() override;
-
 };
 
 

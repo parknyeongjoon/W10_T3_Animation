@@ -412,7 +412,6 @@ void UParticleSystemComponent::UpdateDynamicData()
         ReplayData->DataContainer.ParticleData = EmitterInstance->ParticleData;
         ReplayData->DataContainer.ParticleIndices = EmitterInstance->ParticleIndices;
         ReplayData->Texture = EmitterInstance->GetTexture();
-        //ReplayData->RequiredModule = EmitterInstance->RequiredModule;
 
         ReplayData->Scale = FVector::OneVector;
         
