@@ -43,5 +43,5 @@ void UParticleModuleColor::Update(FParticleEmitterInstance* Owner, int32 Offset,
 
 EModuleType UParticleModuleColor::GetType() const
 {
-    return EModuleType();
+    return EModuleType::Spawn;
 }

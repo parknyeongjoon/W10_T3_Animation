@@ -45,12 +45,13 @@ int32 UParticleModuleSpawn::ComputeSpawnCount(float DeltaTime)
 
 EModuleType UParticleModuleSpawn::GetType() const
 {
+    // FIXME : 왜 Spawn 함수가 없는데 None으로 지정하면 안되지?
     return EModuleType::Spawn;
 }
 
 void UParticleModuleSpawn::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
 {
-    CheckBurst(Owner, DeltaTime);
+    //CheckBurst(Owner, DeltaTime);
 }
 
 void UParticleModuleSpawn::CheckBurst(FParticleEmitterInstance* Owner, float DeltaTime)

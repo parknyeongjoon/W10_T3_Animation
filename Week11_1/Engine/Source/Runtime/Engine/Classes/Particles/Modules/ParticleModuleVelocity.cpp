@@ -34,3 +34,8 @@ void UParticleModuleVelocity::Spawn(FParticleEmitterInstance* Owner, int32 Offse
     ParticleBase->Velocity = LinearVelocity + DirectionToCenter * RadialSpeed;
     ParticleBase->BaseVelocity = ParticleBase->Velocity;
 }
+
+EModuleType UParticleModuleVelocity::GetType() const
+{
+    return EModuleType::Spawn;
+}
