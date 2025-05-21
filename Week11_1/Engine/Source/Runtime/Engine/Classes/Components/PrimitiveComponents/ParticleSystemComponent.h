@@ -289,6 +289,7 @@ public:
     ~UParticleSystemComponent() override;
     
     //이게 인스턴스, 틱돌면서 이거 돌아야함. 이거 데이터 기반으로 EmitterRenderData 생성
+    // Mesh일 경우 FParticleMeshEmitterInstance가 들어감
     TArray<FParticleEmitterInstance*> EmitterInstances;
 
     //얘는 원본데이터

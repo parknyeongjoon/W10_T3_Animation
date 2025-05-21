@@ -8,9 +8,12 @@
 #include "Renderer/Renderer.h"
 #include "UObject/Casts.h"
 #include "Particles/Modules/ParticleModule.h"
-#include <Particles/Modules/ParticleModuleSpawn.h>
+#include "Particles/Modules/ParticleModuleSpawn.h"
 #include "Particles/Modules/ParticleModuleRequired.h"
-#include <Particles/ParticleMacros.h>
+#include "Particles/ParticleLODLevel.h"
+#include "Particles/ParticleEmitter.h"
+#include "Particles/ParticleMacros.h"
+
 bool GIsAllowingParticles = true;
 
 UParticleSystemComponent::UParticleSystemComponent()
@@ -386,6 +389,7 @@ FDynamicEmitterDataBase* UParticleSystemComponent::CreateDynamicDataFromReplay(F
     return nullptr;
 }
 
+// 렌더링을 하기 위해서 EmitterInstance로부터 ReplayData를 생성하는 함수
 void UParticleSystemComponent::UpdateDynamicData()
 {
     ClearDynamicData();
@@ -397,35 +401,45 @@ void UParticleSystemComponent::UpdateDynamicData()
             continue;
         }
 
-        FDynamicSpriteEmitterReplayData* ReplayData = new FDynamicSpriteEmitterReplayData();
+        FDynamicEmitterDataBase* DynamicData = EmitterInstance->GetDynamicData();
 
-        if (EmitterInstance->RequiredModule)
-        {
-            EmitterInstance->RequiredModule->FillReplayData(ReplayData);
-        }
+        EmitterRenderData.Add(DynamicData);
 
-        // 기본 정보 복사
-        ReplayData->eEmitterType = DET_Sprite;
-        ReplayData->ActiveParticleCount = EmitterInstance->ActiveParticles;
-        ReplayData->ParticleStride = EmitterInstance->ParticleStride;
-        ReplayData->DataContainer.MemBlockSize = EmitterInstance->MaxActiveParticles * EmitterInstance->ParticleStride;
-        ReplayData->DataContainer.ParticleData = EmitterInstance->ParticleData;
-        ReplayData->DataContainer.ParticleIndices = EmitterInstance->ParticleIndices;
-        ReplayData->Texture = EmitterInstance->GetTexture();
-        //ReplayData->RequiredModule = EmitterInstance->RequiredModule;
-
-        ReplayData->Scale = FVector::OneVector;
+        /*
         
-        // TODO: 필요 시 정렬 설정 (SortMode 등)
-        ReplayData->SortMode = 0;
+        아래 부분은 GetDynamicData로 이전됨
+        
+        */
+        //FDynamicSpriteEmitterReplayData* ReplayData = new FDynamicSpriteEmitterReplayData();
 
-        FDynamicSpriteEmitterData* DynamicData = new FDynamicSpriteEmitterData();
+        //if (EmitterInstance->RequiredModule)
+        //{
+        //    EmitterInstance->RequiredModule->FillReplayData(ReplayData);
+        //}
 
-        DynamicData->EmitterIndex = EmitterRenderData.Num(); // index 저장
-        DynamicData->Source = *ReplayData; // 이걸 통해 접근
+        //// 기본 정보 복사
+        //ReplayData->eEmitterType = DET_Sprite;
+        //ReplayData->ActiveParticleCount = EmitterInstance->ActiveParticles;
+        //ReplayData->ParticleStride = EmitterInstance->ParticleStride;
+        //ReplayData->DataContainer.MemBlockSize = EmitterInstance->MaxActiveParticles * EmitterInstance->ParticleStride;
+        //ReplayData->DataContainer.ParticleData = EmitterInstance->ParticleData;
+        //ReplayData->DataContainer.ParticleIndices = EmitterInstance->ParticleIndices;
+        //ReplayData->Texture = EmitterInstance->GetTexture();
+        ////ReplayData->RequiredModule = EmitterInstance->RequiredModule;
+
+        //ReplayData->Scale = FVector::OneVector;
+        //
+        //// TODO: 필요 시 정렬 설정 (SortMode 등)
+        //ReplayData->SortMode = 0;
+
+        //FDynamicSpriteEmitterData* DynamicData = new FDynamicSpriteEmitterData();
+
+        //DynamicData->EmitterIndex = EmitterRenderData.Num(); // index 저장
+        //DynamicData->Source = *ReplayData; // 이걸 통해 접근
         
         //delete ReplayData;
-        EmitterRenderData.Add(DynamicData);
+        //EmitterRenderData.Add(DynamicData);
+
     }
 }
 
@@ -1038,6 +1052,7 @@ void UParticleSystemComponent::CreateQuadTextureVertexBuffer()
     VBIBTopologyMappingName = TEXT("Quad");
 }
 
+// UParticleEmitter에서 FParticleEmitterInstance를 생성하는 함수
 void UParticleSystemComponent::SpawnAllEmitters()
 {
     if (!Template) return;
@@ -1048,15 +1063,16 @@ void UParticleSystemComponent::SpawnAllEmitters()
     {
         if (!Emitter) continue;
 
+        FParticleEmitterInstance* Instance = Emitter->CreateInstance(this);
         // 새 이미터 인스턴스를 생성
-        FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
-        Instance->SpriteTemplate = Emitter;
-        Instance->Component = this;
-        Instance->CurrentLODLevelIndex = 0;
-        Instance->CurrentLODLevel = Emitter->GetLODLevel(0); // 현재는 LOD0만 사용
-        Instance->CurrentLODLevel->AnalyzeModules();
-        Instance->RequiredModule = Instance->CurrentLODLevel->RequiredModule;
-        Instance->Init(1024); // 임의 최대 파티클 수
+        //FParticleEmitterInstance* Instance = new FParticleEmitterInstance();
+        //Instance->SpriteTemplate = Emitter;
+        //Instance->Component = this;
+        //Instance->CurrentLODLevelIndex = 0;
+        //Instance->CurrentLODLevel = Emitter->GetLODLevel(0); // 현재는 LOD0만 사용
+        //Instance->CurrentLODLevel->AnalyzeModules();
+        //Instance->RequiredModule = Instance->CurrentLODLevel->RequiredModule;
+        //Instance->Init(1024); // 임의 최대 파티클 수
 
         // 파티클 모듈들의 초기화 및 첫 스폰 호출
         if (Instance->CurrentLODLevel)
@@ -1101,7 +1117,7 @@ void UParticleSystemComponent::UpdateAllEmitters(float DeltaTime)
         }
 
         // 속도 등 업데이트
-        Instance->UpdatParticles(DeltaTime);
+        Instance->UpdateParticles(DeltaTime);
 
         // 기존 파티클 라이프타임 체크 루프
         for (int32 i = 0; i < Instance->ActiveParticles;) {

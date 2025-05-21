@@ -59,7 +59,9 @@ public:
     static D3D_SHADER_MACRO LambertDefines[];
     static D3D_SHADER_MACRO EditorGizmoDefines[];
     static D3D_SHADER_MACRO EditorIconDefines[];
-    
+    static D3D_SHADER_MACRO SpriteParticleDefines[];
+    static D3D_SHADER_MACRO MeshParticleDefines[];
+
     //Release
     void Release();
     
@@ -120,7 +122,8 @@ private:
     std::shared_ptr<FLetterBoxRenderPass> LetterBoxRenderPass;
     std::shared_ptr<FBlurRenderPass> BlurRenderPass;
     std::shared_ptr<FFinalRenderPass> FinalRenderPass;
-    std::shared_ptr<FParticleRenderPass> ParticleRenderPass;
+    std::shared_ptr<FParticleRenderPass> ParticleRenderPass; 
+    std::shared_ptr<FParticleRenderPass> MeshParticleRenderPass; 
 
     ERasterizerState CurrentRasterizerState = ERasterizerState::SolidBack;
     EViewModeIndex CurrentViewMode = VMI_Lit_Goroud;

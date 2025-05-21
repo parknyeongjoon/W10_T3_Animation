@@ -626,14 +626,8 @@ PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
     
-    output.color = Texture.Sample(linearSampler, input.texcoord) * input.color;
+#if MESH_PARTICLE
 
-    output.color = float4(output.color.xyz, output.color.w * ParticleAlpha);
-    
-    output.UUID = UUID;
-    //임시 테스트용
-    return output;
-    
     float2 uvAdjusted = input.texcoord;
 
     // 기본 색상 추출  
@@ -739,7 +733,16 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     float4 FinalColor = float4(TotalLight * baseColor.rgb, baseColor.a * TransparencyScalar);
     // 최종 색상 
-    output.color = FinalColor;
+    output.color = FinalColor * input.color;
     
     return output;
+#else
+    output.color = Texture.Sample(linearSampler, input.texcoord) * input.color;
+
+    output.color = float4(output.color.xyz, output.color.w * ParticleAlpha);
+    
+    output.UUID = UUID;
+    //임시 테스트용
+    return output;
+#endif
 }

@@ -45,6 +45,18 @@ D3D_SHADER_MACRO FRenderer::EditorIconDefines[] =
     {nullptr, nullptr}
 };
 
+D3D_SHADER_MACRO FRenderer::SpriteParticleDefines[] =
+{
+    {"SPRITE_PARTICLE", "1"},
+    {nullptr, nullptr}
+};
+
+D3D_SHADER_MACRO FRenderer::MeshParticleDefines[] =
+{
+    {"MESH_PARTICLE", "1"},
+    {nullptr, nullptr}
+};
+
 void FRenderer::Initialize(FGraphicsDevice* graphics)
 {
     Graphics = graphics;
@@ -116,6 +128,14 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
 
     CreateVertexPixelShader(TEXT("ParticleSystem"), nullptr);
     ParticleRenderPass = std::make_shared<FParticleRenderPass>(TEXT("ParticleSystem"));
+    ParticleRenderPass->RenderPassEmitterType = DET_Sprite;
+    
+    FString MeshParticleName = TEXT("ParticleSystem");
+    MeshParticleName += MeshParticleDefines->Name;
+    CreateVertexPixelShader(TEXT("ParticleSystem"), MeshParticleDefines);
+    MeshParticleRenderPass = std::make_shared<FParticleRenderPass>(MeshParticleName);
+    MeshParticleRenderPass->RenderPassEmitterType = DET_Mesh;
+
     //Particle은 Instancing해야해서 InputLayout 따로 만들어야함
     ID3D11InputLayout* ParticleInputLayout = nullptr;
     ID3DBlob* ParticleVertexBlob = RenderResourceManager->GetVertexShaderBlob(GetVSName(TEXT("ParticleSystem")));
@@ -137,8 +157,30 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     };
     Graphics->Device->CreateInputLayout(ParticleInputLayoutDesc, ARRAYSIZE(ParticleInputLayoutDesc),
         ParticleVertexBlob->GetBufferPointer(), ParticleVertexBlob->GetBufferSize(), &ParticleInputLayout);
-
     RenderResourceManager->AddOrSetInputLayout(TEXT("SpriteParticle"), ParticleInputLayout);
+
+    ID3D11InputLayout* MeshParticleInputLayout = nullptr;
+    ID3DBlob* MeshParticleVertexBlob = RenderResourceManager->GetVertexShaderBlob(GetVSName(MeshParticleName));
+    D3D11_INPUT_ELEMENT_DESC MeshParticleInputLayoutDesc[] =
+    {
+        // 기본 쿼드 정점
+        {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TANGENT", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    
+        // 인스턴스 데이터
+        {"INSTANCEMODELMAT1", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"INSTANCEMODELMAT2", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,   1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"INSTANCEMODELMAT3", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,   1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"INSTANCEMODELMAT4", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,   1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"INSTANCECOLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,   1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+    };
+    Graphics->Device->CreateInputLayout(MeshParticleInputLayoutDesc, ARRAYSIZE(MeshParticleInputLayoutDesc),
+        MeshParticleVertexBlob->GetBufferPointer(), MeshParticleVertexBlob->GetBufferSize(), &MeshParticleInputLayout);
+
+    RenderResourceManager->AddOrSetInputLayout(TEXT("MeshParticle"), MeshParticleInputLayout);
 }
 
 void FRenderer::PrepareShader(const FName InShaderName)
@@ -280,6 +322,9 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     SetViewMode(ActiveViewportClient->GetViewMode());
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewportClient->GetD3DViewport());
     
+    LineBatchRenderPass->Prepare(ActiveViewportClient);
+    LineBatchRenderPass->Execute(ActiveViewportClient);
+    
     if (ActiveViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
     {
         ShadowRenderPass->Prepare(ActiveViewportClient);
@@ -312,6 +357,11 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
             ParticleRenderPass->Prepare(ActiveViewportClient);
             ParticleRenderPass->Execute(ActiveViewportClient);
         }
+
+        {
+            MeshParticleRenderPass->Prepare(ActiveViewportClient);
+            MeshParticleRenderPass->Execute(ActiveViewportClient);
+        }
     }
 
     if (FogRenderPass->ShouldRender())
@@ -322,9 +372,6 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
 
     BlurRenderPass->Prepare(ActiveViewportClient);
     BlurRenderPass->Execute(ActiveViewportClient);
-
-    LineBatchRenderPass->Prepare(ActiveViewportClient);
-    LineBatchRenderPass->Execute(ActiveViewportClient);
 
     if (ActiveViewportClient->GetViewMode() == EViewModeIndex::VMI_Depth)
     {

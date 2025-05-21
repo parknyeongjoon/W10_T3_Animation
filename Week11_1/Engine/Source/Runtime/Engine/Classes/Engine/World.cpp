@@ -20,13 +20,16 @@
 #include "UObject/UObjectArray.h"
 #include "UnrealEd/PrimitiveBatch.h"
 #include "Components/PrimitiveComponents/ParticleSystemComponent.h"
-#include <Particles/Modules/ParticleModuleSpawn.h>
+#include "Particles/Modules/ParticleModuleSpawn.h"
 #include "Classes/Particles/ParticleLODLevel.h"
 #include "Particles/Modules/ParticleModuleRequired.h"
-#include <Particles/Modules/ParticleModuleVelocity.h>
-#include <Particles/Modules/ParticleModuleLifetime.h>
-#include <Particles/Modules/ParticleModuleLocation.h>
-#include <Particles/Modules/ParticleModuleSize.h>
+#include "Particles/Modules/ParticleModuleVelocity.h"
+#include "Particles/ParticleEmitter.h"
+#include "Particles/Modules/ParticleModuleLifetime.h"
+#include "Particles/Modules/ParticleModuleLocation.h"
+#include "Particles/Modules/ParticleModuleSize.h"
+#include "Particles/TypeData/ParticleModuleTypeDataBase.h"
+#include "Particles/TypeData/ParticleModuleTypeDataMesh.h"
 
 void UWorld::InitWorld()
 {
@@ -75,7 +78,7 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
         AActor* TestActor = SpawnActor<AActor>();
         UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
         TestComp->Template = FObjectFactory::ConstructObject<UParticleSystem>(this);
-        UParticleEmitter* NewEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
+        UParticleEmitter* NewEmitter = FObjectFactory::ConstructObject<UParticleSpriteEmitter>(nullptr);
         UParticleLODLevel* NewLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
         
         NewLODLevel->RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(nullptr);
@@ -85,7 +88,9 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
         NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLifeTime>(nullptr));
         NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLocation>(nullptr));
         NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSize>(nullptr));
-
+        NewLODLevel->TypeDataModule = FObjectFactory::ConstructObject<UParticleModuleTypeDataMesh>(nullptr);
+        dynamic_cast<UParticleModuleTypeDataMesh*>(NewLODLevel->TypeDataModule)->Mesh = FManagerOBJ::GetStaticMesh(L"apple_mid.obj");
+        
         NewEmitter->LODLevels.Add(NewLODLevel);
         TestComp->Template->Emitters.Add(NewEmitter);
         TestComp->Activate();
