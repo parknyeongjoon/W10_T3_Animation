@@ -51,7 +51,7 @@ FParticleRenderPass::FParticleRenderPass(const FName& InShaderName) : FBaseRende
     D3D11_BUFFER_DESC bufferDesc = {};
     bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     //TODO: SpriteParticle에 맞는걸로 넣어주기 지금은 하드코딩
-    bufferDesc.ByteWidth = static_cast<UINT>(sizeof(FParticleSpriteVertex) * 512);
+    bufferDesc.ByteWidth = static_cast<UINT>(sizeof(FParticleSpriteVertex) * 1488);
     bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     bufferDesc.MiscFlags = 0;

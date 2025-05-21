@@ -5,10 +5,10 @@
 #include <Particles/ParticleMacros.h>
 UParticleModuleVelocity::UParticleModuleVelocity()
 {
-    StartVelocity.Distribution = new UDistributionVectorConstant();
+    StartVelocity.Distribution = FObjectFactory::ConstructObject<UDistributionVectorConstant>(this);
     static_cast<UDistributionVectorConstant*>(StartVelocity.Distribution)->Constant = FVector(10.f, 0.f, 0.f);
 
-    StartVelocityRadial.Distribution = new UDistributionFloatConstant();
+    StartVelocityRadial.Distribution = FObjectFactory::ConstructObject<UDistributionFloatConstant>(this);
     static_cast<UDistributionFloatConstant*>(StartVelocityRadial.Distribution)->SetValue(0.0f);
 }
 

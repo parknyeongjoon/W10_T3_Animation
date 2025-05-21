@@ -41,10 +41,10 @@ struct FRawDistribution
 
 class UDistribution : public UObject
 {
-    DECLARE_ABSTRACT_CLASS(UDistribution, UObject)
+    DECLARE_CLASS(UDistribution, UObject)
 
 public:
-    UDistribution() {}
+    UDistribution() = default;
 
     static const float DefaultValue;
 };

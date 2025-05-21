@@ -2,6 +2,7 @@
 #include "Define.h"
 #include "FBaseRenderPass.h"
 #include "Container/Array.h"
+#include "UserInterface/Console.h"
 
 class UParticleSystemComponent;
 class USpotLightComponent;
@@ -48,13 +49,22 @@ private:
         //     return;
         // }
         
+        uint32 Size = sizeof(T) * instances.Num();
+
+        const uint32 MaxSize = 4096 * 16;
+        if (Size > MaxSize)
+        {
+            UE_LOG(LogLevel::Warning, TEXT("Instance buffer size is too large: %d"), Size);
+            Size = (MaxSize / sizeof(T)) * sizeof(T);
+        }
+
         DeviceContext->IASetInputLayout(InInputLayout);
         
         D3D11_MAPPED_SUBRESOURCE mapped = {};
         HRESULT hr = DeviceContext->Map(InBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
         if (FAILED(hr)) return;
 
-        memcpy(mapped.pData, instances.GetData(), sizeof(T) * instances.Num());
+        memcpy(mapped.pData, instances.GetData(), Size);
 
         DeviceContext->Unmap(InBuffer, 0);
 

@@ -17,9 +17,27 @@ public:
     UParticleModuleRequired();
    
     // Property : 이미터
-    FTexture* Texture;
-    FVector EmitterOrigin;
-    FRotator EmitterRotation;
+    //FTexture* Texture;
+    UPROPERTY(
+        EditAnywhere,
+        FTexture*,
+        Texture,
+        = nullptr
+    )
+
+    UPROPERTY(
+        EditAnywhere,
+        FVector,
+        EmitterOrigin,
+        = FVector::ZeroVector
+    )
+
+    UPROPERTY(
+        EditAnywhere,
+        FRotator,
+        EmitterRotation,
+        = FRotator::ZeroRotator
+    )
 
     // Property : 경과시간
     bool EmitterDurationUseRange;

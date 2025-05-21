@@ -1767,6 +1767,10 @@ void PropertyEditorPanel::DrawParticlesPreviewButton(UParticleSystem* ParticleSy
         AActor* TestActor = World->SpawnActor<AActor>();
         UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
         TestComp->Template = ParticleSystem;
+        TestComp->Activate();
+        //UStaticMeshComponent* TestMeshComp = TestActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Runtime);
+        //FManagerOBJ::CreateStaticMesh("Assets/Dodge/Dodge.obj");
+        //TestMeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Dodge.obj"));
 
         EditorEngine->GetParticlePreviewUI()->AddParticleSytstem(ParticleSystem);
     }

@@ -171,6 +171,8 @@ void ParticlesEmitterPanel::RenderModuleCell(UParticleModule* Module, UParticleE
             for (int i = 0; i < Emitter->LODLevels.Num(); ++i)
             {
                 Emitter->LODLevels[i]->Modules.Remove(Module);
+                Emitter->LODLevels[i]->SpawnModules.Remove(Module);
+                Emitter->LODLevels[i]->UpdateModules.Remove(Module);
             }
             UI->RemoveFlags(Module);
             GUObjectArray.MarkRemoveObject(Module);
