@@ -25,5 +25,5 @@ void UParticleModuleSize::Update(FParticleEmitterInstance* Owner, int32 Offset, 
 
 EModuleType UParticleModuleSize::GetType() const
 {
-    return EModuleType();
+    return EModuleType::Spawn;
 }

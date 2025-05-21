@@ -4,6 +4,7 @@
 #include "Container/Array.h"
 #include "Container/String.h"
 
+class FArchive2;
 class UObject;
 
 namespace Serializer
@@ -49,10 +50,10 @@ namespace Serializer
     }
 
     // 메모리 버퍼에 직렬화
-    void Save(const UObject* Obj, TArray<uint8>& OutBytes);
+    void Save(FArchive2& Ar, const UObject* Obj);
     
     // 메모리 버퍼에서 역직렬화
-    UObject* Load(const TArray<uint8>& InBytes);
+    UObject* Load(FArchive2& Ar);
     
     // 깊은 복제
     UObject* Duplicate(const UObject* Obj);

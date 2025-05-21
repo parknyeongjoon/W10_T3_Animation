@@ -194,7 +194,7 @@ void FStrProperty::Serialize(FArchive2& Ar, void* DataPtr) const
     {
         int32 Len = Str.Len();
         Ar.SerializeRaw(&Len, sizeof(Len));
-        Ar.SerializeRaw(const_cast<TCHAR*>(*Str), (Len + 1) * sizeof(TCHAR));
+        Ar.SerializeRaw(const_cast<TCHAR*>(*Str), Len  * sizeof(TCHAR));
     }
     else
     {
@@ -202,7 +202,7 @@ void FStrProperty::Serialize(FArchive2& Ar, void* DataPtr) const
         Ar.SerializeRaw(&Len, sizeof(Len));
         TArray<TCHAR> Buffer;
         Buffer.SetNum(Len + 1);
-        Ar.SerializeRaw(Buffer.GetData(), (Len + 1) * sizeof(TCHAR));
+        Ar.SerializeRaw(Buffer.GetData(), Len * sizeof(TCHAR));
         Str = FString(Buffer.GetData());
     }
 }
@@ -238,7 +238,7 @@ void FNameProperty::Serialize(FArchive2& Ar, void* DataPtr) const
         // 2) 길이 저장
         Ar.SerializeRaw(&Len, sizeof(Len));
         // 3) 문자열(TCHAR) 저장 (널종료 포함)
-        Ar.SerializeRaw(const_cast<TCHAR*>(*Str), (Len + 1) * sizeof(TCHAR));
+        Ar.SerializeRaw(const_cast<TCHAR*>(*Str), Len * sizeof(TCHAR));
     }
     else // Loading
     {
@@ -249,7 +249,7 @@ void FNameProperty::Serialize(FArchive2& Ar, void* DataPtr) const
         // 2) 버퍼 할당 후 문자열 읽기
         TArray<TCHAR> Buffer;
         Buffer.SetNum(Len + 1);
-        Ar.SerializeRaw(Buffer.GetData(), (Len + 1) * sizeof(TCHAR));
+        Ar.SerializeRaw(Buffer.GetData(), Len  * sizeof(TCHAR));
 
         // 3) FString → FName 으로 복원
         FString Str(Buffer.GetData());
@@ -712,11 +712,7 @@ void FObjectProperty::Serialize(FArchive2& Ar, void* DataPtr) const
         Ar.SerializeRaw(&bHas, sizeof(bHas));
         if (bHas)
         {
-            TArray<uint8> Buf;
-            Serializer::Save(Ref, Buf);
-            int32 Size = Buf.Num();
-            Ar.SerializeRaw(&Size, sizeof(Size));
-            Ar.SerializeRaw(Buf.GetData(), Size);
+            Serializer::Save(Ar, Ref);
         }
     }
     else
@@ -725,12 +721,7 @@ void FObjectProperty::Serialize(FArchive2& Ar, void* DataPtr) const
         Ar.SerializeRaw(&bHas, sizeof(bHas));
         if (bHas)
         {
-            int32 Size = 0;
-            Ar.SerializeRaw(&Size, sizeof(Size));
-            TArray<uint8> Buf;
-            Buf.SetNum(Size);
-            Ar.SerializeRaw(Buf.GetData(), Size);
-            Ref = Serializer::Load(Buf);
+            Ref = Serializer::Load(Ar);
         }
         else
         {

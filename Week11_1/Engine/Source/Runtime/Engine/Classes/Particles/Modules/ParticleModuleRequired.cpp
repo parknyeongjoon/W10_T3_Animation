@@ -55,7 +55,7 @@ float UParticleModuleRequired::ComputeEmitterDuration(float RandomFactor) const
 
 EModuleType UParticleModuleRequired::GetType() const
 {
-    return EModuleType::Spawn;;
+    return EModuleType::None;
 }
 
 void UParticleModuleRequired::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)

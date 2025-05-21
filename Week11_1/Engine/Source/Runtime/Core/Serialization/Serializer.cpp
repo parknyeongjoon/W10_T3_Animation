@@ -3,11 +3,8 @@
 #include "Serialization/MemoryArchive.h"
 #include "UObject/ObjectFactory.h"
 
-void Serializer::Save(const UObject* Obj, TArray<uint8>& OutBytes)
+void Serializer::Save(FArchive2& Ar, const UObject* Obj)
 {
-    FMemoryWriter2 Ar(OutBytes);
-    Ar.Seek(0);
-    
     // 1) 이름 길이 먼저 저장
     FString CName = Obj->GetClass()->GetName();
     int32 NameLen = CName.Len();
@@ -19,11 +16,8 @@ void Serializer::Save(const UObject* Obj, TArray<uint8>& OutBytes)
     const_cast<UObject*>(Obj)->Serialize(Ar);
 }
 
-UObject* Serializer::Load(const TArray<uint8>& InBytes)
+UObject* Serializer::Load(FArchive2& Ar)
 {
-    TArray<uint8> Tmp = InBytes;
-    FMemoryReader2 Ar(Tmp);
-    Ar.Seek(0);
     // 1) 이름 길이 읽기
     int32 NameLen = 0;
     Ar.SerializeRaw(&NameLen, sizeof(NameLen));
@@ -48,18 +42,23 @@ UObject* Serializer::Load(const TArray<uint8>& InBytes)
 UObject* Serializer::Duplicate(const UObject* Obj)
 {
     TArray<uint8> Buf;
-    Save(Obj, Buf);
-    return Load(Buf);
+    FMemoryWriter2 Ar(Buf);
+    Ar.Seek(0);
+    Save(Ar, Obj);
+    return Load(Ar);
 }
 
 bool Serializer::SaveToFile(const UObject* Obj, const std::filesystem::path& FilePath)
 {
-    TArray<uint8> Buffer;
-    Save(Obj, Buffer);
+    TArray<uint8> Buf;
+    FMemoryWriter2 Ar(Buf);
+    Ar.Seek(0);
+    
+    Save(Ar, Obj);
 
     std::ofstream Out(FilePath, std::ios::binary);
     if (!Out.is_open()) return false;
-    Out.write(reinterpret_cast<const char*>(Buffer.GetData()), Buffer.Num());
+    Out.write(reinterpret_cast<const char*>(Buf.GetData()), Buf.Num());
     return true;
 }
 
@@ -75,5 +74,7 @@ UObject* Serializer::LoadFromFile(const std::filesystem::path& FilePath)
     Buffer.SetNum(Size);
     In.read(reinterpret_cast<char*>(Buffer.GetData()), Size);
 
-    return Load(Buffer);
+    FMemoryReader2 Reader(Buffer);
+    
+    return Load(Reader);
 }

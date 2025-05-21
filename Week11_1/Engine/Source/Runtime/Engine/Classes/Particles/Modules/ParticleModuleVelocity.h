@@ -29,5 +29,5 @@ public:
 
     virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp, FBaseParticle* ParticleBase) override;
 
-    virtual EModuleType GetType() const override { return EModuleType::Spawn; } // 또는 Update 필요 시 변경
+    virtual EModuleType GetType() const override;
 };

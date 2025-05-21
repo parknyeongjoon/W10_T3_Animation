@@ -26,7 +26,7 @@ namespace ParticleModuleDefaults
     struct Velocity
     {
         static const FVector LinearVelocity;
-        static constexpr float RadialVelocity = 0.0f;
+        static constexpr float RadialVelocity = 10.0f;
     };
 
     struct Color
