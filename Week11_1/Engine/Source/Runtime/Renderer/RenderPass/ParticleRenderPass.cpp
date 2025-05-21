@@ -174,10 +174,10 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
     // FVector CameraPosition = curEditorViewportClient->ViewTransformPerspective.GetLocation();
     
     for (UParticleSystemComponent* ParticleSystemComponent : ParticleSystemComponents)
-    {
+    {        
         for (FDynamicEmitterDataBase* ParticleRenderData : ParticleSystemComponent->EmitterRenderData)
         {   //EmitterRenderData에는 현존하는 파티클들이 담겨있음.
-
+            // 렌더데이터 소팅            
             switch (ParticleRenderData->GetSource().eEmitterType)
             {
                 case DET_Unknown:
@@ -196,6 +196,7 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                         int32 VertexStride = sizeof(FParticleSpriteVertex);
                         int32 ParticleCount = Source.ActiveParticleCount;
                         // int32 VertexDynamicParameterStride = sizeof(FParticleVertexDynamicParameter);
+                        // TMap<>
                         TArray<FParticleSpriteVertex> InstanceVertices;
 
                         FTexture* Texture = nullptr;
@@ -280,8 +281,8 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                         
                         int TextureCountX = Source.SubImages_Horizontal;
                         int TextureCountY = Source.SubImages_Vertical;
-                        //subuv테스트용
 
+                        //subuv테스트용
                         TextureCountX = 4;
                         TextureCountY = 1;
                         

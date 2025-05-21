@@ -62,7 +62,7 @@ void FFadeRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
     }
 }
 
-void FFadeRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
+void FFadeRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
 
     if (bRender)
