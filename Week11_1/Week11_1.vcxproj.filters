@@ -427,7 +427,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraBlur.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraLetterBox.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\PlayerCameraManager.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\AssetManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\BlurRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\FinalRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\LetterBoxRenderPass.h" />
@@ -530,19 +530,20 @@
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesMenuBar.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesViewportPanel.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\ParticlePreviewUI.h" />
-    <ClInclude Include="Engine\Source\Runtime\Core\Container\EnumAsByte.h" />
-    <ClInclude Include="Engine\Source\Runtime\Core\Math\IsPODType.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\RandomStream.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ParticleSystemComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\Distribution.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\DistributionFloat.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Distributions\DistributionVector.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Paritcles\ParticleHelper.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstances.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Particles\ParticleMacros.h" />
-    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\ParticleRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleDefaults.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSubUV.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Container\EnumAsByte.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\IsPODType.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\Asset.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Paritcles\ParticleEmitterInstances.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderPass\ParticleRenderPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -724,7 +725,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraBlur.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraLetterBox.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\PlayerCameraManager.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\AssetManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\AssetManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\BlurRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\FinalRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\LetterBoxRenderPass.cpp" />
@@ -792,7 +793,6 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSpawn.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLifetime.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleEmitter.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModule.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponents\ParticleSystemComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystemWorldManager.cpp" />
@@ -808,11 +808,13 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleLocation.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSize.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleVelocity.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleEmitterInstances.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Particles\ParticleHelper.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\ParticleRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleDefaults.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\Modules\ParticleModuleSubUV.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Asset\Asset.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Particles\ParticleSystem.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Paritcles\ParticleEmitterInstances.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPass\ParticleRenderPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderHeaders\GConstantBuffers.hlsli" />

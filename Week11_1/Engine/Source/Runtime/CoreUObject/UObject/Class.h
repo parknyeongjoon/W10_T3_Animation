@@ -10,10 +10,10 @@
 /**
  * UObject의 RTTI를 가지고 있는 클래스
  */
-    class UClass : public UStruct
+class UClass : public UStruct
 {
-        using Super = UStruct;
-        using ThisClass = UClass;
+    using Super = UStruct;
+    using ThisClass = UClass;
     using ClassConstructorType = UObject * (*)();
 
 public:

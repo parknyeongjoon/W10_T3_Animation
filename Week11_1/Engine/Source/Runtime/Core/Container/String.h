@@ -92,6 +92,16 @@ private:
     friend const ElementType* GetData(const FString&);
 
 public:
+    BaseStringType& GetContainerPrivate() { return PrivateString; }
+    const BaseStringType& GetContainerPrivate() const { return PrivateString; }
+
+#if USE_WIDECHAR
+    explicit operator std::wstring() const { return std::wstring(PrivateString); }
+#else
+    explicit operator std::string() const { return std::string(PrivateString); }
+#endif
+
+public:
     FString() = default;
     ~FString() = default;
 
@@ -130,29 +140,29 @@ public:
     FString(const std::string& InString) : PrivateString(InString) {}
     FString(const ANSICHAR* InString) : PrivateString(InString) {}
 
-    explicit FString(const std::wstring& InString) : FString(InString.c_str()) {}
-    explicit FString(const WIDECHAR* InString)
-    {
-        if (!InString) // Null 체크
-        {
-            PrivateString = "";
-            return;
-        }
-
-        // Wide 문자열을 UTF-8 기반의 narrow 문자열로 변환
-        int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, InString, -1, nullptr, 0, nullptr, nullptr);
-        if (sizeNeeded <= 0) // 변환 실패 또는 빈 문자열
-        {
-            PrivateString = "";
-            return;
-        }
-
-        // sizeNeeded는 널 종료 문자를 포함한 길이입니다.
-        std::string narrowStr(sizeNeeded - 1, 0); // 널 문자 제외한 크기로 할당
-        WideCharToMultiByte(CP_UTF8, 0, InString, -1, &narrowStr[0], sizeNeeded, nullptr, nullptr);
-
-        PrivateString = narrowStr; // 변환된 문자열로 내부 데이터 초기화
-    }
+    FString(const std::wstring& InString) : FString(WStringToString(InString)) {}
+    FString(const WIDECHAR* InString) : FString(WStringToString(InString)) {}
+    // {
+    //     if (!InString) // Null 체크
+    //     {
+    //         PrivateString = "";
+    //         return;
+    //     }
+    //
+    //     // Wide 문자열을 UTF-8 기반의 narrow 문자열로 변환
+    //     int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, InString, -1, nullptr, 0, nullptr, nullptr);
+    //     if (sizeNeeded <= 0) // 변환 실패 또는 빈 문자열
+    //     {
+    //         PrivateString = "";
+    //         return;
+    //     }
+    //
+    //     // sizeNeeded는 널 종료 문자를 포함한 길이입니다.
+    //     std::string narrowStr(sizeNeeded - 1, 0); // 널 문자 제외한 크기로 할당
+    //     WideCharToMultiByte(CP_UTF8, 0, InString, -1, &narrowStr[0], sizeNeeded, nullptr, nullptr);
+    //
+    //     PrivateString = narrowStr; // 변환된 문자열로 내부 데이터 초기화
+    // }
 #endif
 
 

@@ -5,12 +5,13 @@
 #include "PropertyTypes.h"
 #include "Struct.h"
 #include "Container/Queue.h"
+#include "Serialization/Archive2.h"
 #include "Templates/TemplateUtilities.h"
 #include "Templates/TypeUtilities.h"
 #include "ThirdParty/include/ImGUI/imgui.h"
 
 class UScriptStruct;
-
+struct FArchive2;
 
 struct FProperty
 {
@@ -88,6 +89,9 @@ public:
     {
         return reinterpret_cast<std::byte*>(Object) + Offset;
     }
+
+    /** 이 프로퍼티의 메모리 블록을 읽거나 씁니다. */
+    virtual void Serialize(FArchive2& Ar, void* DataPtr) const;
 
 private:
     /**
@@ -362,6 +366,7 @@ struct FStrProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FNameProperty : public FProperty
@@ -378,6 +383,7 @@ struct FNameProperty : public FProperty
     }
 
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FVector2DProperty : public FProperty
@@ -395,6 +401,7 @@ struct FVector2DProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FVectorProperty : public FProperty
@@ -412,6 +419,7 @@ struct FVectorProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FVector4Property : public FProperty
@@ -429,6 +437,7 @@ struct FVector4Property : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FRotatorProperty : public FProperty
@@ -446,6 +455,7 @@ struct FRotatorProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FQuatProperty : public FProperty
@@ -463,6 +473,7 @@ struct FQuatProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FTransformProperty : public FProperty
@@ -479,6 +490,7 @@ struct FTransformProperty : public FProperty
     }
 
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FMatrixProperty : public FProperty
@@ -495,6 +507,7 @@ struct FMatrixProperty : public FProperty
     }
 
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FColorProperty : public FProperty
@@ -512,6 +525,7 @@ struct FColorProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FLinearColorProperty : public FProperty
@@ -529,6 +543,7 @@ struct FLinearColorProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 template <typename InArrayType>
@@ -647,7 +662,41 @@ struct TArrayProperty : public FProperty
             ImGui::TreePop();
         }
     }
+
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
+
+template <typename InArrayType>
+void TArrayProperty<InArrayType>::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    InArrayType& Arr = *reinterpret_cast<InArrayType*>(reinterpret_cast<char*>(DataPtr));
+
+    if (Ar.IsSaving())
+    {
+        int32 Count = Arr.Num();
+        Ar.SerializeRaw(&Count, sizeof(Count));
+
+        for (int i = 0; i < Count; ++i)
+        {
+            void* ElemPtr = &Arr[i];
+            ElementProperty->Serialize(Ar, ElemPtr);
+        }
+    }
+    else
+    {
+        int32 Count = 0;
+        Ar.SerializeRaw(&Count, sizeof(Count));
+        Arr.Empty();
+        Arr.Reserve(Count);
+
+        for (int i = 0; i < Count; ++i)
+        {
+            Arr.AddDefaulted();
+            void* ElemPtr = &Arr[i];
+            ElementProperty->Serialize(Ar, ElemPtr);
+        }
+    }
+}
 
 template <typename InMapType>
 struct TMapProperty : public FProperty
@@ -800,7 +849,39 @@ struct TMapProperty : public FProperty
             ImGui::TreePop();
         }
     }
+
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
+
+template <typename InMapType>
+void TMapProperty<InMapType>::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    InMapType& Map = *reinterpret_cast<InMapType*>(reinterpret_cast<std::byte*>(DataPtr));
+    if (Ar.IsSaving())
+    {
+        int32 Count = Map.Num();
+        Ar.SerializeRaw(&Count, sizeof(Count));
+        for (auto& Pair : Map)
+        {
+            KeyProperty->Serialize(Ar, &const_cast<typename InMapType::KeyType&>(Pair.Key));
+            ValueProperty->Serialize(Ar, &Pair.Value);
+        }
+    }
+    else
+    {
+        int32 Count = 0;
+        Ar.SerializeRaw(&Count, sizeof(Count));
+        Map.Empty();
+        for (int i = 0; i < Count; ++i)
+        {
+            typename InMapType::KeyType Key;
+            typename InMapType::ValueType Val;
+            KeyProperty->Serialize(Ar, &Key);
+            ValueProperty->Serialize(Ar, &Val);
+            Map.Add(Key, Val);
+        }
+    }
+}
 
 template <typename InSetType>
 struct TSetProperty : public FProperty
@@ -926,7 +1007,36 @@ struct TSetProperty : public FProperty
             ImGui::TreePop();
         }
     }
+
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
+
+template <typename InSetType>
+void TSetProperty<InSetType>::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    InSetType& Set = *reinterpret_cast<InSetType*>(reinterpret_cast<std::byte*>(DataPtr));
+    if (Ar.IsSaving())
+    {
+        int32 Count = Set.Num();
+        Ar.SerializeRaw(&Count, sizeof(Count));
+        for (auto& Elem : Set)
+        {
+            ElementProperty->Serialize(Ar, &const_cast<typename InSetType::ElementType&>(Elem));
+        }
+    }
+    else
+    {
+        int32 Count = 0;
+        Ar.SerializeRaw(&Count, sizeof(Count));
+        Set.Empty();
+        for (int i = 0; i < Count; ++i)
+        {
+            typename InSetType::ElementType Elem;
+            ElementProperty->Serialize(Ar, &Elem);
+            Set.Add(Elem);
+        }
+    }
+}
 
 template <typename InEnumType>
 struct TEnumProperty : public FProperty
@@ -983,7 +1093,17 @@ struct TEnumProperty : public FProperty
             ImGui::EndCombo();
         }
     }
+
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
+
+template <typename InEnumType>
+void TEnumProperty<InEnumType>::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    InEnumType& Val = *reinterpret_cast<InEnumType*>(reinterpret_cast<std::byte*>(DataPtr));
+    using Under = std::underlying_type_t<InEnumType>;
+    Ar.SerializeRaw(&Val, sizeof(Under));
+}
 
 struct FSubclassOfProperty : public FProperty
 {
@@ -1000,6 +1120,7 @@ struct FSubclassOfProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FObjectProperty : public FProperty
@@ -1016,6 +1137,8 @@ struct FObjectProperty : public FProperty
     }
 
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FStructProperty : public FProperty
@@ -1032,6 +1155,8 @@ struct FStructProperty : public FProperty
     }
 
     virtual void DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const override;
+    
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 struct FUnresolvedPtrProperty : public FProperty
@@ -1061,6 +1186,7 @@ struct FUnresolvedPtrProperty : public FProperty
 
     virtual void DisplayInImGui(UObject* Object) const override;
     virtual void Resolve() override;
+    void Serialize(FArchive2& Ar, void* DataPtr) const override;
 };
 
 // struct FDelegateProperty : public FProperty {};  // TODO: 나중에 Delegate Property 만들기
@@ -1184,6 +1310,9 @@ namespace PropertyFactory::Private
             constexpr std::string_view TypeName = GetTypeNameString<T>();
             FProperty* Property = new FUnresolvedPtrProperty{ InOwnerStruct, InPropertyName, sizeof(T), InOffset, InFlags };
             Property->TypeSpecificData = FName(TypeName.data(), TypeName.size());
+            
+            // UnresolvedPointer 프로퍼티를 전역 리스트에 추가
+            UStruct::RegisterUnresolvedProperty(Property);
             return Property;
         }
         else if constexpr (TypeEnum == EPropertyType::Unknown)

@@ -10,6 +10,7 @@ class UParticleEmitter;
 class UParticleSystemComponent;
 class UParticleLODLevel;
 class UParticleModuleRequired;
+class UParticleModuleTypeDataMesh;
 struct FTexture;
 
 struct FParticleEmitterInstance
@@ -47,11 +48,15 @@ struct FParticleEmitterInstance
     FTexture* Texture;
 
 public:
-    void Init(int32 InMaxparticles);
+    virtual void Init(int32 InMaxparticles);
+
+    virtual void InitParameters(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent);
 
     void Release();
 
     void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity);
+
+    virtual FDynamicEmitterDataBase* GetDynamicData() { return nullptr; }
 
     void KillParticle(int32 Index);
 
@@ -62,10 +67,35 @@ public:
     int32 GetSubImageH() const;
     int32 GetSubImageV() const;
 
-    void UpdatParticles(float DeltaTime);
+    void UpdateParticles(float DeltaTime);
 
-    FBaseParticle* GetParticle(int32 Index);
+protected:
+    virtual bool FillReplayData(FDynamicEmitterReplayDataBase& OutData);
+};
 
+// Sprite가 기본값 : 사실상 FParticleEmitterInstance와 동일
+struct FParticleSpriteEmitterInstance : public FParticleEmitterInstance
+{
+    virtual FDynamicEmitterDataBase* GetDynamicData() override;
+
+protected:
+    virtual bool FillReplayData(FDynamicEmitterReplayDataBase& OutData);
+};
+
+struct FParticleMeshEmitterInstance : public FParticleEmitterInstance
+{
+    UParticleModuleTypeDataMesh* MeshTypeData = nullptr;
+    //TArray<UMaterial*> CurrentMaterials;
+
+public:
+    virtual void Init(int32 InMaxParticles) override;
+
+    virtual void InitParameters(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent) override;
+
+    virtual FDynamicEmitterDataBase* GetDynamicData() override;
+
+protected:
+    virtual bool FillReplayData(FDynamicEmitterReplayDataBase& OutData);
 };
 
 /* void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity, struct FParticleEventInstancePayload* EventPayload)
