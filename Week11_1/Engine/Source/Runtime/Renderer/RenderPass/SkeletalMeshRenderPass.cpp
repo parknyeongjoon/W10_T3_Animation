@@ -357,8 +357,6 @@ void FSkeletalMeshRenderPass::UpdateLightConstants()
     LightConstant.NumSpotLights = SpotLightCount;
     
     renderResourceManager->UpdateConstantBuffer(LightConstantBuffer, &LightConstant);
-    Graphics.DeviceContext->VSSetConstantBuffers(1, 1, &LightConstantBuffer);
-    Graphics.DeviceContext->PSSetConstantBuffers(2, 1, &LightConstantBuffer);
 }
 
 void FSkeletalMeshRenderPass::UpdateBoneConstant(USkeletalMeshComponent* SkeletalMeshComponent)

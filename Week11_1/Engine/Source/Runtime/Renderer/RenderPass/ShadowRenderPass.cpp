@@ -74,8 +74,6 @@ void FShadowRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClien
 
     const FRenderer& Renderer = GEngineLoop.Renderer;
     const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
-
-    Graphics.DeviceContext->VSSetConstantBuffers(0, 1, &CameraConstantBuffer);
     
     ID3D11ShaderResourceView* nullSRV = nullptr;
     Graphics.DeviceContext->PSSetShader(nullptr, nullptr, 0);

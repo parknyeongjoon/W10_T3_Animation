@@ -1,5 +1,6 @@
 #include "ParticleEmitterInstances.h"
 
+#include "CoreUObject/UObject/Casts.h"
 #include "UserInterface/Console.h"
 #include "Core/HAL/PlatformMemory.h"
 #include "Particles/Modules/ParticleModuleRequired.h"
@@ -7,7 +8,9 @@
 #include "Engine/Particles/ParticleHelper.h"
 #include <Engine/Texture.h>
 #include "Classes/Particles/ParticleLODLevel.h"
+#include "Particles/TypeData/ParticleModuleTypeDataMesh.h"
 #include "ParticleMacros.h"
+#include "Particles/ParticleEmitter.h"
 
 void FParticleEmitterInstance::Init(int32 InMaxParticles)
 {
@@ -31,6 +34,12 @@ void FParticleEmitterInstance::Init(int32 InMaxParticles)
     ActiveParticles = 0;
     ParticleCounter = 0;
     ParticleCounter = 0;
+}
+
+void FParticleEmitterInstance::InitParameters(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent)
+{
+    SpriteTemplate = InTemplate;
+    Component = InComponent;
 }
 
 void FParticleEmitterInstance::Release()
@@ -67,7 +76,7 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
         Particle->RelativeTime = 0.0f;
         Particle->Lifetime = 10000.0f;
 
-        Particle->Rotation = 0.0f;
+        Particle->Rotation = FVector(0.f, 0.f, 0.f);
         Particle->RotationRate = 0.0f;
 
         Particle->Size = FVector(1.0f);
@@ -87,6 +96,29 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
         ParticleCounter++;
 
     }
+}
+
+// 하위 클래스에서 호출되어서 기본적인 값을 넣어줌.
+bool FParticleEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase& OutData)
+{
+    if (!SpriteTemplate)
+    {
+        return false;
+    }
+
+    if (ActiveParticles <= 0)
+    {
+        return false;
+    }
+
+    UParticleLODLevel* LODLevel = SpriteTemplate->GetLODLevel(CurrentLODLevelIndex);
+
+    OutData.ActiveParticleCount = ActiveParticles;
+    OutData.eEmitterType = DET_Unknown;
+    OutData.ParticleStride = ParticleStride;
+    //OutData.DataContainer : 하위 클래스에서 채워줌
+    //OutData.Texture : 하위 클래스에서 채워줌
+    return true;
 }
 
 void FParticleEmitterInstance::KillParticle(int32 Index)
@@ -135,7 +167,7 @@ int32 FParticleEmitterInstance::GetSubImageV() const
     return RequiredModule ? RequiredModule->SubImagesVertical : 1;
 }
 
-void FParticleEmitterInstance::UpdatParticles(float DeltaTime)
+void FParticleEmitterInstance::UpdateParticles(float DeltaTime)
 {
     for (int32 i = 0; i < ActiveParticles; ++i)
     {
@@ -154,6 +186,86 @@ void FParticleEmitterInstance::UpdatParticles(float DeltaTime)
         // OldPosition이 필요한 경우 (모션 벡터, Trail 등)
         // Particle->OldLocation = Particle->Location;
     }
+}
+
+void FParticleMeshEmitterInstance::Init(int32 InMaxParticles)
+{
+    FParticleEmitterInstance::Init(InMaxParticles);
+}
+
+void FParticleMeshEmitterInstance::InitParameters(UParticleEmitter* InTemplate, UParticleSystemComponent* InComponent)
+{
+    FParticleEmitterInstance::InitParameters(InTemplate, InComponent);
+    MeshTypeData = Cast<UParticleModuleTypeDataMesh>(CurrentLODLevel->TypeDataModule);
+}
+
+FDynamicEmitterDataBase* FParticleSpriteEmitterInstance::GetDynamicData()
+{
+    UParticleLODLevel* LODLevel = SpriteTemplate->GetLODLevel(CurrentLODLevelIndex);
+    
+    FDynamicSpriteEmitterData* NewEmitterData = new FDynamicSpriteEmitterData();
+
+    if (!FillReplayData(NewEmitterData->Source))
+    {
+        delete NewEmitterData;
+        return nullptr;
+    }
+    return NewEmitterData;
+}
+
+bool FParticleSpriteEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase& OutData)
+{
+    if (!FParticleEmitterInstance::FillReplayData(OutData))
+    {
+        return false;
+    }
+
+    OutData.eEmitterType = DET_Sprite;
+
+    FDynamicSpriteEmitterReplayDataBase* NewReplayData =
+        static_cast<FDynamicSpriteEmitterReplayDataBase*>(&OutData);
+
+    NewReplayData->Texture = GetTexture();
+
+    NewReplayData->DataContainer.MemBlockSize = MaxActiveParticles * ParticleStride;
+    NewReplayData->DataContainer.ParticleData = ParticleData;
+    NewReplayData->DataContainer.ParticleIndices = ParticleIndices;
+    NewReplayData->SubImages_Horizontal = GetSubImageH();
+    NewReplayData->SubImages_Vertical = GetSubImageV();
+
+    return true;
+}
+
+
+FDynamicEmitterDataBase* FParticleMeshEmitterInstance::GetDynamicData()
+{
+    UParticleLODLevel* LODLevel = SpriteTemplate->GetLODLevel(CurrentLODLevelIndex);
+
+    FDynamicSpriteEmitterData* NewEmitterData = new FDynamicSpriteEmitterData();
+
+    if (!FillReplayData(NewEmitterData->Source))
+    {
+        delete NewEmitterData;
+        return nullptr;
+    }
+
+    return NewEmitterData;
+}
+
+bool FParticleMeshEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase& OutData)
+{
+    if (!FParticleEmitterInstance::FillReplayData(OutData))
+    {
+        return false;
+    }
+
+    OutData.eEmitterType = DET_Mesh;
+
+    //FDynamicMeshEmitterReplayData* NewReplayData =
+        //static_cast<FDynamicMeshEmitterReplayData*>(&OutData);
+
+    // 메시 정보는 여기에 저장하지 않음.
+    // 식별을 위해서만 DET_Mesh로 설정하고 끝.
 }
 
 // FORCEINLINE static void* FastParticleSmallBlockAlloc(size_t AllocSize)

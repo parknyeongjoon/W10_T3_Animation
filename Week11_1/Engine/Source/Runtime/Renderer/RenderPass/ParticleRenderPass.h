@@ -2,6 +2,8 @@
 #include "Define.h"
 #include "FBaseRenderPass.h"
 #include "Container/Array.h"
+#include "Particles/ParticleHelper.h"
+#include "UnrealEd/EditorViewportClient.h"
 
 class UParticleSystemComponent;
 class USpotLightComponent;
@@ -22,6 +24,8 @@ public:
     //void UpdateComputeConstants(std::shared_ptr<FViewportClient> InViewportClient);
     void CreateDummyTexture();
     void ClearRenderObjects() override;
+
+    EDynamicEmitterType RenderPassEmitterType;
 
     // void UpdateComputeResource();
 private:
@@ -68,8 +72,10 @@ private:
     TArray<UParticleSystemComponent*> ParticleSystemComponents;
 
     ID3D11Buffer* SpriteParticleInstanceBuffer = nullptr;
+    ID3D11Buffer* MeshParticleInstanceBuffer = nullptr;
     
     ID3D11ShaderResourceView* DummyWhiteTextureSRV = nullptr;
     ID3D11SamplerState* ShadowMapSampler = nullptr;
     ID3D11Buffer* LightConstantBuffer = nullptr;
+
 };

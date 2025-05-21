@@ -1,5 +1,4 @@
 #pragma once
-#include "Components/PrimitiveComponents/ParticleSystemComponent.h"
 #include "Container/Array.h"
 #include "CoreUObject/UObject/Object.h"
 #include "CoreUObject/UObject/ObjectMacros.h"
@@ -7,7 +6,7 @@
 
 class UParticleModule;
 class UParticleModuleRequired;
-//struct UParticleModuleTypeDataBase;
+class UParticleModuleTypeDataBase;
 
 class UParticleLODLevel : public UObject
 {
@@ -18,7 +17,8 @@ public:
     UPROPERTY(EditAnywhere, UParticleModuleRequired*, RequiredModule, = nullptr)
 
     // 메시, 빔, 리본 등 Emitter 타입 별 특성 데이터 정의.
-    //UPROPERTY(EditAnywhere, UParticleModuleTypeDataBase*, TypeDataModule, = nullptr)
+    // 만약 nullptr이면 sprite를 의미
+    UPROPERTY(EditAnywhere, UParticleModuleTypeDataBase*, TypeDataModule, = nullptr)
 
     UPROPERTY(EditAnywhere, TArray<UParticleModule*>, Modules, = {})
 

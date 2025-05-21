@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/Asset/Asset.h"
 #include "Container/Array.h"
-#include "ParticleEmitter.h"
+//#include "ParticleEmitter.h"
 
 class UParticleSystemComponent;
 
