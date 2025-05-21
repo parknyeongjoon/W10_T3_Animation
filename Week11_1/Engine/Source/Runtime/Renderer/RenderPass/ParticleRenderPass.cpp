@@ -455,6 +455,11 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                             }
                         }
 
+
+
+
+
+					    
                         break;
                     }
                 case DET_Beam2:
@@ -710,7 +715,7 @@ void FParticleRenderPass::UpdateTextureSizeConstants(int InCountX, int InCountY)
     TextureCountConstant.CountX = InCountX;
     TextureCountConstant.CountY = InCountY;
 
-    renderResourceManager->UpdateConstantBuffer(TEXT("UTextureCountConstants"), &TextureCountConstant);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FTextureCountConstants"), &TextureCountConstant);
 }
 
 void FParticleRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)

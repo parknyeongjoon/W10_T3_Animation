@@ -271,6 +271,18 @@ bool FParticleSpriteEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBas
     NewReplayData->SubImages_Horizontal = GetSubImageH();
     NewReplayData->SubImages_Vertical = GetSubImageV();
 
+
+    // FIXME : 각 모듈의 FillReplayData() 함수로 위임하기
+    UParticleModuleSubUV* SubUVModule = nullptr;
+    for (UParticleModule* Module : CurrentLODLevel->Modules)
+    {
+        SubUVModule = Cast<UParticleModuleSubUV>(Module);
+        if (SubUVModule)
+            break;
+    }
+
+    NewReplayData->SubUVDataOffset = SubUVModule ? SubUVModule->GetPayloadOffset() : -1;
+
     return true;
 }
 
