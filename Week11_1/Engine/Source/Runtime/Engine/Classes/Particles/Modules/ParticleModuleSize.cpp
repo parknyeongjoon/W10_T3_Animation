@@ -1,14 +1,13 @@
 #include "ParticleModuleSize.h"
 #include "Runtime/Engine/Particles/ParticleEmitterInstances.h"
 #include <Particles/ParticleMacros.h>
-
+#include "Particles/Modules/ParticleModuleDefaults.h"
 
 void UParticleModuleSize::InitializeDefaults()
 {
     UDistributionVectorUniform* DefaultDistribution = FObjectFactory::ConstructObject<UDistributionVectorUniform>(nullptr);
-    //DefaultDistribution->MinValue = -FVector::OneVector;
-    DefaultDistribution->MinValue = FVector(1, 1, 1);
-    DefaultDistribution->MaxValue = FVector(10, 10, 10);
+    DefaultDistribution->MinValue = ParticleModuleDefaults::Size::Min;
+    DefaultDistribution->MaxValue = ParticleModuleDefaults::Size::Max;
     StartSize.Distribution = DefaultDistribution;
 }
 

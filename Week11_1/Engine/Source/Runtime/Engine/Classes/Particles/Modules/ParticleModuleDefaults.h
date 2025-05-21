@@ -39,6 +39,7 @@ namespace ParticleModuleDefaults
     {
         static constexpr float Min = 0.0f;
         static constexpr float Max = 30.0f;
+        static constexpr float Constant = 3.0f;
     };
 
     struct Location
@@ -49,6 +50,7 @@ namespace ParticleModuleDefaults
 
     struct Size
     {
+        static constexpr float Constant = 1.0f;
         static const FVector Min;
         static const FVector Max;
     };
