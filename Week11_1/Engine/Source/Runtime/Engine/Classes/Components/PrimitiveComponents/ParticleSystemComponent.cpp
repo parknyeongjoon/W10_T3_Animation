@@ -46,7 +46,7 @@ UParticleSystemComponent::UParticleSystemComponent()
     ManagerHandle = INDEX_NONE;
     bPendingManagerAdd = false;
     bPendingManagerRemove = false;
-
+    bResetTriggered = false;
 
 }
 
@@ -456,8 +456,6 @@ void UParticleSystemComponent::Activate(bool bReset)
         {
             ActivateSystem(bReset);
         }
-
-
     }
 }
 

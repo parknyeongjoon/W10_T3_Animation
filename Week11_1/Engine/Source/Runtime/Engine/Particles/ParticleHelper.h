@@ -128,7 +128,7 @@ struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBas
     //UMaterial* MaterialInterface;
     UTexture* Texture;
     //struct UParticleModuleRequired* RequiredModule;
-    FVector EmitterOrigin;
+    FVector EmitterOrigin = FVector::ZeroVector;
     
     int32							SubUVDataOffset;
     int32							OrbitModuleOffset;
