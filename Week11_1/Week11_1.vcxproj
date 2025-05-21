@@ -192,6 +192,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesEmitterPanel.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesMenuBar.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\ParticlePreviewUI.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\DummyObject.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Class.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectGlobals.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectUtils.cpp" />
@@ -464,6 +465,7 @@ xcopy /y /d "$(ProjectDir)Engine\Source\ThirdParty\FBX_SDK\2020.3.7\lib\x64\$(Co
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesMenuBar.h" />
     <ClInclude Include="Engine\Source\Editor\PropertyEditor\Particles\ParticlesViewportPanel.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\ParticlePreviewUI.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\DummyObject.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Template\IsTSubclassOf.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Template\SubclassOf.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Class.h" />

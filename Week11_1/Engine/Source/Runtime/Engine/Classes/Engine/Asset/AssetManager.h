@@ -111,8 +111,8 @@ T* UAssetManager::Load(const FString& Path)
     T* Asset = nullptr;
     const auto ext = fsPath.extension().string();
 
-    // 3) .uasset → Serializer 로드
-    if (ext == ".uasset")
+    // 3) .ttalkak → Serializer 로드
+    if (ext == ".ttalkak")
     {
         UObject* Raw = Serializer::LoadFromFile(fsPath);
         Asset = Cast<T>(Raw);

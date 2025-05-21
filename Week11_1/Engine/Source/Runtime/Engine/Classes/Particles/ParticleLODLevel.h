@@ -1,4 +1,5 @@
 #pragma once
+#include "Components/PrimitiveComponents/ParticleSystemComponent.h"
 #include "Container/Array.h"
 #include "CoreUObject/UObject/Object.h"
 #include "CoreUObject/UObject/ObjectMacros.h"
@@ -6,7 +7,7 @@
 
 class UParticleModule;
 class UParticleModuleRequired;
-struct UParticleModuleTypeDataBase;
+//struct UParticleModuleTypeDataBase;
 
 class UParticleLODLevel : public UObject
 {
@@ -14,14 +15,16 @@ class UParticleLODLevel : public UObject
 public:
     UParticleLODLevel() {}
 
-    UParticleModuleRequired* RequiredModule = nullptr;
+    UPROPERTY(EditAnywhere, UParticleModuleRequired*, RequiredModule, = nullptr)
 
     // 메시, 빔, 리본 등 Emitter 타입 별 특성 데이터 정의.
-    UParticleModuleTypeDataBase* TypeDataModule = nullptr;
+    //UPROPERTY(EditAnywhere, UParticleModuleTypeDataBase*, TypeDataModule, = nullptr)
 
-    TArray<UParticleModule*> Modules;
-    TArray<UParticleModule*> SpawnModules;
-    TArray<UParticleModule*> UpdateModules;
+    UPROPERTY(EditAnywhere, TArray<UParticleModule*>, Modules, = {})
+
+    UPROPERTY(EditAnywhere, TArray<UParticleModule*>, SpawnModules, = {})
+
+    UPROPERTY(EditAnywhere, TArray<UParticleModule*>, UpdateModules, = {})
 
     // NOTICE : LOD Level 0만 사용하므로 고정 값 사용.
     int32 Level = 0;

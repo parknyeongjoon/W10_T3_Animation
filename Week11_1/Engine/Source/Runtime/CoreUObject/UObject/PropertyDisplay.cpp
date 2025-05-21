@@ -786,6 +786,6 @@ void FUnresolvedPtrProperty::Serialize(FArchive2& Ar, void* DataPtr) const
         return;
     }
 
-    void* Data = static_cast<std::byte*>(DataPtr) + ResolvedProperty->Offset;
+    void* Data = static_cast<std::byte*>(DataPtr);
     ResolvedProperty->Serialize(Ar, Data);
 }

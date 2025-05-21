@@ -50,6 +50,7 @@ bool UParticleSystem::DeserializeFromFile(std::istream& In)
     return true;
 }
 
+
 bool UParticleSystem::CanBePooled()const
 {
     if (MaxPoolSize == 0)

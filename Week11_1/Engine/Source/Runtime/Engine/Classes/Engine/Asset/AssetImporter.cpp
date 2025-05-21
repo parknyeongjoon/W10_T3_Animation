@@ -28,7 +28,7 @@ UAssetImporter::~UAssetImporter()
 {
 }
 
-void UAssetImporter::Import(const FString& InFilepath, const ImportSettings& InSettings, ImportCallback InCallback)
+void UAssetImporter::Import(const FString& InFilepath, ImportCallback InCallback)
 {
     auto factory = FindFactory(InFilepath);
     if (!factory) return;
@@ -53,7 +53,7 @@ void UAssetImporter::Import(const FString& InFilepath, const ImportSettings& InS
     desc.UpdateDate = desc.CreateDate; 
 
     UAsset* asset;
-    if (desc.AssetExtension == ".uasset")
+    if (desc.AssetExtension == ".ttalkak")
     {
         // .uasset: Serializer로 직접 로드
         UObject* root = Serializer::LoadFromFile(filePath);
@@ -81,7 +81,7 @@ void UAssetImporter::ImportDirectory(const FString& InDir, const ImportSettings&
     for (auto& p : std::filesystem::recursive_directory_iterator(InDir))
     {
         if (!p.is_regular_file()) continue;
-        Import(p.path().string(), InSettings, InCallback);
+        Import(p.path().string(), InCallback);
     }
 }
 

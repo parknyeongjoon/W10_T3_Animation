@@ -30,7 +30,7 @@ public:
     ~UAssetImporter() override;
     
     // 단일 파일 임포트
-    void Import(const FString& InFilepath, const ImportSettings& settings, ImportCallback InCallback);
+    void Import(const FString& InFilepath, ImportCallback InCallback);
     // 디렉터리 전체 임포트
     void ImportDirectory(const FString& InDir, const ImportSettings& InSettings, ImportCallback InCallback);
 

@@ -11,6 +11,8 @@
 #include <Particles/Modules/ParticleModuleSpawn.h>
 #include "Particles/Modules/ParticleModuleRequired.h"
 #include <Particles/ParticleMacros.h>
+
+#include "Particles/ParticleSystem.h"
 bool GIsAllowingParticles = true;
 
 UParticleSystemComponent::UParticleSystemComponent()
