@@ -4,6 +4,8 @@
 #include "GameFramework/Actor.h"
 
 class USkeletalMeshComponent;
+class UParticleSystemComponent;
+class UParticleSystem;
 class UActorComponent;
 class UStaticMeshComponent;
 class USceneComponent;
@@ -44,12 +46,15 @@ private:
     void RenderMaterialView(UMaterial* InMaterial, bool IsStaticMesh);
     void RenderCreateMaterialView();
 
+    /* Particle Settings */
+    void RenderForParticleSystem(UParticleSystemComponent* ParticleSystemComp) const;
+
     void RenderForLua(class ULuaComponent* InLuaComponent) const;
     void RenderShapeProperty(const AActor* PickedActor) const;
     void RenderDelegate(ULevel* Level) const;
     
     void DrawSkeletalMeshPreviewButton(const FString& FilePath) const;
-    void DrawParticlesPreviewButton(const FString& FilePath) const;
+    void DrawParticlesPreviewButton(UParticleSystem* ParticleSystem) const;
     
 	template<typename T>
 		requires std::derived_from<T, UActorComponent>

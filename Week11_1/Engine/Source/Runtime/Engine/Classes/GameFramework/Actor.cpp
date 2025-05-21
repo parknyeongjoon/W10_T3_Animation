@@ -65,7 +65,7 @@ bool AActor::Destroy()
         if (UWorld* World = GetWorld())
         {
             World->DestroyActor(this);
-            bActorIsBeingDestroyed = true;
+            bActorIsBeingDestroyed = 1;
         }
         GUObjectArray.MarkRemoveObject(this);
     }

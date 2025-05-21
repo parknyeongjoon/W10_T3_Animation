@@ -24,6 +24,7 @@
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/CubeComp.h"
 #include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
+#include "Components/PrimitiveComponents/ParticleSystemComponent.h"
 
 #include "LevelEditor/SLevelEditor.h"
 
@@ -40,6 +41,7 @@
 #include "UObject/FunctionRegistry.h"
 #include <Animation/CustomAnimInstance/TestAnimInstance.h>
 #include <Animation/AnimSingleNodeInstance.h>
+#include "UnrealEd/ParticlePreviewUI.h"
 
 void PropertyEditorPanel::Initialize(float InWidth, float InHeight)
 {
@@ -99,8 +101,6 @@ void PropertyEditorPanel::Render()
     }
 
     ImVec2 imageSize = ImVec2(256, 256); // 이미지 출력 크기
-
-    DrawParticlesPreviewButton(FString());
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)
@@ -669,6 +669,15 @@ void PropertyEditorPanel::Render()
 
             ImGui::TreePop();
         }        
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UParticleSystemComponent>())
+    {
+        
+        if (UParticleSystemComponent* ParticleComp = Cast<UParticleSystemComponent>(PickedComponent))
+        {
+            RenderForParticleSystem(ParticleComp);
+        }
     }
 
     RenderShapeProperty(PickedActor);
@@ -1335,6 +1344,11 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     ImGui::End();
 }
 
+void PropertyEditorPanel::RenderForParticleSystem(UParticleSystemComponent* ParticleSystemComp) const
+{
+    DrawParticlesPreviewButton(ParticleSystemComp->Template);
+}
+
 void PropertyEditorPanel::RenderForLua(ULuaComponent* InLuaComponent) const
 {
      ULuaComponent* LuaComponent = Cast<ULuaComponent>(PickedComponent); // Lua 컴포넌트로 캐스팅
@@ -1725,9 +1739,9 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
     }
 }
 
-void PropertyEditorPanel::DrawParticlesPreviewButton(const FString& FilePath) const
+void PropertyEditorPanel::DrawParticlesPreviewButton(UParticleSystem* ParticleSystem) const
 {
-    if (ImGui::Button("Preview##Particles"))
+    if (ImGui::Button("Preview Particle##Particles"))
     {
         UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
         if (EditorEngine == nullptr)
@@ -1736,6 +1750,25 @@ void PropertyEditorPanel::DrawParticlesPreviewButton(const FString& FilePath) co
         }
 
         UWorld* World = EditorEngine->CreatePreviewWindow(EditorPreviewParticle);
+
+        // 동일한 UParticleSystem을 사용하는 새로운 액터 생성
+        //const TArray<AActor*> CopiedActors = World->GetActors();
+        //for (AActor* Actor : CopiedActors)
+        //{
+        //    if (Actor->IsA<UTransformGizmo>() || Actor->IsA<APlayerCameraManager>())
+        //    {
+        //        continue;
+        //    }
+        //    Actor->Destroy();
+        //}
+        //World->ClearSelectedActors();
+
+        // TODO : 삭제해야 될 Test 코드
+        AActor* TestActor = World->SpawnActor<AActor>();
+        UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
+        TestComp->Template = ParticleSystem;
+
+        EditorEngine->GetParticlePreviewUI()->AddParticleSytstem(ParticleSystem);
     }
 }
 

@@ -52,7 +52,7 @@ public:
     SLevelEditor* GetLevelEditor() const { return LevelEditor; }
     UnrealEd* GetUnrealEditor() const { return UnrealEditor; } // 메인 에디터
     FSkeletalPreviewUI* GetSkeletalPreviewUI() const { return SkeletalPreviewUI; } // 스켈레탈 + 애니메이션 에디터
-    FParticlePreviewUI* GetParticlePreviewUI() const { return UI; } // 파티클 에디터
+    FParticlePreviewUI* GetParticlePreviewUI() const { return ParticlePreviewUI; } // 파티클 에디터
 
     float testBlurStrength;
 
@@ -70,7 +70,7 @@ public:
 private:
     UnrealEd* UnrealEditor = nullptr;
     FSkeletalPreviewUI* SkeletalPreviewUI = nullptr;
-    FParticlePreviewUI* UI = nullptr;
+    FParticlePreviewUI* ParticlePreviewUI = nullptr;
 
     SLevelEditor* LevelEditor = nullptr;
     UEditorPlayer* EditorPlayer = nullptr;
