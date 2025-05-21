@@ -2,7 +2,7 @@
 #include "Engine/Particles/ParticleEmitterInstances.h"
 #include "ParticleModuleRequired.h"
 #include <Particles/ParticleMacros.h>
-
+#include "cmath"
 void UParticleModuleSubUV::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
 {
     const int32 TotalFrames = Owner->RequiredModule->GetTotalSubImages();
@@ -19,9 +19,15 @@ void UParticleModuleSubUV::Update(FParticleEmitterInstance* Owner, int32 Offset,
 
         // 시간 경과 비율 (0 ~ 1)
         float t = Lifetime > 0.f ? Age / Lifetime : 0.f;
-        t = FMath::Clamp(t, 0.f, 1.f);
+        //t = FMath::Clamp(t, 0.f, 1.f);
+        float AnimProgress = SubUVSpeed * t;
+        float FrameIndex = AnimProgress * TotalFrames;
 
-        float FrameIndex = t * (TotalFrames - 1);  // 마지막 프레임까지
+        while (FrameIndex >= TotalFrames)
+        {
+            FrameIndex -= TotalFrames;
+        }
+        //float FrameIndex = FinalOutVal * t * (TotalFrames - 1);  // 마지막 프레임까지
         SubUVPayload->ImageIndex = FrameIndex;
     }
     END_UPDATE_LOOP;

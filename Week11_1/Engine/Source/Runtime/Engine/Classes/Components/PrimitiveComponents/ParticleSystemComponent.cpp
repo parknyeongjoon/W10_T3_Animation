@@ -267,7 +267,7 @@ void UParticleSystemComponent::FinalizeTickComponent()
         // {
         //     instance->ProcessParticleEvents(DeltaTimeTick, bSuppressSpawning);
         // }
-    }
+    }                                                    
     // if (auto* mgr = GetWorld().getevent)
     // {
     //     if (!SpawnEvents.empty())     mgr->HandleParticleSpawnEvents(this, SpawnEvents);

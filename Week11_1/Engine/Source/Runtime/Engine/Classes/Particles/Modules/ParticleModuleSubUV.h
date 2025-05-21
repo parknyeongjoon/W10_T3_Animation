@@ -16,6 +16,8 @@ public:
     //
     //FRawDistributionFloat StartImageDistribution;
 
+    // 속도 조절용
+    float SubUVSpeed= 10.0f;
 public:
     virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime);
     virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp, FBaseParticle* ParticleBase) override;

@@ -218,7 +218,7 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
 
                             // if (Source.CameraPayloadOffset != 0)
                             // {
-                            //     FVector CameraOffset = GetCameraOffsetFromPayload(Source.CameraPayloadOffset, Particle, ParticlePosition, CameraPosition);
+                            //     FVector CameraOffset =                                                                                 GetCameraOffsetFromPayload(Source.CameraPayloadOffset, Particle, ParticlePosition, CameraPosition);
                             //     ParticlePosition += CameraOffset;
                             // }
 
