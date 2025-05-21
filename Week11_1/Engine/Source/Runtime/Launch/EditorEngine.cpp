@@ -43,6 +43,7 @@ void UEditorEngine::Init()
         AssetManager = FObjectFactory::ConstructObject<UAssetManager>(this);
         assert(AssetManager);
         AssetManager->InitAssetManager();
+        AssetManager->Initalize();
     }
 
     if (AssetImporter == nullptr)

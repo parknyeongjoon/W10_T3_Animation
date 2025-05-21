@@ -21,6 +21,8 @@
 #include "UnrealEd/PrimitiveBatch.h"
 #include "Components/PrimitiveComponents/ParticleSystemComponent.h"
 #include <Particles/ParticleModule.h>
+
+#include "Asset/AssetManager.h"
 #include "Particles/ParticleEmitter.h"
 #include "Particles/ParticleLODLevel.h"
 #include "Serialization/Serializer.h"
@@ -319,33 +321,36 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>(this);
 
         // TODO : 삭제해야 될 Test 코드
-        TestDummyObject2Serialization(GEngine);
+        //TestDummyObject2Serialization(GEngine);
+
+        AActor* TestActor = SpawnActor<AActor>();
+        UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
+        UParticleSystem* TestParticleSystem = UAssetManager::Get().Get<UParticleSystem>(TEXT("TestParticle"));
+        if (TestParticleSystem == nullptr)
+        {
+            TestParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(nullptr);
+            UParticleEmitter* TestEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
         
-        // UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
-        // UParticleSystem* TestParticleSystem = Cast<UParticleSystem>(Serializer::LoadFromFile(TEXT("Contents/Particles/TestParticle.uasset")));
-        // if (TestParticleSystem == nullptr)
-        // {
-        //     TestParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(nullptr);
-        //     UParticleEmitter* TestEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
-        //
-        //     UParticleLODLevel* TestLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
-        //
-        //     UParticleModule* TestModule = FObjectFactory::ConstructObject<UParticleModule>(nullptr);
-        //
-        //     TestLODLevel->Modules.Add(TestModule);
-        //     TestEmitter->LODLevels.Add(TestLODLevel);
-        //     TestParticleSystem->Emitters.Add(TestEmitter);
-        // }
-        // TestComp->Template = TestParticleSystem;
-        // if (Serializer::SaveToFile(TestParticleSystem, TEXT("Contents/Particles/TestParticle.uasset")))
-        // {
-        //     UE_LOG(LogLevel::Display, TEXT("Save Succeess test particles"));
-        // }
-        // else
-        // {
-        //     UE_LOG(LogLevel::Display, TEXT("Save Failed  test particles"));
-        // }
-        // TestComp->Activate();
+            UParticleLODLevel* TestLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
+        
+            UParticleModule* TestModule = FObjectFactory::ConstructObject<UParticleModule>(nullptr);
+            TestModule->TestNum = 1;
+        
+            TestLODLevel->Modules.Add(TestModule);
+            TestEmitter->LODLevels.Add(TestLODLevel);
+            TestParticleSystem->Emitters.Add(TestEmitter);
+        }
+        TestComp->Template = TestParticleSystem;
+        
+        if (UAssetManager::Get().SaveAsset(TestParticleSystem, TEXT("Contents/Particles/TestParticle.uasset")))
+        {
+            UE_LOG(LogLevel::Display, TEXT("Save Succeess test particles"));
+        }
+        else
+        {
+            UE_LOG(LogLevel::Display, TEXT("Save Failed  test particles"));
+        }
+        TestComp->Activate();
     }
 }
 

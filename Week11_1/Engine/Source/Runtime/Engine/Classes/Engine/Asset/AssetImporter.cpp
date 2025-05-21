@@ -4,6 +4,7 @@
 #include "AssetFactory.h"
 #include "AssetManager.h"
 #include "Engine/FEditorStateManager.h"
+#include "Serialization/Serializer.h"
 
 UAssetImporter& UAssetImporter::Get()
 {
@@ -52,19 +53,27 @@ void UAssetImporter::Import(const FString& InFilepath, const ImportSettings& InS
     desc.UpdateDate = desc.CreateDate; 
 
     UAsset* asset;
-    if (InSettings.bReimport)
+    if (desc.AssetExtension == ".uasset")
     {
-        asset = factory->ImportFromFile(InFilepath);
+        // .uasset: Serializer로 직접 로드
+        UObject* root = Serializer::LoadFromFile(filePath);
+        asset = Cast<UAsset>(root);
     }
     else
     {
+        // 그 외: 팩토리 임포트
         asset = factory->ImportFromFile(InFilepath);
     }
 
-    // 1) 로드된 에셋을 AssetManager 캐시에 등록
-    UAssetManager::Get().Store(desc.AssetName, asset);
-
-    if (InCallback) InCallback(desc, asset);
+    if (asset)
+    {
+        UAssetManager::Get().Store(desc.AssetName, asset);
+    }
+    
+    if (InCallback)
+    {
+        InCallback(desc, asset);
+    }
 }
 
 void UAssetImporter::ImportDirectory(const FString& InDir, const ImportSettings& InSettings, ImportCallback InCallback)

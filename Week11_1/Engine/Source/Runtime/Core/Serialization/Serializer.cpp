@@ -52,7 +52,7 @@ UObject* Serializer::Duplicate(const UObject* Obj)
     return Load(Buf);
 }
 
-bool Serializer::SaveToFile(const UObject* Obj, const std::string& FilePath)
+bool Serializer::SaveToFile(const UObject* Obj, const std::filesystem::path& FilePath)
 {
     TArray<uint8> Buffer;
     Save(Obj, Buffer);
@@ -63,7 +63,7 @@ bool Serializer::SaveToFile(const UObject* Obj, const std::string& FilePath)
     return true;
 }
 
-UObject* Serializer::LoadFromFile(const std::string& FilePath)
+UObject* Serializer::LoadFromFile(const std::filesystem::path& FilePath)
 {
     std::ifstream In(FilePath, std::ios::binary | std::ios::ate);
     if (!In.is_open()) return nullptr;

@@ -4,6 +4,10 @@
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 #include "Asset.h"
+#include "AssetFactory.h"
+#include "AssetRegistry.h"
+#include "Serialization/Serializer.h"
+#include "UObject/Casts.h"
 
 class UAssetRegistry;
 class UAssetFactory;
@@ -39,7 +43,7 @@ public:
     /** UAssetManager가 존재하면 가져오고, 없으면 nullptr를 반환합니다. */
     static UAssetManager* GetIfInitialized();
 
-    void Initalize(UAssetRegistry* InRegistry);
+    void Initalize();
     
     void InitAssetManager();
 
@@ -49,20 +53,28 @@ public:
     void RegisterFactory(UAssetFactory* InFactory);
     void UnregisterFactory(UAssetFactory* InFactory);
 
+    // ClassType을 템플릿으로 받아서 원하는 타입으로 리턴
+    template<typename T>
+    T* Load(const FString& Path);
+    
     // 에셋 로드 (캐시 적용)
-    UAsset* Load(const FString& InFilepath);
+    //* Load(const FString& InFilepath);
+    
     // 캐시 등록
     void Store(const FName& InName, UAsset* InAsset);
+    
     // 에셋 조회
-    UAsset* Get(const FString& InName);
+    template<typename T>
+    T* Get(const FString& InName);
+    
     // 에셋 언로드
     void Unload(const FString& InName);
 
     // 루트 오브젝트를 디스크에 .uasset/.umap 형태로 저장
-    static bool SaveAsset(UObject* Root, const FString& Path);
+    bool SaveAsset(UObject* Root, const FString& Path);
 
     // 디스크에서 읽어들여 해당 UClass 타입의 오브젝트를 반환
-    static UObject* LoadAsset(const FString& Path, UClass* ClassType);
+    UObject* LoadAsset(const FString& Path, UClass* ClassType);
 
 public:
     void LoadObjFiles();
@@ -75,3 +87,66 @@ private:
 
     mutable std::mutex Mutex;  // 스레드 안전 보장
 };
+
+template <typename T>
+T* UAssetManager::Load(const FString& Path)
+{
+    namespace fs = std::filesystem;
+    fs::path     fsPath(Path.ToWideString());
+    FString      Name = fsPath.stem().string();
+
+    // 1) 캐시 조회
+    {
+        std::lock_guard<std::mutex> lock(Mutex);
+        if (UAsset** Cached = LoadedAssets.Find(Name))
+        {
+            return Cast<T>(*Cached);
+        }
+    }
+
+    // 2) 파일 존재 및 크기 확인
+    if (!fs::exists(fsPath) || fs::file_size(fsPath) < sizeof(uint32))
+        return nullptr;
+
+    T* Asset = nullptr;
+    const auto ext = fsPath.extension().string();
+
+    // 3) .uasset → Serializer 로드
+    if (ext == ".uasset")
+    {
+        UObject* Raw = Serializer::LoadFromFile(fsPath);
+        Asset = Cast<T>(Raw);
+    }
+    // 4) 그 외 포맷 → 팩토리 임포트
+    else
+    {
+        for (UAssetFactory* F : Factories)
+        {
+            if (F->CanImport(Path))
+            {
+                Asset = Cast<T>(F->ImportFromFile(Path));
+                break;
+            }
+        }
+    }
+
+    // 5) 캐시에 저장
+    if (Asset)
+    {
+        std::lock_guard<std::mutex> lock(Mutex);
+        LoadedAssets.Add(Name, Asset);
+    }
+    return Asset;
+}
+
+template <typename T>
+T* UAssetManager::Get(const FString& InName)
+{
+    // 1) Registry에서 Descriptor만 꺼내고
+    FAssetDescriptor desc;
+    if (!Registry || !Registry->GetDescriptor(InName, desc))
+        return nullptr;
+
+    // 2) Load 에 모든 캐시 검사+로드 로직 위임
+    return Load<T>(desc.AbsolutePath);
+}

@@ -18,7 +18,7 @@ public:
 
 public:
     UParticleModuleRequired* RequiredModule = nullptr;
-    TArray<UParticleModule*> Modules;
+    UPROPERTY(EditAnywhere, TArray<UParticleModule*>, Modules, = {})
     UParticleModuleTypeDataBase* TypeDataModule = nullptr;
 };
 

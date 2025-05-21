@@ -57,10 +57,8 @@ namespace Serializer
     // 깊은 복제
     UObject* Duplicate(const UObject* Obj);
 
-    bool SaveToFile(const UObject* Obj, const std::string& FilePath);
+    bool SaveToFile(const UObject* Obj, const std::filesystem::path& FilePath);
 
     // 파일에서 읽기
-    UObject* LoadFromFile(const std::string& FilePath);
-
-    
+    UObject* LoadFromFile(const std::filesystem::path& FilePath);
 };
