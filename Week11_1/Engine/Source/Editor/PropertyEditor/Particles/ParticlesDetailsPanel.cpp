@@ -55,20 +55,25 @@ void ParticlesDetailsPanel::Render()
 
                 for (const FProperty* Prop : Properties)
                 {
-                    UScriptStruct* Struct = std::get<UScriptStruct*>(Prop->TypeSpecificData);
-                    if (Struct->IsChildOf(FRawDistributionFloat::StaticStruct()))
+                    // UScriptStruct인 경우 FRawDistribution일 것임
+                    if (std::get_if<UScriptStruct*>(&Prop->TypeSpecificData))
                     {
-                        ImGui::SeparatorText(Prop->Name);
-                        FRawDistributionFloat* Distribution = static_cast<FRawDistributionFloat*>(Prop->GetPropertyData(SelectedModule));
-                        RenderDistributionMenu(Distribution, true);
-                        continue;
-                    }
-                    else if (Struct->IsChildOf(FRawDistributionVector::StaticStruct()))
-                    {
-                        ImGui::SeparatorText(Prop->Name);
-                        FRawDistributionVector* Distribution = static_cast<FRawDistributionVector*>(Prop->GetPropertyData(SelectedModule));
-                        RenderDistributionMenu(Distribution, false);
-                        continue;
+                        UScriptStruct* Struct = std::get<UScriptStruct*>(Prop->TypeSpecificData);
+                        if (Struct->IsChildOf(FRawDistributionFloat::StaticStruct()))
+                        {
+                            ImGui::SeparatorText(Prop->Name);
+                            FRawDistributionFloat* Distribution = static_cast<FRawDistributionFloat*>(Prop->GetPropertyData(SelectedModule));
+                            RenderDistributionMenu(Distribution, true);
+                            continue;
+                        }
+                        else if (Struct->IsChildOf(FRawDistributionVector::StaticStruct()))
+                        {
+                            ImGui::SeparatorText(Prop->Name);
+                            FRawDistributionVector* Distribution = static_cast<FRawDistributionVector*>(Prop->GetPropertyData(SelectedModule));
+                            RenderDistributionMenu(Distribution, false);
+                            continue;
+                        }
+
                     }
                     Prop->DisplayInImGui(SelectedModule);
                 }
