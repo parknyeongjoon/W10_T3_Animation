@@ -16,17 +16,10 @@ void UParticleModuleLocation::Update(FParticleEmitterInstance* Owner, int32 Offs
 {
 }
 
-void UParticleModuleLocation::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp)
+void UParticleModuleLocation::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp, FBaseParticle* ParticleBase)
 {
-    SPAWN_INIT
-
-    for (int32 i = 0; i < ActiveCount; ++i)
-    {
-        uint8* Address = ParticleData + i * ParticleStride;
-        DECLARE_PARTICLE_PTR(Particle, Address);
-        Particle->Location = StartLocation.GetValue();
-        UE_LOG(LogLevel::Display, "Location Value : %f, %f, %f", Particle->Location.X, Particle->Location.Y, Particle->Location.Z);
-    }
+    ParticleBase->Location += StartLocation.GetValue();
+    return;
 }
 
 EModuleType UParticleModuleLocation::GetType() const

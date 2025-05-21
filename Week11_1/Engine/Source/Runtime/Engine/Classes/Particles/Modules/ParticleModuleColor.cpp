@@ -24,22 +24,15 @@ void UParticleModuleColor::InitializeDefaults()
     StartColor.Distribution = DefaultDistributionVector;
 }
 
-void UParticleModuleColor::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp)
+void UParticleModuleColor::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp, FBaseParticle* ParticleBase)
 {
-    SPAWN_INIT
-    
-    for(int32 i = 0; i < ActiveCount; ++i) {
-        uint8* Address = ParticleData + i * ParticleStride;
-        DECLARE_PARTICLE_PTR(Particle, Address);
-
-        FVector ColorVec = StartColor.GetValue();
-        Particle->Color = FColor(
-            FMath::Clamp(int32(ColorVec.X * 255), 0, 255),
-            FMath::Clamp(int32(ColorVec.Y * 255), 0, 255),
-            FMath::Clamp(int32(ColorVec.Z * 255), 0, 255),
-            255 // alpha
-        );
-    }
+    FVector ColorVec = StartColor.GetValue();
+    ParticleBase->Color = FColor(
+        FMath::Clamp(int32(ColorVec.X * 255), 0, 255),
+        FMath::Clamp(int32(ColorVec.Y * 255), 0, 255),
+        FMath::Clamp(int32(ColorVec.Z * 255), 0, 255),
+        255 // alpha
+    );
 }
 
 void UParticleModuleColor::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)

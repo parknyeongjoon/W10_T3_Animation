@@ -8,6 +8,7 @@
 struct FTexture;
 struct FDynamicSpriteEmitterDataBase;
 struct FDynamicSpriteEmitterReplayDataBase;
+struct FBaseParticle;
 
 class UParticleModuleRequired : public UParticleModule
 {
@@ -52,8 +53,6 @@ public:
     virtual EModuleType GetType() const override;
     
     virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime) override;
-
-    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp) override;
 
     virtual void PostEditChangeProperty() override;
 

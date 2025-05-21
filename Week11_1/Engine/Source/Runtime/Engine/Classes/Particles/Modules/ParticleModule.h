@@ -5,6 +5,7 @@
 
 struct FParticleEmitterInstance;
 class UParticleModuleTypeDataBase;
+struct FBaseParticle;
 
 enum class EModuleType {
     Spawn,
@@ -29,7 +30,7 @@ public:
 
     virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime);
 
-    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp);
+    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp, FBaseParticle* ParticleBase);
 
     // 에디터에서 Property 변경 시 호출
     virtual void PostEditChangeProperty();

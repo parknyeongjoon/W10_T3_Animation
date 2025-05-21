@@ -4,6 +4,7 @@
 #include "Classes/Distributions/DistributionFloat.h"
 #include "Classes/Distributions/DistributionVector.h"
 
+struct FBaseParticle;
 class UParticleModuleSpawn : public UParticleModule
 {
     DECLARE_CLASS(UParticleModuleSpawn, UParticleModule)
@@ -29,15 +30,12 @@ public:
     // Property :: 파티클 시스템
     float UpdateTimeFPS = 60.0f;
 
-    
+    bool bHasSpawnedOnce = false;
 public:
     void InitializeDefaults();
 
     // Tick 마다 스폰 수를 계산
     int32 ComputeSpawnCount(float DeltaTime);
-
-    // Spawn 시점에 처리
-    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp) override;
 
     virtual EModuleType GetType() const override;
 

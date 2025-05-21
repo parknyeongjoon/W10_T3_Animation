@@ -6,44 +6,29 @@
 UParticleModuleVelocity::UParticleModuleVelocity()
 {
     StartVelocity.Distribution = new UDistributionVectorConstant();
-    static_cast<UDistributionVectorConstant*>(StartVelocity.Distribution)->Constant = FVector(100.f, 0.f, 0.f);
+    static_cast<UDistributionVectorConstant*>(StartVelocity.Distribution)->Constant = FVector(10.f, 0.f, 0.f);
 
     StartVelocityRadial.Distribution = new UDistributionFloatConstant();
     static_cast<UDistributionFloatConstant*>(StartVelocityRadial.Distribution)->SetValue(0.0f);
 }
 
-void UParticleModuleVelocity::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp)
+void UParticleModuleVelocity::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp, FBaseParticle* ParticleBase)
 {
     if (!Owner) {
         UE_LOG(LogLevel::Warning, "[UParticleModuleVelocity::Spawn()] : There is no Owner!(FParticleEmitterInstance)");
         return;
     }
 
-    SPAWN_INIT
 
+    // FIXME : 다른 곳에서 이미 EmitterOrigin으로 초기화하고 Location 모듈로 인해 초기화되고 있어서 여기서 EmitterOrigin 사용할 필요 있는지 확인해보기
     const FVector EmitterOrigin = Owner->GetEmitterOrigin();
-    
-    for (int32 i = 0; i < Owner->ActiveParticles; ++i) {
 
-        uint8* Address = Owner->ParticleData + i * Owner->ParticleStride;
-        DECLARE_PARTICLE_PTR(Particle, Address);
+    FVector LinearVelocity = StartVelocity.GetValue();
+    float RadialSpeed = StartVelocityRadial.GetValue();
 
-        if (!Particle) {
-            continue;
-        }
+    FVector DirectionToCenter = ParticleBase->Location - EmitterOrigin;
+    DirectionToCenter.Normalize();
 
-        FVector LinearVelocity = StartVelocity.GetValue();
-        float RadialSpeed = StartVelocityRadial.GetValue();
-
-        FVector DirectionToCenter = Particle->Location - EmitterOrigin;
-        DirectionToCenter.Normalize();
-
-        Particle->Velocity = LinearVelocity + DirectionToCenter * RadialSpeed;
-        Particle->BaseVelocity = Particle->Velocity;
-    }
-}
-
-void UParticleModuleVelocity::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
-{
-    // 아무것도 하지 않음.
+    ParticleBase->Velocity = LinearVelocity + DirectionToCenter * RadialSpeed;
+    ParticleBase->BaseVelocity = ParticleBase->Velocity;
 }

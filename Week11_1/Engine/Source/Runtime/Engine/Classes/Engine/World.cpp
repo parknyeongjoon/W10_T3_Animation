@@ -77,6 +77,7 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
         TestComp->Template = FObjectFactory::ConstructObject<UParticleSystem>(this);
         UParticleEmitter* NewEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
         UParticleLODLevel* NewLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
+        
         NewLODLevel->RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(nullptr);
         NewLODLevel->Modules.Add(NewLODLevel->RequiredModule);
         NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSpawn>(nullptr));

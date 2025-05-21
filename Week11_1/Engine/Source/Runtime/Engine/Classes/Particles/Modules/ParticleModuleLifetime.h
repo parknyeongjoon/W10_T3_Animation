@@ -3,6 +3,7 @@
 #include "ParticleModule.h"
 #include "Classes/Distributions/DistributionFloat.h"
 
+struct FBaseParticle;
 class UParticleModuleLifeTime : public UParticleModule
 {
 DECLARE_CLASS(UParticleModuleLifeTime, UParticleModule)
@@ -20,7 +21,7 @@ public:
 
     virtual void InitializeDefaults() override;
     
-    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp) override;
+    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp, FBaseParticle* ParticleBase) override;
 
     virtual EModuleType GetType() const override;
     

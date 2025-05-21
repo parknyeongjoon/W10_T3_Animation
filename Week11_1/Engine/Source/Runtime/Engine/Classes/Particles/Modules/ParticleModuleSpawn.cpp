@@ -8,7 +8,16 @@ UParticleModuleSpawn::UParticleModuleSpawn()
 
 void UParticleModuleSpawn::InitializeDefaults()
 {
-    UDistributionFloatUniform* DefaultDistribution = FObjectFactory::ConstructObject<UDistributionFloatUniform>(nullptr);
+    // Rate = 10.0 고정
+    UDistributionFloatConstant* ConstantRate = FObjectFactory::ConstructObject<UDistributionFloatConstant>(nullptr);
+    ConstantRate->SetValue(1.0f); // 원하는 생성 속도
+    Rate.Distribution = ConstantRate;
+
+    // RateScale = 1.0 고정
+    UDistributionFloatConstant* ConstantScale = FObjectFactory::ConstructObject<UDistributionFloatConstant>(nullptr);
+    ConstantScale->SetValue(1.0f); // 원하는 스케일 값
+    RateScale.Distribution = ConstantScale;
+   /* UDistributionFloatUniform* DefaultDistribution = FObjectFactory::ConstructObject<UDistributionFloatUniform>(nullptr);
     DefaultDistribution->MinValue = 0.0f;
     DefaultDistribution->MaxValue = 20.0f;
     Rate.Distribution = DefaultDistribution;
@@ -16,11 +25,12 @@ void UParticleModuleSpawn::InitializeDefaults()
     UDistributionFloatUniform* DefaultDistributionScale = FObjectFactory::ConstructObject<UDistributionFloatUniform>(nullptr);
     DefaultDistributionScale->MinValue = 0.0f;
     DefaultDistributionScale->MaxValue = 1.0f;
-    RateScale.Distribution = DefaultDistributionScale;
+    RateScale.Distribution = DefaultDistributionScale;*/
 }
 
 int32 UParticleModuleSpawn::ComputeSpawnCount(float DeltaTime)
 {
+
     // Rate와 RateScale의 실제 값을 가져옴
     float RateValue = Rate.GetValue();
     float ScaleValue = RateScale.GetValue();
@@ -37,9 +47,6 @@ int32 UParticleModuleSpawn::ComputeSpawnCount(float DeltaTime)
     return IntegerPart;
 }
 
-void UParticleModuleSpawn::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp)
-{
-}
 
 EModuleType UParticleModuleSpawn::GetType() const
 {

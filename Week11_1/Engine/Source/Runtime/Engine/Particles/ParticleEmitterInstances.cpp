@@ -78,7 +78,7 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
             if (Module)
             {
                 float SpawnTime = StartTime + i * Increment;
-                Module->Spawn(this, /*Offset*/ 0, SpawnTime, /*Interp*/ 1.0f);
+                Module->Spawn(this, /*Offset*/ 0, SpawnTime, /*Interp*/ 1.0f, Particle);
             }
         }
 

@@ -24,7 +24,7 @@ void UParticleModule::Update(FParticleEmitterInstance* Owner, int32 Offset, floa
     return;
 }
 
-void UParticleModule::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp)
+void UParticleModule::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp, FBaseParticle* ParticleBase)
 {
     return;
 }
