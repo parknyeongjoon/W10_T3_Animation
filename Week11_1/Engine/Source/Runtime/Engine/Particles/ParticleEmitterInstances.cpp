@@ -169,6 +169,7 @@ int32 FParticleEmitterInstance::GetSubImageV() const
 
 void FParticleEmitterInstance::UpdatParticles(float DeltaTime)
 {
+    EmitterTime += DeltaTime;
     for (int32 i = 0; i < ActiveParticles; ++i)
     {
         uint8* Address = ParticleData + i * ParticleStride;

@@ -31,8 +31,9 @@ struct FParticleEmitterInstance
     int32 MaxActiveParticles;                               // 최대 허용 파티클 수
     uint32 ParticleCounter;                                 // 전체 파티클 생성 수
 
-    
-
+    // 누적된 시뮬레이션 시간
+    float EmitterTime = 0.0f;
+    float LoopCount = 0.0f;           // 반복 횟수 추적
     // Required Module 참조 , 나머지 모듈은 LODLevel 배열 순회하여 호출
     UParticleModuleRequired* RequiredModule = nullptr;
 

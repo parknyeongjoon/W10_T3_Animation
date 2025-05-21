@@ -4,7 +4,15 @@
 #include "Classes/Distributions/DistributionFloat.h"
 #include "Classes/Distributions/DistributionVector.h"
 
+struct FBurstInfo
+{
+    float Time = 0.0f; // EmitterTime 기준
+    int Count = 1;     // 생성할 파티클 수
+    bool bFired = false;
+};
+
 struct FBaseParticle;
+struct FParticleEmitterInstance;
 class UParticleModuleSpawn : public UParticleModule
 {
     DECLARE_CLASS(UParticleModuleSpawn, UParticleModule)
@@ -27,6 +35,11 @@ public:
         = {}
     )
 
+    // == Burst 관련 ==
+
+    TArray<FBurstInfo> BurstList;
+
+
     // Property :: 파티클 시스템
     float UpdateTimeFPS = 60.0f;
 
@@ -39,6 +52,12 @@ public:
 
     virtual EModuleType GetType() const override;
 
+    virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime) override;
+    
+        // == Burst 관련 ==
+    void CheckBurst(FParticleEmitterInstance* Owner, float DeltaTime);
+
+    void ResetBurst();
 private:
     float SpawnRemainder = 0.0f;
 

@@ -1,9 +1,12 @@
 #include "ParticleModuleSpawn.h"
 #include "Runtime/Engine/Particles/ParticleEmitterInstances.h"
-
+#include "Engine/Particles/ParticleHelper.h"
 UParticleModuleSpawn::UParticleModuleSpawn()
 {
     InitializeDefaults();
+
+    //BurstList.Add({ 0.2f, 20 });
+    //BurstList.Add({ 0.8f, 50 });
 }
 
 void UParticleModuleSpawn::InitializeDefaults()
@@ -51,6 +54,36 @@ int32 UParticleModuleSpawn::ComputeSpawnCount(float DeltaTime)
 EModuleType UParticleModuleSpawn::GetType() const
 {
     return EModuleType::Spawn;
+}
+
+void UParticleModuleSpawn::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
+{
+    CheckBurst(Owner, DeltaTime);
+}
+
+void UParticleModuleSpawn::CheckBurst(FParticleEmitterInstance* Owner, float DeltaTime)
+{
+    float PrevTime = Owner->EmitterTime - DeltaTime;
+    float CurrTime = Owner->EmitterTime;
+
+    for (FBurstInfo& Burst : BurstList)
+    {
+        if (!Burst.bFired && Burst.Time >= PrevTime && Burst.Time < CurrTime)
+        {
+            FVector SpawnLoc = Owner->GetEmitterOrigin();
+            FVector SpawnVel = FVector::ZeroVector;
+            Owner->SpawnParticles(Burst.Count, Burst.Time, 0.0f, SpawnLoc, SpawnVel);
+
+            Burst.bFired = true;
+        }
+    }
+}
+
+void UParticleModuleSpawn::ResetBurst()
+{
+    for (FBurstInfo& Burst : BurstList) {
+        Burst.bFired = false;
+    }
 }
 
  
