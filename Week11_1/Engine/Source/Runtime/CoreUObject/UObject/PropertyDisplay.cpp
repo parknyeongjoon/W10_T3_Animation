@@ -9,6 +9,8 @@
 #include "CoreUObject/UObject/ObjectUtils.h"
 
 #include "ImGui/imgui.h"
+#include "Serialization/Archive2.h"
+#include "Serialization/Serializer.h"
 
 template <typename Type, typename... Types>
 concept TIsAnyOf = (std::same_as<Type, Types> || ...);
@@ -185,6 +187,26 @@ void FStrProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPt
     }
 }
 
+void FStrProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    FString& Str = *reinterpret_cast<FString*>(DataPtr);
+    if (Ar.IsSaving())
+    {
+        int32 Len = Str.Len();
+        Ar.SerializeRaw(&Len, sizeof(Len));
+        Ar.SerializeRaw(const_cast<TCHAR*>(*Str), (Len + 1) * sizeof(TCHAR));
+    }
+    else
+    {
+        int32 Len = 0;
+        Ar.SerializeRaw(&Len, sizeof(Len));
+        TArray<TCHAR> Buffer;
+        Buffer.SetNum(Len + 1);
+        Ar.SerializeRaw(Buffer.GetData(), (Len + 1) * sizeof(TCHAR));
+        Str = FString(Buffer.GetData());
+    }
+}
+
 void FNameProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
@@ -200,6 +222,39 @@ void FNameProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataP
         ImGui::InputText(std::format("##{}", PropertyLabel).c_str(), NameStr.data(), NameStr.size(), ImGuiInputTextFlags_ReadOnly);
     }
     ImGui::EndDisabled();
+}
+
+void FNameProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    // DataPtr : 이미 Offset이 적용된 FName 위치
+    FName& NameVal = *reinterpret_cast<FName*>(DataPtr);
+
+    if (Ar.IsSaving())
+    {
+        // 1) FString 으로 변환
+        FString Str = NameVal.ToString();
+        int32 Len = Str.Len();
+
+        // 2) 길이 저장
+        Ar.SerializeRaw(&Len, sizeof(Len));
+        // 3) 문자열(TCHAR) 저장 (널종료 포함)
+        Ar.SerializeRaw(const_cast<TCHAR*>(*Str), (Len + 1) * sizeof(TCHAR));
+    }
+    else // Loading
+    {
+        // 1) 저장된 길이 읽기
+        int32 Len = 0;
+        Ar.SerializeRaw(&Len, sizeof(Len));
+
+        // 2) 버퍼 할당 후 문자열 읽기
+        TArray<TCHAR> Buffer;
+        Buffer.SetNum(Len + 1);
+        Ar.SerializeRaw(Buffer.GetData(), (Len + 1) * sizeof(TCHAR));
+
+        // 3) FString → FName 으로 복원
+        FString Str(Buffer.GetData());
+        NameVal = FName(Str);
+    }
 }
 
 void FVector2DProperty::DisplayInImGui(UObject* Object) const
@@ -218,6 +273,15 @@ void FVector2DProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* D
     FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 2);
 }
 
+void FVector2DProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    // DataPtr는 시작 주소를 가리킵니다
+    FVector2D* Val = static_cast<FVector2D*>(DataPtr);
+    // 순서대로 직렬화합니다
+    Ar.SerializeRaw(&Val->X, sizeof(Val->X));
+    Ar.SerializeRaw(&Val->Y, sizeof(Val->Y));
+}
+
 void FVectorProperty::DisplayInImGui(UObject* Object) const
 {
     ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
@@ -232,6 +296,16 @@ void FVectorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
 
     FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3);
+}
+
+void FVectorProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    // DataPtr는 시작 주소를 가리킵니다
+    FVector& Val = *reinterpret_cast<FVector*>(DataPtr);
+
+    Ar.SerializeRaw(&Val.X, sizeof(Val.X));
+    Ar.SerializeRaw(&Val.Y, sizeof(Val.Y));
+    Ar.SerializeRaw(&Val.Z, sizeof(Val.Z));
 }
 
 void FVector4Property::DisplayInImGui(UObject* Object) const
@@ -250,6 +324,17 @@ void FVector4Property::DisplayRawDataInImGui(const char* PropertyLabel, void* Da
     FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4);
 }
 
+void FVector4Property::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    // DataPtr는 시작 주소를 가리킵니다
+    FVector4* Val = static_cast<FVector4*>(DataPtr);
+    // 순서대로 직렬화합니다
+    Ar.SerializeRaw(&Val->X, sizeof(Val->X));
+    Ar.SerializeRaw(&Val->Y, sizeof(Val->Y));
+    Ar.SerializeRaw(&Val->Z, sizeof(Val->Z));
+    Ar.SerializeRaw(&Val->W, sizeof(Val->W));
+}
+
 void FRotatorProperty::DisplayInImGui(UObject* Object) const
 {
     ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
@@ -266,6 +351,16 @@ void FRotatorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Da
     FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 3);
 }
 
+void FRotatorProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    // DataPtr는 시작 주소를 가리킵니다
+    FRotator* Val = static_cast<FRotator*>(DataPtr);
+    // 순서대로 직렬화합니다
+    Ar.SerializeRaw(&Val->Pitch, sizeof(Val->Pitch));
+    Ar.SerializeRaw(&Val->Yaw, sizeof(Val->Yaw));
+    Ar.SerializeRaw(&Val->Roll, sizeof(Val->Roll));
+}
+
 void FQuatProperty::DisplayInImGui(UObject* Object) const
 {
     ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
@@ -280,6 +375,17 @@ void FQuatProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataP
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
 
     FPropertyUIHelper::DisplayNumericDragN<float>(PropertyLabel, DataPtr, 4);
+}
+
+void FQuatProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    // DataPtr는 FVector2D 시작 주소를 가리킵니다
+    FQuat& Val = *reinterpret_cast<FQuat*>(DataPtr);
+    // X, Y를 순서대로 직렬화합니다
+    Ar.SerializeRaw(&Val.W, sizeof(Val.W));
+    Ar.SerializeRaw(&Val.X, sizeof(Val.X));
+    Ar.SerializeRaw(&Val.Y, sizeof(Val.Y));
+    Ar.SerializeRaw(&Val.Z, sizeof(Val.Z));
 }
 
 void FTransformProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
@@ -302,6 +408,25 @@ void FTransformProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* 
         ImGui::EndDisabled();
         ImGui::TreePop();
     }
+}
+
+void FTransformProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    // DataPtr는 시작 주소를 가리킵니다
+    FTransform* Val = static_cast<FTransform*>(DataPtr);
+    // 순서대로 직렬화합니다
+    Ar.SerializeRaw(&Val->Rotation.W, sizeof(Val->Rotation.W));
+    Ar.SerializeRaw(&Val->Rotation.X, sizeof(Val->Rotation.X));
+    Ar.SerializeRaw(&Val->Rotation.Y, sizeof(Val->Rotation.Y));
+    Ar.SerializeRaw(&Val->Rotation.Z, sizeof(Val->Rotation.Z));
+    
+    Ar.SerializeRaw(&Val->Location.X, sizeof(Val->Location.X));
+    Ar.SerializeRaw(&Val->Location.Y, sizeof(Val->Location.Y));
+    Ar.SerializeRaw(&Val->Location.Z, sizeof(Val->Location.Z));
+
+    Ar.SerializeRaw(&Val->Scale.X, sizeof(Val->Scale.X));
+    Ar.SerializeRaw(&Val->Scale.Y, sizeof(Val->Scale.Y));
+    Ar.SerializeRaw(&Val->Scale.Z, sizeof(Val->Scale.Z));
 }
 
 void FMatrixProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
@@ -350,6 +475,20 @@ void FMatrixProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
     }
 }
 
+void FMatrixProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    // DataPtr는 시작 주소를 가리킵니다
+    FMatrix* Val = static_cast<FMatrix*>(DataPtr);
+    // 순서대로 직렬화합니다
+    for (int row = 0; row < 4; ++row)
+    {
+        for (int col = 0; col < 4; ++col)
+        {
+            Ar.SerializeRaw(&Val->M[row][col], sizeof(Val->M[row][col]));
+        }
+    }
+}
+
 void FColorProperty::DisplayInImGui(UObject* Object) const
 {
     ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
@@ -380,6 +519,14 @@ void FColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Data
     }
 }
 
+void FColorProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    // DataPtr는 시작 주소를 가리킵니다
+    FColor* Val = static_cast<FColor*>(DataPtr);
+    // Bits 멤버(ARGB 4바이트) 전체를 일괄 직렬화
+    Ar.SerializeRaw(&Val->Bits, sizeof(Val->Bits));
+}
+
 void FLinearColorProperty::DisplayInImGui(UObject* Object) const
 {
     ImGui::BeginDisabled(HasAnyFlags(Flags, EPropertyFlags::VisibleAnywhere));
@@ -404,6 +551,17 @@ void FLinearColorProperty::DisplayRawDataInImGui(const char* PropertyLabel, void
     ImGui::Text("%s", PropertyLabel);
     ImGui::SameLine();
     ImGui::ColorEdit4(std::format("##{}", PropertyLabel).c_str(), reinterpret_cast<float*>(Data), Flags);
+}
+
+void FLinearColorProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    // DataPtr는 시작 주소를 가리킵니다
+    FLinearColor* Val = static_cast<FLinearColor*>(DataPtr);
+
+    Ar.SerializeRaw(&Val->RGBA[0], sizeof(Val->RGBA[0]));
+    Ar.SerializeRaw(&Val->RGBA[1], sizeof(Val->RGBA[1]));
+    Ar.SerializeRaw(&Val->RGBA[2], sizeof(Val->RGBA[2]));
+    Ar.SerializeRaw(&Val->RGBA[3], sizeof(Val->RGBA[3]));
 }
 
 void FSubclassOfProperty::DisplayInImGui(UObject* Object) const
@@ -453,6 +611,43 @@ void FSubclassOfProperty::DisplayRawDataInImGui(const char* PropertyLabel, void*
             }
         }
         ImGui::EndCombo();
+    }
+}
+
+void FSubclassOfProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    // UClass* 포인터 직렬화: 널 플래그 + 클래스 이름 저장/복원
+    UClass*& ClassRef = *reinterpret_cast<UClass**>(reinterpret_cast<std::byte*>(DataPtr) + Offset);
+    if (Ar.IsSaving())
+    {
+        bool bHas = (ClassRef != nullptr);
+        Ar.SerializeRaw(&bHas, sizeof(bHas));
+        if (bHas)
+        {
+            FString Name = ClassRef->GetName();
+            int32 Len = Name.Len();
+            Ar.SerializeRaw(&Len, sizeof(Len));
+            Ar.SerializeRaw(const_cast<TCHAR*>(*Name), (Len + 1) * sizeof(TCHAR));
+        }
+    }
+    else
+    {
+        bool bHas = false;
+        Ar.SerializeRaw(&bHas, sizeof(bHas));
+        if (bHas)
+        {
+            int32 Len = 0;
+            Ar.SerializeRaw(&Len, sizeof(Len));
+            TArray<TCHAR> Buffer;
+            Buffer.SetNum(Len + 1);
+            Ar.SerializeRaw(Buffer.GetData(), (Len + 1) * sizeof(TCHAR));
+            FString Name(Buffer.GetData());
+            ClassRef = UClass::FindClass(FName(Name));
+        }
+        else
+        {
+            ClassRef = nullptr;
+        }
     }
 }
 
@@ -508,6 +703,42 @@ void FObjectProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
     }
 }
 
+void FObjectProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    UObject*& Ref = *reinterpret_cast<UObject**>(DataPtr);
+    if (Ar.IsSaving())
+    {
+        bool bHas = Ref != nullptr;
+        Ar.SerializeRaw(&bHas, sizeof(bHas));
+        if (bHas)
+        {
+            TArray<uint8> Buf;
+            Serializer::Save(Ref, Buf);
+            int32 Size = Buf.Num();
+            Ar.SerializeRaw(&Size, sizeof(Size));
+            Ar.SerializeRaw(Buf.GetData(), Size);
+        }
+    }
+    else
+    {
+        bool bHas = false;
+        Ar.SerializeRaw(&bHas, sizeof(bHas));
+        if (bHas)
+        {
+            int32 Size = 0;
+            Ar.SerializeRaw(&Size, sizeof(Size));
+            TArray<uint8> Buf;
+            Buf.SetNum(Size);
+            Ar.SerializeRaw(Buf.GetData(), Size);
+            Ref = Serializer::Load(Buf);
+        }
+        else
+        {
+            Ref = nullptr;
+        }
+    }
+}
+
 void FStructProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* DataPtr) const
 {
     FProperty::DisplayRawDataInImGui(PropertyLabel, DataPtr);
@@ -526,6 +757,18 @@ void FStructProperty::DisplayRawDataInImGui(const char* PropertyLabel, void* Dat
     }
 }
 
+void FStructProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    if (UScriptStruct* const* StructType = std::get_if<UScriptStruct*>(&TypeSpecificData))
+    {
+        for (const FProperty* Property : (*StructType)->GetProperties())
+        {
+            void* Data = static_cast<std::byte*>(DataPtr) + Property->Offset;
+            Property->Serialize(Ar, Data);
+        }
+    }
+}
+
 void FUnresolvedPtrProperty::DisplayInImGui(UObject* Object) const
 {
     if (Type == EPropertyType::Unknown)
@@ -533,4 +776,16 @@ void FUnresolvedPtrProperty::DisplayInImGui(UObject* Object) const
         return;
     }
     ResolvedProperty->DisplayInImGui(Object);
+}
+
+
+void FUnresolvedPtrProperty::Serialize(FArchive2& Ar, void* DataPtr) const
+{
+    if (Type == EPropertyType::Unknown)
+    {
+        return;
+    }
+
+    void* Data = static_cast<std::byte*>(DataPtr);
+    ResolvedProperty->Serialize(Ar, Data);
 }

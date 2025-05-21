@@ -1,9 +1,9 @@
 #pragma once
 #include "PrimitiveComponent.h"
 #include "Container/Array.h"
-#include "Particles/ParticleSystem.h"
 #include "Container/EnumAsByte.h"
 
+class UParticleSystem;
 struct FParticleEmitterInstance;
 struct FDynamicEmitterDataBase;
 struct FDynamicEmitterReplayDataBase;
@@ -290,7 +290,7 @@ public:
     
     //이게 인스턴스, 틱돌면서 이거 돌아야함. 이거 데이터 기반으로 EmitterRenderData 생성
     // Mesh일 경우 FParticleMeshEmitterInstance가 들어감
-    TArray<FParticleEmitterInstance*> EmitterInstances;
+    UPROPERTY(EditAnywhere, TArray<FParticleEmitterInstance*>, EmitterInstances, = {})
 
     //얘는 원본데이터
     UParticleSystem* Template;

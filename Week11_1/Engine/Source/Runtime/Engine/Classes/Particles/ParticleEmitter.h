@@ -18,31 +18,19 @@ class UParticleEmitter : public UObject
     DECLARE_CLASS(UParticleEmitter, UObject)
 public:
     UParticleEmitter() = default;
+    UPROPERTY(EditAnywhere, FName, EmitterName, = NAME_None)
+
+    UPROPERTY(EditAnywhere, FColor, EditorColor, = FColor())
 
     UPROPERTY(
         EditAnywhere,
-        FName,
-        EmitterName,
-        = FName()
+        TArray<UParticleLODLevel*>,
+        LODLevels,
+        = TArray<UParticleLODLevel*>();
     )
-
-    UPROPERTY(
-        EditAnywhere,
-        FColor,
-        EditorColor,
-        = FColor::White
-    )
-
-    TArray<UParticleLODLevel*> LODLevels; // LOD Level 배열
-    //UPROPERTY(
-    //    EditAnywhere,
-    //    TArray<UParticleLODLevel*>,
-    //    LODLevels,
-    //    = TArray<UParticleLODLevel*>();
-    //)
 
     // 런타임 생성되는 하나의 FBaseParticle이 차지하는 메모리 크기
-    int32 ParticleSize;
+    UPROPERTY(EditAnywhere, int32, ParticleSize, = 0)
 
 public:
     // 
