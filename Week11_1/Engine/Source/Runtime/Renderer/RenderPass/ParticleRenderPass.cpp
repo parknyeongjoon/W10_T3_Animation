@@ -333,14 +333,14 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                         const UStaticMesh* StaticMesh = static_cast<const FDynamicMeshEmitterData*>(ParticleRenderData)->Mesh;
                         assert(StaticMesh); // StaticMesh가 없음
 
-                        StaticMesh = FManagerOBJ::GetStaticMesh(L"apple_mid.obj");
+                        StaticMesh = FManagerOBJ::CreateStaticMesh(L"Assets/apple_mid.obj");
                         
                         const FDynamicMeshEmitterReplayData& Source = static_cast<const FDynamicMeshEmitterReplayData&>(ParticleRenderData->GetSource());
 
 					    int32 VertexStride = sizeof(FMeshParticleInstanceVertex);
 					    int32 ParticleCount = Source.ActiveParticleCount;
 
-					    TArray<FMeshParticleInstanceVertex> InstanceVertices;
+					    
 
 					    const uint8* ParticleData = Source.DataContainer.ParticleData;
 					    const uint16* ParticleIndices = Source.DataContainer.ParticleIndices;
@@ -358,8 +358,11 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
 					        
 						    FMeshParticleInstanceVertex FillVertex;
 					        
-                            FillVertex.Transform = JungleMath::CreateModelMatrix(ParticlePosition, ParticleRotation, ParticleScale);
-                            FillVertex.Color = ParticleColor;
+                            FillVertex.Transform = (JungleMath::CreateModelMatrix(ParticlePosition, ParticleRotation, ParticleScale));
+                            FillVertex.Color = ParticleColor;   
+                            
+                            TArray<FMeshParticleInstanceVertex> InstanceVertices;
+                            InstanceVertices.Add(FillVertex);
 
 					        const OBJ::FStaticMeshRenderData* RenderData = StaticMesh->GetRenderData();
 

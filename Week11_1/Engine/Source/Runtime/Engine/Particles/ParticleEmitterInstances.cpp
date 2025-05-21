@@ -260,6 +260,17 @@ bool FParticleMeshEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase&
     }
 
     OutData.eEmitterType = DET_Mesh;
+
+
+    FDynamicMeshEmitterReplayData* NewReplayData =
+        static_cast<FDynamicMeshEmitterReplayData*>(&OutData);
+
+    NewReplayData->Texture = GetTexture();
+
+    NewReplayData->DataContainer.MemBlockSize = MaxActiveParticles * ParticleStride;
+    NewReplayData->DataContainer.ParticleData = ParticleData;
+    NewReplayData->DataContainer.ParticleIndices = ParticleIndices;
+
     return true;
 
     //FDynamicMeshEmitterReplayData* NewReplayData =
