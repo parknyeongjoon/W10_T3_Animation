@@ -8,6 +8,7 @@ FParticleEmitterInstance* UParticleModuleTypeDataBase::CreateInstance(UParticleE
     return nullptr;
 }
 
+// UParticleSpriteEmitter::CreateInstance()로부터 호출됨
 // 현재 UParticleSystemComponent::SpawnAllEmitters()와 겹침. 해결 방법 찾야야함.
 FParticleEmitterInstance* UParticleModuleTypeDataMesh::CreateInstance(UParticleEmitter* InEmitterParent, UParticleSystemComponent* InComponent)
 {

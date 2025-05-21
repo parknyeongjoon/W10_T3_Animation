@@ -37,19 +37,8 @@ struct FMeshParticleInstanceVertex
     FLinearColor Color;
 
     /** The instance to world transform of the particle. Translation vector is packed into W components. */
-    FVector4 Transform[3];
-
-    /** The velocity of the particle, XYZ: direction, W: speed. */
-    FVector4 Velocity;
-
-    /** The sub-image texture offsets for the particle. */
-    int16 SubUVParams[4];
-
-    /** The sub-image lerp value for the particle. */
-    float SubUVLerp;
-
-    /** The relative time of the particle. */
-    float RelativeTime;
+    //FVector4 Transform[3];
+    FMatrix Transform;
 };
 
 struct FMeshParticleInstanceVertexDynamicParameter
@@ -126,11 +115,12 @@ struct FDynamicEmitterReplayDataBase
     int32 ParticleStride;
     FParticleDataContainer DataContainer;
 
-    FVector Scale;
+    FVector Scale = FVector::OneVector; // 1로 사용
 
-    int32 SortMode;
+    int32 SortMode = 0; // 사용중?
 };
 
+// 생성하고 eEmitterType 변경해주기
 struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBase
 {
     // TODO: UMaterial로 변경.
@@ -147,6 +137,7 @@ struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBas
     int32							SubImages_Vertical;
 };
 
+// 생성하고 eEmitterType 변경해주기
 struct FDynamicMeshEmitterReplayData : public FDynamicSpriteEmitterReplayDataBase
 {
 };
@@ -169,9 +160,10 @@ struct FDynamicSpriteEmitterReplayData
     }
 };
 
+// !!! 생성하지 말것
 struct FDynamicEmitterDataBase
 {
-    int32 EmitterIndex;
+    int32 EmitterIndex; // 현재 UParticleSystemComponent::UpdateDynamicData()에서 처리
     
     virtual const FDynamicEmitterReplayDataBase& GetSource() const = 0;
 
@@ -180,23 +172,16 @@ struct FDynamicEmitterDataBase
     // Particle을 생성하지 않는 Emitter가 있을 수 있다면 가상함수 말고 아무행동 안하는 함수로 변경
     virtual void GetDynamicMeshElementsEmitter() const {};
 
+    // 여기 머터리얼
+
 };
 
+// !!! 생성하지말것
 struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
-{
-
-    FDynamicSpriteEmitterReplayDataBase Source;
-    
-    /** Returns the source data for this particle system */
-    virtual const FDynamicSpriteEmitterReplayDataBase& GetSource() const override
-    {
-        return Source;
-    }
-    
+{    
     void SortSpriteParticles();
     
-    
-    FDynamicEmitterReplayDataBase& GetSource();
+    //FDynamicEmitterReplayDataBase& GetSource();
 
     // (int32 SortMode, bool bLocalSpace, 
     //     int32 ParticleCount, const uint8* ParticleData, int32 ParticleStride, const uint16* ParticleIndices,
@@ -205,45 +190,39 @@ struct FDynamicSpriteEmitterDataBase : public FDynamicEmitterDataBase
     // virtual int32 GetDynamicParameterVertexStride() const = 0;
 };
 
+/*
+실제 new 할때 사용해야하는 구조체
+*/
 struct FDynamicSpriteEmitterData : public FDynamicSpriteEmitterDataBase
 {
-     // FDynamicSpriteEmitterReplayData Source;
+    FDynamicSpriteEmitterReplayData Source;
 
-	/** Returns the source data for this particle system */
-	/*virtual const FDynamicSpriteEmitterReplayData& GetSource() const override
-	{
-		return Source;
-	}
-    */
+    /** Returns the source data for this particle system */
+    virtual const FDynamicSpriteEmitterReplayDataBase& GetSource() const override
+    {
+        return Source;
+    }
+
     virtual int32 const GetDynamicVertexStride() const override
     {
         return sizeof(FParticleSpriteVertex);
     }
 };
 
-struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterData
+/*
+실제 new 할때 사용해야하는 구조체
+*/
+struct FDynamicMeshEmitterData : public FDynamicSpriteEmitterDataBase
 {
     FDynamicMeshEmitterReplayData Source;
 
+    /** Returns the source data for this particle system */
+    virtual const FDynamicSpriteEmitterReplayDataBase& GetSource() const override
+    {
+        return Source;
+    }
+
     UStaticMesh* Mesh;
-
-    // virtual const FDynamicEmitterReplayDataBase& GetSource() const override
-    // {
-    //     return Source;
-    // }
-    
-    // virtual int32 GetDynamicVertexStride() const override
-    // {
-    //     return sizeof(FMeshParticleInstanceVertex);
-    // }
-    
-    // virtual int32 GetDynamicParameterVertexStride() const override 
-    // {
-    //     return sizeof(FMeshParticleInstanceVertexDynamicParameter);
-    // }
-
-    // virtual void GetDynamicMeshElementsEmitter() const override;
-
 };
 
 FORCEINLINE FVector2D GetParticleSizeWithUVFlipInSign(const FBaseParticle& Particle, const FVector2D& ScaledSize)

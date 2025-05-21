@@ -177,6 +177,9 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
         for (FDynamicEmitterDataBase* ParticleRenderData : ParticleSystemComponent->EmitterRenderData)
         {   //EmitterRenderData에는 현존하는 파티클들이 담겨있음.
 
+			// DrawIndexedInstanced()에서 사용되는 값
+			// Sprite -> 6
+			// Mesh -> UStaticMesh의 IndexCount
             switch (ParticleRenderData->GetSource().eEmitterType)
             {
                 case DET_Unknown:
@@ -272,26 +275,121 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                         //이거 Material로 바꾸면 아래걸로 변경
                         // UpdateMaterialConstants();
                         Graphics.DeviceContext->PSSetShaderResources(0, 1, &Texture->TextureSRV);
+
+						//ParticleComponent가 움직이면 Particle도 같이 움직여야하기 때문에 Model값 가져가야함
+						UpdateMatrixConstants(ParticleSystemComponent, View, Proj, InvView);
+
+						//일단 쿼드기준으로 그리기
+						Graphics.DeviceContext->DrawIndexedInstanced(
+							6,               // indexCount (쿼드 하나 = 2 tri = 6 index)
+							ParticleRenderData->GetSource().ActiveParticleCount,   // instanceCount
+							0,               // startIndexLocation
+							0,               // baseVertexLocation
+							0                // startInstanceLocation
+						);
                         break;
                     }
                 case DET_Mesh:
                     {
-                        // SubSet마다 Material Update 및 Draw
-                        // If There's No Material Subset
-                        // if (ParticleRenderData->MaterialSubsets.Num() == 0)
-                        // {
-                        //     Graphics.DeviceContext->DrawIndexed(VBIBTopMappingInfo->GetNumIndices(), 0,0);
-                        // }
-                        // for (int subMeshIndex = 0; subMeshIndex < renderData->MaterialSubsets.Num(); ++subMeshIndex)
-                        // {
-                        //     const int materialIndex = renderData->MaterialSubsets[subMeshIndex].MaterialIndex;
-                        //     
-                        //     UpdateMaterialConstants(ParticleSystemComponent->GetMaterial(materialIndex)->GetMaterialInfo());
-                        //
-                        //     // index draw
-                        //     const uint64 startIndex = renderData->MaterialSubsets[subMeshIndex].IndexStart;
-                        //     const uint64 indexCount = renderData->MaterialSubsets[subMeshIndex].IndexCount;
-                        // }
+                        // StaticMesh 가져오기
+                        const UStaticMesh* StaticMesh = static_cast<const FDynamicMeshEmitterData*>(ParticleRenderData)->Mesh;
+                        assert(StaticMesh); // StaticMesh가 없음
+                        const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(StaticMesh->GetName());
+                        VBIBTopMappingInfo->Bind();
+
+                        const FDynamicMeshEmitterReplayData& Source = static_cast<const FDynamicMeshEmitterReplayData&>(ParticleRenderData->GetSource());
+
+					    int32 VertexStride = sizeof(FMeshParticleInstanceVertex);
+					    int32 ParticleCount = Source.ActiveParticleCount;
+
+					    TArray<FMeshParticleInstanceVertex> InstanceVertices;
+
+					    UStaticMesh* StaticMesh = nullptr;
+
+					    const uint8* ParticleData = Source.DataContainer.ParticleData;
+					    const uint16* ParticleIndices = Source.DataContainer.ParticleIndices;
+
+					    for (int i = 0; i < ParticleCount; ++i)
+					    {
+						    int32 ParticleIndex = i;
+
+						    DECLARE_PARTICLE_CONST(Particle, ParticleData + Source.ParticleStride * ParticleIndices[ParticleIndex]);
+
+						    const FVector2D Size = GetParticleSize(Particle, Source);
+						    FVector ParticlePosition = Particle.Location;
+
+						    FMeshParticleInstanceVertex FillVertex;
+						    /*
+						
+						    여기 채우기
+						
+						    */
+
+                            //FillVertex.Transform
+
+					    }
+
+					    const OBJ::FStaticMeshRenderData* RenderData = StaticMesh->GetRenderData();
+					    if (RenderData == nullptr) continue;
+
+					    // VIBuffer Bind
+					    const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(RenderData->DisplayName);
+					    VBIBTopMappingInfo->Bind();
+
+                        /*
+                        
+                        수정하기
+                        
+                        */
+                        ID3D11InputLayout* MeshInputLayout = Renderer.GetResourceManager()->GetInputLayout(TEXT("UberLit"));
+                        UpdateInstanceBuffer<FMeshParticleInstanceVertex>(Graphics.DeviceContext, SpriteParticleInstanceBuffer, MeshInputLayout, InstanceVertices, VertexStride);
+					    
+                        //블렌드 설정 + Alpha값 주기
+                        float blendFactor[4] = { 0, 0, 0, 0 };
+                        ID3D11BlendState* AlphaBlend = RenderResourceManager->GetBlendState(EBlendState::AlphaBlend);
+                        Graphics.DeviceContext->OMSetBlendState(AlphaBlend, blendFactor, 0xffffffff); // 블렌딩 상태 설정, 기본 블렌딩 상태임
+
+                        UpdateParticleConstants(1.0f); // Mesh는 alpha = 1로 일단 지정
+
+                        //ParticleComponent가 움직이면 Particle도 같이 움직여야하기 때문에 Model값 가져가야함
+					    UpdateMatrixConstants(ParticleSystemComponent, View, Proj, InvView);
+
+					    // If There's No Material Subset
+					    if (RenderData->MaterialSubsets.Num() == 0)
+					    {
+						    //Graphics.DeviceContext->DrawIndexed(VBIBTopMappingInfo->GetNumIndices(), 0, 0);
+					        int32 IndexCount = StaticMesh->GetRenderData()->Indices.Num();
+						    Graphics.DeviceContext->DrawIndexedInstanced(
+							    IndexCount,               // indexCount (쿼드 하나 = 2 tri = 6 index)
+							    ParticleRenderData->GetSource().ActiveParticleCount,   // instanceCount
+							    0,               // startIndexLocation
+							    0,               // baseVertexLocation
+							    0                // startInstanceLocation
+						    );
+					    }
+					    else
+					    {
+						    // SubSet마다 Material Update 및 Draw
+						    for (int subMeshIndex = 0; subMeshIndex < RenderData->MaterialSubsets.Num(); ++subMeshIndex)
+						    {
+							    const int materialIndex = RenderData->MaterialSubsets[subMeshIndex].MaterialIndex;
+
+							    UpdateMaterialConstants(RenderData->Materials[materialIndex]);
+
+							    // index draw
+							    const uint64 startIndex = RenderData->MaterialSubsets[subMeshIndex].IndexStart;
+							    const uint64 indexCount = RenderData->MaterialSubsets[subMeshIndex].IndexCount;
+
+                                int32 IndexCount = StaticMesh->GetRenderData()->Indices.Num();
+                                Graphics.DeviceContext->DrawIndexedInstanced(
+                                    indexCount,               // indexCount (쿼드 하나 = 2 tri = 6 index)
+                                    ParticleRenderData->GetSource().ActiveParticleCount,   // instanceCount
+                                    startIndex,      // startIndexLocation
+                                    0,               // baseVertexLocation
+                                    0                // startInstanceLocation
+                                );
+						    }
+					    }
                         break;
                     }
                 case DET_Beam2:
@@ -305,17 +403,7 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
             default:
                 break;
             }
-            //ParticleComponent가 움직이면 Particle도 같이 움직여야하기 때문에 Model값 가져가야함
-            UpdateMatrixConstants(ParticleSystemComponent, View, Proj, InvView);
-            
-            //일단 쿼드기준으로 그리기
-            Graphics.DeviceContext->DrawIndexedInstanced(
-                6,               // indexCount (쿼드 하나 = 2 tri = 6 index)
-                ParticleRenderData->GetSource().ActiveParticleCount,   // instanceCount
-                0,               // startIndexLocation
-                0,               // baseVertexLocation
-                0                // startInstanceLocation
-            );
+
         }
     }
 

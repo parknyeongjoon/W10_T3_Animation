@@ -53,6 +53,8 @@ public:
 
     void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity);
 
+    virtual FDynamicEmitterDataBase* GetDynamicData() { return nullptr; }
+
     void KillParticle(int32 Index);
 
     // == Required Module 설정값 접근 메서드 == 
@@ -64,11 +66,17 @@ public:
 
     void UpdateParticles(float DeltaTime);
 
+protected:
+    virtual bool FillReplayData(FDynamicEmitterReplayDataBase& OutData);
 };
 
+// Sprite가 기본값 : 사실상 FParticleEmitterInstance와 동일
 struct FParticleSpriteEmitterInstance : public FParticleEmitterInstance
 {
-    // Sprite가 기본값 : 사실상 FParticleEmitterInstance와 동일
+    virtual FDynamicEmitterDataBase* GetDynamicData() override;
+
+protected:
+    virtual bool FillReplayData(FDynamicEmitterReplayDataBase& OutData);
 };
 
 struct FParticleMeshEmitterInstance : public FParticleEmitterInstance
@@ -83,6 +91,10 @@ public:
 
     FBaseParticle* GetParticle(int32 Index);
 
+    virtual FDynamicEmitterDataBase* GetDynamicData() override;
+
+protected:
+    virtual bool FillReplayData(FDynamicEmitterReplayDataBase& OutData);
 };
 
 /* void SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity, struct FParticleEventInstancePayload* EventPayload)

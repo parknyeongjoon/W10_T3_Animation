@@ -26,6 +26,8 @@ UParticleLODLevel* UParticleEmitter::GetLODLevel(int level)
 }
 
 // FParticleEmitterInstance를 생성하는 함수
+// UParticleModuleTypeDataBase가 존재하면 그에 맞춰서 생성함.
+// 없을경우 스프라이트 생성
 FParticleEmitterInstance* UParticleSpriteEmitter::CreateInstance(UParticleSystemComponent* InComponent)
 {
     FParticleEmitterInstance* Instance = nullptr;
