@@ -22,6 +22,7 @@ public:
 
 public:
     UParticleModule() {}
+
     bool IsSpawnModule();
 
     bool IsUpdateModule();
@@ -36,6 +37,14 @@ public:
     virtual void PostEditChangeProperty();
 
     virtual EModuleType GetType() const;
+
+    virtual int32 GetPayloadSize() const { return  0; };
+
+    void SetPayloadOffset(int32 InOffset) { PayloadOffset = InOffset; }
+    int32 GetPayloadOffset() const { return PayloadOffset; }
+
+protected:
+    int32 PayloadOffset = -1;
 };
 
 /*

@@ -8,12 +8,43 @@
 #include <Engine/Texture.h>
 #include "Classes/Particles/ParticleLODLevel.h"
 #include "ParticleMacros.h"
+#include <Particles/Modules/ParticleModuleSubUV.h>
 
 void FParticleEmitterInstance::Init(int32 InMaxParticles)
 {
     MaxActiveParticles = InMaxParticles;
+
     ParticleStride = sizeof(FBaseParticle);
     ParticleSize = ParticleStride;
+
+    if (CurrentLODLevel)
+    {
+        for (UParticleModule* Module : CurrentLODLevel->Modules)
+        {
+            if (Module)
+            {
+                int32 PayloadSize = 0;
+                if (Module->IsUpdateModule())
+                {
+                    PayloadSize = Module->GetPayloadSize();
+                    if (PayloadSize > 0)
+                    {
+                        int32 Offset = ParticleStride;
+                        Module->SetPayloadOffset(Offset);
+                        ParticleStride += PayloadSize;
+
+                        // SubUV이면 offset 저장
+                        if (auto* SubUVModule = dynamic_cast<UParticleModuleSubUV*>(Module))
+                        {
+                            SubUVModule->SetPayloadOffset(Offset);
+                        }
+                        // (다른 Payload 모듈도 여기에 추가 가능)
+                    }
+                }
+            }
+        }
+    }
+
 
     // Alloc방식으로 변경
     /*const int32 DataSize = MaxActiveParticles * ParticleStride;
@@ -21,6 +52,7 @@ void FParticleEmitterInstance::Init(int32 InMaxParticles)
 
     ParticleData = new uint8[DataSize + IndexSize];
     ParticleIndices = reinterpret_cast<uint16*>(ParticleData + DataSize);*/
+
 
     DataContainer.Alloc(MaxActiveParticles * ParticleStride, MaxActiveParticles);
 

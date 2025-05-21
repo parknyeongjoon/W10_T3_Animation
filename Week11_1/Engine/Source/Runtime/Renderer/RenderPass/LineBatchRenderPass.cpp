@@ -196,6 +196,12 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     FRenderResourceManager* renderResourceManager = Renderer.GetResourceManager();
 
     Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState()); //레스터 라이저 상태 설정
+
+    float blendFactor[4] = { 0, 0, 0, 0 };
+    ID3D11BlendState* AlphaBlend = renderResourceManager->GetBlendState(EBlendState::AlphaBlend);
+    Graphics.DeviceContext->OMSetBlendState(AlphaBlend, blendFactor, 0xffffffff); // 블렌딩 상태 설정, 기본 블렌딩 상태임
+
+
     Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
     
     const auto CurRTV = Graphics.GetCurrentRenderTargetView();

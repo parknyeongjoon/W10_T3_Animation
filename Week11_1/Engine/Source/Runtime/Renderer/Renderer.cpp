@@ -280,10 +280,16 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     SetViewMode(ActiveViewportClient->GetViewMode());
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewportClient->GetD3DViewport());
     
+    
+
     if (ActiveViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
     {
         ShadowRenderPass->Prepare(ActiveViewportClient);
         ShadowRenderPass->Execute(ActiveViewportClient);
+
+        LineBatchRenderPass->Prepare(ActiveViewportClient);
+        LineBatchRenderPass->Execute(ActiveViewportClient);
+
         //TODO : FLAG로 나누기
         if (CurrentViewMode  == EViewModeIndex::VMI_Lit_Goroud)
         {
@@ -323,8 +329,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     BlurRenderPass->Prepare(ActiveViewportClient);
     BlurRenderPass->Execute(ActiveViewportClient);
 
-    LineBatchRenderPass->Prepare(ActiveViewportClient);
-    LineBatchRenderPass->Execute(ActiveViewportClient);
+    
 
     if (ActiveViewportClient->GetViewMode() == EViewModeIndex::VMI_Depth)
     {

@@ -120,7 +120,7 @@ void FParticleRenderPass::Prepare(const std::shared_ptr<FViewportClient> InViewp
     const FRenderer& Renderer = GEngineLoop.Renderer;
     const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
-    Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::LessEqual), 0);
+    Graphics.DeviceContext->OMSetDepthStencilState(Renderer.GetDepthStencilState(EDepthStencilState::DepthNone), 0);
     Graphics.DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정점 연결 방식 설정
     Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState());
 
@@ -234,13 +234,13 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                             // }
 
                             //서브인덱스 테스트
-                            std::random_device rd;
-                            std::mt19937 gen(rd()); // 시드 생성기
-                            std::uniform_int_distribution<int> distInt(0, 3);
-                            std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-                            SubImageIndex = distInt(gen);
+                            //std::random_device rd;
+                            //std::mt19937 gen(rd()); // 시드 생성기
+                            //std::uniform_int_distribution<int> distInt(0, 3);
+                            //std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+                            //SubImageIndex = distInt(gen);
 
-                            ParticleColor = FLinearColor(dist(gen), dist(gen), dist(gen), 1);
+                            //ParticleColor = FLinearColor(dist(gen), dist(gen), dist(gen), 1);
                             
                             FParticleSpriteVertex FillVertex;
                             FillVertex.Position = ParticlePosition;

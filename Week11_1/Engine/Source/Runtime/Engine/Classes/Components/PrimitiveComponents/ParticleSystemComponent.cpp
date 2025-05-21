@@ -11,6 +11,7 @@
 #include <Particles/Modules/ParticleModuleSpawn.h>
 #include "Particles/Modules/ParticleModuleRequired.h"
 #include <Particles/ParticleMacros.h>
+#include <Particles/Modules/ParticleModuleSubUV.h>
 bool GIsAllowingParticles = true;
 
 UParticleSystemComponent::UParticleSystemComponent()
@@ -415,6 +416,15 @@ void UParticleSystemComponent::UpdateDynamicData()
 
         ReplayData->Scale = FVector::OneVector;
         
+        UParticleModuleSubUV* SubUVModule = nullptr;
+        for (UParticleModule* Module : EmitterInstance->CurrentLODLevel->Modules)
+        {
+            SubUVModule = Cast<UParticleModuleSubUV>(Module);
+            if (SubUVModule)
+                break;
+        }
+
+        ReplayData->SubUVDataOffset = SubUVModule ? SubUVModule->GetPayloadOffset() : -1;
         // TODO: 필요 시 정렬 설정 (SortMode 등)
         ReplayData->SortMode = 0;
 
