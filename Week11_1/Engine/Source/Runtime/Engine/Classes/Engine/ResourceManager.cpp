@@ -33,7 +33,7 @@ void FResourceManager::Initialize(FGraphicsDevice* device)
 	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png");
 	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Assets/Texture/spotLight.png");
 	LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Contents/Textures/Logo.png");
-    LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Contents/Textures/Particles/jewel_particle_yellow@2x.png");
+    LoadTextureFromFile(GraphicDevice->Device, GraphicDevice->DeviceContext, L"Contents/Textures/Particles/hit_2.png");
 }
 
 void FResourceManager::Release()

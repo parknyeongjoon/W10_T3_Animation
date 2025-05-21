@@ -6,6 +6,13 @@ cbuffer FMatrixSeparatedMVPConstants : register(b0)
     row_major float4x4 InvView;
 };
 
+cbuffer FTextureCountConstants : register(b1)
+{
+    int SubUVCountX;
+    int SubUVCountY;
+    float2 TextureRectPadding;
+}
+
 struct VS_INPUT
 {
     float4 position : POSITION; // 버텍스 위치
@@ -18,6 +25,7 @@ struct VS_INPUT
     float2 InstanceParticleSize : INSTANCESIZE;
     float InstanceParticleRotation : INSTANCEROTATION;
     float InstanceParticleSubIndex : INSTANCESUBINDEX;
+    float4 InstanceParticleColor : INSTANCECOLOR;
 };
 
 struct PS_INPUT
@@ -80,12 +88,12 @@ PS_INPUT mainVS(VS_INPUT input, uint instanceId : SV_InstanceID)
     output.position = mul(output.position, Proj);
 
     // // 7. 텍스처 좌표 및 기타 데이터 전달
-    // float2 cellSize = float2(1.0 / SubImageCountX, 1.0 / SubImageCountY);
-    // int frameX = input.SubImageIndex % SubImageCountX;
-    // int frameY = input.SubImageIndex / SubImageCountX;
-    // float2 uvOffset = float2(frameX, frameY) * cellSize;
-    // output.texcoord = input.texcoord * cellSize + uvOffset;
-    output.texcoord = input.texcoord;
-    
+    float2 cellSize = float2(1.0 / SubUVCountX, 1.0 / SubUVCountY);
+    int frameX = input.InstanceParticleSubIndex % SubUVCountX;
+    int frameY = input.InstanceParticleSubIndex / SubUVCountY;
+    float2 uvOffset = float2(frameX, frameY) * cellSize;
+    output.texcoord = input.texcoord * cellSize + uvOffset;
+    //일단 input.color에 의미있는 값이 없어서 안곱해주는중 -> input.color로 안하고 InstanceColor쓰는 이유는 모든 파티클의 색깔을 다르게 하고싶어서
+    output.color = input.InstanceParticleColor;// * input.color; 
     return output;
 }

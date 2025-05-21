@@ -7,6 +7,7 @@ class UParticleSystemComponent;
 class USpotLightComponent;
 class ULightComponentBase;
 class UStaticMeshComponent;
+struct FParticleSpriteVertex;
 
 class FParticleRenderPass : public FBaseRenderPass
 {
@@ -27,10 +28,13 @@ private:
     static void UpdateMatrixConstants(UParticleSystemComponent* InParticleSystemComponent, const FMatrix& InView, const FMatrix& InProjection, const FMatrix&
                                       InInvView);
     void UpdateParticleConstants(float InAlpha);
+    void UpdateTextureSizeConstants(int InCountX, int InCountY);
     static void UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo);
     void UpdateFlagConstant();
     void UpdateLightConstants();
     void UpdateCameraConstant(const std::shared_ptr<FViewportClient>& InViewportClient);
+    void ExtractDescSort(TArray<FParticleSpriteVertex>& OutInstanceVertices, TArray<std::pair<float, FParticleSpriteVertex>>&
+                         ParticleVerticesWithDistance);
 
 private:
     bool IsLightInFrustum(ULightComponentBase* LightComponent, const FFrustum& CameraFrustum) const;
