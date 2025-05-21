@@ -626,9 +626,9 @@ PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
     
-    output.color = Texture.Sample(linearSampler, input.texcoord);
+    output.color = Texture.Sample(linearSampler, input.texcoord) * input.color;
 
-    output.color = float4(output.color.xyz, ParticleAlpha);
+    output.color = float4(output.color.xyz, output.color.w * ParticleAlpha);
     
     output.UUID = UUID;
     //임시 테스트용
