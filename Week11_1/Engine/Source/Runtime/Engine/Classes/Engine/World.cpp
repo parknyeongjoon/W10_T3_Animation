@@ -34,6 +34,8 @@
 #include "DummyObject.h"
 #include "Asset/AssetManager.h"
 #include "Particles/ParticleSystem.h"
+#include <Particles/Modules/ParticleModuleSubUV.h>
+#include <Particles/Modules/ParticleModuleColor.h>
 
 void UWorld::InitWorld()
 {
@@ -104,8 +106,25 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
             
                 NewEmitter->LODLevels.Add(NewLODLevel);
                 TestParticleSystem->Emitters.Add(NewEmitter);
+                TestComp->Template = TestParticleSystem;
+
+                UParticleEmitter* NewEmitter2 = FObjectFactory::ConstructObject<UParticleSpriteEmitter>(nullptr);
+                UParticleLODLevel* NewLODLevel2 = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
+
+                NewLODLevel2->RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(nullptr);
+                NewLODLevel2->Modules.Add(NewLODLevel2->RequiredModule);
+                NewLODLevel2->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSpawn>(nullptr));
+                NewLODLevel2->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleVelocity>(nullptr));
+                NewLODLevel2->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLifeTime>(nullptr));
+                NewLODLevel2->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLocation>(nullptr));
+                NewLODLevel2->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSize>(nullptr));
+                NewLODLevel2->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSubUV>(nullptr));
+                NewLODLevel2->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleColor>(nullptr));
+
+                NewEmitter2->LODLevels.Add(NewLODLevel2);
+                TestComp->Template->Emitters.Add(NewEmitter2);
             }
-            TestComp->Template = TestParticleSystem;
+
             
             for (auto& emitter : TestParticleSystem->Emitters)
             {

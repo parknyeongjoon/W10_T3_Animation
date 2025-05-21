@@ -333,7 +333,7 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                         const UStaticMesh* StaticMesh = static_cast<const FDynamicMeshEmitterData*>(ParticleRenderData)->Mesh;
                         assert(StaticMesh); // StaticMesh가 없음
 
-                        StaticMesh = FManagerOBJ::CreateStaticMesh(L"Assets/Dodge/Dodge.obj");
+                        StaticMesh = FManagerOBJ::CreateStaticMesh(L"Assets/apple_mid.obj");
                         
                         const FDynamicMeshEmitterReplayData& Source = static_cast<const FDynamicMeshEmitterReplayData&>(ParticleRenderData->GetSource());
 
@@ -718,7 +718,7 @@ void FParticleRenderPass::UpdateTextureSizeConstants(int InCountX, int InCountY)
     TextureCountConstant.CountX = InCountX;
     TextureCountConstant.CountY = InCountY;
 
-    renderResourceManager->UpdateConstantBuffer(TEXT("UTextureCountConstants"), &TextureCountConstant);
+    renderResourceManager->UpdateConstantBuffer(TEXT("FTextureCountConstants"), &TextureCountConstant);
 }
 
 void FParticleRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)

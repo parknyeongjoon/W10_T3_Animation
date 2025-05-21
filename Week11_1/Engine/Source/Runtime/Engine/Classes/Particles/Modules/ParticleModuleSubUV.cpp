@@ -29,6 +29,7 @@ void UParticleModuleSubUV::Update(FParticleEmitterInstance* Owner, int32 Offset,
         }
         //float FrameIndex = FinalOutVal * t * (TotalFrames - 1);  // 마지막 프레임까지
         SubUVPayload->ImageIndex = FrameIndex;
+        //UE_LOG(LogLevel::Display, "SubUVIndex : %f", FrameIndex);
     }
     END_UPDATE_LOOP;
 }
