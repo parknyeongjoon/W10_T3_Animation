@@ -260,6 +260,7 @@ bool FParticleMeshEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase&
     }
 
     OutData.eEmitterType = DET_Mesh;
+    return true;
 
     //FDynamicMeshEmitterReplayData* NewReplayData =
         //static_cast<FDynamicMeshEmitterReplayData*>(&OutData);

@@ -190,7 +190,7 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
         for (FDynamicEmitterDataBase* ParticleRenderData : ParticleSystemComponent->EmitterRenderData)
         {   //EmitterRenderData에는 현존하는 파티클들이 담겨있음.
             // if (ParticleRenderData == nullptr)
-            // {
+            // { 
             //     continue;
             // }
             

@@ -126,9 +126,9 @@ struct FDynamicSpriteEmitterReplayDataBase : public FDynamicEmitterReplayDataBas
 {
     // TODO: UMaterial로 변경.
     //UMaterial* MaterialInterface;
-    FTexture* Texture;
+    FTexture* Texture = nullptr;
     //struct UParticleModuleRequired* RequiredModule;
-    FVector EmitterOrigin;
+    FVector EmitterOrigin = FVector::ZeroVector;
     
     int32							SubUVDataOffset;
     int32							OrbitModuleOffset;

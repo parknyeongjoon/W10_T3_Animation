@@ -103,13 +103,12 @@ void UObject::Serialize(FArchive2& Ar)
     UClass* ClassInfo = GetClass();
     if (!ClassInfo) return;
 
-    // 모든 프로퍼티 순회하며 Serialize 호출
-    for (const FProperty* Prop : ClassInfo->GetProperties())
+    for (UStruct* Struct = GetClass(); Struct; Struct = Struct->GetSuperStruct())
     {
-        // this 에서 Offset 바이트만큼 이동한 주소를 계산
-        void* DataPtr = reinterpret_cast<char*>(this) + Prop->Offset;
-        
-        // 그 위치를 Serialize 에 넘겨줌
-        Prop->Serialize(Ar, DataPtr);
+        for (const FProperty* Prop : Struct->GetProperties())
+        {
+            void* DataPtr = reinterpret_cast<char*>(this) + Prop->Offset;
+            Prop->Serialize(Ar, DataPtr);
+        }
     }
 }

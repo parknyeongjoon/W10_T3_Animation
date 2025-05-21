@@ -103,8 +103,8 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
         
             NewEmitter->LODLevels.Add(NewLODLevel);
             TestParticleSystem->Emitters.Add(NewEmitter);
-            TestComp->Template = TestParticleSystem;
         }
+        TestComp->Template = TestParticleSystem;
         
         for (auto& emitter : TestParticleSystem->Emitters)
         {

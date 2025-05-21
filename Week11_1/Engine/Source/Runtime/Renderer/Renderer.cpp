@@ -422,6 +422,7 @@ void FRenderer::ClearRenderObjects() const
     BlurRenderPass->ClearRenderObjects();
     FinalRenderPass->ClearRenderObjects();
     ParticleRenderPass->ClearRenderObjects();
+    MeshParticleRenderPass->ClearRenderObjects();
 }
 
 void FRenderer::SetViewMode(const EViewModeIndex evi)
@@ -500,6 +501,7 @@ void FRenderer::AddRenderObjectsToRenderPass(UWorld* World) const
     FinalRenderPass->AddRenderObjectsToRenderPass(World);
 
     ParticleRenderPass->AddRenderObjectsToRenderPass(World);
+    MeshParticleRenderPass->AddRenderObjectsToRenderPass(World);
 }
 
 FName FRenderer::GetVSName(const FName InShaderProgramName)
