@@ -356,13 +356,11 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
             SkeletalRenderPass->Execute(ActiveViewportClient);
         }
         
-        // if (ActiveViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Particle))
+        if (ActiveViewportClient->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Particle))
         {
             ParticleRenderPass->Prepare(ActiveViewportClient);
             ParticleRenderPass->Execute(ActiveViewportClient);
-        }
 
-        {
             MeshParticleRenderPass->Prepare(ActiveViewportClient);
             MeshParticleRenderPass->Execute(ActiveViewportClient);
         }
