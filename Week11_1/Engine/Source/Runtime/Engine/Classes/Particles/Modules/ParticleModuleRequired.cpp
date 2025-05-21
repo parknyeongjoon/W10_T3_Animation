@@ -6,7 +6,7 @@
 UParticleModuleRequired::UParticleModuleRequired()
 {
     // 초기값 지정
-    Texture = FEngineLoop::ResourceManager.GetTexture(ParticleModuleDefaults::Required::TexturePath).get();
+    Texture = FEngineLoop::ResourceManager.GetTexture(ParticleModuleDefaults::Required::TexturePath);
     EmitterOrigin = ParticleModuleDefaults::Required::EmitterOrigin;
     // TODO : rotation 테스트 필요.
     EmitterRotation = ParticleModuleDefaults::Required::EmitterRotation;
