@@ -96,3 +96,20 @@ void UObject::MarkAsGarbage()
 {
     GUObjectArray.MarkRemoveObject(this);
 }
+
+void UObject::Serialize(FArchive2& Ar)
+{
+    // 이 객체가 속한 클래스(UStruct) 정보 가져오기
+    UClass* ClassInfo = GetClass();
+    if (!ClassInfo) return;
+
+    // 모든 프로퍼티 순회하며 Serialize 호출
+    for (const FProperty* Prop : ClassInfo->GetProperties())
+    {
+        // this 에서 Offset 바이트만큼 이동한 주소를 계산
+        void* DataPtr = reinterpret_cast<char*>(this) + Prop->Offset;
+        
+        // 그 위치를 Serialize 에 넘겨줌
+        Prop->Serialize(Ar, DataPtr);
+    }
+}

@@ -1,5 +1,6 @@
 #include "ParticleSystemWorldManager.h"
 
+#include "ParticleSystem.h"
 #include "Components/PrimitiveComponents/ParticleSystemComponent.h"
 #include "Engine/World.h"
 #include "UserInterface/Console.h"

@@ -6,6 +6,7 @@
 #include "UObject/ObjectMacros.h"
 
 
+class UAssetImporter;
 class UAssetManager;
 struct FWorldContext
 {
@@ -42,6 +43,7 @@ public:
     virtual void Release() {}
 
     UAssetManager* AssetManager = nullptr;
+    UAssetImporter* AssetImporter = nullptr;
 
     static inline UINT GFrameCount = 0;
 

@@ -11,9 +11,9 @@ class UParticleEmitter : public UObject
 DECLARE_CLASS(UParticleEmitter, UObject)
 public:
     UParticleEmitter() = default;
-    FName EmitterName;
+    UPROPERTY(EditAnywhere, FName, EmitterName, = NAME_None)
 
-    FColor EditorColor;
+    UPROPERTY(EditAnywhere, FColor, EditorColor, = FColor())
 
     UPROPERTY(
         EditAnywhere,
@@ -23,7 +23,7 @@ public:
     )
 
     // 런타임 생성되는 하나의 FBaseParticle이 차지하는 메모리 크기
-    int32 ParticleSize;
+    UPROPERTY(EditAnywhere, int32, ParticleSize, = 0)
 
 public:
     void CacheEmitterModuleInfo()

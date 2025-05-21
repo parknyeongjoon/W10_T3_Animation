@@ -22,6 +22,11 @@ void UStruct::ResolvePendingProperties()
     GetUnresolvedProperties().Empty();
 }
 
+void UStruct::RegisterUnresolvedProperty(FProperty* Prop)
+{
+    GetUnresolvedProperties().Add(Prop);
+}
+
 UStruct::UStruct(
     const char* InName,
     uint32 InStructSize,
@@ -68,11 +73,11 @@ void UStruct::AddProperty(FProperty* Prop)
     {
         return;
     }
-
-    if (Prop->Type == EPropertyType::UnresolvedPointer)
-    {
-        GetUnresolvedProperties().Add(Prop);
-    }
+    //
+    // if (Prop->Type == EPropertyType::UnresolvedPointer)
+    // {
+    //     RegisterUnresolvedProperty(Prop);
+    // }
 
     PropertiesSize += Prop->Size;
     Properties.Add(Prop);
