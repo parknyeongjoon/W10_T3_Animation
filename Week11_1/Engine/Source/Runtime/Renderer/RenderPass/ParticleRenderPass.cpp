@@ -171,7 +171,7 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
     UpdateLightConstants();
     UpdateFlagConstant();
 
-    // FVector CameraPosition = curEditorViewportClient->ViewTransformPerspective.GetLocation();
+    FVector CameraLocation = curEditorViewportClient->ViewTransformPerspective.GetLocation();
     
     for (UParticleSystemComponent* ParticleSystemComponent : ParticleSystemComponents)
     {        
@@ -196,8 +196,7 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                         int32 VertexStride = sizeof(FParticleSpriteVertex);
                         int32 ParticleCount = Source.ActiveParticleCount;
                         // int32 VertexDynamicParameterStride = sizeof(FParticleVertexDynamicParameter);
-                        // TMap<>
-                        TArray<FParticleSpriteVertex> InstanceVertices;
+                        TArray<std::pair<float, FParticleSpriteVertex>> ParticleVerticesWithDistance;
 
                         FTexture* Texture = nullptr;
                         
@@ -209,8 +208,6 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
 
                         for (int i=0;i<ParticleCount;i++)
                         {
-                            //TODO: Sort해서  아래로 변경
-                    		// ParticleIndex = OrderedIndices ? OrderedIndices[i].ParticleIndex : i;
                             int32 ParticleIndex = i;
                             DECLARE_PARTICLE_CONST(Particle, ParticleData + Source.ParticleStride * ParticleIndices[ParticleIndex]);
 
@@ -260,15 +257,18 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                             //     TempDynamicParameterVert += VertexDynamicParameterStride;
                             // }
 
-                            InstanceVertices.Add(FillVertex);
+                            //컴포넌트 기준 로컬 위치기 때문에 컴포넌트의 위치를 더해줘야함
+                            FVector ParticleLocation = Particle.Location + ParticleSystemComponent->GetWorldLocation();
+                            
+                            float Distance = (ParticleLocation - CameraLocation).MagnitudeSquared();
+                            
+                            ParticleVerticesWithDistance.Add({Distance, FillVertex});
 
                             Texture = Source.Texture;
                         }
 
-                        // if (curEditorViewportClient != nullptr)
-                        // {
-                        //     View = curEditorViewportClient->GetBillboardViewMatrix();
-                        // }
+                        TArray<FParticleSpriteVertex> InstanceVertices;
+                        ExtractDescSort(InstanceVertices, ParticleVerticesWithDistance);
                         
                         ID3D11InputLayout* ParticleInputLayout = Renderer.GetResourceManager()->GetInputLayout(TEXT("SpriteParticle"));
                         //Quad인 경우 Quad값 IASetVertexBuffer(0)에다 박고 1은 렌더데이터 돌면서 애들 다른애들마다 박아줘야함
@@ -347,6 +347,20 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
     Graphics.DeviceContext->PSSetShaderResources(23, 8, nullSRVs);
 
     Graphics.DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌딩 상태 설정, 기본 블렌딩 상태임
+}
+
+void FParticleRenderPass::ExtractDescSort(TArray<FParticleSpriteVertex>& OutInstanceVertices, TArray<std::pair<float, FParticleSpriteVertex>>& ParticleVerticesWithDistance)
+{
+    std::sort(ParticleVerticesWithDistance.begin(), ParticleVerticesWithDistance.end(),
+    [](const std::pair<float, FParticleSpriteVertex>& a, const std::pair<float, FParticleSpriteVertex>& b)
+    {
+        return a.first > b.first; // 내림차순
+    });
+                            
+    for (std::pair<float, FParticleSpriteVertex> ParticleVertex : ParticleVerticesWithDistance)
+    {
+        OutInstanceVertices.Add(ParticleVertex.second);
+    }
 }
 
 void FParticleRenderPass::CreateDummyTexture()
