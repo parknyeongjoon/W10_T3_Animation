@@ -20,6 +20,7 @@ public:
 private:
     void RenderModuleCell(UParticleModule* Module, UParticleEmitter* Emitter) const;
     void RenderModuleAdd(UParticleEmitter* Emitter);
+    void RenderEmitterAdd();
 private:
     SLevelEditor* activeLevelEditor;
     float Width = 30, Height = 300;

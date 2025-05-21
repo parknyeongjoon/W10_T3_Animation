@@ -47,6 +47,7 @@ FParticleEmitterInstance* UParticleSpriteEmitter::CreateInstance(UParticleSystem
 
         UParticleModuleSpawn* SpawnModule = FObjectFactory::ConstructObject<UParticleModuleSpawn>(LODLevel);
         LODLevel->Modules.Add(SpawnModule);
+        LODLevel->AnalyzeModules();
     }
     // 만약 UParticleModuleTypeDataBase의 자식 클래스가 있으면 (= mesh, ribbon 등)
     // 그 모듈에 맞춰서 인스턴스를 생성한다.
