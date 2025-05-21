@@ -102,7 +102,7 @@ void ParticlesEmitterPanel::Render()
     }
 
     // 3. 테이블 시작
-    if (ImGui::BeginTable("EmitterModules", EmitterModulesSortedArray.Num(), ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+    if (EmitterModulesSortedArray.Num() > 0 && ImGui::BeginTable("EmitterModules", EmitterModulesSortedArray.Num()+1, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
     {
         int MaxNumModules = 0;
         for (const EmitterModulesSorted& EmitterModules : EmitterModulesSortedArray)
@@ -115,6 +115,9 @@ void ParticlesEmitterPanel::Render()
             const UParticleEmitter* Emitter = EmitterModules.Emitter;
             ImGui::TableSetupColumn((*Emitter->GetName()));
         }
+
+        ImGui::TableSetupColumn("Emitter 추가");
+
         ImGui::TableHeadersRow();
 
         // + 버튼을 위해서 최대개수보다 하나 더 추가
@@ -139,7 +142,16 @@ void ParticlesEmitterPanel::Render()
                     RenderModuleCell(nullptr, nullptr);
                 }
             }
+
+            // emitter 추가 버튼
+            if (row == 0)
+            {
+                RenderEmitterAdd();
+            }
         }
+
+
+
         ImGui::EndTable();
     }
     ImGui::End();
@@ -171,6 +183,8 @@ void ParticlesEmitterPanel::RenderModuleCell(UParticleModule* Module, UParticleE
             for (int i = 0; i < Emitter->LODLevels.Num(); ++i)
             {
                 Emitter->LODLevels[i]->Modules.Remove(Module);
+                Emitter->LODLevels[i]->SpawnModules.Remove(Module);
+                Emitter->LODLevels[i]->UpdateModules.Remove(Module);
             }
             UI->RemoveFlags(Module);
             GUObjectArray.MarkRemoveObject(Module);
@@ -211,6 +225,26 @@ void ParticlesEmitterPanel::RenderModuleAdd(UParticleEmitter* Emitter)
         }
 
         ImGui::EndPopup();
+    }
+}
+
+void ParticlesEmitterPanel::RenderEmitterAdd()
+{
+    if(ImGui::Button("+ Emitter"))
+    {
+        UParticleSystem* ParticleSystem = UI->GetSelectedSystem();
+
+        UParticleEmitter* NewEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(ParticleSystem);
+
+        UParticleLODLevel* NewLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(NewEmitter);
+        UParticleModuleRequired* RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(NewLODLevel);
+        NewLODLevel->RequiredModule = RequiredModule;
+        NewLODLevel->Modules.Add(RequiredModule);
+
+        UParticleModuleSpawn* SpawnModule = FObjectFactory::ConstructObject<UParticleModuleSpawn>(NewLODLevel);
+        NewLODLevel->Modules.Add(SpawnModule);
+        NewLODLevel->SpawnModules.Add(SpawnModule);
+        NewLODLevel->AnalyzeModules();
     }
 }
 

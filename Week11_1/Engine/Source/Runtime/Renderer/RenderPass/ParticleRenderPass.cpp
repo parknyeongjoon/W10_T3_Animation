@@ -54,7 +54,7 @@ FParticleRenderPass::FParticleRenderPass(const FName& InShaderName) : FBaseRende
     D3D11_BUFFER_DESC bufferDesc = {};
     bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     //TODO: SpriteParticle에 맞는걸로 넣어주기 지금은 하드코딩
-    bufferDesc.ByteWidth = static_cast<UINT>(sizeof(FParticleSpriteVertex) * 512);
+    bufferDesc.ByteWidth = static_cast<UINT>(sizeof(FParticleSpriteVertex) * 1488);
     bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     bufferDesc.MiscFlags = 0;
@@ -190,7 +190,7 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
         for (FDynamicEmitterDataBase* ParticleRenderData : ParticleSystemComponent->EmitterRenderData)
         {   //EmitterRenderData에는 현존하는 파티클들이 담겨있음.
             // if (ParticleRenderData == nullptr)
-            // {
+            // { 
             //     continue;
             // }
             
@@ -220,7 +220,7 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                         // int32 VertexDynamicParameterStride = sizeof(FParticleVertexDynamicParameter);
                         TArray<std::pair<float, FParticleSpriteVertex>> ParticleVerticesWithDistance;
 
-                        FTexture* Texture = nullptr;
+                        UTexture* Texture = nullptr;
                         
                         float SubImageIndex = 0.0f;
                         
@@ -333,14 +333,14 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                         const UStaticMesh* StaticMesh = static_cast<const FDynamicMeshEmitterData*>(ParticleRenderData)->Mesh;
                         assert(StaticMesh); // StaticMesh가 없음
 
-                        StaticMesh = FManagerOBJ::GetStaticMesh(L"apple_mid.obj");
+                        StaticMesh = FManagerOBJ::CreateStaticMesh(L"Assets/apple_mid.obj");
                         
                         const FDynamicMeshEmitterReplayData& Source = static_cast<const FDynamicMeshEmitterReplayData&>(ParticleRenderData->GetSource());
 
 					    int32 VertexStride = sizeof(FMeshParticleInstanceVertex);
 					    int32 ParticleCount = Source.ActiveParticleCount;
 
-					    TArray<FMeshParticleInstanceVertex> InstanceVertices;
+					    
 
 					    const uint8* ParticleData = Source.DataContainer.ParticleData;
 					    const uint16* ParticleIndices = Source.DataContainer.ParticleIndices;
@@ -358,8 +358,11 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
 					        
 						    FMeshParticleInstanceVertex FillVertex;
 					        
-                            FillVertex.Transform = JungleMath::CreateModelMatrix(ParticlePosition, ParticleRotation, ParticleScale);
-                            FillVertex.Color = ParticleColor;
+                            FillVertex.Transform = (JungleMath::CreateModelMatrix(ParticlePosition, ParticleRotation, ParticleScale));
+                            FillVertex.Color = ParticleColor;   
+                            
+                            TArray<FMeshParticleInstanceVertex> InstanceVertices;
+                            InstanceVertices.Add(FillVertex);
 
 					        const OBJ::FStaticMeshRenderData* RenderData = StaticMesh->GetRenderData();
 
@@ -671,11 +674,11 @@ void FParticleRenderPass::UpdateTextureSizeConstants(int InCountX, int InCountY)
 {
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     
-    FTextureCountConstants TextureCountConstant;
+    UTextureCountConstants TextureCountConstant;
     TextureCountConstant.CountX = InCountX;
     TextureCountConstant.CountY = InCountY;
 
-    renderResourceManager->UpdateConstantBuffer(TEXT("FTextureCountConstants"), &TextureCountConstant);
+    renderResourceManager->UpdateConstantBuffer(TEXT("UTextureCountConstants"), &TextureCountConstant);
 }
 
 void FParticleRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
@@ -696,8 +699,8 @@ void FParticleRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Materi
     
     if (MaterialInfo.bHasTexture == true)
     {
-        const std::shared_ptr<FTexture> texture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
-        const std::shared_ptr<FTexture> NormalTexture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.NormalTexturePath);
+        const UTexture* texture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
+        const UTexture* NormalTexture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.NormalTexturePath);
         if (texture)
         {
             Graphics.DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);

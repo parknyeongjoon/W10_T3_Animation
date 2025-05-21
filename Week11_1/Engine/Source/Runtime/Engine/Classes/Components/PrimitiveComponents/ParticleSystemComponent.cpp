@@ -47,7 +47,7 @@ UParticleSystemComponent::UParticleSystemComponent()
     ManagerHandle = INDEX_NONE;
     bPendingManagerAdd = false;
     bPendingManagerRemove = false;
-
+    bResetTriggered = false;
 
 }
 
@@ -404,6 +404,7 @@ void UParticleSystemComponent::UpdateDynamicData()
 
         FDynamicEmitterDataBase* DynamicData = EmitterInstance->GetDynamicData();
 
+        assert(DynamicData);
         EmitterRenderData.Add(DynamicData);
     }
 }
@@ -456,8 +457,6 @@ void UParticleSystemComponent::Activate(bool bReset)
         {
             ActivateSystem(bReset);
         }
-
-
     }
 }
 

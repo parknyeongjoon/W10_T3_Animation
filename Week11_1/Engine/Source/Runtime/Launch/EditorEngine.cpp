@@ -38,7 +38,7 @@ void UEditorEngine::Init()
     UnrealEditor = new UnrealEd();
     ContentsUI = new FContentsUI();
     SkeletalPreviewUI = new FSkeletalPreviewUI();
-    UI = new FParticlePreviewUI();
+    ParticlePreviewUI = new FParticlePreviewUI();
 
     if (AssetManager == nullptr)
     {
@@ -62,7 +62,7 @@ void UEditorEngine::Init()
 
     UnrealEditor->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
     SkeletalPreviewUI->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
-    UI->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
+    ParticlePreviewUI->Initialize(LevelEditor, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenWidth, GEngineLoop.GraphicDevice.GetDefaultWindowData().ScreenHeight);
 
     ContentsUI->Initialize();
     CollisionManager.Initialize();  

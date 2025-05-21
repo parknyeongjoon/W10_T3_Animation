@@ -2,13 +2,18 @@
 #include "D3D11RHI/GraphicDevice.h"
 #include "container/String.h"
 #include "HAL/PlatformType.h"
+#include "UObject/Object.h"
+#include "CoreUObject/UObject/ObjectMacros.h"
 
-struct FTexture
+class UTexture : public UObject
 {
-    FTexture(ID3D11ShaderResourceView* SRV, ID3D11Texture2D* Texture2D, uint32 _width, uint32 _height, FWString _path)
-        : TextureSRV(SRV), Texture(Texture2D), width(_width), height(_height), path(_path)
-    {}
-    ~FTexture()
+    DECLARE_CLASS(UTexture, UObject)
+
+    UTexture() = default;
+    //UTexture(ID3D11ShaderResourceView* SRV, ID3D11Texture2D* Texture2D, uint32 _width, uint32 _height, FWString _path)
+        //: TextureSRV(SRV), Texture(Texture2D), width(_width), height(_height), path(_path)
+    //{}
+    ~UTexture()
     {
 		
     }

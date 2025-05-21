@@ -192,9 +192,10 @@ void FLineBatchRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportCl
     FBaseRenderPass::Prepare(InViewportClient);
 
     FRenderer& Renderer = GEngineLoop.Renderer;
-    const FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
+    FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
     FRenderResourceManager* renderResourceManager = Renderer.GetResourceManager();
 
+    Graphics.SwapPingPongBuffers();
     Graphics.DeviceContext->RSSetState(Renderer.GetCurrentRasterizerState()); //레스터 라이저 상태 설정
 
     float blendFactor[4] = { 0, 0, 0, 0 };

@@ -1,4 +1,4 @@
-﻿#include "BlurRenderPass.h"
+#include "BlurRenderPass.h"
 
 #include "FadeRenderPass.h"
 

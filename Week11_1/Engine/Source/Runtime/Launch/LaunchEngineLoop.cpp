@@ -136,7 +136,7 @@ void FEngineLoop::Render() const
         // 왼쪽 위에만 띄어야해서 부득이하게 여기서 설정...
         else if (LevelEditor->GetViewportClientData(AppWindow).ViewportClientType == EditorPreviewParticle)
         {
-            EditorEngine->GetParticlePreviewUI()->ResizeViewport(ViewportClients[0]);
+            //EditorEngine->GetParticlePreviewUI()->ResizeViewport(ViewportClients[0]);
             LevelEditor->FocusViewportClient(AppWindow, 0);
             EditorEngine->UpdateGizmos(ViewportClients[0]->GetWorld());
             Renderer.Render(ViewportClients[0]);

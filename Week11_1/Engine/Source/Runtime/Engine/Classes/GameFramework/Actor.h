@@ -11,45 +11,6 @@
 #include "Components/PrimitiveComponents/PrimitiveComponent.h"
 #include "Core/Delegates/DelegateCombination.h"
 
-enum class ETestEnum : uint8
-{
-    Test1,
-    Test2,
-    Test3
-};
-
-
-struct FTestStruct
-{
-    DECLARE_STRUCT(FTestStruct)
-
-    UPROPERTY(
-        EditAnywhere,
-        float, TestValue, = 0.0f;
-    )
-
-    UPROPERTY(
-        EditAnywhere,
-        ETestEnum, TestEnum, = ETestEnum::Test1;
-    )
-};
-
-struct FChildStruct : public FTestStruct
-{
-    DECLARE_STRUCT(FChildStruct, FTestStruct)
-
-    UPROPERTY(
-        EditAnywhere,
-        bool, bIsTrue, = true;
-    )
-
-    UPROPERTY(
-        EditAnywhere,
-        TArray<FTestStruct>, TestStruct, {};
-    )
-};
-
-
 class UActorComponent;
 
 class AActor : public UObject
@@ -79,17 +40,6 @@ public:
     sol::protected_function LuaFunctionEndPlay;
 
 public:
-public:
-    UPROPERTY(
-        EditAnywhere,
-        FTestStruct, Struct1, {};
-    )
-
-    UPROPERTY(
-        EditAnywhere,
-        FChildStruct, Struct2, {}
-    )
-
     /** 이 Actor를 제거합니다. */
     virtual bool Destroy();
 
@@ -287,8 +237,8 @@ private:
     /** 본인이 소유하고 있는 컴포넌트들의 정보 */
     TArray<UActorComponent*> OwnedComponents;
     
-    /** 현재 Actor가 삭제 처리중인지 여부 */
-    uint8 bActorIsBeingDestroyed : 1;
+    /** 현재 Actor가 삭제 처리중인지 여부 */ 
+    uint8 bActorIsBeingDestroyed : 1 = 0; // 초기화하기
 
 public:
     Delegate OnHit;

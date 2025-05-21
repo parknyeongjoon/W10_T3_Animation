@@ -173,7 +173,7 @@ void FParticleEmitterInstance::KillParticle(int32 Index)
     ActiveParticles--;
 }
 
-FTexture* FParticleEmitterInstance::GetTexture() const
+UTexture* FParticleEmitterInstance::GetTexture() const
 {
     return RequiredModule ? RequiredModule->Texture : nullptr;
 }
@@ -293,6 +293,18 @@ bool FParticleMeshEmitterInstance::FillReplayData(FDynamicEmitterReplayDataBase&
     }
 
     OutData.eEmitterType = DET_Mesh;
+
+
+    FDynamicMeshEmitterReplayData* NewReplayData =
+        static_cast<FDynamicMeshEmitterReplayData*>(&OutData);
+
+    NewReplayData->Texture = GetTexture();
+
+    NewReplayData->DataContainer.MemBlockSize = MaxActiveParticles * ParticleStride;
+    NewReplayData->DataContainer.ParticleData = ParticleData;
+    NewReplayData->DataContainer.ParticleIndices = ParticleIndices;
+
+    return true;
 
     //FDynamicMeshEmitterReplayData* NewReplayData =
         //static_cast<FDynamicMeshEmitterReplayData*>(&OutData);

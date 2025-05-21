@@ -12,11 +12,20 @@ public:
     UParticleModuleVelocity();
     
     /* 초기 속도 */
-    FRawDistributionVector StartVelocity;
+    UPROPERTY(
+        EditAnywhere,
+        FRawDistributionVector,
+        StartVelocity,
+        = FRawDistributionVector();
+    )
 
-
-    /* 방사형 속도 분포 */
-    FRawDistributionFloat StartVelocityRadial;
+    /* 방사형 속도 분포의 크기 */
+    UPROPERTY(
+        EditAnywhere,
+        FRawDistributionFloat,
+        StartVelocityRadial,
+        = FRawDistributionFloat();
+    )
 
     virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp, FBaseParticle* ParticleBase) override;
 

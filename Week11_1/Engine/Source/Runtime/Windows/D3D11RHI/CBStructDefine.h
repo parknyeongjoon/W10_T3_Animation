@@ -228,7 +228,7 @@ struct alignas(16) FParticleConstant
     FVector ParticlePadding;
 };
 
-struct alignas(16) FTextureCountConstants
+struct alignas(16) UTextureCountConstants
 {
     int32 CountX;
     int32 CountY;

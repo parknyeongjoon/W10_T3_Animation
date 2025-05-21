@@ -67,10 +67,10 @@ public:
     bool CanCastShadows() const { return bCastShadows; }
     void SetCastShadows(const bool InbCastShadows) { bCastShadows = InbCastShadows; }
 
-    //FTexture* GetShadowMap() const { return ShadowMap; }
+    //UTexture* GetShadowMap() const { return ShadowMap; }
     //ID3D11DepthStencilView* GetDSV() const { return DSV; }
 
-    FTexture* GetLightMap() const { return LightMap; }
+    UTexture* GetLightMap() const { return LightMap; }
     ID3D11RenderTargetView* GetRTV() const { return LightRTV; }
 
     virtual FMatrix GetViewMatrix() const { return FMatrix::Identity; }
@@ -87,10 +87,10 @@ public:
     virtual void LoadAndConstruct(const FActorComponentInfo& Info) override;
 
 protected:
-    //FTexture* ShadowMap = nullptr;
+    //UTexture* ShadowMap = nullptr;
     //ID3D11DepthStencilView* DSV = nullptr;
 
-    FTexture* LightMap = nullptr;
+    UTexture* LightMap = nullptr;
     ID3D11RenderTargetView* LightRTV = nullptr;
 
 protected:

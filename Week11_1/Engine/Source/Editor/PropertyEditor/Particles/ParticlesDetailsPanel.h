@@ -1,6 +1,8 @@
 #pragma once
 #include "UnrealEd/EditorPanel.h"
 #include "Classes/Distributions/Distribution.h"
+#include "Classes/Distributions/DistributionFloat.h"
+#include "Classes/Distributions/DistributionVector.h"
 
 struct ImFont;
 struct ImVec2;
@@ -18,7 +20,7 @@ public:
 private:
     void RenderFileMenu() const;
     void RenderEditMenu() const;
-    void RenderDistributionMenu(FRawDistribution* Distribution);
+    void RenderDistributionMenu(FRawDistribution* Distribution, bool bFloat);
 
 private:
     SLevelEditor* activeLevelEditor;

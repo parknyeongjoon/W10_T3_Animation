@@ -45,7 +45,7 @@ class UParticleSystem : public UAsset
     UPROPERTY(EditAnywhere, TArray<UParticleEmitter*>, Emitters, = {})
 
     /** Cascade에서 파티클 시스템을 미리보기 위해 사용하는 컴포넌트 */
-    UParticleSystemComponent* PreviewComponent;
+    UParticleSystemComponent* PreviewComponent = nullptr;
 
     /** 썸네일 이미지를 렌더링할 때 시스템을 배치할 거리 */
     float ThumbnailDistance;

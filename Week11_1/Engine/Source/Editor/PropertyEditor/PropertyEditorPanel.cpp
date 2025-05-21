@@ -24,12 +24,14 @@
 #include "Components/PrimitiveComponents/UTextComponent.h"
 #include "Components/PrimitiveComponents/MeshComponents/StaticMeshComponents/CubeComp.h"
 #include "Components/PrimitiveComponents/Physics/USphereShapeComponent.h"
+#include "Components/PrimitiveComponents/ParticleSystemComponent.h"
 
 #include "LevelEditor/SLevelEditor.h"
 
 #include "LaunchEngineLoop.h"
 #include "PlayerCameraManager.h"
 #include "Engine/FBXLoader.h"
+#include "Engine/Asset/AssetManager.h"
 #include "Actors/SkeletalMeshActor.h"
 #include "Animation/Skeleton.h"
 #include "BaseGizmos/TransformGizmo.h"
@@ -40,6 +42,7 @@
 #include "UObject/FunctionRegistry.h"
 #include <Animation/CustomAnimInstance/TestAnimInstance.h>
 #include <Animation/AnimSingleNodeInstance.h>
+#include "UnrealEd/ParticlePreviewUI.h"
 
 void PropertyEditorPanel::Initialize(float InWidth, float InHeight)
 {
@@ -99,8 +102,6 @@ void PropertyEditorPanel::Render()
     }
 
     ImVec2 imageSize = ImVec2(256, 256); // 이미지 출력 크기
-
-    DrawParticlesPreviewButton(FString());
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)
@@ -669,6 +670,14 @@ void PropertyEditorPanel::Render()
 
             ImGui::TreePop();
         }        
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UParticleSystemComponent>())
+    {
+        if (UParticleSystemComponent* ParticleComp = Cast<UParticleSystemComponent>(PickedComponent))
+        {
+            RenderForParticleSystem(ParticleComp);
+        }
     }
 
     RenderShapeProperty(PickedActor);
@@ -1335,6 +1344,39 @@ void PropertyEditorPanel::RenderCreateMaterialView()
     ImGui::End();
 }
 
+void PropertyEditorPanel::RenderForParticleSystem(UParticleSystemComponent* ParticleSystemComp) const
+{
+    // 현재 UParticleSystem을 선택할 수 있도록 제공
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+    if (ImGui::TreeNodeEx("Particle System", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
+    {
+        ImGui::Text("ParticleSystem");
+        ImGui::SameLine();
+
+        UParticleSystem* ParticleSystem = ParticleSystemComp->Template;
+
+        FName PreviewName = ParticleSystem ? ParticleSystemComp->Template->GetDescriptor().AssetName : FName("None");
+        TMap<FName, UParticleSystem*> Systems = UAssetManager::Get().GetLoadedAssetsByType<UParticleSystem>();
+        if (ImGui::BeginCombo("##ParticleSystems", GetData(PreviewName.ToString()), ImGuiComboFlags_None))
+        {
+            for (const auto System : Systems)
+            {
+                if (ImGui::Selectable(GetData(System.Key.ToString()), false))
+                {
+                    ParticleSystemComp->Template = System.Value;
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        ImGui::TreePop();
+    }
+    ImGui::PopStyleColor();
+
+    DrawParticlesPreviewButton(ParticleSystemComp->Template);
+}
+
 void PropertyEditorPanel::RenderForLua(ULuaComponent* InLuaComponent) const
 {
      ULuaComponent* LuaComponent = Cast<ULuaComponent>(PickedComponent); // Lua 컴포넌트로 캐스팅
@@ -1725,9 +1767,9 @@ void PropertyEditorPanel::DrawSkeletalMeshPreviewButton(const FString& FilePath)
     }
 }
 
-void PropertyEditorPanel::DrawParticlesPreviewButton(const FString& FilePath) const
+void PropertyEditorPanel::DrawParticlesPreviewButton(UParticleSystem* ParticleSystem) const
 {
-    if (ImGui::Button("Preview##Particles"))
+    if (ImGui::Button("Preview Particle##Particles"))
     {
         UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
         if (EditorEngine == nullptr)
@@ -1736,6 +1778,36 @@ void PropertyEditorPanel::DrawParticlesPreviewButton(const FString& FilePath) co
         }
 
         UWorld* World = EditorEngine->CreatePreviewWindow(EditorPreviewParticle);
+
+        AActor* TestActor = World->SpawnActor<AActor>();
+        UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
+        if (ParticleSystem)
+        {
+            TestComp->Template = ParticleSystem;
+            TestComp->Activate();
+            EditorEngine->GetParticlePreviewUI()->AddParticleSytstem(TestComp->Template);
+        }
+        else
+        {
+            TestComp->Activate();
+            EditorEngine->GetParticlePreviewUI()->CreateEmptyParticleSystem(nullptr);
+        }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Create Particle"))
+    {
+        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+        if (EditorEngine == nullptr)
+        {
+            return;
+        }
+
+        UWorld* World = EditorEngine->CreatePreviewWindow(EditorPreviewParticle);
+
+        AActor* TestActor = World->SpawnActor<AActor>();
+        UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
+        EditorEngine->GetParticlePreviewUI()->CreateEmptyParticleSystem(nullptr);
+        TestComp->Activate();
     }
 }
 

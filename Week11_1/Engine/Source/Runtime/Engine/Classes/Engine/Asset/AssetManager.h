@@ -76,6 +76,20 @@ public:
     // 디스크에서 읽어들여 해당 UClass 타입의 오브젝트를 반환
     UObject* LoadAsset(const FString& Path, UClass* ClassType);
 
+    template<typename T>
+    TMap<FName, T*> GetLoadedAssetsByType() const
+    {
+        TMap<FName, T*> Result;
+        for (const auto& Pair : LoadedAssets)
+        {
+            if (T* Asset = Cast<T>(Pair.Value))
+            {
+                Result.Add(Pair.Key, Asset);
+            }
+        }
+        return Result;
+    }
+
 public:
     void LoadObjFiles();
     UAssetFactory* FindFactoryForFile(const FString& filepath);

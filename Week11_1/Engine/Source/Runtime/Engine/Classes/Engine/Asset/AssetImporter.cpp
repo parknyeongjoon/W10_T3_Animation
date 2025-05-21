@@ -67,6 +67,7 @@ void UAssetImporter::Import(const FString& InFilepath, ImportCallback InCallback
 
     if (asset)
     {
+        asset->GetDescriptor() = desc;
         UAssetManager::Get().Store(desc.AssetName, asset);
     }
     

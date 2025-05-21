@@ -7,10 +7,10 @@
 
 UParticleModuleVelocity::UParticleModuleVelocity()
 {
-    StartVelocity.Distribution = new UDistributionVectorConstant();
+    StartVelocity.Distribution = FObjectFactory::ConstructObject<UDistributionVectorConstant>(this);
     static_cast<UDistributionVectorConstant*>(StartVelocity.Distribution)->Constant = ParticleModuleDefaults::Velocity::LinearVelocity;
 
-    StartVelocityRadial.Distribution = new UDistributionFloatConstant();
+    StartVelocityRadial.Distribution = FObjectFactory::ConstructObject<UDistributionFloatConstant>(this);
     static_cast<UDistributionFloatConstant*>(StartVelocityRadial.Distribution)->SetValue(ParticleModuleDefaults::Velocity::RadialVelocity);
 }
 
