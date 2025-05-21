@@ -333,94 +333,134 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                         const UStaticMesh* StaticMesh = static_cast<const FDynamicMeshEmitterData*>(ParticleRenderData)->Mesh;
                         assert(StaticMesh); // StaticMesh가 없음
 
-                        StaticMesh = FManagerOBJ::CreateStaticMesh(L"Assets/apple_mid.obj");
+                        StaticMesh = FManagerOBJ::CreateStaticMesh(L"Assets/Dodge/Dodge.obj");
                         
                         const FDynamicMeshEmitterReplayData& Source = static_cast<const FDynamicMeshEmitterReplayData&>(ParticleRenderData->GetSource());
 
 					    int32 VertexStride = sizeof(FMeshParticleInstanceVertex);
 					    int32 ParticleCount = Source.ActiveParticleCount;
 
+                        const uint8* ParticleData = Source.DataContainer.ParticleData;
+                        const uint16* ParticleIndices = Source.DataContainer.ParticleIndices;
 					    
+					    const OBJ::FStaticMeshRenderData* RenderData = StaticMesh->GetRenderData();
+                        if (RenderData == nullptr) continue;
 
-					    const uint8* ParticleData = Source.DataContainer.ParticleData;
-					    const uint16* ParticleIndices = Source.DataContainer.ParticleIndices;
+                        // If There's No Material Subset
+                        if (RenderData->MaterialSubsets.Num() == 0)
+                        {
 
-					    for (int i = 0; i < ParticleCount; ++i)
-					    {
-						    int32 ParticleIndex = i;
+                            for (int i = 0; i < ParticleCount; ++i)
+                            {
+                                int32 ParticleIndex = i;
 
-						    DECLARE_PARTICLE_CONST(Particle, ParticleData + Source.ParticleStride * ParticleIndices[ParticleIndex]);
+                                DECLARE_PARTICLE_CONST(Particle, ParticleData + Source.ParticleStride * ParticleIndices[ParticleIndex]);
 
-						    FVector ParticlePosition = Particle.Location;
-					        FVector ParticleRotation = Particle.Rotation;
-					        FVector ParticleScale = Particle.Size;
-                            FLinearColor ParticleColor = Particle.Color;
-					        
-						    FMeshParticleInstanceVertex FillVertex;
-					        
-                            FillVertex.Transform = (JungleMath::CreateModelMatrix(ParticlePosition, ParticleRotation, ParticleScale));
-                            FillVertex.Color = ParticleColor;   
-                            
-                            TArray<FMeshParticleInstanceVertex> InstanceVertices;
-                            InstanceVertices.Add(FillVertex);
+                                FVector ParticlePosition = Particle.Location;
+                                FVector ParticleRotation = Particle.Rotation;
+                                FVector ParticleScale = Particle.Size;
+                                FLinearColor ParticleColor = Particle.Color;
 
-					        const OBJ::FStaticMeshRenderData* RenderData = StaticMesh->GetRenderData();
+                                FMeshParticleInstanceVertex FillVertex;
 
-					        if (RenderData == nullptr) continue;
+                                FillVertex.Transform = (JungleMath::CreateModelMatrix(ParticlePosition, ParticleRotation, ParticleScale));
+                                FillVertex.Color = ParticleColor;
 
-					        // VIBuffer Bind
-					        const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(RenderData->DisplayName);
-					        VBIBTopMappingInfo->Bind();
+                                TArray<FMeshParticleInstanceVertex> InstanceVertices;
+                                InstanceVertices.Add(FillVertex);
 
-                            ID3D11InputLayout* MeshInputLayout = Renderer.GetResourceManager()->GetInputLayout(TEXT("MeshParticle"));
-                            UpdateInstanceBuffer<FMeshParticleInstanceVertex>(Graphics.DeviceContext, MeshParticleInstanceBuffer, MeshInputLayout, InstanceVertices, VertexStride);
-					        
-                            //블렌드 설정 + Alpha값 주기
-                            float blendFactor[4] = { 0, 0, 0, 0 };
-                            ID3D11BlendState* AlphaBlend = RenderResourceManager->GetBlendState(EBlendState::AlphaBlend);
-                            Graphics.DeviceContext->OMSetBlendState(AlphaBlend, blendFactor, 0xffffffff); // 블렌딩 상태 설정, 기본 블렌딩 상태임
 
-                            UpdateParticleConstants(1.0f); // Mesh는 alpha = 1로 일단 지정
 
-                            //ParticleComponent가 움직이면 Particle도 같이 움직여야하기 때문에 Model값 가져가야함
-					        UpdateMatrixConstants(ParticleSystemComponent, View, Proj, InvView);
+                                // VIBuffer Bind
+                                const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(RenderData->DisplayName);
+                                VBIBTopMappingInfo->Bind();
 
-					        // If There's No Material Subset
-					        if (RenderData->MaterialSubsets.Num() == 0)
-					        {
-						        //Graphics.DeviceContext->DrawIndexed(VBIBTopMappingInfo->GetNumIndices(), 0, 0);
-					            int32 IndexCount = StaticMesh->GetRenderData()->Indices.Num();
-						        Graphics.DeviceContext->DrawIndexedInstanced(
-							        IndexCount,               // indexCount (쿼드 하나 = 2 tri = 6 index)
-							        ParticleRenderData->GetSource().ActiveParticleCount,   // instanceCount
-							        0,               // startIndexLocation
-							        0,               // baseVertexLocation
-							        0                // startInstanceLocation
-						        );
-					        }
-					        else
-					        {
-						        // SubSet마다 Material Update 및 Draw
-						        for (int subMeshIndex = 0; subMeshIndex < RenderData->MaterialSubsets.Num(); ++subMeshIndex)
-						        {
-							        const int materialIndex = RenderData->MaterialSubsets[subMeshIndex].MaterialIndex;
+                                ID3D11InputLayout* MeshInputLayout = Renderer.GetResourceManager()->GetInputLayout(TEXT("MeshParticle"));
+                                UpdateInstanceBuffer<FMeshParticleInstanceVertex>(Graphics.DeviceContext, MeshParticleInstanceBuffer, MeshInputLayout, InstanceVertices, VertexStride);
 
-							        UpdateMaterialConstants(RenderData->Materials[materialIndex]);
+                                //블렌드 설정 + Alpha값 주기
+                                float blendFactor[4] = { 0, 0, 0, 0 };
+                                ID3D11BlendState* AlphaBlend = RenderResourceManager->GetBlendState(EBlendState::AlphaBlend);
+                                Graphics.DeviceContext->OMSetBlendState(AlphaBlend, blendFactor, 0xffffffff); // 블렌딩 상태 설정, 기본 블렌딩 상태임
 
-							        // index draw
-							        const uint64 startIndex = RenderData->MaterialSubsets[subMeshIndex].IndexStart;
-							        const uint64 indexCount = RenderData->MaterialSubsets[subMeshIndex].IndexCount;
+                                UpdateParticleConstants(1.0f); // Mesh는 alpha = 1로 일단 지정
 
-                                    Graphics.DeviceContext->DrawIndexedInstanced(
-                                        indexCount,               // indexCount (쿼드 하나 = 2 tri = 6 index)
-                                        ParticleRenderData->GetSource().ActiveParticleCount,   // instanceCount
-                                        startIndex,      // startIndexLocation
-                                        0,               // baseVertexLocation
-                                        0                // startInstanceLocation
-                                    );
-						        }
-					        }
-					    }
+                                //ParticleComponent가 움직이면 Particle도 같이 움직여야하기 때문에 Model값 가져가야함
+                                UpdateMatrixConstants(ParticleSystemComponent, View, Proj, InvView);
+                            }
+
+                            //Graphics.DeviceContext->DrawIndexed(VBIBTopMappingInfo->GetNumIndices(), 0, 0);
+                            int32 IndexCount = StaticMesh->GetRenderData()->Indices.Num();
+                            Graphics.DeviceContext->DrawIndexedInstanced(
+                                IndexCount,               // indexCount (쿼드 하나 = 2 tri = 6 index)
+                                ParticleRenderData->GetSource().ActiveParticleCount,   // instanceCount
+                                0,               // startIndexLocation
+                                0,               // baseVertexLocation
+                                0                // startInstanceLocation
+                            );
+                        }
+                        else
+                        {
+                            // SubSet마다 Material Update 및 Draw
+                            for (int subMeshIndex = 0; subMeshIndex < RenderData->MaterialSubsets.Num(); ++subMeshIndex)
+                            {
+                                TArray<FMeshParticleInstanceVertex> InstanceVertices;
+                                for (int i = 0; i < ParticleCount; ++i)
+                                {
+                                    int32 ParticleIndex = i;
+
+                                    DECLARE_PARTICLE_CONST(Particle, ParticleData + Source.ParticleStride * ParticleIndices[ParticleIndex]);
+
+                                    FVector ParticlePosition = Particle.Location;
+                                    FVector ParticleRotation = Particle.Rotation;
+                                    FVector ParticleScale = Particle.Size;
+                                    FLinearColor ParticleColor = Particle.Color;
+
+                                    FMeshParticleInstanceVertex FillVertex;
+
+                                    FillVertex.Transform = (JungleMath::CreateModelMatrix(ParticlePosition, ParticleRotation, ParticleScale));
+                                    FillVertex.Color = ParticleColor;
+
+                                    InstanceVertices.Add(FillVertex);
+                                }
+                                // VIBuffer Bind
+                                const std::shared_ptr<FVBIBTopologyMapping> VBIBTopMappingInfo = Renderer.GetVBIBTopologyMapping(RenderData->DisplayName);
+                                VBIBTopMappingInfo->Bind();
+
+                                ID3D11InputLayout* MeshInputLayout = Renderer.GetResourceManager()->GetInputLayout(TEXT("MeshParticle"));
+                                UpdateInstanceBuffer<FMeshParticleInstanceVertex>(Graphics.DeviceContext, MeshParticleInstanceBuffer, MeshInputLayout, InstanceVertices, VertexStride);
+
+                                //블렌드 설정 + Alpha값 주기
+                                float blendFactor[4] = { 0, 0, 0, 0 };
+                                ID3D11BlendState* AlphaBlend = RenderResourceManager->GetBlendState(EBlendState::AlphaBlend);
+                                Graphics.DeviceContext->OMSetBlendState(AlphaBlend, blendFactor, 0xffffffff); // 블렌딩 상태 설정, 기본 블렌딩 상태임
+
+                                UpdateParticleConstants(1.0f); // Mesh는 alpha = 1로 일단 지정
+
+                                //ParticleComponent가 움직이면 Particle도 같이 움직여야하기 때문에 Model값 가져가야함
+                                UpdateMatrixConstants(ParticleSystemComponent, View, Proj, InvView);
+
+                                const int materialIndex = RenderData->MaterialSubsets[subMeshIndex].MaterialIndex;
+
+                                UpdateMaterialConstants(RenderData->Materials[materialIndex]);
+
+                                // index draw
+                                const uint64 startIndex = RenderData->MaterialSubsets[subMeshIndex].IndexStart;
+                                const uint64 indexCount = RenderData->MaterialSubsets[subMeshIndex].IndexCount;
+
+                                Graphics.DeviceContext->DrawIndexedInstanced(
+                                    indexCount,               // indexCount (쿼드 하나 = 2 tri = 6 index)
+                                    ParticleRenderData->GetSource().ActiveParticleCount,   // instanceCount
+                                    startIndex,      // startIndexLocation
+                                    0,               // baseVertexLocation
+                                    0                // startInstanceLocation
+                                );
+                            }
+                        }
+
+
+
+
 
 					    
                         break;

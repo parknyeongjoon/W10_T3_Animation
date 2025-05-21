@@ -160,6 +160,7 @@ void UAssetManager::Unload(const FString& InName)
 
 bool UAssetManager::SaveAsset(UObject* Root, const FString& Path)
 {
+    return false;
     // 1) 상위 디렉토리 확인 및 생성
     const std::filesystem::path fsPath(Path.ToWideString());
     const std::filesystem::path dir = fsPath.parent_path();
