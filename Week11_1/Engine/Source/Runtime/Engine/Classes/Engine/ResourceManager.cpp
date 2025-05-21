@@ -46,7 +46,7 @@ void FResourceManager::Release()
     Textures.Empty();
 }
 
-std::shared_ptr<FTexture> FResourceManager::GetTexture(const FWString& name)
+UTexture* FResourceManager::GetTexture(const FWString& name)
 {
     auto it = Textures.Find(name);
     if (it != nullptr)
@@ -71,7 +71,7 @@ std::shared_ptr<FTexture> FResourceManager::GetTexture(const FWString& name)
     return newIt ? *newIt : nullptr;
 }
 
-std::shared_ptr<FTexture> FResourceManager::GetDefaultWhiteTexture()
+UTexture* FResourceManager::GetDefaultWhiteTexture()
 {
     static const FWString Key   = L"DefaultWhite1x1";
     if (auto Found = Textures.Find(Key))
@@ -113,13 +113,12 @@ std::shared_ptr<FTexture> FResourceManager::GetDefaultWhiteTexture()
         return nullptr;
     }
 
-    auto DefaultTex = std::make_shared<FTexture>(
-        srv,       // ID3D11ShaderResourceView*
-        tex2D,     // ID3D11Texture2D*
-        1,         // width
-        1,         // height
-        Key        // path
-    );
+    UTexture* DefaultTex = FObjectFactory::ConstructObject<UTexture>(nullptr);
+    DefaultTex->TextureSRV = srv;
+    DefaultTex->Texture = tex2D;
+    DefaultTex->width = 1;
+    DefaultTex->height = 1;
+    DefaultTex->path = Key;
 
     // 캐싱
     Textures.Add(Key, DefaultTex);
@@ -204,7 +203,14 @@ HRESULT FResourceManager::LoadTextureFromFile(ID3D11Device* device, ID3D11Device
 
 	FWString name = FWString(filename);
 
-	Textures[name] = std::make_shared<FTexture>(TextureSRV, Texture2D, width, height, name);
+    UTexture* Tex = FObjectFactory::ConstructObject<UTexture>(nullptr);
+    Tex->TextureSRV = TextureSRV;
+    Tex->Texture = Texture2D;
+    Tex->width = width;
+    Tex->height = height;
+    Tex->path = name;
+
+    Textures[name] = Tex;
 
 	Console::GetInstance().AddLog(LogLevel::Warning, "Texture File Load Successs");
 
@@ -248,7 +254,15 @@ HRESULT FResourceManager::LoadTextureFromDDS(ID3D11Device* device, ID3D11DeviceC
 
 	FWString name = FWString(filename);
 
-	Textures[name] = std::make_shared<FTexture>(textureView, texture2D, width, height, name);
+    UTexture* Tex = FObjectFactory::ConstructObject<UTexture>(nullptr);
+    Tex->TextureSRV = textureView;
+    Tex->Texture = texture2D;
+    Tex->width = width;
+    Tex->height = height;
+    Tex->path = name;
+
+    Textures[name] = Tex;
+
 
 	Console::GetInstance().AddLog(LogLevel::Warning, "Texture File Load Successs");
 

@@ -11,7 +11,7 @@ class UParticleSystemComponent;
 class UParticleLODLevel;
 class UParticleModuleRequired;
 class UParticleModuleTypeDataMesh;
-struct FTexture;
+class UTexture;
 
 struct FParticleEmitterInstance
 {
@@ -42,7 +42,7 @@ struct FParticleEmitterInstance
 
     FParticleDataContainer DataContainer;
 
-    FTexture* Texture;
+    UTexture* Texture;
 
 public:
     virtual void Init(int32 InMaxparticles);
@@ -58,7 +58,7 @@ public:
     void KillParticle(int32 Index);
 
     // == Required Module 설정값 접근 메서드 == 
-    FTexture* GetTexture() const;
+    UTexture* GetTexture() const;
     FVector GetEmitterOrigin() const;
     FRotator GetEmitterRotation() const;
     int32 GetSubImageH() const;

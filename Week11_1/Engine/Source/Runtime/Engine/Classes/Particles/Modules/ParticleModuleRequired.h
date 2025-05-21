@@ -7,7 +7,7 @@
 #include "Components/PrimitiveComponents/ParticleSystemComponent.h"
 #include "UObject/ObjectMacros.h"
 
-struct FTexture;
+class UTexture;
 struct FDynamicSpriteEmitterDataBase;
 struct FDynamicSpriteEmitterReplayDataBase;
 struct FBaseParticle;
@@ -19,7 +19,7 @@ public:
     UParticleModuleRequired();
    
     // Property : 이미터
-    FTexture* Texture;
+    UPROPERTY(EditAnywhere, UTexture*, Texture, = nullptr)
 
     UPROPERTY(EditAnywhere, FVector, EmitterOrigin, = FVector::ZeroVector)
     UPROPERTY(EditAnywhere, FRotator, EmitterRotation, = FRotator::ZeroRotator)

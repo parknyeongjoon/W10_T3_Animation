@@ -141,7 +141,7 @@ void FParticleEmitterInstance::KillParticle(int32 Index)
     ActiveParticles--;
 }
 
-FTexture* FParticleEmitterInstance::GetTexture() const
+UTexture* FParticleEmitterInstance::GetTexture() const
 {
     return RequiredModule ? RequiredModule->Texture : nullptr;
 }

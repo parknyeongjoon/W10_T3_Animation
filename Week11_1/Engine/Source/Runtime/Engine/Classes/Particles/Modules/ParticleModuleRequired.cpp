@@ -6,7 +6,7 @@
 UParticleModuleRequired::UParticleModuleRequired()
 {
     // 초기값 지정
-    Texture = FEngineLoop::ResourceManager.GetTexture(L"Contents/Textures/Particles/hit_2.png").get();
+    Texture = FEngineLoop::ResourceManager.GetTexture(L"Contents/Textures/Particles/hit_2.png");
     //Texture = FEngineLoop::ResourceManager.GetDefaultWhiteTexture().get();
     EmitterOrigin = FVector::ZeroVector;
     EmitterRotation = FRotator::ZeroRotator;
@@ -35,7 +35,7 @@ void UParticleModuleRequired::CacheEmitterData(FParticleEmitterInstance* Instanc
 
 void UParticleModuleRequired::FillReplayData(FDynamicSpriteEmitterReplayDataBase* ReplayData) const
 {
-    ReplayData->Texture = Texture; // FTexture* => UMaterialInterface*로 변경 필요
+    ReplayData->Texture = Texture; // UTexture* => UMaterialInterface*로 변경 필요
     //ReplayData->SubImageH = SubImagesHorizontal;
     //ReplayData->SubImageV = SubImagesVertical;
     ReplayData->EmitterOrigin = EmitterOrigin;

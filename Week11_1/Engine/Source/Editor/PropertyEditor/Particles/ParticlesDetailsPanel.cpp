@@ -30,49 +30,52 @@ void ParticlesDetailsPanel::Render()
     /* Panel Size */
     ImGui::SetNextWindowSize(ImVec2(PanelWidth, PanelHeight), ImGuiCond_Always);
 
-    TArray<UParticleModule*> Modules = UI->GetSelectedLODLevel()->Modules;
     
     ImGui::Begin("Details", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
-
-    int SelectedModuleIndex = UI->GetSelectedModuleIndex();
-    if (SelectedModuleIndex >= 0 && SelectedModuleIndex < Modules.Num())
+    if (UParticleLODLevel* LODLevel = UI->GetSelectedLODLevel())
     {
-        if (UParticleModule* SelectedModule = Modules[SelectedModuleIndex])
-        {
-            const UClass* Class = SelectedModule->GetClass();
-            const TArray<FProperty*>& Properties = Class->GetProperties();
-            
-            // distribution관련 지우기
-            // 그리고 distribution인건 따로 그리기
-            // distribution일 경우 float 수정할수있게 따로 그리기
-            //Properties.Remove()
-            if (!Properties.IsEmpty())
-            {
-                ImGui::SeparatorText(*Class->GetName());
-            }
+        TArray<UParticleModule*> Modules = LODLevel->Modules;
 
-            for (const FProperty* Prop : Properties)
+        int SelectedModuleIndex = UI->GetSelectedModuleIndex();
+        if (SelectedModuleIndex >= 0 && SelectedModuleIndex < Modules.Num())
+        {
+            if (UParticleModule* SelectedModule = Modules[SelectedModuleIndex])
             {
-                UScriptStruct* Struct = std::get<UScriptStruct*>(Prop->TypeSpecificData);
-                if (Struct->IsChildOf(FRawDistributionFloat::StaticStruct()))
+                const UClass* Class = SelectedModule->GetClass();
+                const TArray<FProperty*>& Properties = Class->GetProperties();
+            
+                // distribution관련 지우기
+                // 그리고 distribution인건 따로 그리기
+                // distribution일 경우 float 수정할수있게 따로 그리기
+                //Properties.Remove()
+                if (!Properties.IsEmpty())
                 {
-                    ImGui::SeparatorText(Prop->Name);
-                    FRawDistributionFloat* Distribution = static_cast<FRawDistributionFloat*>(Prop->GetPropertyData(SelectedModule));
-                    RenderDistributionMenu(Distribution, true);
-                    continue;
+                    ImGui::SeparatorText(*Class->GetName());
                 }
-                else if (Struct->IsChildOf(FRawDistributionVector::StaticStruct()))
+
+                for (const FProperty* Prop : Properties)
                 {
-                    ImGui::SeparatorText(Prop->Name);
-                    FRawDistributionVector* Distribution = static_cast<FRawDistributionVector*>(Prop->GetPropertyData(SelectedModule));
-                    RenderDistributionMenu(Distribution, false);
-                    continue;
+                    UScriptStruct* Struct = std::get<UScriptStruct*>(Prop->TypeSpecificData);
+                    if (Struct->IsChildOf(FRawDistributionFloat::StaticStruct()))
+                    {
+                        ImGui::SeparatorText(Prop->Name);
+                        FRawDistributionFloat* Distribution = static_cast<FRawDistributionFloat*>(Prop->GetPropertyData(SelectedModule));
+                        RenderDistributionMenu(Distribution, true);
+                        continue;
+                    }
+                    else if (Struct->IsChildOf(FRawDistributionVector::StaticStruct()))
+                    {
+                        ImGui::SeparatorText(Prop->Name);
+                        FRawDistributionVector* Distribution = static_cast<FRawDistributionVector*>(Prop->GetPropertyData(SelectedModule));
+                        RenderDistributionMenu(Distribution, false);
+                        continue;
+                    }
+                    Prop->DisplayInImGui(SelectedModule);
                 }
-                Prop->DisplayInImGui(SelectedModule);
             }
         }
-    }
 
+    }
     ImGui::End();
 }
 

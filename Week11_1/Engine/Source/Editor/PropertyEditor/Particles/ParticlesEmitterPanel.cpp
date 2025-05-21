@@ -102,7 +102,7 @@ void ParticlesEmitterPanel::Render()
     }
 
     // 3. 테이블 시작
-    if (ImGui::BeginTable("EmitterModules", EmitterModulesSortedArray.Num(), ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+    if (EmitterModulesSortedArray.Num() > 0 && ImGui::BeginTable("EmitterModules", EmitterModulesSortedArray.Num(), ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
     {
         int MaxNumModules = 0;
         for (const EmitterModulesSorted& EmitterModules : EmitterModulesSortedArray)

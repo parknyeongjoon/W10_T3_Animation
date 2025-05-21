@@ -31,6 +31,7 @@
 #include "LaunchEngineLoop.h"
 #include "PlayerCameraManager.h"
 #include "Engine/FBXLoader.h"
+#include "Engine/Asset/AssetManager.h"
 #include "Actors/SkeletalMeshActor.h"
 #include "Animation/Skeleton.h"
 #include "BaseGizmos/TransformGizmo.h"
@@ -673,7 +674,6 @@ void PropertyEditorPanel::Render()
 
     if (PickedActor && PickedComponent && PickedComponent->IsA<UParticleSystemComponent>())
     {
-        
         if (UParticleSystemComponent* ParticleComp = Cast<UParticleSystemComponent>(PickedComponent))
         {
             RenderForParticleSystem(ParticleComp);
@@ -1346,6 +1346,34 @@ void PropertyEditorPanel::RenderCreateMaterialView()
 
 void PropertyEditorPanel::RenderForParticleSystem(UParticleSystemComponent* ParticleSystemComp) const
 {
+    // 현재 UParticleSystem을 선택할 수 있도록 제공
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+    if (ImGui::TreeNodeEx("Particle System", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
+    {
+        ImGui::Text("ParticleSystem");
+        ImGui::SameLine();
+
+        UParticleSystem* ParticleSystem = ParticleSystemComp->Template;
+
+        FName PreviewName = ParticleSystem ? ParticleSystemComp->Template->GetDescriptor().AssetName : FName("None");
+        TMap<FName, UParticleSystem*> Systems = UAssetManager::Get().GetLoadedAssetsByType<UParticleSystem>();
+        if (ImGui::BeginCombo("##ParticleSystems", GetData(PreviewName.ToString()), ImGuiComboFlags_None))
+        {
+            for (const auto System : Systems)
+            {
+                if (ImGui::Selectable(GetData(System.Key.ToString()), false))
+                {
+                    ParticleSystemComp->Template = System.Value;
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        ImGui::TreePop();
+    }
+    ImGui::PopStyleColor();
+
     DrawParticlesPreviewButton(ParticleSystemComp->Template);
 }
 
@@ -1751,28 +1779,35 @@ void PropertyEditorPanel::DrawParticlesPreviewButton(UParticleSystem* ParticleSy
 
         UWorld* World = EditorEngine->CreatePreviewWindow(EditorPreviewParticle);
 
-        // 동일한 UParticleSystem을 사용하는 새로운 액터 생성
-        //const TArray<AActor*> CopiedActors = World->GetActors();
-        //for (AActor* Actor : CopiedActors)
-        //{
-        //    if (Actor->IsA<UTransformGizmo>() || Actor->IsA<APlayerCameraManager>())
-        //    {
-        //        continue;
-        //    }
-        //    Actor->Destroy();
-        //}
-        //World->ClearSelectedActors();
-
-        // TODO : 삭제해야 될 Test 코드
         AActor* TestActor = World->SpawnActor<AActor>();
         UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
-        TestComp->Template = ParticleSystem;
-        TestComp->Activate();
-        //UStaticMeshComponent* TestMeshComp = TestActor->AddComponent<UStaticMeshComponent>(EComponentOrigin::Runtime);
-        //FManagerOBJ::CreateStaticMesh("Assets/Dodge/Dodge.obj");
-        //TestMeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Dodge.obj"));
+        if (ParticleSystem)
+        {
+            TestComp->Template = ParticleSystem;
+            TestComp->Activate();
+            EditorEngine->GetParticlePreviewUI()->AddParticleSytstem(TestComp->Template);
+        }
+        else
+        {
+            TestComp->Activate();
+            EditorEngine->GetParticlePreviewUI()->CreateEmptyParticleSystem(nullptr);
+        }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Create Particle"))
+    {
+        UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+        if (EditorEngine == nullptr)
+        {
+            return;
+        }
 
-        EditorEngine->GetParticlePreviewUI()->AddParticleSytstem(ParticleSystem);
+        UWorld* World = EditorEngine->CreatePreviewWindow(EditorPreviewParticle);
+
+        AActor* TestActor = World->SpawnActor<AActor>();
+        UParticleSystemComponent* TestComp = TestActor->AddComponent<UParticleSystemComponent>(EComponentOrigin::Runtime);
+        EditorEngine->GetParticlePreviewUI()->CreateEmptyParticleSystem(nullptr);
+        TestComp->Activate();
     }
 }
 

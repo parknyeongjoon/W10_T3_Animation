@@ -1,8 +1,8 @@
 #pragma once
 #include "PrimitiveComponent.h"
-#include "UTexture.h"
+#include "Classes/Engine/Texture.h"
 
-struct FTexture;
+class UTexture;
 
 struct FBillboardComponentInfo : public FPrimitiveComponentInfo
 {
@@ -55,7 +55,7 @@ public:
     
     float finalIndexU = 0.0f;
     float finalIndexV = 0.0f;
-    std::shared_ptr<FTexture> Texture;
+    UTexture* Texture;
     
     bool bOnlyForEditor = true;
 

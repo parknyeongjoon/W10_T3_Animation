@@ -130,6 +130,9 @@ void FParticlePreviewUI::CreateEmptyParticleSystem(UObject* InOuter)
 {
     UParticleSystem* NewParticleSystem = FObjectFactory::ConstructObject<UParticleSystem>(InOuter);
     ParticleSystems.Add(NewParticleSystem);
+    FAssetDescriptor desc = NewParticleSystem->GetDescriptor();
+    desc.AssetName = NewParticleSystem->GetFName();
+
     RegisterFlags(NewParticleSystem);
 }
 

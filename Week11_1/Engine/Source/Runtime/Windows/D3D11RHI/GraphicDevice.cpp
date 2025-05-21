@@ -445,10 +445,18 @@ void FGraphicsDevice::Prepare(HWND AppWnd)
 
     FWindowData& ChangedWindowData = SwapChains[AppWnd];
     
-    const auto CurRTV = GetCurrentRenderTargetView();
+    auto CurRTV = GetCurrentRenderTargetView();
     DeviceContext->OMSetRenderTargets(1, &CurRTV, ChangedWindowData.DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
     DeviceContext->ClearRenderTargetView(CurRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
     DeviceContext->ClearDepthStencilView(ChangedWindowData.DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0); // 깊이 버퍼 초기화 추가
+
+    SwapPingPongBuffers();
+    CurRTV = GetCurrentRenderTargetView();
+    DeviceContext->OMSetRenderTargets(1, &CurRTV, ChangedWindowData.DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
+    DeviceContext->ClearRenderTargetView(CurRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
+    DeviceContext->ClearDepthStencilView(ChangedWindowData.DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0); // 깊이 버퍼 초기화 추가
+    SwapPingPongBuffers();
+
 
     DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
 

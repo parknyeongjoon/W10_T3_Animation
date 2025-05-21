@@ -220,7 +220,7 @@ void FParticleRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewp
                         // int32 VertexDynamicParameterStride = sizeof(FParticleVertexDynamicParameter);
                         TArray<std::pair<float, FParticleSpriteVertex>> ParticleVerticesWithDistance;
 
-                        FTexture* Texture = nullptr;
+                        UTexture* Texture = nullptr;
                         
                         float SubImageIndex = 0.0f;
                         
@@ -671,11 +671,11 @@ void FParticleRenderPass::UpdateTextureSizeConstants(int InCountX, int InCountY)
 {
     FRenderResourceManager* renderResourceManager = GEngineLoop.Renderer.GetResourceManager();
     
-    FTextureCountConstants TextureCountConstant;
+    UTextureCountConstants TextureCountConstant;
     TextureCountConstant.CountX = InCountX;
     TextureCountConstant.CountY = InCountY;
 
-    renderResourceManager->UpdateConstantBuffer(TEXT("FTextureCountConstants"), &TextureCountConstant);
+    renderResourceManager->UpdateConstantBuffer(TEXT("UTextureCountConstants"), &TextureCountConstant);
 }
 
 void FParticleRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& MaterialInfo)
@@ -696,8 +696,8 @@ void FParticleRenderPass::UpdateMaterialConstants(const FObjMaterialInfo& Materi
     
     if (MaterialInfo.bHasTexture == true)
     {
-        const std::shared_ptr<FTexture> texture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
-        const std::shared_ptr<FTexture> NormalTexture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.NormalTexturePath);
+        const UTexture* texture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
+        const UTexture* NormalTexture = GEngineLoop.ResourceManager.GetTexture(MaterialInfo.NormalTexturePath);
         if (texture)
         {
             Graphics.DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);

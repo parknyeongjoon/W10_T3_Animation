@@ -403,6 +403,7 @@ void UParticleSystemComponent::UpdateDynamicData()
 
         FDynamicEmitterDataBase* DynamicData = EmitterInstance->GetDynamicData();
 
+        assert(DynamicData);
         EmitterRenderData.Add(DynamicData);
     }
 }

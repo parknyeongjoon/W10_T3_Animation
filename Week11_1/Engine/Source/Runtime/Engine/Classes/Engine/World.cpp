@@ -118,10 +118,10 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
                     }
                 }
             }
+            UAssetManager::Get().SaveAsset(TestParticleSystem, TEXT("Contents/Particles/TestParticle.ttalkak"));
+            TestComp->Activate();
         }
 
-        UAssetManager::Get().SaveAsset(TestParticleSystem, TEXT("Contents/Particles/TestParticle.ttalkak"));
-        TestComp->Activate();
     }
 }
 

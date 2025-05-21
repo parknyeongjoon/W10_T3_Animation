@@ -6,7 +6,7 @@ cbuffer FMatrixSeparatedMVPConstants : register(b0)
     row_major float4x4 InvView;
 };
 
-cbuffer FTextureCountConstants : register(b1)
+cbuffer UTextureCountConstants : register(b1)
 {
     int SubUVCountX;
     int SubUVCountY;
