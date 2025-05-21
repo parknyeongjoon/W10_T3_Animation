@@ -83,7 +83,7 @@ void FFogRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
     }
 }
 
-void FFogRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
+void FFogRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     if (bRender)
     {

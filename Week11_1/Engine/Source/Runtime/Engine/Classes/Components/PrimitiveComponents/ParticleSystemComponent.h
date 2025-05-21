@@ -295,6 +295,7 @@ public:
     UParticleSystem* Template;
     
     //이게 렌더할 때 필요한 데이터 렌더할때 이거 돌면서 렌더
+    //이 데이터가 Emitter가 뿜어낸 모든 Particle
     TArray<FDynamicEmitterDataBase*> EmitterRenderData;
 
 #pragma region hide

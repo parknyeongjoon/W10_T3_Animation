@@ -7,6 +7,7 @@
 #include "Engine/Particles/ParticleHelper.h"
 #include <Engine/Texture.h>
 #include "Classes/Particles/ParticleLODLevel.h"
+#include "ParticleMacros.h"
 
 void FParticleEmitterInstance::Init(int32 InMaxParticles)
 {
@@ -43,11 +44,6 @@ void FParticleEmitterInstance::Release()
     ActiveParticles = 0;
 }
 
-FBaseParticle* FParticleEmitterInstance::GetParticle(int32 Index)
-{
-    return reinterpret_cast<FBaseParticle*>(ParticleData + Index * ParticleStride);
-}
-
 void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, float Increment, const FVector& InitialLocation, const FVector& InitialVelocity)
 {
     if (!CurrentLODLevel) {
@@ -82,7 +78,7 @@ void FParticleEmitterInstance::SpawnParticles(int32 Count, float StartTime, floa
             if (Module)
             {
                 float SpawnTime = StartTime + i * Increment;
-                Module->Spawn(this, /*Offset*/ 0, SpawnTime, /*Interp*/ 1.0f);
+                Module->Spawn(this, /*Offset*/ 0, SpawnTime, /*Interp*/ 1.0f, Particle);
             }
         }
 
@@ -137,6 +133,27 @@ int32 FParticleEmitterInstance::GetSubImageH() const
 int32 FParticleEmitterInstance::GetSubImageV() const
 {
     return RequiredModule ? RequiredModule->SubImagesVertical : 1;
+}
+
+void FParticleEmitterInstance::UpdatParticles(float DeltaTime)
+{
+    for (int32 i = 0; i < ActiveParticles; ++i)
+    {
+        uint8* Address = ParticleData + i * ParticleStride;
+        DECLARE_PARTICLE_PTR(Particle, Address);
+        // FBaseParticle* Particle = GetParticle(i);
+        if (!Particle)
+            continue;
+
+        // 단순 선형 이동: Velocity 기준 위치 이동
+        Particle->Location += Particle->Velocity * DeltaTime;
+
+        // 예시: BaseVelocity를 중력처럼 사용할 경우 (선택)
+        // Particle->Velocity += Particle->BaseVelocity * DeltaTime;
+
+        // OldPosition이 필요한 경우 (모션 벡터, Trail 등)
+        // Particle->OldLocation = Particle->Location;
+    }
 }
 
 // FORCEINLINE static void* FastParticleSmallBlockAlloc(size_t AllocSize)

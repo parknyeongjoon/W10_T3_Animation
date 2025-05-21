@@ -6,7 +6,8 @@
 UParticleModuleRequired::UParticleModuleRequired()
 {
     // 초기값 지정
-    Texture = FEngineLoop::ResourceManager.GetDefaultWhiteTexture().get();
+    Texture = FEngineLoop::ResourceManager.GetTexture(L"Contents/Textures/Particles/hit_2.png").get();
+    //Texture = FEngineLoop::ResourceManager.GetDefaultWhiteTexture().get();
     EmitterOrigin = FVector::ZeroVector;
     EmitterRotation = FRotator::ZeroRotator;
 
@@ -58,11 +59,6 @@ EModuleType UParticleModuleRequired::GetType() const
 }
 
 void UParticleModuleRequired::Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime)
-{
-    // 아무것도 안함
-}
-
-void UParticleModuleRequired::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp)
 {
     // 아무것도 안함
 }

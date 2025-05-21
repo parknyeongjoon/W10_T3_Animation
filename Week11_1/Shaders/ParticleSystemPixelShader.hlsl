@@ -142,6 +142,11 @@ cbuffer FComputeConstants : register(b6){
     int numTilesY;
 }
 
+cbuffer FParticleConstant : register(b7){
+    float ParticleAlpha;
+    float3 ParticlePadding;
+}
+
 struct PS_INPUT
 {
     float4 position : SV_POSITION; // 변환된 화면 좌표
@@ -620,8 +625,11 @@ float CalculateVSMShadow(float3 WorldPos, float3 LightPos, float3 Normal, float3
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
-    output.color = input.color;
+    
+    output.color = Texture.Sample(linearSampler, input.texcoord) * input.color;
 
+    output.color = float4(output.color.xyz, output.color.w * ParticleAlpha);
+    
     output.UUID = UUID;
     //임시 테스트용
     return output;

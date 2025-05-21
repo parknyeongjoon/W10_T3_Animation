@@ -236,6 +236,7 @@ enum class EBlendState
 {
     AlphaBlend,
     OneOne,
+    ParticleBlend,
     End,
 };
 

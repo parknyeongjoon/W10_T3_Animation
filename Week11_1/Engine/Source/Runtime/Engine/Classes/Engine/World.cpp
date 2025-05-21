@@ -23,6 +23,10 @@
 #include <Particles/Modules/ParticleModuleSpawn.h>
 #include "Classes/Particles/ParticleLODLevel.h"
 #include "Particles/Modules/ParticleModuleRequired.h"
+#include <Particles/Modules/ParticleModuleVelocity.h>
+#include <Particles/Modules/ParticleModuleLifetime.h>
+#include <Particles/Modules/ParticleModuleLocation.h>
+#include <Particles/Modules/ParticleModuleSize.h>
 
 void UWorld::InitWorld()
 {
@@ -73,13 +77,23 @@ void UWorld::CreateBaseObject(EWorldType::Type WorldType)
         TestComp->Template = FObjectFactory::ConstructObject<UParticleSystem>(this);
         UParticleEmitter* NewEmitter = FObjectFactory::ConstructObject<UParticleEmitter>(nullptr);
         UParticleLODLevel* NewLODLevel = FObjectFactory::ConstructObject<UParticleLODLevel>(nullptr);
+        
         NewLODLevel->RequiredModule = FObjectFactory::ConstructObject<UParticleModuleRequired>(nullptr);
         NewLODLevel->Modules.Add(NewLODLevel->RequiredModule);
         NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSpawn>(nullptr));
+        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleVelocity>(nullptr));
+        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLifeTime>(nullptr));
+        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleLocation>(nullptr));
+        NewLODLevel->Modules.Add(FObjectFactory::ConstructObject<UParticleModuleSize>(nullptr));
 
         NewEmitter->LODLevels.Add(NewLODLevel);
         TestComp->Template->Emitters.Add(NewEmitter);
         TestComp->Activate();
+
+        for (auto& Module : NewLODLevel->Modules)
+        {
+            Module->InitializeDefaults();
+        }
         
         
         

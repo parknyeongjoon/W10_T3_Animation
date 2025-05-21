@@ -6,6 +6,7 @@
 
 struct FRawDistributionFloat;
 struct FRawDistributionVector;
+struct FBaseParticle;
 
 class UParticleModuleColor : public UParticleModule
 {
@@ -27,7 +28,9 @@ public:
 
     virtual void InitializeDefaults() override;
 
-    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp) override;
+    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp, FBaseParticle* ParticleBase) override;
+
+    virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime);
 
     virtual EModuleType GetType() const override;
 };

@@ -32,7 +32,6 @@
 struct FRawDistribution
 {
     DECLARE_STRUCT(FRawDistribution)
-
     //UPROPERTY(
     //    FDistributionLookupTable,
     //    Table

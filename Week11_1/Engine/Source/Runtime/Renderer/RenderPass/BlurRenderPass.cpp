@@ -51,7 +51,7 @@ void FBlurRenderPass::Prepare(std::shared_ptr<FViewportClient> InViewportClient)
     }
 }
 
-void FBlurRenderPass::Execute(std::shared_ptr<FViewportClient> InViewportClient)
+void FBlurRenderPass::Execute(const std::shared_ptr<FViewportClient> InViewportClient)
 {
     FGraphicsDevice& Graphics = GEngineLoop.GraphicDevice;
 
