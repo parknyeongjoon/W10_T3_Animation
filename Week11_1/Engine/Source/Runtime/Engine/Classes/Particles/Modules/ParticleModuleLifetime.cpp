@@ -2,12 +2,14 @@
 #include "Runtime/Engine/Particles/ParticleEmitterInstances.h"
 #include <Particles/ParticleMacros.h>
 #include "Core/Math/RandomStream.h"
+#include "Particles/Modules/ParticleModuleDefaults.h"
+
 void UParticleModuleLifeTime::InitializeDefaults()
 {
     // FIXME : 테스트용 uniform 타입 생성 기본값으로 변경.
     UDistributionFloatUniform* DefaultDistribution = FObjectFactory::ConstructObject<UDistributionFloatUniform>(nullptr);
-    DefaultDistribution->MinValue = 0.0f;
-    DefaultDistribution->MaxValue = 30.0f;
+    DefaultDistribution->MinValue = ParticleModuleDefaults::Lifetime::Min;
+    DefaultDistribution->MaxValue = ParticleModuleDefaults::Lifetime::Max;
     Lifetime.Distribution = DefaultDistribution;
 }
 

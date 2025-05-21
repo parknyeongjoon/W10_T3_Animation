@@ -1,5 +1,6 @@
 #pragma once
 #include <Math/Rotator.h>
+#include <Distributions/DistributionFloat.h>
 namespace ParticleModuleDefaults
 {
     struct Required
@@ -17,8 +18,9 @@ namespace ParticleModuleDefaults
 
     struct Spawn
     {
-        static constexpr float Rate = 1.0f;
+        static constexpr float Rate = 10.0f;
         static constexpr float RateScale = 1.0f;
+        
     };
 
     struct Velocity

@@ -3,13 +3,15 @@
 #include "Distributions/DistributionVector.h"
 #include "Particles/ParticleEmitterInstances.h"
 #include <Particles/ParticleMacros.h>
+#include "Particles/Modules/ParticleModuleDefaults.h"
+
 UParticleModuleVelocity::UParticleModuleVelocity()
 {
     StartVelocity.Distribution = new UDistributionVectorConstant();
-    static_cast<UDistributionVectorConstant*>(StartVelocity.Distribution)->Constant = FVector(10.f, 0.f, 0.f);
+    static_cast<UDistributionVectorConstant*>(StartVelocity.Distribution)->Constant = ParticleModuleDefaults::Velocity::LinearVelocity;
 
     StartVelocityRadial.Distribution = new UDistributionFloatConstant();
-    static_cast<UDistributionFloatConstant*>(StartVelocityRadial.Distribution)->SetValue(0.0f);
+    static_cast<UDistributionFloatConstant*>(StartVelocityRadial.Distribution)->SetValue(ParticleModuleDefaults::Velocity::RadialVelocity);
 }
 
 void UParticleModuleVelocity::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp, FBaseParticle* ParticleBase)

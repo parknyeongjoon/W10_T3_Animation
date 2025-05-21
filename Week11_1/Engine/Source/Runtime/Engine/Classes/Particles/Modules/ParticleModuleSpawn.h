@@ -36,7 +36,7 @@ public:
     )
 
     // == Burst 관련 ==
-
+    // FIXME : Burst 관련 구현 중단.
     TArray<FBurstInfo> BurstList;
 
 

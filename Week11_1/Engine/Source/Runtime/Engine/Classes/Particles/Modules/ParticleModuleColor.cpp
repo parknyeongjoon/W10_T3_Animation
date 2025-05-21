@@ -1,6 +1,7 @@
 #include "ParticleModuleColor.h"
 #include <Particles/ParticleMacros.h>
 #include "Runtime/Engine/Particles/ParticleEmitterInstances.h"
+#include "ParticleModuleDefaults.h"
 
 void UParticleModuleColor::InitializeDefaults()
 {
@@ -19,8 +20,8 @@ void UParticleModuleColor::InitializeDefaults()
     //StartColor.StartColor = FVector(1.0f, 1.0f, 1.0f);
 
     UDistributionVectorUniform* DefaultDistributionVector = FObjectFactory::ConstructObject<UDistributionVectorUniform>(nullptr);
-    DefaultDistributionVector->MinValue = FVector::ZeroVector;
-    DefaultDistributionVector->MaxValue = FVector::OneVector;
+    DefaultDistributionVector->MinValue = ParticleModuleDefaults::Color::MinColor;
+    DefaultDistributionVector->MaxValue = ParticleModuleDefaults::Color::MaxColor;;
     StartColor.Distribution = DefaultDistributionVector;
 }
 
