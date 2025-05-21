@@ -10,6 +10,7 @@
 #include "Particles/Modules/ParticleModule.h"
 #include <Particles/Modules/ParticleModuleSpawn.h>
 #include "Particles/Modules/ParticleModuleRequired.h"
+#include <Particles/ParticleMacros.h>
 bool GIsAllowingParticles = true;
 
 UParticleSystemComponent::UParticleSystemComponent()
@@ -1063,7 +1064,7 @@ void UParticleSystemComponent::SpawnAllEmitters()
             for (UParticleModule* Module : Instance->CurrentLODLevel->SpawnModules)
             {
                 // TODO : SpawnTime, Interp 관련 시간 보간 추후 확인 필요. 
-                Module->Spawn(Instance, /*Offset*/ 0, /*SpawnTime*/ 0.0f, /*Interp*/ 1.0f);
+                //Module->Spawn(Instance, /*Offset*/ 0, /*SpawnTime*/ 0.0f, /*Interp*/ 1.0f, );
             }
         }
 
@@ -1093,7 +1094,7 @@ void UParticleSystemComponent::UpdateAllEmitters(float DeltaTime)
         {
             // 실제 파티클 생성
             // TODO : 위치 모듈과 연동
-            FVector InitLocation = FVector::ZeroVector;
+            FVector InitLocation = Instance->GetEmitterOrigin();
             // TODO : 속도 모듈과 연동
             FVector InitVelocity = FVector::ZeroVector;
             Instance->SpawnParticles(SpawnCount, /*StartTime*/ 0.0f, /*Increment*/0.0f, InitLocation, InitVelocity);

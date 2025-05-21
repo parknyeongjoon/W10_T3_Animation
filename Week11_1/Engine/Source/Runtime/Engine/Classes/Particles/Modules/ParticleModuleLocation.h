@@ -3,6 +3,7 @@
 #include "ParticleModule.h"
 #include "Classes/Distributions/DistributionVector.h"
 
+struct FBaseParticle;
 class UParticleModuleLocation : public UParticleModule
 {
     DECLARE_CLASS(UParticleModuleLocation, UParticleModule)
@@ -21,6 +22,6 @@ public:
 
     virtual void Update(FParticleEmitterInstance* Owner, int32 Offset, float DeltaTime);
 
-    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp);
+    virtual void Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp, FBaseParticle* ParticleBase) override;
     virtual EModuleType GetType() const override;
 };

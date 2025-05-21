@@ -63,11 +63,6 @@ void UParticleModuleRequired::Update(FParticleEmitterInstance* Owner, int32 Offs
     // 아무것도 안함
 }
 
-void UParticleModuleRequired::Spawn(FParticleEmitterInstance* Owner, int32 Offset, float SpawnTime, float Interp)
-{
-    // 아무것도 안함
-}
-
 void UParticleModuleRequired::PostEditChangeProperty()
 {
     if (SubImagesHorizontal <= 0) SubImagesHorizontal = 1;
